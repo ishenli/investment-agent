@@ -1,0 +1,1 @@
+ALTER TABLE `agent` ADD `slug` text NOT NULL;

@@ -1,0 +1,638 @@
+openapi: 3.0.0
+info:
+  title: AI 仓位管理器 API
+  description: 用于管理投资组合风险洞察和分散建议的 API
+  version: 1.0.0
+
+servers:
+  - url: /api/position
+
+paths:
+  /portfolio:
+    get:
+      summary: 获取用户投资组合概览
+      operationId: getPortfolioOverview
+      responses:
+        '200':
+          description: 投资组合概览获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortfolioOverviewResponse'
+        '404':
+          description: 投资组合未找到
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 内部服务器错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    
+    post:
+      summary: 创建或更新用户投资组合
+      operationId: updatePortfolio
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePortfolioRequest'
+      responses:
+        '200':
+          description: 投资组合更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortfolioOverviewResponse'
+        '400':
+          description: 请求数据无效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 内部服务器错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /portfolio/risk-insights:
+    get:
+      summary: 获取最新的风险洞察
+      operationId: getRiskInsights
+      parameters:
+        - name: timestamp
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: 风险洞察获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RiskInsightsResponse'
+        '404':
+          description: 风险洞察未找到
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 内部服务器错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /portfolio/risk-history:
+    get:
+      summary: 获取历史风险评分数据
+      operationId: getRiskHistory
+      parameters:
+        - name: days
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 7
+            maximum: 30
+      responses:
+        '200':
+          description: 历史风险数据获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RiskHistoryResponse'
+        '404':
+          description: 历史风险数据未找到
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 内部服务器错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /portfolio/diversification-suggestions:
+    get:
+      summary: 获取分散投资建议
+      operationId: getDiversificationSuggestions
+      responses:
+        '200':
+          description: 分散投资建议获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiversificationSuggestionsResponse'
+        '404':
+          description: 未找到适用的建议
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 内部服务器错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    
+    post:
+      summary: 生成新的分散投资建议
+      operationId: generateDiversificationSuggestions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateSuggestionsRequest'
+      responses:
+        '201':
+          description: 分散投资建议生成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiversificationSuggestionsResponse'
+        '400':
+          description: 请求数据无效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 内部服务器错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /portfolio/diversification-suggestions/{suggestionId}/accept:
+    post:
+      summary: 接受分散投资建议
+      operationId: acceptDiversificationSuggestion
+      parameters:
+        - name: suggestionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 建议接受成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptSuggestionResponse'
+        '404':
+          description: 建议未找到
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 内部服务器错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /settings/risk-mode:
+    get:
+      summary: 获取当前风险评估模式
+      operationId: getRiskMode
+      responses:
+        '200':
+          description: 风险评估模式获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RiskModeResponse'
+        '500':
+          description: 内部服务器错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    
+    put:
+      summary: 更新风险评估模式
+      operationId: updateRiskMode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRiskModeRequest'
+      responses:
+        '200':
+          description: 风险评估模式更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RiskModeResponse'
+        '400':
+          description: 请求数据无效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 内部服务器错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    PortfolioOverviewResponse:
+      type: object
+      required:
+        - id
+        - userId
+        - totalValue
+        - riskLevel
+        - lastUpdated
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        totalValue:
+          type: number
+        totalNonCashValue:
+          type: number
+        cashValue:
+          type: number
+        concentrationRiskScore:
+          type: number
+          minimum: 0
+          maximum: 100
+        correlationRiskScore:
+          type: number
+          minimum: 0
+          maximum: 100
+        liquidityRiskScore:
+          type: number
+          minimum: 0
+          maximum: 100
+        allocationRiskScore:
+          type: number
+          minimum: 0
+          maximum: 100
+        overallRiskScore:
+          type: number
+          minimum: 0
+          maximum: 100
+        riskLevel:
+          type: string
+          enum: [low, medium, high]
+        lastUpdated:
+          type: string
+          format: date-time
+        riskMode:
+          type: string
+          enum: [retail, advanced]
+
+    UpdatePortfolioRequest:
+      type: object
+      required:
+        - positions
+      properties:
+        positions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PositionUpdate'
+
+    PositionUpdate:
+      type: object
+      required:
+        - symbol
+        - quantity
+        - averageCost
+      properties:
+        symbol:
+          type: string
+        quantity:
+          type: number
+        averageCost:
+          type: number
+
+    RiskInsightsResponse:
+      type: object
+      required:
+        - id
+        - portfolioId
+        - timestamp
+        - concentrationData
+        - allocationData
+        - correlationData
+        - liquidityData
+        - strategySuggestions
+      properties:
+        id:
+          type: string
+        portfolioId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        concentrationData:
+          $ref: '#/components/schemas/ConcentrationData'
+        allocationData:
+          $ref: '#/components/schemas/AllocationData'
+        correlationData:
+          $ref: '#/components/schemas/CorrelationData'
+        liquidityData:
+          $ref: '#/components/schemas/LiquidityData'
+        strategySuggestions:
+          type: array
+          items:
+            type: string
+
+    ConcentrationData:
+      type: object
+      required:
+        - topAssets
+        - singleAssetThreshold
+        - concentrationAlerts
+      properties:
+        topAssets:
+          type: array
+          items:
+            $ref: '#/components/schemas/TopAsset'
+        singleAssetThreshold:
+          type: number
+        concentrationAlerts:
+          type: array
+          items:
+            type: string
+
+    TopAsset:
+      type: object
+      required:
+        - symbol
+        - name
+        - weight
+      properties:
+        symbol:
+          type: string
+        name:
+          type: string
+        weight:
+          type: number
+
+    AllocationData:
+      type: object
+      required:
+        - categoryAllocation
+        - allocationAlerts
+      properties:
+        categoryAllocation:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryAllocation'
+        allocationAlerts:
+          type: array
+          items:
+            type: string
+
+    CategoryAllocation:
+      type: object
+      required:
+        - category
+        - weight
+      properties:
+        category:
+          type: string
+        weight:
+          type: number
+
+    CorrelationData:
+      type: object
+      required:
+        - correlationMatrix
+        - highCorrelationPairs
+        - correlationAlerts
+      properties:
+        correlationMatrix:
+          type: array
+          items:
+            type: array
+            items:
+              type: number
+        highCorrelationPairs:
+          type: array
+          items:
+            $ref: '#/components/schemas/CorrelationPair'
+        correlationAlerts:
+          type: array
+          items:
+            type: string
+
+    CorrelationPair:
+      type: object
+      required:
+        - asset1
+        - asset2
+        - correlation
+      properties:
+        asset1:
+          type: string
+        asset2:
+          type: string
+        correlation:
+          type: number
+
+    LiquidityData:
+      type: object
+      required:
+        - liquidityScores
+        - liquidityAlerts
+      properties:
+        liquidityScores:
+          type: array
+          items:
+            $ref: '#/components/schemas/LiquidityScore'
+        liquidityAlerts:
+          type: array
+          items:
+            type: string
+
+    LiquidityScore:
+      type: object
+      required:
+        - symbol
+        - score
+      properties:
+        symbol:
+          type: string
+        score:
+          type: number
+
+    RiskHistoryResponse:
+      type: object
+      required:
+        - history
+      properties:
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/RiskHistoryRecord'
+
+    RiskHistoryRecord:
+      type: object
+      required:
+        - date
+        - concentrationRiskScore
+        - correlationRiskScore
+        - liquidityRiskScore
+        - allocationRiskScore
+        - overallRiskScore
+      properties:
+        date:
+          type: string
+          format: date
+        concentrationRiskScore:
+          type: number
+          minimum: 0
+          maximum: 100
+        correlationRiskScore:
+          type: number
+          minimum: 0
+          maximum: 100
+        liquidityRiskScore:
+          type: number
+          minimum: 0
+          maximum: 100
+        allocationRiskScore:
+          type: number
+          minimum: 0
+          maximum: 100
+        overallRiskScore:
+          type: number
+          minimum: 0
+          maximum: 100
+
+    DiversificationSuggestionsResponse:
+      type: object
+      required:
+        - id
+        - portfolioId
+        - generatedAt
+        - totalAmount
+        - recommendations
+        - rationale
+      properties:
+        id:
+          type: string
+        portfolioId:
+          type: string
+        generatedAt:
+          type: string
+          format: date-time
+        totalAmount:
+          type: number
+        recommendations:
+          type: array
+          items:
+            $ref: '#/components/schemas/SuggestionItem'
+        rationale:
+          type: string
+        isAccepted:
+          type: boolean
+        acceptedAt:
+          type: string
+          format: date-time
+
+    SuggestionItem:
+      type: object
+      required:
+        - assetId
+        - assetSymbol
+        - assetName
+        - amount
+        - correlation
+        - liquidityScore
+        - reason
+      properties:
+        assetId:
+          type: string
+        assetSymbol:
+          type: string
+        assetName:
+          type: string
+        amount:
+          type: number
+        correlation:
+          type: number
+        liquidityScore:
+          type: number
+        reason:
+          type: string
+
+    GenerateSuggestionsRequest:
+      type: object
+      required:
+        - portfolioId
+      properties:
+        portfolioId:
+          type: string
+        triggerReason:
+          type: string
+          enum: [concentration_alert, manual_request]
+
+    AcceptSuggestionResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+
+    RiskModeResponse:
+      type: object
+      required:
+        - mode
+      properties:
+        mode:
+          type: string
+          enum: [retail, advanced]
+
+    UpdateRiskModeRequest:
+      type: object
+      required:
+        - mode
+      properties:
+        mode:
+          type: string
+          enum: [retail, advanced]
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - code
+        - message
+      properties:
+        success:
+          type: boolean
+          example: false
+        code:
+          type: string
+        message:
+          type: string

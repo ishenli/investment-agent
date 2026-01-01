@@ -1,0 +1,1 @@
+ALTER TABLE `asset_meta` RENAME COLUMN "timestamp" TO "created_at";

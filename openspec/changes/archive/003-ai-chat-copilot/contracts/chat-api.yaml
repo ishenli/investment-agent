@@ -1,0 +1,441 @@
+openapi: 3.0.3
+info:
+  title: CopilotKit AI 投资决策对话
+  description: 通过CopilotKit和LangGraph实现的零配置AI投资对话系统，复用现有交易代理网络
+  version: 1.0.0
+  contact:
+    name: CopilotKit Integration Team
+    email: support@investment-agent.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000/api/copilotkit
+    description: CopilotKit端点，复用现有
+  - url: https://api.investment-agent.com/copilotkit
+    description: CopilotKit生产端点
+
+security:
+  - BearerAuth: []
+
+paths:
+  /chat/conversation:
+    post:
+      summary: 发送对话消息
+      description: 用户发送投资相关的自然语言问题，AI助手提供个性化专业建议
+      tags:
+        - Chat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+            examples:
+              basicQuery:
+                summary: 基础市场查询
+                value:
+                  message: "请问银行股现在适合买入吗？我是谨慎投资者"
+              personalizedQuery:
+                summary: 个性化持仓咨询
+                value:
+                  message: "我持仓的科技股最近风险高吗？"
+                  sessionId: "uuid-12345"
+                  userPreferences:
+                    includePositions: true
+                    timeframe: "long_term"
+      responses:
+        '200':
+          description: 成功处理对话请求
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+              examples:
+                success:
+                  value:
+                    sessionId: "550e8400-e29b-41d4-a716-446655440000"
+                    response:
+                      text: "根据您作为谨慎投资者的风险承受能力，我为您分析了银行板块..."
+                      suggestions:
+                        - type: "stock"
+                          symbol: "ICBC"
+                          name: "工商银行"
+                          reason: "零售业务稳健，分红率稳定在5%以上"
+                        - type: "risk_warning"
+                          title: "投资建议仅为参考"
+                          message: "以上分析基于AI模型，不构成具体投资决策"
+                      dataSources:
+                        - source: "实时股价"
+                          provider: "FinnHub API"
+                          timestamp: "2025-10-16T15:30:00Z"
+                    metadata:
+                      confidence: 0.92
+                      tookMs: 850
+                      entities: ["银行业", "工商银行", "长期投资"]
+                      personalized: true
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          description: 请求频率限制
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "RATE_LIMIT_EXCEEDED"
+                message: "对话频率过高，请稍后再试"
+
+  /chat/sessions:
+    get:
+      summary: 获取用户会话历史
+      description: 获取用户所有的AI对话会话列表，支持分页和状态筛选
+      tags:
+        - Sessions
+      parameters:
+        - name: limit
+          in: query
+          description: 返回记录数限制
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: 分页偏移量
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: status
+          in: query
+          description: 会话状态筛选
+          required: false
+          schema:
+            type: string
+            enum: [active, paused, ended, all]
+            default: all
+      responses:
+        '200':
+          description: 会话列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionsResponse'
+              example:
+                sessions:
+                  - id: "550e8400-e29b-41d4-a716-446655440000"
+                    createdAt: "2025-10-16T08:00:00Z"
+                    updatedAt: "2025-10-16T09:30:00Z"
+                    status: "active"
+                    lastMessagePreview: "银行股投资建议"
+                    totalMessages: 8
+                    riskLevel: 3
+                pagination:
+                  total: 15
+                  limit: 20
+                  offset: 0
+
+  /chat/sessions/{sessionId}/messages:
+    get:
+      summary: 获取会话消息详情
+      description: 获取指定会话的完整对话历史
+      tags:
+        - Messages
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: 会话ID
+      responses:
+        '200':
+          description: 会话消息列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationDetail'
+              example:
+                sessionInfo:
+                  id: "550e8400-e29b-41d4-a716-446655440000"
+                  createdAt: "2025-10-16T08:00:00Z"
+                messages:
+                  - id: "msg-1"
+                    role: "user"
+                    content: "请问银行股现在适合买入吗？"
+                    timestamp: "2025-10-16T08:00:01Z"
+                    intent: "stock_recommendation"
+                  - id: "msg-2"  
+                    role: "assistant"
+                    content: "基于您谨慎投资风格..."
+                    timestamp: "2025-10-16T08:00:03Z"
+                    confidence: 0.92
+
+  /chat/sessions/{sessionId}:
+    delete:
+      summary: 删除会话记录
+      description: 用户删除特定会话及所有关联消息（符合GDPR要求）
+      tags:
+        - Sessions
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: 删除成功
+        '404':
+          description: 会话不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "SESSION_NOT_FOUND"
+                message: "指定会话记录不存在"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ChatRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          minLength: 2
+          maxLength: 1000
+          description: 用户的自然语言投资问题
+          example: "请问工商银行这支股票现在值得投资吗？"
+        sessionId:
+          type: string
+          format: uuid
+          description: 现有会话ID（可选，用于继续对话）
+        userPreferences:
+          type: object
+          properties:
+            includePositions:
+              type: boolean
+              default: false
+              description: 是否结合用户持仓数据
+            timeframe:
+              type: string
+              enum: [short_term, medium_term, long_term]
+              description: 投资时间框架偏好
+            riskLevel:
+              type: string
+              enum: [conservative, moderate, aggressive]
+              description: 风险偏好覆盖（如需要）
+
+    ChatResponse:
+      type: object
+      required:
+        - sessionId
+        - response
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+        response:
+          type: object
+          properties:
+            text:
+              type: string
+              description: AI的完整投资分析回答
+            suggestions:
+              type: array
+              items:
+                $ref: '#/components/schemas/InvestmentSuggestion'
+            riskWarning:
+              type: string
+              description: 投资风险提示
+            dataSources:
+              type: array
+              items:
+                $ref: '#/components/schemas/DataSource'
+        metadata:
+          type: object
+          properties:
+            confidence:
+              type: number
+              format: float
+              minimum: 0.0
+              maximum: 1.0
+              description: AI对回答有效性的置信度
+            tookMs:
+              type: integer
+              description: 处理耗时毫秒
+            entities:
+              type: array
+              items:
+                type: string
+              description: 识别出的关键实体
+            personalized:
+              type: boolean
+              description: 是否使用了个性化数据
+
+    InvestmentSuggestion:
+      type: object
+      oneOf:
+        - properties:
+            type:
+              type: string
+              enum: [stock]
+            symbol:
+              type: string
+              description: 股票代码
+            name:
+              type: string
+              description: 股票名称
+            reason:
+              type: string
+              description: 推荐理由
+        - properties:
+            type:
+              type: string
+              enum: [risk_warning]
+            title:
+              type: string
+              description: 风险提示标题
+            message:
+              type: string
+              description: 风险提示内容
+
+    DataSource:
+      type: object
+      required:
+        - source
+        - provider
+        - timestamp
+      properties:
+        source:
+          type: string
+          description: 数据来源描述
+        provider:
+          type: string
+          description: 数据提供商
+        timestamp:
+          type: string
+          format: date-time
+          description: 数据时间戳
+
+    SessionsResponse:
+      type: object
+      properties:
+        sessions:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              createdAt:
+                type: string
+                format: date-time
+              updatedAt:
+                type: string
+                format: date-time
+              status:
+                type: string
+                enum: [active, paused, ended]
+              lastMessagePreview:
+                type: string
+              totalMessages:
+                type: integer
+              riskLevel:
+                type: integer
+                minimum: 0
+                maximum: 10
+        pagination:
+          type: object
+          properties:
+            total:
+              type: integer
+            limit:
+              type: integer
+            offset:
+              type: integer
+
+    ConversationDetail:
+      type: object
+      properties:
+        sessionInfo:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            createdAt:
+              type: string
+              format: date-time
+        messages:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              role:
+                type: string
+                enum: [user, assistant, system, tool]
+              content:
+                type: string
+              timestamp:
+                type: string
+                format: date-time
+              intent:
+                type: string
+              confidence:
+                type: number
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: 错误代码
+        message:
+          type: string
+          description: 人类可读错误消息
+        details:
+          type: object
+          additionalProperties: true
+
+  responses:
+    ValidationError:
+      description: 请求参数验证错误
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "VALIDATION_ERROR"
+            message: "消息长度超过限制"
+
+    Unauthorized:
+      description: 未授权访问
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "UNAUTHORIZED"
+            message: "需要有效身份验证"

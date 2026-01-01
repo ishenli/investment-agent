@@ -1,0 +1,61 @@
+# 依赖和构建输出
+node_modules/
+dist/
+.next/
+.node/
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+
+# 日志文件
+*.log
+logs/
+
+# 环境变量文件
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 缓存目录
+.cache/
+.temp/
+.tmp/
+
+# 操作系统生成的文件
+.DS_Store
+Thumbs.db
+
+# IDE和编辑器文件
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 特定的配置和生成文件
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# Bakery 特定文件
+.bakery/
+
+# 测试覆盖率报告
+coverage/
+
+# 静态资源（如果不需要格式化）
+public/
+
+# 迁移和模板文件
+src/database/migrations/
+bakery-studio-template.db
+
+# 特定的 JavaScript 文件（如果需要保持原格式）
+scripts/*.cjs 
+
+*.md
+src/app/components/ai-elements/
+src/app/components/ui/

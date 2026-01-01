@@ -1,0 +1,1 @@
+ALTER TABLE `asset_meta` ADD `investment_memo` text;

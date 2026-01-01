@@ -1,0 +1,500 @@
+openapi: 3.0.0
+info:
+  title: 资产管理 API
+  description: 用于管理金融资产的 API，包括交易账户、持仓、交易和业绩指标
+  version: 1.0.0
+
+servers:
+  - url: /api/asset
+
+paths:
+  /account:
+    post:
+      summary: 创建新的交易账户
+      operationId: createTradingAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTradingAccountRequest'
+      responses:
+        '201':
+          description: 交易账户创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TradingAccountResponse'
+        '400':
+          description: 请求数据无效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 用户未找到
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 内部服务器错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /account/{accountId}:
+    get:
+      summary: 获取交易账户详情
+      operationId: getTradingAccount
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 交易账户详情获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TradingAccountResponse'
+        '404':
+          description: 交易账户未找到
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 内部服务器错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    
+    put:
+      summary: 更新交易账户设置
+      operationId: updateTradingAccount
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTradingAccountRequest'
+      responses:
+        '200':
+          description: 交易账户更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TradingAccountResponse'
+        '400':
+          description: 请求数据无效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 交易账户未找到
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 内部服务器错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /account/{accountId}/balance:
+    get:
+      summary: 获取交易账户余额
+      operationId: getAccountBalance
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 交易账户余额获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+        '404':
+          description: 交易账户未找到
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 内部服务器错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /account/{accountId}/transactions:
+    get:
+      summary: 获取交易历史
+      operationId: getTransactionHistory
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: 交易历史获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionHistoryResponse'
+        '404':
+          description: 交易账户未找到
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 内部服务器错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /account/{accountId}/positions:
+    get:
+      summary: 获取当前持仓
+      operationId: getCurrentPositions
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 当前持仓获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PositionsResponse'
+        '404':
+          description: 交易账户未找到
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 内部服务器错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /account/{accountId}/revenue:
+    get:
+      summary: 获取业绩指标
+      operationId: getrevenueMetrics
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: period
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [7d, 30d, 90d, 1y, all]
+            default: 30d
+      responses:
+        '200':
+          description: 业绩指标获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/revenueResponse'
+        '404':
+          description: 交易账户未找到
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 内部服务器错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    CreateTradingAccountRequest:
+      type: object
+      required:
+        - userId
+        - initialDeposit
+      properties:
+        userId:
+          type: string
+        initialDeposit:
+          type: number
+          minimum: 0
+        accountName:
+          type: string
+          maxLength: 50
+        market:
+          type: string
+          enum: [A股, 美股]
+          default: 美股
+        leverage:
+          type: number
+          minimum: 1
+          maximum: 100
+          default: 1
+
+    UpdateTradingAccountRequest:
+      type: object
+      properties:
+        accountName:
+          type: string
+          maxLength: 50
+        market:
+          type: string
+          enum: [A股, 美股]
+        leverage:
+          type: number
+          minimum: 1
+          maximum: 100
+
+    TradingAccountResponse:
+      type: object
+      required:
+        - id
+        - userId
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        accountName:
+          type: string
+        balance:
+          type: number
+        currency:
+          type: string
+        leverage:
+          type: number
+        market:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        isActive:
+          type: boolean
+
+    BalanceResponse:
+      type: object
+      required:
+        - balance
+        - currency
+      properties:
+        balance:
+          type: number
+        currency:
+          type: string
+
+    TransactionHistoryResponse:
+      type: object
+      required:
+        - transactions
+        - totalCount
+      properties:
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+        totalCount:
+          type: integer
+
+    Transaction:
+      type: object
+      required:
+        - id
+        - type
+        - amount
+        - balanceAfter
+        - createdAt
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [deposit, withdrawal, trade]
+        amount:
+          type: number
+        balanceAfter:
+          type: number
+        description:
+          type: string
+        referenceId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    PositionsResponse:
+      type: object
+      required:
+        - positions
+      properties:
+        positions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Position'
+
+    Position:
+      type: object
+      required:
+        - id
+        - symbol
+        - quantity
+        - averageCost
+        - currentPrice
+        - marketValue
+        - unrealizedPnL
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+        symbol:
+          type: string
+        quantity:
+          type: number
+        averageCost:
+          type: number
+        currentPrice:
+          type: number
+        marketValue:
+          type: number
+        unrealizedPnL:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    revenueResponse:
+      type: object
+      required:
+        - metrics
+      properties:
+        metrics:
+          $ref: '#/components/schemas/revenueMetrics'
+
+    revenueMetrics:
+      type: object
+      required:
+        - periodStart
+        - periodEnd
+        - totalReturn
+        - unrealizedGainLoss
+        - annualizedReturn
+        - volatility
+        - sharpeRatio
+        - maxDrawdown
+        - winRate
+        - totalTrades
+        - profitableTrades
+        - createdAt
+      properties:
+        periodStart:
+          type: string
+          format: date-time
+          description: 业绩周期开始时间
+        periodEnd:
+          type: string
+          format: date-time
+          description: 业绩周期结束时间
+        totalReturn:
+          type: number
+          description: 总收益率百分比，计算公式为 (期末账户价值 - 期初账户价值) / 期初账户价值 × 100%
+        unrealizedGainLoss:
+          type: number
+          description: 浮动盈亏百分比，未卖出股票的当前市值与成本之差占总投资的百分比
+        annualizedReturn:
+          type: number
+          description: 年化收益率百分比，计算公式为 (1 + 总收益率)^(365 / 投资天数) - 1
+        volatility:
+          type: number
+          description: 波动率百分比，衡量收益率的标准差，年化波动率 = 日波动率 × √252
+        sharpeRatio:
+          type: number
+          description: 夏普比率，衡量单位风险获得的超额收益，计算公式为 (年化收益率 - 无风险利率) / 年化波动率，默认无风险利率为2%
+        maxDrawdown:
+          type: number
+          description: 最大回撤百分比，衡量投资期间从峰值到谷值的最大跌幅
+        winRate:
+          type: number
+          description: 胜率百分比，计算公式为 盈利交易次数 / 总交易次数 × 100%
+        totalTrades:
+          type: integer
+          description: 总交易次数
+        profitableTrades:
+          type: integer
+          description: 盈利交易次数
+        createdAt:
+          type: string
+          format: date-time
+          description: 指标计算时间戳
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - code
+        - message
+      properties:
+        success:
+          type: boolean
+          example: false
+        code:
+          type: string
+        message:
+          type: string
