@@ -13,7 +13,6 @@ const SettingKeySchema = z.enum([
   'FINNHUB_API_KEY',
   'LANGSMITH_API_KEY',
   'FINANCIAL_DATASETS_KEY',
-  'ALLTICK_API_KEY',
   'TAVILY_API_KEY',
 ]);
 

@@ -66,7 +66,7 @@ class AssetPriceController extends BaseController {
   }
 
   /**
-   * 通过AllTick API获取资产的最新价格
+   * 通过Tencent API获取资产的最新价格
    * @param request HTTP请求对象
    * @returns 资产价格信息
    */

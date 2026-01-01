@@ -82,7 +82,7 @@
 
 ```env
 # LLM 配置
-MODEL_PROVIDER_URL=openai compatible api url
+MODEL_PROVIDER_URL=your_openai_compatible_api_url
 MODEL_PROVIDER_API_KEY=your_api_key
 SESSION_USER_ID=your_user_id
 
@@ -92,7 +92,6 @@ FINNHUB_API_KEY=your_finnhub_api_key
 # 其他 API 密钥
 LANGSMITH_API_KEY=your_langsmith_api_key
 FINANCIAL_DATASETS_KEY=your_financial_datasets_key
-ALLTICK_API_KEY=your_alltick_api_key
 ```
 
 ## 数据库功能
