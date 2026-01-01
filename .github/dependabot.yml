@@ -1,0 +1,36 @@
+version: 2
+updates:
+  # 管理 npm 依赖
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "09:00"
+      timezone: "Asia/Shanghai"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "ishenli"
+    assignees:
+      - "ishenli"
+    labels:
+      - "dependencies"
+      - "npm"
+    versioning-strategy: "increase"
+    
+  # 管理 GitHub Actions 依赖
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "09:00"
+      timezone: "Asia/Shanghai"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "ishenli"
+    assignees:
+      - "ishenli"
+    labels:
+      - "github-actions"
+      - "dependencies"

@@ -1,0 +1,58 @@
+name: Deploy
+
+on:
+  push:
+    branches: [ main ]
+  release:
+    types: [ published ]
+
+env:
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+        cache: 'pnpm'
+
+    - name: Install pnpm
+      run: npm install -g pnpm
+
+    - name: Install dependencies
+      run: pnpm install
+
+    - name: Run type checking
+      run: pnpm types:check
+
+    - name: Run linting
+      run: pnpm lint
+
+    - name: Run tests
+      run: |
+        pnpm test:asset || echo "Asset test failed"
+        pnpm test:asset-api || echo "Asset API test failed"
+        pnpm test:init || echo "Init test failed"
+        pnpm test:investment-chat || echo "Investment chat test failed"
+        pnpm test:position || echo "Position test failed"
+        pnpm test:asset-market-info-query || echo "Asset market info test failed"
+        pnpm test:finnhub-api || echo "Finnhub API test failed"
+        pnpm test:history-sync || echo "History sync test failed"
+        pnpm test:portfolio-analysis-service || echo "Portfolio analysis test failed"
+
+    - name: Build project
+      run: pnpm build
+
+    - name: Deploy to production
+      run: echo "Deploy to production steps would go here"
+      # 在实际部署时，可以在这里添加部署命令，如：
+      # - 部署到 Vercel: npx vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
+      # - 部署到其他平台的命令

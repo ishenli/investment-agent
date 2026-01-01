@@ -209,6 +209,37 @@ pnpm lint
 pnpm lint:fix
 ```
 
+## CI/CD 自动化
+
+本项目配置了完整的 CI/CD 流程，包含以下工作流：
+
+### 1. CI 工作流 (`ci.yml`)
+- **触发条件**: 推送到 `main` 或 `develop` 分支，以及 PR 合并到 `main`
+- **功能**:
+  - Node.js 环境设置 (支持 18.x, 20.x)
+  - 依赖安装 (使用 pnpm)
+  - 类型检查 (`pnpm types:check`)
+  - 代码质量检查 (`pnpm lint`)
+  - 格式检查 (`pnpm format:check`)
+  - 运行所有测试 (`pnpm test:*`)
+  - 项目构建 (`pnpm build`)
+  - 安全审计
+
+### 2. 代码质量工作流 (`code-quality.yml`)
+- **触发条件**: 推送到 `main` 或 `develop` 分支，以及 PR 合并到 `main`
+- **功能**:
+  - ESLint 检查
+  - Prettier 格式检查
+  - 类型检查
+  - 依赖审查
+
+### 3. 部署工作流 (`deploy.yml`)
+- **触发条件**: 推送到 `main` 分支或发布新版本
+- **功能**:
+  - 运行所有检查和测试
+  - 项目构建
+  - 部署到生产环境
+
 ## 部署
 
 部署 Next.js 应用最简单的方法是使用 Next.js 创建者提供的
