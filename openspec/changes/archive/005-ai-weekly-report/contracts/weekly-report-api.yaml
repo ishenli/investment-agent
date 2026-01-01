@@ -1,0 +1,247 @@
+openapi: 3.0.0
+info:
+  title: AI Weekly Report API
+  description: API for generating and managing AI-powered investment weekly reports
+  version: 1.0.0
+
+servers:
+  - url: /api/weekly-report
+    description: Weekly Report API server
+
+paths:
+  /reports:
+    get:
+      summary: 获取报告列表
+      description: 获取指定账户的报告列表
+      parameters:
+        - name: accountId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: 账户ID
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [weekly, monthly, emergency]
+          description: 报告类型
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: 返回记录数限制
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: 偏移量
+      responses:
+        '200':
+          description: 成功获取报告列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReportListItem'
+                  totalCount:
+                    type: integer
+        '400':
+          description: 请求参数错误
+        '401':
+          description: 未授权
+        '500':
+          description: 服务器内部错误
+    post:
+      summary: 生成新报告
+      description: 为指定账户生成新的分析报告
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateReportRequest'
+      responses:
+        '202':
+          description: 报告生成请求已接受
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateReportResponse'
+        '400':
+          description: 请求参数错误
+        '401':
+          description: 未授权
+        '500':
+          description: 服务器内部错误
+
+  /reports/{reportId}:
+    get:
+      summary: 获取报告详情
+      description: 获取指定报告的详细内容
+      parameters:
+        - name: reportId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 报告ID
+      responses:
+        '200':
+          description: 成功获取报告详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportDetail'
+        '400':
+          description: 请求参数错误
+        '401':
+          description: 未授权
+        '404':
+          description: 报告不存在
+        '500':
+          description: 服务器内部错误
+    delete:
+      summary: 删除报告
+      description: 删除指定的报告
+      parameters:
+        - name: reportId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 报告ID
+      responses:
+        '200':
+          description: 成功删除报告
+        '400':
+          description: 请求参数错误
+        '401':
+          description: 未授权
+        '404':
+          description: 报告不存在
+        '500':
+          description: 服务器内部错误
+
+components:
+  schemas:
+    ReportListItem:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 报告唯一标识符
+        title:
+          type: string
+          description: 报告标题
+        type:
+          type: string
+          enum: [weekly, monthly, emergency]
+          description: 报告类型
+        startDate:
+          type: string
+          format: date-time
+          description: 报告周期开始时间
+        endDate:
+          type: string
+          format: date-time
+          description: 报告周期结束时间
+        createdAt:
+          type: string
+          format: date-time
+          description: 报告创建时间
+      required:
+        - id
+        - title
+        - type
+        - createdAt
+
+    ReportDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 报告唯一标识符
+        accountId:
+          type: string
+          description: 关联的账户ID
+        type:
+          type: string
+          enum: [weekly, monthly, emergency]
+          description: 报告类型
+        title:
+          type: string
+          description: 报告标题
+        content:
+          type: string
+          description: 报告内容 (Markdown格式)
+        startDate:
+          type: string
+          format: date-time
+          description: 报告周期开始时间
+        endDate:
+          type: string
+          format: date-time
+          description: 报告周期结束时间
+        createdAt:
+          type: string
+          format: date-time
+          description: 报告创建时间
+      required:
+        - id
+        - accountId
+        - type
+        - title
+        - content
+        - createdAt
+
+    GenerateReportRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          description: 账户ID
+        type:
+          type: string
+          enum: [weekly, monthly]
+          description: 报告类型
+        startDate:
+          type: string
+          format: date-time
+          description: 报告周期开始时间 (可选，默认为本周一)
+        endDate:
+          type: string
+          format: date-time
+          description: 报告周期结束时间 (可选，默认为本周日)
+      required:
+        - accountId
+        - type
+
+    GenerateReportResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 报告ID
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+          description: 报告生成状态
+        message:
+          type: string
+          description: 状态消息
+      required:
+        - id
+        - status

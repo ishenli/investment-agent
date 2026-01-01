@@ -1,0 +1,6 @@
+{
+  "$schema": "https://langgra.ph/schema.json",
+  "graphs": {
+    "graph": "./src/server/tradingagents/graph/endpoint.ts:graph"
+  }
+}

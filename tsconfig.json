@@ -1,0 +1,66 @@
+{
+  "compilerOptions": {
+    "target": "ES2018",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "declaration": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@chat/*": [
+        "./src/app/(pages)/chat/*"
+      ],
+      "@renderer/*": [
+        "./src/app/*"
+      ],
+      "@server/*": [
+        "./src/server/*"
+      ],
+      "@typings/*": [
+        "./src/types/*"
+      ],
+      "@shared/*": [
+        "./src/shared/*"
+      ],
+      "@/drizzle/*": [
+        "./drizzle/*"
+      ],
+      "@drizzle/*": [
+        "./drizzle/*"
+      ]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "test"
+  ]
+}
