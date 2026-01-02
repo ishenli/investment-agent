@@ -1,3 +1,9 @@
+---
+description: Scaffold a new OpenSpec change and validate strictly.
+argument-hint: request or feature description
+---
+
+$ARGUMENTS
 <!-- OPENSPEC:START -->
 **Guardrails**
 - Favor straightforward, minimal implementations first and add complexity only when it is requested or clearly required.
@@ -20,9 +26,9 @@
 3. **Draft Spec Deltas**:
    - Map the change to capabilities. Create `openspec/changes/<id>/specs/<capability>/spec.md` (one folder per capability).
    - Use `## ADDED Requirements` / `## MODIFIED Requirements`.
-   - **CRITICAL**: Every requirement MUST have at least one `#### Scenario: ...`.
+   - **CRITICAL**: Every requirement must have at least one `#### Scenario: ...`.
    - If you can, you should write in Chinese.
-   - If the spec content is write in Chinese, Every requirement Must have `必须（Must）` or `应该（Should）
+   - If the spec content is write in Chinese, Every requirement must have `必须（MUST）` or `应该（SHALL）
 
 4. **Technical Plan**:
    - Create `openspec/changes/<id>/plan.md` (replaces plan.md).

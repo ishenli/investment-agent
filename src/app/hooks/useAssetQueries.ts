@@ -4,6 +4,7 @@ import {
   fetchPositions,
   fetchTransactions,
   fetchRevenue,
+  fetchRevenueHistory,
   fetchSummary,
   updateAccountBalance,
 } from '@renderer/services/assetService';
@@ -58,6 +59,16 @@ export const useRevenueQuery = (period: string = '30d') => {
   return useQuery({
     queryKey: ['revenue', period],
     queryFn: () => fetchRevenue(period),
+    staleTime: 1000 * 60 * 5, // 5分钟内数据视为新鲜
+    retry: 1,
+  });
+};
+
+// 收益历史数据查询
+export const useRevenueHistoryQuery = (period: string = '30d', granularity: string = 'monthly') => {
+  return useQuery({
+    queryKey: ['revenue-history', period, granularity],
+    queryFn: () => fetchRevenueHistory(period, granularity),
     staleTime: 1000 * 60 * 5, // 5分钟内数据视为新鲜
     retry: 1,
   });

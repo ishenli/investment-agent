@@ -5,7 +5,8 @@ import transactionService from '@server/service/transactionService';
 import {
   UpdateAccountRequestSchema,
   CreateTradingAccountRequestSchema,
-  TradingAccountSchema
+  TradingAccountSchema,
+  revenueHistoryQuerySchema
 } from '@typings/account';
 import {
   TransactionRequestSchema,
@@ -98,6 +99,52 @@ export class AssetAccountBizController extends BaseBizController {
 
       logger.error('[AssetAccountBizController] 获取收益指标失败:', error);
       return this.error('获取收益指标失败', 'get_revenue_error');
+    }
+  }
+
+  @WithRequestContext()
+  async getRevenueHistory(query: any) {
+    try {
+      // 1. 获取当前用户ID
+      const accountInfo = await AuthService.getCurrentUserAccount();
+      if (!accountInfo) {
+        return this.error('用户未登录', 'unauthorized');
+      }
+
+      // 2. 验证查询参数
+      const validationResult = revenueHistoryQuerySchema.safeParse({
+        period: query.period,
+        granularity: query.granularity,
+      });
+
+      if (!validationResult.success) {
+        return this.responseValidateError(validationResult.error);
+      }
+
+      const validatedQuery = validationResult.data;
+
+      // 3. 获取收益历史数据
+      const historyData = await assetService.getRevenueHistoryData(
+        accountInfo.id,
+        validatedQuery.period,
+        validatedQuery.granularity,
+      );
+
+      // 4. 返回成功响应
+      return this.success(historyData);
+    } catch (error) {
+      // 区分不同的错误类型
+      if (error instanceof Error && error.message.startsWith('Database query failed:')) {
+        logger.error('[AssetAccountBizController] 数据库查询收益历史失败:', error);
+        return this.error('系统内部错误', 'database_query_error');
+      }
+
+      if (error instanceof z.ZodError) {
+        return this.responseValidateError(error);
+      }
+
+      logger.error('[AssetAccountBizController] 获取收益历史失败:', error);
+      return this.error('获取收益历史数据失败', 'get_revenue_history_error');
     }
   }
 

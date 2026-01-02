@@ -115,3 +115,49 @@ export const UpdateAccountRequestSchema = z.object({
 });
 
 export type UpdateAccountRequestType = z.infer<typeof UpdateAccountRequestSchema>;
+
+/**
+ * Revenue History Point Schema
+ * Represents a single data point in the revenue history timeline
+ */
+export const revenueHistoryPointSchema = z.object({
+  date: z.string(), // ISO 8601 date string
+  returnRate: z.number(), // Return rate (decimal form, e.g., 0.025 for 2.5%)
+  drawdown: z.number(), // Drawdown (decimal form, e.g., -0.085 for -8.5%)
+  netValue: z.number().optional(), // Account net value (optional, for more accurate drawdown calculation)
+});
+
+export type revenueHistoryPointType = z.infer<typeof revenueHistoryPointSchema>;
+
+/**
+ * Revenue History Schema
+ * Represents the complete revenue history data with time series and derived metrics
+ */
+export const revenueHistorySchema = z.object({
+  accountId: z.string(),
+  period: z.string(), // Time range: '7d', '30d', '90d', '365d', 'all'
+  granularity: z.enum(['weekly', 'monthly']), // Time granularity
+  data: z.array(revenueHistoryPointSchema),
+  derivedMetrics: z.object({
+    annualizedReturn: z.number(),
+    sharpeRatio: z.number(),
+    maxDrawdown: z.number(),
+    volatility: z.number(),
+  }),
+  periodStart: z.date(),
+  periodEnd: z.date(),
+  createdAt: z.date(),
+});
+
+export type revenueHistoryType = z.infer<typeof revenueHistorySchema>;
+
+/**
+ * Revenue History Query Schema
+ * Schema for validating query parameters in revenue history API requests
+ */
+export const revenueHistoryQuerySchema = z.object({
+  period: z.enum(['7d', '30d', '90d', '365d', 'all']).default('30d'),
+  granularity: z.enum(['weekly', 'monthly']).default('monthly'),
+});
+
+export type revenueHistoryQueryType = z.infer<typeof revenueHistoryQuerySchema>;

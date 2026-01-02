@@ -1,7 +1,7 @@
 import { get, put } from '@/app/lib/request/index';
 import { TradingAccountType } from '@typings/account';
 import { PositionType } from '@typings/position';
-import { revenueMetricType } from '@typings/account';
+import { revenueMetricType, revenueHistoryType } from '@typings/account';
 import { AssetSummaryType } from '@typings/asset';
 
 // 账户相关API
@@ -30,6 +30,17 @@ export const fetchRevenue = async (period: string = '30d'): Promise<revenueMetri
     `/api/asset/account/revenue?period=${period}`,
   );
   return response.data.metrics;
+};
+
+// 收益历史相关API
+export const fetchRevenueHistory = async (
+  period: string = '30d',
+  granularity: string = 'monthly',
+): Promise<revenueHistoryType> => {
+  const response = await get<{ data: revenueHistoryType }>(
+    `/api/asset/account/revenue/history?period=${period}&granularity=${granularity}`,
+  );
+  return response.data;
 };
 
 // 摘要相关API

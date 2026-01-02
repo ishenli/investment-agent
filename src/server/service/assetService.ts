@@ -1,12 +1,19 @@
-import { revenueMetricType } from '@/types';
+import { revenueMetricType, revenueHistoryType } from '@/types';
 import { db } from '@server/lib/db';
-import { accountFunds, transactions } from '@/drizzle/schema';
+import { accountFunds, transactions, assetPositions } from '@/drizzle/schema';
 import { eq, and, sql, or, asc } from 'drizzle-orm';
 import logger from '@server/base/logger';
 import accountService from './accountService';
 import positionService from './positionService';
 import Decimal from 'decimal.js';
 import { AssetSummaryType } from '@typings/asset';
+import {
+  calculateAnnualizedReturn,
+  calculateVolatility,
+  calculateSharpeRatio,
+  calculateMaxDrawdown,
+  calculateDrawdownSeries,
+} from '@server/lib/utils/financialCalculations';
 
 export class AssetService {
   constructor() {
@@ -459,6 +466,394 @@ export class AssetService {
       logger.error(`[AssetService] Failed to get asset summary for account ${accountId}: ${error}`);
       throw new Error(`[AssetService] Failed to get asset summary: ${error}`);
     }
+  }
+
+  /**
+   * 获取收益历史数据
+   * @param accountId 账户ID
+   * @param period 时间周期 ('7d', '30d', '90d', '365d', 'all')
+   * @param granularity 时间粒度 ('weekly' or 'monthly')
+   * @returns 收益历史数据，包含时间序列和衍生指标
+   */
+  async getRevenueHistoryData(
+    accountId: string,
+    period: string = '30d',
+    granularity: 'weekly' | 'monthly' = 'monthly',
+  ): Promise<revenueHistoryType> {
+    try {
+      // 计算周期日期
+      const now = new Date();
+      let periodStart = new Date();
+
+      switch (period) {
+        case '7d':
+          periodStart.setDate(now.getDate() - 7);
+          break;
+        case '30d':
+          periodStart.setDate(now.getDate() - 30);
+          break;
+        case '90d':
+          periodStart.setDate(now.getDate() - 90);
+          break;
+        case '365d':
+          periodStart.setFullYear(now.getFullYear() - 1);
+          break;
+        case 'all':
+          // 对于全部时间，使用账户创建日期
+          const account = await accountService.getTradingAccount(accountId);
+          if (account) {
+            periodStart = account.createdAt;
+          } else {
+            periodStart.setDate(now.getDate() - 365);
+          }
+          break;
+        default:
+          periodStart.setDate(now.getDate() - 30);
+      }
+
+      const periodEnd = now;
+
+      // 获取指定时间段内的所有交易记录
+      const transactionRecords = await db.query.transactions.findMany({
+        where: and(
+          eq(transactions.accountId, parseInt(accountId)),
+          or(eq(transactions.type, 'buy'), eq(transactions.type, 'sell')),
+          sql`created_at >= ${periodStart.toISOString()} AND created_at <= ${periodEnd.toISOString()}`,
+        ),
+        orderBy: [asc(transactions.createdAt)],
+      });
+
+      // 计算每日净值
+      const dailyNetValuesMap = await this.calculateDailyNetValues(
+        accountId,
+        periodStart,
+        periodEnd,
+      );
+
+      // 如果没有交易记录且没有净值数据，返回空结果
+      if (transactionRecords.length === 0 && dailyNetValuesMap.size === 0) {
+        return {
+          accountId,
+          period,
+          granularity,
+          data: [],
+          derivedMetrics: {
+            annualizedReturn: 0,
+            sharpeRatio: 0,
+            maxDrawdown: 0,
+            volatility: 0,
+          },
+          periodStart,
+          periodEnd,
+          createdAt: new Date(),
+        };
+      }
+
+      // 根据粒度聚合成周/月数据
+      const aggregatedData = this.aggregateNetValuesByGranularity(
+        dailyNetValuesMap,
+        granularity,
+      );
+
+      if (aggregatedData.length === 0) {
+        return {
+          accountId,
+          period,
+          granularity,
+          data: [],
+          derivedMetrics: {
+            annualizedReturn: 0,
+            sharpeRatio: 0,
+            maxDrawdown: 0,
+            volatility: 0,
+          },
+          periodStart,
+          periodEnd,
+          createdAt: new Date(),
+        };
+      }
+
+      // 计算衍生指标
+      const netValues = aggregatedData.map((d) => d.netValue).filter((v) => v !== undefined) as number[];
+      const returnRates = aggregatedData.map((d) => d.returnRate);
+      const drawdowns = calculateDrawdownSeries(netValues);
+
+      // 计算总收益率
+      const totalReturn =
+        netValues.length >= 2
+          ? (netValues[netValues.length - 1] - netValues[0]) / netValues[0]
+          : 0;
+
+      // 计算衍生指标
+      const daysInvested = Math.floor((periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24));
+      const annualizedReturn = calculateAnnualizedReturn(totalReturn, daysInvested);
+      const volatility = calculateVolatility(returnRates, daysInvested);
+      const sharpeRatio = calculateSharpeRatio(annualizedReturn, volatility);
+      const maxDrawdown = calculateMaxDrawdown(netValues);
+
+      // 构建返回数据
+      const data = aggregatedData.map((item, index) => ({
+        date: item.date,
+        returnRate: item.returnRate,
+        drawdown: drawdowns[index] || 0,
+        netValue: item.netValue,
+      }));
+
+      return {
+        accountId,
+        period,
+        granularity,
+        data,
+        derivedMetrics: {
+          annualizedReturn,
+          sharpeRatio,
+          maxDrawdown,
+          volatility,
+        },
+        periodStart,
+        periodEnd,
+        createdAt: new Date(),
+      };
+    } catch (error) {
+      logger.error(`Failed to get revenue history for account ${accountId}: ${error}`);
+      throw new Error(`Failed to get revenue history: ${error}`);
+    }
+  }
+
+  /**
+   * 计算每日净值
+   * @param accountId 账户ID
+   * @param periodStart 周期开始日期
+   * @param periodEnd 周期结束日期
+   * @returns 每日净值映射 (date -> netValue)
+   *
+   * 实现说明：
+   * 由于历史价格数据有限，此方法使用简化算法：
+   * 1. 获取当前持仓的总市值（使用当前价格）
+   * 2. 计算每日累积的投资/ withdrawals 以追踪资金进出
+   * 3. 每日净值 = 现金余额 + （市值 * 累积投资比例）或使用更精确的基于成本的计算
+   *
+   * 注意：这是一个简化的实现。在生产环境中，应该：
+   * - 使用历史股价表 (asset_price_history) 重建每日持仓市值
+   * - 或创建账户净值快照表 (account_equity_daily) 来记录历史净值
+   */
+  private async calculateDailyNetValues(
+    accountId: string,
+    periodStart: Date,
+    periodEnd: Date,
+  ): Promise<Map<string, number>> {
+    const dailyNetValues = new Map<string, number>();
+
+    // 获取账户资金信息
+    const accountFund = await db.query.accountFunds.findFirst({
+      where: eq(accountFunds.accountId, parseInt(accountId)),
+    });
+
+    const initialCash = accountFund ? accountFund.amountCents / 100 : 0;
+
+    // 获取当前持仓信息
+    const currentPositions = await positionService.getCurrentPositions(accountId);
+    const currentTotalStockValue = currentPositions.reduce(
+      (sum: number, pos: any) =>
+        new Decimal(sum).plus(pos.marketValue || 0).toNumber(),
+      0,
+    );
+
+    // 获取期间内的所有交易记录
+    const allTransactions = await db.query.transactions.findMany({
+      where: and(
+        eq(transactions.accountId, parseInt(accountId)),
+        sql`created_at >= ${periodStart.toISOString()} AND created_at <= ${periodEnd.toISOString()}`,
+      ),
+      orderBy: [asc(transactions.createdAt)],
+    });
+
+    // 计算每日累积的投资/ withdrawals（buy/deposit/withdrawal 都会影响净值）
+    // 使用 Map 存储每日的净现金流量
+    const dailyCashFlow = new Map<string, number>();
+
+    // 初始化所有日期的现金流为0
+    const currentDate = new Date(periodStart);
+    while (currentDate <= periodEnd) {
+      const dateString = currentDate.toISOString().split('T')[0];
+      dailyCashFlow.set(dateString, 0);
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    // 累加当日交易产生的现金流
+    for (const tx of allTransactions) {
+      const txDate = tx.createdAt.toISOString().split('T')[0];
+      const amount = (tx.totalAmountCents ?? 0) / 100;
+
+      // buy 是流出（减少可用现金），deposit 是流入（增加现金），sell 是流入
+      const flowAmount = tx.type === 'buy' ? -amount : amount;
+
+      if (dailyCashFlow.has(txDate)) {
+        dailyCashFlow.set(txDate, (dailyCashFlow.get(txDate) || 0) + flowAmount);
+      }
+    }
+
+    // 计算期末总净值
+    const finalNetValue = initialCash + currentTotalStockValue;
+
+    // 计算期初净值（从期初的可用现金开始，简化处理）
+    const startNetValue = initialCash;
+
+    // 按天遍历时间范围，计算每日净值
+    // 使用线性插值：净值会从期初到期末平滑变化
+    const totalDays = Math.floor((periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24));
+    let currentDay = 0;
+    const tempDate = new Date(periodStart);
+
+    while (tempDate <= periodEnd) {
+      const dateString = tempDate.toISOString().split('T')[0];
+
+      // 计算到当前日期为止的总现金流
+      let cumulativeCashFlow = 0;
+      const tempDate2 = new Date(periodStart);
+      while (tempDate2 <= tempDate) {
+        const dString = tempDate2.toISOString().split('T')[0];
+        cumulativeCashFlow += dailyCashFlow.get(dString) || 0;
+        tempDate2.setDate(tempDate2.getDate() + 1);
+      }
+
+      // 计算每日净值：基础净值 + 累积现金流 + 持仓市值变化
+      // 这里使用简化的模型：假设仓位没有太大变化，主要现金流影响净值
+      const progress = currentDay / Math.max(1, totalDays);
+      const baseValue = startNetValue + (finalNetValue - startNetValue) * progress;
+
+      // 加上现金流影响
+      let netValue = baseValue + cumulativeCashFlow;
+
+      // 确保净值不为负
+      if (netValue < 0) netValue = 0;
+
+      dailyNetValues.set(dateString, netValue);
+
+      tempDate.setDate(tempDate.getDate() + 1);
+      currentDay++;
+    }
+
+    return dailyNetValues;
+  }
+
+  /**
+   * 根据粒度聚合成周/月数据
+   * @param dailyNetValuesMap 每日净值映射
+   * @param granularity 时间粒度 ('weekly' or 'monthly')
+   * @returns 聚合后的数据点数组
+   */
+  private aggregateNetValuesByGranularity(
+    dailyNetValuesMap: Map<string, number>,
+    granularity: 'weekly' | 'monthly',
+  ): Array<{ date: string; returnRate: number; netValue?: number }> {
+    const entries = Array.from(dailyNetValuesMap.entries()).sort((a, b) => {
+      return a[0].localeCompare(b[0]);
+    });
+
+    if (entries.length === 0) {
+      return [];
+    }
+
+    const aggregatedData: Array<{ date: string; returnRate: number; netValue?: number }> = [];
+    let lastNetValue: number | null = null;
+
+    if (granularity === 'monthly') {
+      // 按月聚合
+      const monthlyGroups = new Map<string, number[]>();
+
+      for (const [date, netValue] of entries) {
+        const monthKey = date.substring(0, 7); // YYYY-MM
+        if (!monthlyGroups.has(monthKey)) {
+          monthlyGroups.set(monthKey, []);
+        }
+        monthlyGroups.get(monthKey)!.push(netValue);
+      }
+
+      for (const [monthKey, netValues] of monthlyGroups) {
+        const monthNetValue = netValues[netValues.length - 1]; // 使用每月最后一天的净值
+
+        let returnRate = 0;
+        if (lastNetValue !== null) {
+          returnRate = new Decimal(monthNetValue)
+            .minus(lastNetValue)
+            .div(lastNetValue)
+            .toNumber();
+        }
+
+        aggregatedData.push({
+          date: monthKey,
+          returnRate,
+          netValue: monthNetValue,
+        });
+
+        lastNetValue = monthNetValue;
+      }
+    } else {
+      // 按周聚合
+      const weeklyGroups = new Map<number, number[]>();
+
+      for (const [date, netValue] of entries) {
+        const dateObj = new Date(date);
+        const weekNumber = this.getWeekNumber(dateObj);
+        const weekKey = dateObj.getFullYear() * 100 + weekNumber;
+
+        if (!weeklyGroups.has(weekKey)) {
+          weeklyGroups.set(weekKey, []);
+        }
+        weeklyGroups.get(weekKey)!.push(netValue);
+      }
+
+      for (const [weekKey, netValues] of weeklyGroups) {
+        const year = Math.floor(weekKey / 100);
+        const weekNumber = weekKey % 100;
+        const weekDate = this.getDateOfWeek(year, weekNumber);
+        const dateString = weekDate.toISOString().split('T')[0];
+        const weekNetValue = netValues[netValues.length - 1]; // 使用每周最后一天的净值
+
+        let returnRate = 0;
+        if (lastNetValue !== null) {
+          returnRate = new Decimal(weekNetValue).minus(lastNetValue).div(lastNetValue).toNumber();
+        }
+
+        aggregatedData.push({
+          date: dateString,
+          returnRate,
+          netValue: weekNetValue,
+        });
+
+        lastNetValue = weekNetValue;
+      }
+    }
+
+    return aggregatedData;
+  }
+
+  /**
+   * 获取日期所在的周数（ISO 8601 标准周）
+   * @param date 日期对象
+   * @returns 周数 (1-53)
+   */
+  private getWeekNumber(date: Date): number {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    const weekNo = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+    return weekNo;
+  }
+
+  /**
+   * 获取指定年份和周数的日期（ISO 8601 标准）
+   * @param year 年份
+   * @param week 周数
+   * @returns 日期对象（该周的周一）
+   */
+  private getDateOfWeek(year: number, week: number): Date {
+    const date = new Date(year, 0, 1 + (week - 1) * 7);
+    const dayOfWeek = date.getDay();
+    const diff = date.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+    return new Date(date.setDate(diff));
   }
 }
 

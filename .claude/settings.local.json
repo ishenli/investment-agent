@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(openspec validate:*)",
+      "Bash(npx vitest run:*)",
+      "Bash(curl:*)",
+      "Bash(openspec list:*)",
+      "Bash(openspec show:*)",
+      "Bash(openspec archive:*)"
+    ]
+  }
+}

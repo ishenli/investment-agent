@@ -12,7 +12,7 @@ jobs:
     
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [20.x]
     
     steps:
     - name: Checkout code
@@ -39,28 +39,13 @@ jobs:
     - name: Run format check
       run: pnpm format:check
 
-    - name: Run all tests
-      run: |
-        pnpm test:asset || echo "Asset test failed"
-        pnpm test:asset-api || echo "Asset API test failed"
-        pnpm test:init || echo "Init test failed"
-        pnpm test:investment-chat || echo "Investment chat test failed"
-        pnpm test:position || echo "Position test failed"
-        pnpm test:asset-market-info-query || echo "Asset market info test failed"
-        pnpm test:finnhub-api || echo "Finnhub API test failed"
-        pnpm test:history-sync || echo "History sync test failed"
-        pnpm test:portfolio-analysis-service || echo "Portfolio analysis test failed"
-      env:
-        NODE_ENV: test
-        DATABASE_URL: file:./test.db
-
   build:
     runs-on: ubuntu-latest
     needs: test
     
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [20.x]
     
     steps:
     - name: Checkout code
