@@ -133,7 +133,7 @@
     "react-syntax-highlighter": "^16.1.0",
     "react-virtuoso": "^4.14.1",
     "react-wrap-balancer": "^1.1.1",
-    "recharts": "2.15.4",
+    "recharts": "3.6.0",
     "remark-parse": "^11.0.0",
     "sdk-base": "^5.0.1",
     "shiki": "^3.14.0",
