@@ -27,10 +27,12 @@ export const createAccountSettingsSlice: StateCreator<
   initializeAccount: async () => {
     await get().fetchAccounts();
     await get().fetchSelectedAccount();
-    if (get().accounts.length > 0 && !get().account) {
-      set({
-        showSwitchAccountDialog: true,
-      });
+    const accounts = get().accounts;
+    const account = get().account;
+
+    // 如果有账户但未设置选中账号，自动选择第一个账户
+    if (accounts.length > 0 && !account) {
+      await get().setAccount(accounts[0]);
     }
   },
   fetchSelectedAccount: async () => {

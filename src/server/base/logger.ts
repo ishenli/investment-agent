@@ -22,7 +22,7 @@ const requestIdFormat = winston.format((info) => {
 const logDir = path.join(getProjectRoot(), 'logs');
 
 // 创建文件传输配置
-const fileTransports = [
+const fileTransports: winston.transport[] = [
   // new winston.transports.File({ filename: path.join(logDir, 'debug.log'), level: 'debug' }), // 输出到文件
   new winston.transports.DailyRotateFile({
     filename: path.join(logDir, 'web.log'),
@@ -50,7 +50,12 @@ const consoleTransport = new winston.transports.Console({
 });
 
 // 根据环境变量选择传输方式
-const transports = isProduction() ? fileTransports : [consoleTransport, ...fileTransports];
+const transports: winston.transport[] = [...fileTransports];
+
+// 在生产环境下，只有设置了 DEBUG 环境变量才输出到控制台
+if (!isProduction() || process.env.DEBUG) {
+  transports.unshift(consoleTransport);
+}
 
 // 创建 Logger 实例
 const logger = winston.createLogger({

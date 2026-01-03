@@ -152,11 +152,11 @@ export const data = {
       url: '/setting',
       icon: IconSettings,
     },
-    {
-      title: '智能体设置',
-      url: '/setting/agent',
-      icon: IconRobot,
-    },
+    // {
+    //   title: '智能体设置',
+    //   url: '/setting/agent',
+    //   icon: IconRobot,
+    // },
     // {
     //   title: '帮助',
     //   url: '#',

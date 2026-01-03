@@ -10,6 +10,9 @@ export interface AIInsight {
     relatedAssets?: string[];
     riskLevel?: 'low' | 'medium' | 'high';
     timeHorizon?: 'short-term' | 'medium-term' | 'long-term';
+    confidenceReason?: string;
+    dataFreshness?: 'realtime' | 'near-realtime' | 'daily' | 'historical';
+    lastDataUpdate?: Date;
   };
 }
 

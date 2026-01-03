@@ -4,8 +4,12 @@ import { AlertBanner } from '@renderer/(pages)/insight/components/AlertBanner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@renderer/components/ui/tabs';
 import { AssetDashboard } from './components/asset-dashboard';
 import { RevenueAnalytics } from './components/revenue-analytics';
+import { useAccountGuard } from '@renderer/hooks/useAccountGuard';
 
 export default function AssetPage() {
+  // 保护页面，确保用户有账户才能访问
+  useAccountGuard();
+
   return (
     <div className="space-y-6 p-4">
           {/* Alert Banner */}

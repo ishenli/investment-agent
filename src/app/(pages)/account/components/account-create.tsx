@@ -12,17 +12,20 @@ import {
   SelectValue,
 } from '@renderer/components/ui/select';
 import { IconCheck } from '@tabler/icons-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAccountStore } from '@renderer/store/account/store';
 import { CreateTradingAccountRequestType } from '@typings/account';
 
 export function AccountCreate() {
-  const { createAccount, creating, error, createdAccount } = useAccountStore();
+  const { createAccount, creating, error, createdAccount, setAccount, setCreatedAccount, fetchAccounts } = useAccountStore();
+  const router = useRouter();
 
   const [username, setUsername] = useState('');
   const [initialDeposit, setInitialDeposit] = useState('');
   const [market, setMarket] = useState<'US' | 'CN' | 'HK'>('US');
   const [leverage, setLeverage] = useState('1');
+  const [navigating, setNavigating] = useState(false);
 
   const handleCreateAccount = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +40,37 @@ export function AccountCreate() {
     await createAccount(accountData);
   };
 
-  // 如果账户已创建，显示成功消息
+  // 监听账户创建成功后的行为
+  useEffect(() => {
+    if (createdAccount && !navigating) {
+      setNavigating(true);
+
+      // 自动设置为选中账户并跳转到资产页面
+      const handleAccountCreated = async () => {
+        try {
+          // 刷新账户列表
+          await fetchAccounts();
+
+          // 设置为选中账户
+          await setAccount(createdAccount);
+
+          // 延迟 300ms 后跳转，确保状态更新
+          setTimeout(() => {
+            router.replace('/asset');
+          }, 300);
+        } catch (error) {
+          console.error('Failed to set account or navigate:', error);
+          setNavigating(false);
+          // 如果设置或跳转失败，清空 createdAccount 状态允许用户手动操作
+          setCreatedAccount(null);
+        }
+      };
+
+      handleAccountCreated();
+    }
+  }, [createdAccount, setAccount, router, setCreatedAccount, navigating, fetchAccounts]);
+
+  // 如果账户已创建，显示成功消息和跳转提示
   if (createdAccount) {
     return (
       <Card>
@@ -49,26 +82,23 @@ export function AccountCreate() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <p>您的账户已成功创建！</p>
-            <div className="rounded-lg border p-4 space-y-2">
-              <p>
-                <strong>用户名:</strong> {username}
-              </p>
-              <p>
-                <strong>账户ID:</strong> {createdAccount.id}
-              </p>
-              <p>
-                <strong>初始余额:</strong> {createdAccount.currency}{' '}
-                {createdAccount.balance.toFixed(2)}
-              </p>
-              <p>
-                <strong>市场:</strong> {createdAccount.market}
-              </p>
-              <p>
-                <strong>杠杆:</strong> {createdAccount.leverage}x
-              </p>
+            <p>您的账户已成功创建！正在跳转到资产页面...</p>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
+              正在设置账户并跳转...
             </div>
-            <Button onClick={() => window.location.reload()}>创建另一个账户</Button>
+
+            {/* 如果自动跳转失败，提供手动跳转按钮 */}
+            {!navigating && (
+              <Button
+                onClick={() => {
+                  setAccount(createdAccount).then(() => router.push('/asset'));
+                }}
+                className="w-full"
+              >
+                手动跳转到资产页面
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>

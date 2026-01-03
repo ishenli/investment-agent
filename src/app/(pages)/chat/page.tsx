@@ -11,6 +11,7 @@ import Workspace from './modules/Workspace';
 import SessionPanel from './layout/SessionPanel';
 import WorkspaceLayout from './layout/WorkspaceLayout';
 import { App, Spin } from 'antd';
+import { useAccountGuard } from '@renderer/hooks/useAccountGuard';
 export interface LayoutProps {
   children: ReactNode;
   session: ReactNode;
@@ -18,6 +19,8 @@ export interface LayoutProps {
 
 const Layout = ({}: LayoutProps) => {
   const { initUserState } = useUserStore();
+  // 保护页面，确保用户有账户才能访问
+  useAccountGuard();
   // 初始化
   const [isInitialized, setIsInitialized] = useState(false);
   useEffect(() => {

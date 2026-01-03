@@ -4,13 +4,15 @@
   "description": "AI-powered investment management agent with real-time market analysis",
   "main": "index.js",
   "bin": {
-    "investment-agent": "./bin/investment-agent.js"
+    "investment-agent": "./bin/investment-agent.js",
+    "ig": "./bin/ig.js"
   },
   "scripts": {
     "langgraph:dev": "npx @langchain/langgraph-cli dev --port 54367",
     "langgraph:start": "npx @langchain/langgraph-cli up",
     "dev": "next dev",
     "build": "rm -rf .next && next build",
+    "prepublishOnly": "npm run build",
     "types:check": "tsc --noEmit",
     "start": "next start",
     "lint": "next lint",
@@ -21,7 +23,6 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "postinstall": "npm run db:generate && npm run db:migrate",
     "test:asset": "npx tsx tests/test-asset-service.ts",
     "test:asset-api": "npx tsx tests/test-asset-api.ts",
     "test:init": "npx tsx tests/test-init-api.ts",
@@ -36,6 +37,10 @@
   ],
   "author": "ishenli",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ishenli/investment-agent"
+  },
   "dependencies": {
     "@ant-design/cssinjs": "^1.24.0",
     "@ant-design/nextjs-registry": "^1.2.0",
@@ -188,13 +193,14 @@
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2"
   },
-
   "files": [
+    "bin",
     ".next/",
     "public/",
-    "bin/",
     "drizzle/",
     "drizzle.config.ts",
-    "package.json"
+    "README.md",
+    "package.json",
+    "LICENSE"
   ]
 }

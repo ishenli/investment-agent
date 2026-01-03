@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { NoteType, NoteSearchParams } from '@typings/note';
 import { useErrorHandler } from '@renderer/hooks/useErrorHandler';
+import { useAccountGuard } from '@renderer/hooks/useAccountGuard';
 import { Button } from '@renderer/components/ui/button';
 import { Input } from '@renderer/components/ui/input';
 import { Textarea } from '@renderer/components/ui/textarea';
@@ -13,6 +14,8 @@ import { useRouter } from 'next/navigation';
 
 export default function NotePage() {
   const router = useRouter();
+  // 保护页面，确保用户有账户才能访问
+  useAccountGuard();
   // 错误处理 hooks
   const { error, isLoading, handleError, clearError } = useErrorHandler();
   
