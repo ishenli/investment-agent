@@ -30,8 +30,8 @@ const Page = memo(() => {
           <Conversation />
         </Flexbox>
         <PortalPanel>
-          <Suspense fallback={<BrandTextLoading/>}>
-            <PortalBody/>
+          <Suspense fallback={<BrandTextLoading />}>
+            <PortalBody />
           </Suspense>
         </PortalPanel>
         <TopicPanel>

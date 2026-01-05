@@ -8,7 +8,9 @@ class AssetAccountRevenueHistoryHttpController extends BaseController {
   @WithRequestContext()
   static async GET(request: Request) {
     const json = await super.getQuery(request);
-    return Response.json(await AssetAccountRevenueHistoryHttpController.controller.getRevenueHistory(json));
+    return Response.json(
+      await AssetAccountRevenueHistoryHttpController.controller.getRevenueHistory(json),
+    );
   }
 }
 

@@ -19,7 +19,7 @@ export class SettingService {
   }
 
   async getConfigValueByKey(key: string) {
-    const accountId = await AuthService.getCurrentUserId() ;
+    const accountId = await AuthService.getCurrentUserId();
     const value = await this.getSettingByKey(accountId, key);
     if (value) {
       return value.value;
@@ -153,7 +153,7 @@ export class SettingService {
    */
   async deleteAllSettings(accountId: string): Promise<boolean> {
     try {
-      const result = await db.delete(settings).where(eq(settings.accountId, parseInt(accountId))) ;
+      const result = await db.delete(settings).where(eq(settings.accountId, parseInt(accountId)));
       return result.lastInsertRowid === 0;
     } catch (error) {
       logger.error(`Failed to delete all settings for account ${accountId}: ${error}`);

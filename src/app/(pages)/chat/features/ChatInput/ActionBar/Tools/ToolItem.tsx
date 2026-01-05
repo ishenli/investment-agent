@@ -4,7 +4,6 @@ import { Flexbox } from 'react-layout-kit';
 import CheckboxItem, { CheckboxItemProps } from '../components/CheckbokWithLoading';
 
 const ToolItem = memo<CheckboxItemProps>(({ id, onUpdate, label, checked }) => {
-
   return (
     <CheckboxItem
       checked={checked}

@@ -141,7 +141,9 @@ export class AssetMetaService {
       return updatedAssetMeta
         ? {
             ...updatedAssetMeta,
-            createdAt: updatedAssetMeta.createdAt ? new Date(updatedAssetMeta.createdAt) : new Date(),
+            createdAt: updatedAssetMeta.createdAt
+              ? new Date(updatedAssetMeta.createdAt)
+              : new Date(),
           }
         : null;
     } catch (error) {

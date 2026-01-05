@@ -105,7 +105,7 @@ export async function bailingChat({
   if (!modelServiceApiUrl) {
     throw new Error('Model service API URL not found');
   }
-  
+
   await requestSSE({
     api: `${modelServiceApiUrl}/v1/chat/completions`,
     body: {

@@ -24,7 +24,8 @@ export const stockRecallCompanyInfoTool = tool(
   },
   {
     name: 'stockRecallCompanyInfoTool',
-    description: '查询知识库中关于记录的股票或者公司财务信息、管理层人员信息、每个季度的财报历史等使用此工具',
+    description:
+      '查询知识库中关于记录的股票或者公司财务信息、管理层人员信息、每个季度的财报历史等使用此工具',
     schema: AssetSymbolParams,
   },
 );

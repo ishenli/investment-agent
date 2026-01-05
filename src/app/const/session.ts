@@ -37,7 +37,8 @@ export const XIAOJIN_BIZ_SESSION_CONFIG: SessionCreateConfig = {
   title: '信息收集智能体',
   description: '收集市场上的最新消息',
   includeCreatedAt: false,
-  avatar: 'https://mdn.alipayobjects.com/huamei_ptvnul/afts/img/A*WUn6R7s9EiAAAAAASiAAAAgAeg-GAQ/original',
+  avatar:
+    'https://mdn.alipayobjects.com/huamei_ptvnul/afts/img/A*WUn6R7s9EiAAAAAASiAAAAgAeg-GAQ/original',
   backgroundColor: 'rgba(0,0,0,0)',
 };
 

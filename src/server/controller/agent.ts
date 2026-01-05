@@ -6,7 +6,7 @@ import { BaseBizController } from './base';
 import type {
   AgentTypeResponse,
   CreateAgentRequestType,
-  UpdateAgentRequestType
+  UpdateAgentRequestType,
 } from '@typings/agent';
 
 // 定义 agent 数据的 Zod 验证模式

@@ -82,14 +82,17 @@ export function PositionManagement() {
   };
 
   const filteredPositions = [...positions]
-    .map(position => {
+    .map((position) => {
       // 根据不同的股票地址，添加股票的详情地址
       // 美股是 https://www.futunn.com/stock/AAPL-US
       // A股是 https://www.futunn.com/stock/000001-CN
       // 港股是 https://www.futunn.com/stock/000001-HK
       return {
         ...position,
-        detailUrl: position.market === 'US' ? `https://www.futunn.com/stock/${position.symbol.toUpperCase()}-US` : `https://www.futunn.com/stock/${position.symbol}-${position.market}`,
+        detailUrl:
+          position.market === 'US'
+            ? `https://www.futunn.com/stock/${position.symbol.toUpperCase()}-US`
+            : `https://www.futunn.com/stock/${position.symbol}-${position.market}`,
       };
     })
     .filter((position) => {
@@ -148,7 +151,7 @@ export function PositionManagement() {
 
   const handleUpdatePositions = () => {
     refetch();
-  }
+  };
 
   // 如果还在加载中，显示骨架屏
   if (isLoading) {
@@ -370,7 +373,11 @@ export function PositionManagement() {
                 {filteredPositions.map((position) => (
                   <TableRow key={position.id}>
                     <TableCell className="font-medium">
-                      <Link href={position.detailUrl} target="_blank" className="hover:text-blue-500">
+                      <Link
+                        href={position.detailUrl}
+                        target="_blank"
+                        className="hover:text-blue-500"
+                      >
                         {position.symbol}
                         {position.chineseName && (
                           <span className="ml-2">({position.chineseName})</span>
@@ -384,24 +391,28 @@ export function PositionManagement() {
                     </TableCell>
                     <TableCell>{position.quantity}</TableCell>
                     <TableCell>
-                      <span className={
-                        position.currentPrice > position.averageCost
-                          ? 'text-green-500'
-                          : position.currentPrice < position.averageCost
-                            ? 'text-red-500'
-                            : ''
-                      }>
+                      <span
+                        className={
+                          position.currentPrice > position.averageCost
+                            ? 'text-green-500'
+                            : position.currentPrice < position.averageCost
+                              ? 'text-red-500'
+                              : ''
+                        }
+                      >
                         ${position.averageCost.toFixed(2)}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <span className={
-                        position.currentPrice > position.averageCost
-                          ? 'text-green-500'
-                          : position.currentPrice < position.averageCost
-                            ? 'text-red-500'
-                            : ''
-                      }>
+                      <span
+                        className={
+                          position.currentPrice > position.averageCost
+                            ? 'text-green-500'
+                            : position.currentPrice < position.averageCost
+                              ? 'text-red-500'
+                              : ''
+                        }
+                      >
                         ${position.currentPrice.toFixed(2)}
                       </span>
                     </TableCell>
@@ -440,10 +451,7 @@ export function PositionManagement() {
                         </Button>
                         {position.assetMetaId && (
                           <Link href={`/asset-market-info/${position.assetMetaId}`}>
-                            <Button
-                              variant="outline"
-                              size="icon-sm"
-                            >
+                            <Button variant="outline" size="icon-sm">
                               <InfoIcon className="h-4 w-4" />
                             </Button>
                           </Link>
@@ -470,12 +478,13 @@ export function PositionManagement() {
               {alerts.map((alert) => (
                 <div key={alert.id} className="flex items-start gap-3 p-3 rounded-lg border">
                   <AlertTriangleIcon
-                    className={`h-5 w-5 mt-0.5 ${alert.severity === 'high'
-                      ? 'text-red-500'
-                      : alert.severity === 'medium'
-                        ? 'text-yellow-500'
-                        : 'text-green-500'
-                      }`}
+                    className={`h-5 w-5 mt-0.5 ${
+                      alert.severity === 'high'
+                        ? 'text-red-500'
+                        : alert.severity === 'medium'
+                          ? 'text-yellow-500'
+                          : 'text-green-500'
+                    }`}
                   />
                   <div className="flex-1">
                     <p className="font-medium">{alert.message}</p>

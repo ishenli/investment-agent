@@ -4,7 +4,6 @@ import { Button } from '@renderer/components/ui/button';
 import { Input } from '@renderer/components/ui/input';
 import { useState, useEffect } from 'react';
 
-
 // 定义允许的设置键
 const ALLOWED_KEYS = [
   'MODEL_PROVIDER_URL',
@@ -13,10 +12,10 @@ const ALLOWED_KEYS = [
   'FINNHUB_API_KEY',
   'LANGSMITH_API_KEY',
   'FINANCIAL_DATASETS_KEY',
-  'TAVILY_API_KEY'
+  'TAVILY_API_KEY',
 ] as const;
 
-type SettingKey = typeof ALLOWED_KEYS[number];
+type SettingKey = (typeof ALLOWED_KEYS)[number];
 
 export default function SettingPage() {
   const [settings, setSettings] = useState<Record<SettingKey, string>>({
@@ -31,7 +30,7 @@ export default function SettingPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // 获取所有设置
   useEffect(() => {
@@ -42,9 +41,9 @@ export default function SettingPage() {
 
         if (result.success) {
           // 更新状态，保留未设置的键为空字符串
-          setSettings(prev => ({
+          setSettings((prev) => ({
             ...prev,
-            ...result.data
+            ...result.data,
           }));
         } else {
           setMessage({ type: 'error', text: '获取设置失败' });
@@ -74,9 +73,9 @@ export default function SettingPage() {
       const result = await response.json();
 
       if (result.success) {
-        setSettings(prev => ({
+        setSettings((prev) => ({
           ...prev,
-          [key]: value
+          [key]: value,
         }));
         setMessage({ type: 'success', text: '设置已保存' });
       } else {
@@ -101,9 +100,9 @@ export default function SettingPage() {
       const result = await response.json();
 
       if (result.success) {
-        setSettings(prev => ({
+        setSettings((prev) => ({
           ...prev,
-          [key]: ''
+          [key]: '',
         }));
         setMessage({ type: 'success', text: '设置已删除' });
       } else {
@@ -147,7 +146,9 @@ export default function SettingPage() {
       </div>
 
       {message && (
-        <div className={`p-4 rounded ${message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+        <div
+          className={`p-4 rounded ${message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+        >
           {message.text}
         </div>
       )}
@@ -164,7 +165,7 @@ export default function SettingPage() {
               <Input
                 type="text"
                 value={settings[key] || ''}
-                onChange={(e) => setSettings(prev => ({ ...prev, [key]: e.target.value }))}
+                onChange={(e) => setSettings((prev) => ({ ...prev, [key]: e.target.value }))}
                 className="flex-1 border rounded px-3 py-2"
                 placeholder={`请输入${key}的值`}
               />

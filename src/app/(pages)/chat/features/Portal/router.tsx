@@ -27,7 +27,7 @@ export const PortalTitle = memo(() => {
     }
   }
 
-  return '<HomeTitle />;'
+  return '<HomeTitle />;';
 });
 
 export const PortalHeader = memo(() => {
@@ -63,7 +63,7 @@ const PortalBody = memo(() => {
     }
   }
 
-  return '<HomeBody />;'
+  return '<HomeBody />;';
 });
 
 export default PortalBody;

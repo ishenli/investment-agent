@@ -135,7 +135,9 @@ export class PriceService {
           .returning();
 
         result = updated;
-        logger.info(`[priceService#updatePrice] Updated price for ${priceData.symbol}: ${priceData.price}`);
+        logger.info(
+          `[priceService#updatePrice] Updated price for ${priceData.symbol}: ${priceData.price}`,
+        );
       } else {
         // 插入新记录
         const [inserted] = await db
@@ -153,7 +155,9 @@ export class PriceService {
           .returning();
 
         result = inserted;
-        logger.info(`[priceService#updatePrice] Inserted price for ${priceData.symbol}: ${priceData.price}`);
+        logger.info(
+          `[priceService#updatePrice] Inserted price for ${priceData.symbol}: ${priceData.price}`,
+        );
       }
 
       return {
@@ -167,7 +171,9 @@ export class PriceService {
         market: (result.market || 'US').toLowerCase(),
       };
     } catch (error) {
-      logger.error(`[priceService#updatePrice] Failed to upsert price for ${priceData.symbol}: ${error}`);
+      logger.error(
+        `[priceService#updatePrice] Failed to upsert price for ${priceData.symbol}: ${error}`,
+      );
       throw new Error(`Failed to upsert price: ${error}`);
     }
   }

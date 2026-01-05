@@ -1,9 +1,16 @@
-import { DEFAULT_AVATAR, DEFAULT_BACKGROUND_COLOR, DEFAULT_INBOX_AVATAR } from '@renderer/const/meta';
+import {
+  DEFAULT_AVATAR,
+  DEFAULT_BACKGROUND_COLOR,
+  DEFAULT_INBOX_AVATAR,
+} from '@renderer/const/meta';
 import { SessionStore } from '@renderer/store/session';
 import { MetaData } from '@typings/meta';
 import { merge } from 'lodash';
 
-import { SESSION_CONFIG_DESCRIPTION, SESSION_CONFIG_TITLE } from '@renderer/const/text/sessionConfig';
+import {
+  SESSION_CONFIG_DESCRIPTION,
+  SESSION_CONFIG_TITLE,
+} from '@renderer/const/text/sessionConfig';
 import { sessionSelectors } from './list';
 
 // ==========   Meta   ============== //

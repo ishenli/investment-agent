@@ -19,7 +19,7 @@ class WebSearchController extends BaseController {
       const query = params.query;
       const page = parseInt(params.page, 10);
       const pageSize = parseInt(params.pageSize, 10);
-      
+
       // 模拟网络搜索结果
       // 在实际应用中，这里应该调用真实的搜索引擎API
       const mockWebResults = [
@@ -66,10 +66,11 @@ class WebSearchController extends BaseController {
       ];
 
       // 过滤结果（简单匹配标题和描述）
-      const filteredResults = mockWebResults.filter(item => 
-        item.title.toLowerCase().includes(query.toLowerCase()) || 
-        item.description.toLowerCase().includes(query.toLowerCase()) ||
-        item.source.toLowerCase().includes(query.toLowerCase())
+      const filteredResults = mockWebResults.filter(
+        (item) =>
+          item.title.toLowerCase().includes(query.toLowerCase()) ||
+          item.description.toLowerCase().includes(query.toLowerCase()) ||
+          item.source.toLowerCase().includes(query.toLowerCase()),
       );
 
       // 计算分页

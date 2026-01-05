@@ -7,32 +7,25 @@ import { useAccountStore } from '@renderer/store/account/store';
 /**
  * 路由白名单 - 不需要账户的路由
  */
-const WHITELIST_ROUTES = [
-  '/account/create',
-];
+const WHITELIST_ROUTES = ['/account/create'];
 
 /**
  * 需要账户的路由前缀
  */
-const PROTECTED_ROUTE_PREFIXES = [
-  '/asset',
-  '/chat',
-  '/note',
-  '/insight',
-];
+const PROTECTED_ROUTE_PREFIXES = ['/asset', '/chat', '/note', '/insight'];
 
 /**
  * 检查路由是否在白名单中
  */
 const isWhitelistRoute = (pathname: string): boolean => {
-  return WHITELIST_ROUTES.some(route => pathname === route || pathname.startsWith(route));
+  return WHITELIST_ROUTES.some((route) => pathname === route || pathname.startsWith(route));
 };
 
 /**
  * 检查路由是否需要账户
  */
 const isProtectedRoute = (pathname: string): boolean => {
-  return PROTECTED_ROUTE_PREFIXES.some(prefix => pathname.startsWith(prefix));
+  return PROTECTED_ROUTE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 };
 
 /**
@@ -42,7 +35,8 @@ const isProtectedRoute = (pathname: string): boolean => {
 export function useAccountGuard() {
   const router = useRouter();
   const pathname = usePathname();
-  const { accounts, account, fetchAccounts, fetchSelectedAccount, setAccount, loading } = useAccountStore();
+  const { accounts, account, fetchAccounts, fetchSelectedAccount, setAccount, loading } =
+    useAccountStore();
 
   useEffect(() => {
     const checkAccount = async () => {

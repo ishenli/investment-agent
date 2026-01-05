@@ -186,8 +186,8 @@ class OptimizedHKDataProvider {
           // Checking finnhubService.batchQuoteByTencent implementation:
           // It calls makeHKDToUSD(data.price). So the price is in USD.
           // We should display it as USD for consistency or handle currency carefully.
-          // The prompt implies "HKD" but the service converts. 
-          // Let's stick to what the service returns (USD) but label it clearly, 
+          // The prompt implies "HKD" but the service converts.
+          // Let's stick to what the service returns (USD) but label it clearly,
           // OR if we want HKD we might need to change the service.
           // Given existing code uses the converted price, we'll display as USD.
 

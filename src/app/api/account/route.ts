@@ -7,7 +7,7 @@ class AccountHttpController extends BaseController {
   @WithRequestContext()
   static async POST(request: Request) {
     const body = await super.getBody(request);
-    
+
     return Response.json(await AccountHttpController.controller.createAccount(body));
   }
 

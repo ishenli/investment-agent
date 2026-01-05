@@ -1,5 +1,10 @@
-import { NoteType } from "@server/service/noteService";
-import { get as requestGet, post as requestPost, put as requestPut, del as requestDelete } from "@/app/lib/request";
+import { NoteType } from '@server/service/noteService';
+import {
+  get as requestGet,
+  post as requestPost,
+  put as requestPut,
+  del as requestDelete,
+} from '@/app/lib/request';
 
 // 定义API响应类型
 interface ApiResponse<T> {
@@ -32,16 +37,18 @@ interface NoteRequestBody {
  * @param params 查询参数
  * @returns 笔记列表和总数
  */
-export async function getNotes(params: GetNotesParams = {}): Promise<ApiResponse<{ items: NoteType[]; totalCount: number }>> {
+export async function getNotes(
+  params: GetNotesParams = {},
+): Promise<ApiResponse<{ items: NoteType[]; totalCount: number }>> {
   try {
     const queryParams = new URLSearchParams();
-    
+
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         queryParams.append(key, value.toString());
       }
     });
-    
+
     const result = await requestGet(`/api/note?${queryParams.toString()}`);
     return {
       success: true,
@@ -82,7 +89,9 @@ export async function getNoteById(id: string): Promise<ApiResponse<NoteType>> {
  * @param data 笔记数据
  * @returns 创建的笔记
  */
-export async function createNote(data: Omit<NoteRequestBody, 'id'>): Promise<ApiResponse<NoteType>> {
+export async function createNote(
+  data: Omit<NoteRequestBody, 'id'>,
+): Promise<ApiResponse<NoteType>> {
   try {
     const result = await requestPost('/api/note', data);
     return {
@@ -104,7 +113,10 @@ export async function createNote(data: Omit<NoteRequestBody, 'id'>): Promise<Api
  * @param data 更新的笔记数据
  * @returns 更新后的笔记
  */
-export async function updateNote(id: string, data: NoteRequestBody): Promise<ApiResponse<NoteType>> {
+export async function updateNote(
+  id: string,
+  data: NoteRequestBody,
+): Promise<ApiResponse<NoteType>> {
   try {
     const result = await requestPut(`/api/note/${id}`, data);
     return result;

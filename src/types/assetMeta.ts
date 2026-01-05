@@ -1,4 +1,3 @@
-
 export type AssetMetaType = {
   id: number;
   symbol: string;

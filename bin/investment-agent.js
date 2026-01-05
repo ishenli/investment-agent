@@ -179,8 +179,9 @@ class InvestmentAgentCLI {
       }
 
       // 读取所有迁移文件并按顺序执行
-      const migrationFiles = fs.readdirSync(migrationDir)
-        .filter(f => f.endsWith('.sql'))
+      const migrationFiles = fs
+        .readdirSync(migrationDir)
+        .filter((f) => f.endsWith('.sql'))
         .sort();
 
       if (migrationFiles.length === 0) {
@@ -208,7 +209,9 @@ class InvestmentAgentCLI {
 
         // 检查是否已执行过
         const fileHash = require('crypto').createHash('md5').update(sql).digest('hex');
-        const existingMigration = db.prepare('SELECT * FROM __drizzle_migrations WHERE hash = ?').get(fileHash);
+        const existingMigration = db
+          .prepare('SELECT * FROM __drizzle_migrations WHERE hash = ?')
+          .get(fileHash);
 
         if (existingMigration) {
           console.log(`  ✓ Migration ${file} already applied`);
@@ -257,10 +260,20 @@ class InvestmentAgentCLI {
       }
 
       // 插入默认用户
-      const result = db.prepare(`
+      const result = db
+        .prepare(
+          `
         INSERT INTO users (username, email, password_hash, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?)
-      `).run('admin', 'admin@investment-agent.local', 'placeholder_hash', new Date().toISOString(), new Date().toISOString());
+      `,
+        )
+        .run(
+          'admin',
+          'admin@investment-agent.local',
+          'placeholder_hash',
+          new Date().toISOString(),
+          new Date().toISOString(),
+        );
 
       console.log(`✅ Default user created with ID: ${result.lastInsertRowid}`);
       console.log('   Username: admin');
@@ -278,9 +291,16 @@ class InvestmentAgentCLI {
 
     return new Promise((resolve, reject) => {
       // 检查是否使用 standalone 模式
-      const standaloneServerPath = path.join(this.scriptDir, '..', '.next', 'standalone', 'server.js');
+      const standaloneServerPath = path.join(
+        this.scriptDir,
+        '..',
+        '.next',
+        'standalone',
+        'server.js',
+      );
 
-      let serverPath, serverArgs = [];
+      let serverPath,
+        serverArgs = [];
 
       if (fs.existsSync(standaloneServerPath)) {
         // 使用 standalone 服务器

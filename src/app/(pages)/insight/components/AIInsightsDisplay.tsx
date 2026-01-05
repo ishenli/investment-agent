@@ -9,7 +9,13 @@ import {
   CardTitle,
 } from '@renderer/components/ui/card';
 import { Badge } from '@renderer/components/ui/badge';
-import { LightbulbIcon, TrendingUpIcon, AlertTriangleIcon, RotateCcwIcon, ClockIcon } from 'lucide-react';
+import {
+  LightbulbIcon,
+  TrendingUpIcon,
+  AlertTriangleIcon,
+  RotateCcwIcon,
+  ClockIcon,
+} from 'lucide-react';
 import dayjs from 'dayjs';
 import { Button } from '@renderer/components/ui/button';
 import { Spinner } from '@renderer/components/ui/spinner';
@@ -162,9 +168,7 @@ export function AIInsightsDisplay() {
                         </Badge>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {insight.description}
-                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">{insight.description}</p>
                   </div>
                 </div>
 
@@ -176,18 +180,14 @@ export function AIInsightsDisplay() {
                     {insight.metadata?.confidenceReason && (
                       <div className="flex gap-2">
                         <span className="text-muted-foreground font-medium">置信依据：</span>
-                        <span className="text-foreground">
-                          {insight.metadata.confidenceReason}
-                        </span>
+                        <span className="text-foreground">{insight.metadata.confidenceReason}</span>
                       </div>
                     )}
                     {insight.metadata?.lastDataUpdate && (
                       <div className="flex gap-2">
                         <span className="text-muted-foreground font-medium">数据时间：</span>
                         <span className="text-foreground">
-                          {dayjs(insight.metadata.lastDataUpdate).format(
-                            'YYYY-MM-DD HH:mm',
-                          )}
+                          {dayjs(insight.metadata.lastDataUpdate).format('YYYY-MM-DD HH:mm')}
                         </span>
                       </div>
                     )}
@@ -196,17 +196,15 @@ export function AIInsightsDisplay() {
                         <div className="flex gap-2">
                           <span className="text-muted-foreground font-medium">相关标的：</span>
                           <div className="flex gap-1 flex-wrap">
-                            {insight.metadata.relatedAssets.map(
-                              (asset: string, idx: number) => (
-                                <Badge
-                                  key={idx}
-                                  variant="outline"
-                                  className="text-xs px-1.5 py-0 h-5"
-                                >
-                                  {asset}
-                                </Badge>
-                              ),
-                            )}
+                            {insight.metadata.relatedAssets.map((asset: string, idx: number) => (
+                              <Badge
+                                key={idx}
+                                variant="outline"
+                                className="text-xs px-1.5 py-0 h-5"
+                              >
+                                {asset}
+                              </Badge>
+                            ))}
                           </div>
                         </div>
                       )}

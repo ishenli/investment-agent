@@ -161,7 +161,7 @@ export class PositionBizController extends BaseBizController {
 
   @WithRequestContext()
   async getDiversificationRecommendations(query: any) {
-        try {
+    try {
       // Get the authenticated user's account ID
       const accountId = await AuthService.getCurrentUserId();
 
@@ -249,7 +249,7 @@ export class PositionBizController extends BaseBizController {
 
   @WithRequestContext()
   async getRiskInsights(query: any) {
-        try {
+    try {
       // Get the authenticated user's account ID
       const accountInfo = await AuthService.getCurrentUserAccount();
 
@@ -260,7 +260,10 @@ export class PositionBizController extends BaseBizController {
       // Try to get real portfolio data
       try {
         const portfolio = await PortfolioService.calculatePortfolio(accountInfo.id);
-        const positions = await PortfolioService.getPositionsWithLivePrices(accountInfo.id, portfolio);
+        const positions = await PortfolioService.getPositionsWithLivePrices(
+          accountInfo.id,
+          portfolio,
+        );
         const riskInsights: RiskInsights = await RiskCalculatorService.generateRiskInsights(
           positions,
           portfolio,
@@ -278,7 +281,7 @@ export class PositionBizController extends BaseBizController {
   @WithRequestContext()
   async analyzeScenario(body: any) {
     try {
-            // Get the authenticated user's account ID
+      // Get the authenticated user's account ID
       const accountInfo = await AuthService.getCurrentUserAccount();
 
       if (!accountInfo) {
@@ -320,7 +323,7 @@ export class PositionBizController extends BaseBizController {
   @WithRequestContext()
   async getStrategyAdvice(query: any) {
     try {
-            // Get the authenticated user's account ID
+      // Get the authenticated user's account ID
       const accountInfo = await AuthService.getCurrentUserAccount();
 
       if (!accountInfo) {

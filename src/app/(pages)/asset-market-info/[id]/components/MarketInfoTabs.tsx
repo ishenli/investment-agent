@@ -13,7 +13,14 @@ interface MarketInfoTabsProps {
   onAddInvestmentMemo?: () => void;
 }
 
-export function MarketInfoTabs({ activeTab, setActiveTab, onRefresh, onAddCompanyInfo, onAddInvestmentMemo, assetName }: MarketInfoTabsProps) {
+export function MarketInfoTabs({
+  activeTab,
+  setActiveTab,
+  onRefresh,
+  onAddCompanyInfo,
+  onAddInvestmentMemo,
+  assetName,
+}: MarketInfoTabsProps) {
   return (
     <div className="flex justify-between items-center">
       <h4 className="text-xl font-bold">{assetName}资产信息详情</h4>

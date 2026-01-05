@@ -1,4 +1,4 @@
-import { ChatImageItem } from "@/types/message/image";
+import { ChatImageItem } from '@/types/message/image';
 
 const imagePrompt = (item: ChatImageItem, attachUrl: boolean) =>
   attachUrl

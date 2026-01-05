@@ -4,7 +4,6 @@ import Loading from '../../../components/Loading/BrandTextLoading';
 const PortalBody = lazy(() => import('../../../features/Portal/router'));
 
 const Inspector = () => {
-
   return (
     <Suspense fallback={<Loading />}>
       <Layout>

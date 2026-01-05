@@ -1,7 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@renderer/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@renderer/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@renderer/components/ui/alert';
 import { Button } from '@renderer/components/ui/button';
 import { Pencil } from 'lucide-react';
@@ -22,7 +28,12 @@ interface InvestmentMemoViewProps {
   onEditChange?: (open: boolean) => void;
 }
 
-export function InvestmentMemoView({ memo, onSave, isEditing = false, onEditChange }: InvestmentMemoViewProps) {
+export function InvestmentMemoView({
+  memo,
+  onSave,
+  isEditing = false,
+  onEditChange,
+}: InvestmentMemoViewProps) {
   const [editContent, setEditContent] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -65,9 +76,7 @@ export function InvestmentMemoView({ memo, onSave, isEditing = false, onEditChan
           <DialogContent className="max-w-3xl">
             <DialogHeader>
               <DialogTitle>编辑投资笔记</DialogTitle>
-              <DialogDescription>
-                请输入关于该资产的投资分析和笔记
-              </DialogDescription>
+              <DialogDescription>请输入关于该资产的投资分析和笔记</DialogDescription>
             </DialogHeader>
             <div className="py-4">
               <Textarea
@@ -97,18 +106,14 @@ export function InvestmentMemoView({ memo, onSave, isEditing = false, onEditChan
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <div className="space-y-1">
             <CardTitle>投资笔记</CardTitle>
-            <CardDescription>
-              关于该资产的投资分析和笔记
-            </CardDescription>
+            <CardDescription>关于该资产的投资分析和笔记</CardDescription>
           </div>
           <Button variant="ghost" size="icon" onClick={handleEdit}>
             <Pencil className="h-4 w-4" />
           </Button>
         </CardHeader>
         <CardContent className="pt-4">
-          <div className="whitespace-pre-wrap text-sm leading-relaxed">
-            {memo}
-          </div>
+          <div className="whitespace-pre-wrap text-sm leading-relaxed">{memo}</div>
         </CardContent>
       </Card>
 
@@ -116,9 +121,7 @@ export function InvestmentMemoView({ memo, onSave, isEditing = false, onEditChan
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>编辑投资笔记</DialogTitle>
-            <DialogDescription>
-              请输入关于该资产的投资分析和笔记
-            </DialogDescription>
+            <DialogDescription>请输入关于该资产的投资分析和笔记</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Textarea

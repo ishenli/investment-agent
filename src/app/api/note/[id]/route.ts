@@ -7,7 +7,7 @@ class NoteDetailHttpController extends BaseController {
     const p = await params;
     return Response.json(await noteController.getNoteById({ id: p.id }));
   }
-  
+
   static async PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const noteController = new NoteController();
     const body = await super.getBody(request);
@@ -16,7 +16,7 @@ class NoteDetailHttpController extends BaseController {
     const updateData = { ...body, id: p.id };
     return Response.json(await noteController.updateNote(updateData));
   }
-  
+
   static async DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const noteController = new NoteController();
     const p = await params;

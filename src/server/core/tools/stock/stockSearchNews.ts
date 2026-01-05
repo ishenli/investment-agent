@@ -15,7 +15,8 @@ const StockNewsParams = z.object({
 
 export const stockSearchNewsTool = new DynamicStructuredTool({
   name: '获取某个股票以及公司的新闻消息',
-  description: '获取某个股票以及对应公司在最近市场上的最新消息，主要是公司的新闻、财报信息、产品信息等',
+  description:
+    '获取某个股票以及对应公司在最近市场上的最新消息，主要是公司的新闻、财报信息、产品信息等',
   schema: StockNewsParams,
   func: async (params: z.infer<typeof StockNewsParams>): Promise<string> => {
     const { start_date, end_date, ticker } = params;

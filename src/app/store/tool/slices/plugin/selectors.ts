@@ -17,7 +17,6 @@ const getInstalledPluginById = (id?: string) => (s: ToolStoreState) => {
 };
 
 const getPluginMetaById = (id: string) => (s: ToolStoreState) => {
-
   // then use installed meta
   return getInstalledPluginById(id)(s)?.manifest?.meta;
 };
@@ -32,7 +31,6 @@ const getToolManifestById = (id: string) => (s: ToolStoreState) =>
 
 const getPluginSettingsById = (id: string) => (s: ToolStoreState) =>
   getInstalledPluginById(id)(s)?.settings || {};
-
 
 const installedPluginManifestList = (s: ToolStoreState) =>
   installedPlugins(s)

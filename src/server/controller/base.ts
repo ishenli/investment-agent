@@ -8,7 +8,6 @@ export abstract class BaseBizController {
       throw new Error(JSON.stringify(paramData.error.issues));
     }
     return paramData.data as z.infer<T>;
-
   }
 
   async responseValidateError(error: z.ZodError) {
@@ -20,6 +19,6 @@ export abstract class BaseBizController {
   }
 
   error(message: string, code: string) {
-    return ResultUtil.error(message, code), { status: 500 };
+    return (ResultUtil.error(message, code), { status: 500 });
   }
 }

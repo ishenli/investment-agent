@@ -47,13 +47,13 @@ const ShareText = memo<ShareTextProps>(({ item }) => {
       >
         复制
       </Button>
-       <Button
+      <Button
         block
         icon={Notebook}
         onClick={async () => {
           try {
             // 假设有一个 noteService 可以调用
-            await createNote({ content, title, tags: ['AI 建议'] })
+            await createNote({ content, title, tags: ['AI 建议'] });
             message.success('已添加到投资笔记');
           } catch (error) {
             message.error('添加失败');

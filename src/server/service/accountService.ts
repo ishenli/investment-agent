@@ -5,12 +5,7 @@ import {
   UpdateAccountRequestType,
 } from '@/types';
 import { db } from '@server/lib/db';
-import {
-  users,
-  accounts,
-  accountFunds,
-  transactions,
-} from '@/drizzle/schema';
+import { users, accounts, accountFunds, transactions } from '@/drizzle/schema';
 import { eq, sql, desc } from 'drizzle-orm';
 import logger from '@server/base/logger';
 import { validateWithFormat } from '@/shared';
@@ -135,9 +130,7 @@ export class AccountService {
    * @param request Create account request data
    * @returns Created trading account
    */
-  async createTradingAccount(
-    request: CreateTradingAccountDoType,
-  ): Promise<TradingAccountType> {
+  async createTradingAccount(request: CreateTradingAccountDoType): Promise<TradingAccountType> {
     // Validate request
     const validationResult = validateWithFormat(CreateTradingAccountDoSchema, request);
     if (!validationResult.success) {

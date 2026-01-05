@@ -10,7 +10,7 @@ export const useFetchMessages = () => {
   const [activeTopicId, useFetchMessages, isAIGenerating] = useChatStore((s) => [
     s.activeTopicId,
     s.useFetchMessages,
-    chatSelectors.isAIGenerating(s),  // 添加AI生成状态检查
+    chatSelectors.isAIGenerating(s), // 添加AI生成状态检查
   ]);
 
   // 当AI不生成消息时才启用自动获取

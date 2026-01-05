@@ -235,13 +235,22 @@ export function AssetMetaTable() {
           <TableBody>
             {filteredAssetMetas.map((assetMeta) => (
               <TableRow key={assetMeta.id}>
-                <TableCell className="font-medium">{assetMeta.symbol}<span className="ml-2 text-sm text-gray-500">({assetMeta.chineseName || '-'})</span></TableCell>
+                <TableCell className="font-medium">
+                  {assetMeta.symbol}
+                  <span className="ml-2 text-sm text-gray-500">
+                    ({assetMeta.chineseName || '-'})
+                  </span>
+                </TableCell>
                 <TableCell>${(assetMeta.priceCents / 100).toFixed(2)}</TableCell>
                 <TableCell>{assetMeta.assetType}</TableCell>
                 <TableCell>{assetMeta.currency}</TableCell>
                 <TableCell>{assetMeta.market}</TableCell>
                 <TableCell>{assetMeta.source}</TableCell>
-                <TableCell>{assetMeta.updatedAt ? dayjs(assetMeta.updatedAt).format('YYYY-MM-DD HH:mm') : '-'}</TableCell>
+                <TableCell>
+                  {assetMeta.updatedAt
+                    ? dayjs(assetMeta.updatedAt).format('YYYY-MM-DD HH:mm')
+                    : '-'}
+                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button

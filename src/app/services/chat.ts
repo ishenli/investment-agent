@@ -14,7 +14,12 @@ import {
   ModelThoughtChain,
   ModelTokensUsage,
 } from '@typings/message';
-import { ChatCompletionChunk, ChatStreamPayload, OpenAIChatMessage, UserMessageContentPart } from '@typings/openai/chat';
+import {
+  ChatCompletionChunk,
+  ChatStreamPayload,
+  OpenAIChatMessage,
+  UserMessageContentPart,
+} from '@typings/openai/chat';
 import { GroundingSearch } from '@typings/search';
 import { transformOpenAIStream } from '@renderer/lib/utils/stream/openai';
 import { get, isEmpty, merge } from 'lodash';
@@ -338,7 +343,6 @@ class ChatService {
     onFinish,
     ...options
   }: CreateAssistantMessageStream) => {
-
     const { plugins: enabledPlugins, messages, ...restParams } = params;
     const { isWelcomeQuestion, trace, historySummary } = options;
     const payload = merge(
@@ -354,18 +358,15 @@ class ChatService {
     const enabledSearch = chatConfig.searchMode !== 'off';
     const pluginIds = [...(enabledPlugins || [])];
 
-    const oaiMessages = await this.processMessages(
-      {
-        messages: messages,
-        model: payload.model,
-        provider: payload.provider!,
-        tools: pluginIds,
-        isWelcomeQuestion,
-        trace,
-        historySummary,
-      }
-    );
-
+    const oaiMessages = await this.processMessages({
+      messages: messages,
+      model: payload.model,
+      provider: payload.provider!,
+      tools: pluginIds,
+      isWelcomeQuestion,
+      trace,
+      historySummary,
+    });
 
     try {
       // 验证必要参数
@@ -534,13 +535,10 @@ class ChatService {
       }),
     );
 
-
     postMessages = produce(postMessages, (draft) => {
       // if it's a welcome question, inject InboxGuide SystemRole
       const inboxGuideSystemRole =
-        isWelcomeQuestion &&
-        trace === INBOX_SESSION_ID &&
-        'INBOX_GUIDE_SYSTEMROLE';
+        isWelcomeQuestion && trace === INBOX_SESSION_ID && 'INBOX_GUIDE_SYSTEMROLE';
 
       // Inject Tool SystemRole
       const hasTools = tools && tools?.length > 0;
@@ -548,8 +546,7 @@ class ChatService {
       const toolsSystemRoles =
         hasFC && toolSelectors.enabledSystemRoles(tools)(getToolStoreState());
 
-
-      console.info('[toolsSystemRoles]', toolsSystemRoles)
+      console.info('[toolsSystemRoles]', toolsSystemRoles);
       const injectSystemRoles = BuiltinSystemRolePrompts({
         historySummary,
         plugins: toolsSystemRoles as string,
@@ -574,7 +571,6 @@ class ChatService {
 
     return postMessages;
   };
-
 
   bailingLLMStream = async ({
     params,

@@ -12,7 +12,7 @@ export class ChatClient extends Base {
   baseUrl?: string;
 
   constructor(options: { apiKey: string; baseUrl?: string }) {
-     super({
+    super({
       initMethod: 'init',
     });
     this.apiKey = options.apiKey;

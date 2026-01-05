@@ -18,7 +18,15 @@ import { useAccountStore } from '@renderer/store/account/store';
 import { CreateTradingAccountRequestType } from '@typings/account';
 
 export function AccountCreate() {
-  const { createAccount, creating, error, createdAccount, setAccount, setCreatedAccount, fetchAccounts } = useAccountStore();
+  const {
+    createAccount,
+    creating,
+    error,
+    createdAccount,
+    setAccount,
+    setCreatedAccount,
+    fetchAccounts,
+  } = useAccountStore();
   const router = useRouter();
 
   const [username, setUsername] = useState('');

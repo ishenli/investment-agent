@@ -22,7 +22,6 @@ export const ToolActionsBar: RenderAction = memo(({ id }) => {
         //     await reInvokeToolMessage(id);
         //     break;
         //   }
-
         //   case 'del': {
         //     await deleteToolMessage(id);
         //   }

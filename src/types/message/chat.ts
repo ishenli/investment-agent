@@ -116,8 +116,9 @@ export interface ChatMessage {
   related?: string[];
 }
 
-export interface CreateMessageParams
-  extends Partial<Omit<ChatMessage, 'content' | 'role' | 'topicId' | 'chunksList'>> {
+export interface CreateMessageParams extends Partial<
+  Omit<ChatMessage, 'content' | 'role' | 'topicId' | 'chunksList'>
+> {
   content: string;
   error?: ChatMessageError | null;
   fileChunks?: any[];

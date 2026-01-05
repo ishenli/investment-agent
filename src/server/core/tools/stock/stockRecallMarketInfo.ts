@@ -11,7 +11,7 @@ const AssetSymbolParams = z.object({
  */
 export const stockRecallMarketInfoTool = tool(
   async (params): Promise<string> => {
-    const { symbol } = params as  z.infer<typeof AssetSymbolParams>;
+    const { symbol } = params as z.infer<typeof AssetSymbolParams>;
     logger.info(`[recallAssetMarketInfoTool]: ${symbol}`);
     try {
       const result = await assetMarketInfoService.getLatestAssetMarketInfoBySymbol(symbol);

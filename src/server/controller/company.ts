@@ -8,15 +8,21 @@ import { AuthService } from '@server/service/authService';
 
 const ListCompanyInfoRequestSchema = z.object({
   assetMetaId: z.string().transform((val) => parseInt(val, 10)),
-  page: z.string().optional().transform((val) => val ? parseInt(val, 10) : 1),
-  limit: z.string().optional().transform((val) => val ? parseInt(val, 10) : 20),
+  page: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : 1)),
+  limit: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseInt(val, 10) : 20)),
 });
 
 const SaveCompanyInfoRequestSchema = z.object({
   id: z.number().optional(),
   assetMetaId: z.number(),
-  title: z.string().min(1, "标题不能为空"),
-  content: z.string().min(1, "内容不能为空"),
+  title: z.string().min(1, '标题不能为空'),
+  content: z.string().min(1, '内容不能为空'),
 });
 
 const DeleteCompanyInfoRequestSchema = z.object({
@@ -54,14 +60,18 @@ export class CompanyBizController extends BaseBizController {
       );
 
       // 4. 获取公司信息列表
-      const companyInfos = await CompanyBizController.assetCompanyInfoService.getAssetCompanyInfosByAssetMetaId(
-        assetMetaId,
-        limit,
-        offset,
-      );
+      const companyInfos =
+        await CompanyBizController.assetCompanyInfoService.getAssetCompanyInfosByAssetMetaId(
+          assetMetaId,
+          limit,
+          offset,
+        );
 
       // 5. 获取总记录数
-      const total = await CompanyBizController.assetCompanyInfoService.getAssetCompanyInfoCountByAssetMetaId(assetMetaId);
+      const total =
+        await CompanyBizController.assetCompanyInfoService.getAssetCompanyInfoCountByAssetMetaId(
+          assetMetaId,
+        );
 
       // 6. 计算总页数
       const totalPages = Math.ceil(total / limit);
@@ -74,9 +84,8 @@ export class CompanyBizController extends BaseBizController {
           limit,
           total,
           totalPages,
-        }
+        },
       });
-
     } catch (error) {
       logger.error(
         '[CompanyBizController] Failed to list company info: %s',
@@ -87,7 +96,12 @@ export class CompanyBizController extends BaseBizController {
   }
 
   @WithRequestContext()
-  async saveCompanyInfo(body: { id?: number; assetMetaId: number; title: string; content: string }) {
+  async saveCompanyInfo(body: {
+    id?: number;
+    assetMetaId: number;
+    title: string;
+    content: string;
+  }) {
     try {
       // 1. 获取当前用户ID
       const userId = await AuthService.getCurrentUserId();
@@ -104,8 +118,10 @@ export class CompanyBizController extends BaseBizController {
       const saveRequest = validationResult.data;
 
       // 3. 查找 assetMeta 以验证其存在
-      const assetMeta = await CompanyBizController.assetMetaService.getAssetMetaById(saveRequest.assetMetaId);
-      
+      const assetMeta = await CompanyBizController.assetMetaService.getAssetMetaById(
+        saveRequest.assetMetaId,
+      );
+
       if (!assetMeta) {
         return this.error('AssetMeta not found', 'asset_meta_not_found');
       }
@@ -114,18 +130,20 @@ export class CompanyBizController extends BaseBizController {
       let assetCompanyInfo;
       if ('id' in saveRequest && typeof saveRequest.id === 'number') {
         // 更新现有记录
-        assetCompanyInfo = await CompanyBizController.assetCompanyInfoService.updateAssetCompanyInfo({
-          id: saveRequest.id,
-          title: saveRequest.title,
-          content: saveRequest.content,
-        });
+        assetCompanyInfo =
+          await CompanyBizController.assetCompanyInfoService.updateAssetCompanyInfo({
+            id: saveRequest.id,
+            title: saveRequest.title,
+            content: saveRequest.content,
+          });
       } else {
         // 创建新记录
-        assetCompanyInfo = await CompanyBizController.assetCompanyInfoService.createAssetCompanyInfo({
-          assetMetaId: assetMeta.id,
-          title: saveRequest.title,
-          content: saveRequest.content,
-        });
+        assetCompanyInfo =
+          await CompanyBizController.assetCompanyInfoService.createAssetCompanyInfo({
+            assetMetaId: assetMeta.id,
+            title: saveRequest.title,
+            content: saveRequest.content,
+          });
       }
 
       // 5. 返回成功响应
@@ -161,7 +179,8 @@ export class CompanyBizController extends BaseBizController {
 
       logger.info('[CompanyBizController] Received delete company info request for id: %d', id);
 
-      const success = await CompanyBizController.assetCompanyInfoService.deleteAssetCompanyInfoById(id);
+      const success =
+        await CompanyBizController.assetCompanyInfoService.deleteAssetCompanyInfoById(id);
 
       if (!success) {
         return this.error('Failed to delete company info or not found', 'delete_failed');

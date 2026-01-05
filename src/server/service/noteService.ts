@@ -92,17 +92,12 @@ export class NoteService {
     try {
       // 构建查询条件
       const conditions = [eq(notes.userId, parseInt(userId))];
-      
+
       // 添加搜索条件
       if (search) {
-        conditions.push(
-          or(
-            like(notes.title, `%${search}%`),
-            like(notes.content, `%${search}%`)
-          )!
-        );
+        conditions.push(or(like(notes.title, `%${search}%`), like(notes.content, `%${search}%`))!);
       }
-      
+
       // 添加标签筛选条件
       if (tag) {
         conditions.push(like(notes.tags, `%${tag}%`)!);
@@ -208,7 +203,7 @@ export class NoteService {
 
       // 更新后重新获取完整的笔记数据
       const updatedNote = await this.getNote(noteId, userId);
-      
+
       if (!updatedNote) {
         return null;
       }
@@ -232,7 +227,7 @@ export class NoteService {
     try {
       const result = await db
         .delete(notes)
-        .where(and(eq(notes.id, parseInt(noteId)), eq(notes.userId, parseInt(userId))))  ;
+        .where(and(eq(notes.id, parseInt(noteId)), eq(notes.userId, parseInt(userId))));
       if (!result) {
         return false;
       }
@@ -253,9 +248,7 @@ export class NoteService {
   async deleteNotes(noteIds: string[], userId: string): Promise<boolean> {
     try {
       const ids = noteIds.map((id) => parseInt(id));
-      await db
-        .delete(notes)
-        .where(and(eq(notes.userId, parseInt(userId)), inArray(notes.id, ids)));
+      await db.delete(notes).where(and(eq(notes.userId, parseInt(userId)), inArray(notes.id, ids)));
 
       logger.info(`Notes ${noteIds.join(', ')} deleted successfully`);
       return true;

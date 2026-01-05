@@ -4,7 +4,7 @@ import { SettingBizController } from '@/server/controller/setting';
 
 class SettingHttpController extends BaseController {
   static controller = new SettingBizController();
-  
+
   @WithRequestContext()
   static async GET(request: Request) {
     return Response.json(await SettingHttpController.controller.getSettings());

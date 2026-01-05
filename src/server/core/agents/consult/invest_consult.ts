@@ -6,7 +6,14 @@ import transactionService from '@server/service/transactionService';
 import { AuthService } from '@server/service/authService';
 import get from 'lodash/get';
 import { ChatCompletionChunk } from '@typings/openai/chat';
-import { noteQueryTool, stockGetPriceTool, stockRecallCompanyInfoTool, stockRecallMarketInfoTool, stockSearchNewsTool, TravilySearchTool } from '../../tools';
+import {
+  noteQueryTool,
+  stockGetPriceTool,
+  stockRecallCompanyInfoTool,
+  stockRecallMarketInfoTool,
+  stockSearchNewsTool,
+  TravilySearchTool,
+} from '../../tools';
 import { recordPrompt } from '@/server/utils/file';
 
 // 用户意图分类工具
@@ -45,7 +52,7 @@ export function create_invest_consult(
       turnCount: state.turnCount,
     });
 
-    const accountId = (await AuthService.getCurrentUserId());
+    const accountId = await AuthService.getCurrentUserId();
     const transactionHistory = await transactionService.getTransactionHistory(accountId);
     // 构建上下文信息
     const contextInfo = `
@@ -71,7 +78,8 @@ ${state.userQuery}
 ## 交易记录
 ${transactionHistory?.transactions
   ?.map((transaction) => {
-    return `+ 交易资产:${transaction.symbol}、${transaction.createdAt}、描述:${transaction.description || '无'}、交易金额: $${transaction.amount.toFixed(2)}、类型: ${transaction.type}`;})
+    return `+ 交易资产:${transaction.symbol}、${transaction.createdAt}、描述:${transaction.description || '无'}、交易金额: $${transaction.amount.toFixed(2)}、类型: ${transaction.type}`;
+  })
   .join('\n')}
 
 ## ⚖️ 风险评估
@@ -96,7 +104,14 @@ ${state.marketAnalysis || '暂无市场分析数据'}`;
       // 调用LLM生成响应
       const agent = createAgent({
         model: llm,
-        tools: [stockSearchNewsTool, stockGetPriceTool, stockRecallMarketInfoTool, stockRecallCompanyInfoTool, noteQueryTool, TravilySearchTool],
+        tools: [
+          stockSearchNewsTool,
+          stockGetPriceTool,
+          stockRecallMarketInfoTool,
+          stockRecallCompanyInfoTool,
+          noteQueryTool,
+          TravilySearchTool,
+        ],
       });
       // const result = await llm.stream(chatMessages);
 

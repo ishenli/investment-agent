@@ -17,7 +17,12 @@ import { chatModelOpenAI, ModelMap } from '@server/core/provider/chatModel';
 import { SystemMessage, HumanMessage } from '@langchain/core/messages';
 import { recordPrompt } from '../utils/file';
 import { createAgent } from 'langchain';
-import { noteQueryTool, stockRecallCompanyInfoTool, stockSearchNewsTool, TravilySearchTool } from '../core/tools';
+import {
+  noteQueryTool,
+  stockRecallCompanyInfoTool,
+  stockSearchNewsTool,
+  TravilySearchTool,
+} from '../core/tools';
 
 // 报告类型枚举
 export type ReportType = 'weekly' | 'monthly' | 'emergency';
@@ -95,9 +100,14 @@ export class ReportService {
    * @param request 生成报告请求
    * @returns 报告ID和状态
    */
-  async generateReport(request: GenerateReportRequest): Promise<{ id: string; status: ReportStatus; message?: string }> {
+  async generateReport(
+    request: GenerateReportRequest,
+  ): Promise<{ id: string; status: ReportStatus; message?: string }> {
     try {
-      logger.info('[ReportService] 开始生成报告', { accountId: request.accountId, type: request.type });
+      logger.info('[ReportService] 开始生成报告', {
+        accountId: request.accountId,
+        type: request.type,
+      });
 
       // 验证账户是否存在
       const account = await db.query.accounts.findFirst({
@@ -109,7 +119,11 @@ export class ReportService {
       }
 
       // 确定报告时间范围
-      const { startDate, endDate } = this.determineDateRange(request.type, request.startDate, request.endDate);
+      const { startDate, endDate } = this.determineDateRange(
+        request.type,
+        request.startDate,
+        request.endDate,
+      );
 
       // 设置报告标题
       const title = this.generateReportTitle(request.type, startDate, endDate);
@@ -129,12 +143,16 @@ export class ReportService {
         .returning();
 
       // 异步生成报告内容
-      this.processReportGeneration(reportRecord.id.toString(), request.accountId, startDate, endDate)
-        .catch(error => {
-          logger.error('[ReportService] 报告生成失败', { reportId: reportRecord.id, error });
-          // 更新报告状态为失败
-          this.updateReportContent(reportRecord.id.toString(), `报告生成失败: ${error.message}`);
-        });
+      this.processReportGeneration(
+        reportRecord.id.toString(),
+        request.accountId,
+        startDate,
+        endDate,
+      ).catch((error) => {
+        logger.error('[ReportService] 报告生成失败', { reportId: reportRecord.id, error });
+        // 更新报告状态为失败
+        this.updateReportContent(reportRecord.id.toString(), `报告生成失败: ${error.message}`);
+      });
 
       logger.info('[ReportService] 报告生成请求已接受', { reportId: reportRecord.id });
 
@@ -155,7 +173,12 @@ export class ReportService {
    * @param startDate 开始日期
    * @param endDate 结束日期
    */
-  private async processReportGeneration(reportId: string, accountId: string, startDate: Date, endDate: Date): Promise<void> {
+  private async processReportGeneration(
+    reportId: string,
+    accountId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<void> {
     try {
       // 更新报告状态为处理中
       await this.updateReportContent(reportId, '正在收集数据...');
@@ -186,24 +209,34 @@ export class ReportService {
    * @param endDate 结束日期
    * @returns 聚合的数据
    */
-  private async aggregateWeeklyData(accountId: string, startDate: Date, endDate: Date): Promise<WeeklyReportData> {
+  private async aggregateWeeklyData(
+    accountId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<WeeklyReportData> {
     try {
       // 获取本周交易记录
       const transactions = await transactionService.getTransactionHistory(accountId, 100, 0);
-      const weeklyTransactions = transactions.transactions.filter(t =>
-        t.createdAt && t.createdAt >= startDate && t.createdAt <= endDate
+      const weeklyTransactions = transactions.transactions.filter(
+        (t) => t.createdAt && t.createdAt >= startDate && t.createdAt <= endDate,
       );
 
       // 获取本周市场事件
-      const marketEvents = await assetMarketInfoService.getAssetMarketInfosByDateRange(startDate, endDate, 50);
+      const marketEvents = await assetMarketInfoService.getAssetMarketInfosByDateRange(
+        startDate,
+        endDate,
+        50,
+      );
 
       // 获取本周用户笔记
       // 注意：noteService.searchNotes 按用户ID搜索，但这里需要按账户ID搜索
       // 我们假设账户ID与用户ID相同，或者需要修改 noteService 以支持账户ID搜索
       const userId = await AuthService.getCurrentUserId();
-      const notes = userId ? await noteService.getUserNotes(userId, 50, 0, 'createdAt', 'desc') : { items: [], totalCount: 0 };
-      const weeklyNotes = notes.items.filter(n =>
-        n.createdAt >= startDate && n.createdAt <= endDate
+      const notes = userId
+        ? await noteService.getUserNotes(userId, 50, 0, 'createdAt', 'desc')
+        : { items: [], totalCount: 0 };
+      const weeklyNotes = notes.items.filter(
+        (n) => n.createdAt >= startDate && n.createdAt <= endDate,
       );
 
       // 获取当前持仓
@@ -213,13 +246,18 @@ export class ReportService {
       const investmentMemos: AssetMetaType[] = [];
       for (const position of currentPositions) {
         const assetMetas = await assetMetaService.searchAssetMetasBySymbol(position.symbol);
-        const assetMetaNotEmpty = assetMetas.filter(assetMeta => assetMeta.investmentMemo !== null);
+        const assetMetaNotEmpty = assetMetas.filter(
+          (assetMeta) => assetMeta.investmentMemo !== null,
+        );
         investmentMemos.push(...assetMetaNotEmpty);
       }
 
       // 计算本周业绩（简化实现）
       const performance: WeeklyPerformance = {
-        totalValue: currentPositions.reduce((sum: number, pos: PositionType) => sum + pos.marketValue, 0),
+        totalValue: currentPositions.reduce(
+          (sum: number, pos: PositionType) => sum + pos.marketValue,
+          0,
+        ),
         previousValue: 0, // 简化实现
         changeAmount: 0, // 简化实现
         changePercentage: 0, // 简化实现
@@ -234,7 +272,9 @@ export class ReportService {
       };
     } catch (error) {
       logger.error('[ReportService] 聚合本周数据失败', { error });
-      throw new Error(`聚合本周数据失败: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `聚合本周数据失败: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
@@ -262,7 +302,7 @@ export class ReportService {
 你要扮演一位专业的投资顾问，根据提供的用户持仓数据、市场信息和笔记，生成一份专业的投资周报。
 注意：请确保你的回答是基于提供的信息，不要包含任何个人意见，同时要关注信息的时间有效性
 `),
-        new HumanMessage(prompt)
+        new HumanMessage(prompt),
       ];
 
       const response = await agent.invoke({
@@ -275,10 +315,11 @@ export class ReportService {
       }
 
       return '';
-
     } catch (error) {
       logger.error('[ReportService] 生成AI报告内容失败', { error });
-      throw new Error(`生成AI报告内容失败: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `生成AI报告内容失败: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
@@ -315,7 +356,11 @@ Output Requirement:
    * @param endDate 结束日期（可选）
    * @returns 确定的时间范围
    */
-  private determineDateRange(type: ReportType, startDate?: Date, endDate?: Date): { startDate: Date; endDate: Date } {
+  private determineDateRange(
+    type: ReportType,
+    startDate?: Date,
+    endDate?: Date,
+  ): { startDate: Date; endDate: Date } {
     const now = new Date();
 
     if (startDate && endDate) {
@@ -361,11 +406,11 @@ Output Requirement:
   private generateReportTitle(type: ReportType, startDate: Date, endDate: Date): string {
     const startFormatted = startDate.toLocaleDateString('zh-CN', {
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     });
     const endFormatted = endDate.toLocaleDateString('zh-CN', {
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     });
 
     switch (type) {
@@ -417,7 +462,7 @@ Output Requirement:
         offset,
       });
 
-      const items: ReportListItem[] = reportRows.map(report => ({
+      const items: ReportListItem[] = reportRows.map((report) => ({
         id: report.id.toString(),
         title: report.title,
         type: report.type as ReportType,
@@ -446,7 +491,7 @@ Output Requirement:
       const report = await db.query.analysisReports.findFirst({
         where: and(
           eq(analysisReports.id, parseInt(reportId)),
-          eq(analysisReports.accountId, parseInt(accountId))
+          eq(analysisReports.accountId, parseInt(accountId)),
         ),
       });
 
@@ -482,10 +527,12 @@ Output Requirement:
 
       const result = await db
         .delete(analysisReports)
-        .where(and(
-          eq(analysisReports.id, parseInt(reportId)),
-          eq(analysisReports.accountId, parseInt(accountId))
-        ));
+        .where(
+          and(
+            eq(analysisReports.id, parseInt(reportId)),
+            eq(analysisReports.accountId, parseInt(accountId)),
+          ),
+        );
 
       return result.changes > 0;
     } catch (error) {
@@ -500,7 +547,8 @@ Output Requirement:
    */
   private async updateReportContent(reportId: string, content: string): Promise<void> {
     try {
-      await db.update(analysisReports)
+      await db
+        .update(analysisReports)
         .set({ content })
         .where(eq(analysisReports.id, parseInt(reportId)));
     } catch (error) {

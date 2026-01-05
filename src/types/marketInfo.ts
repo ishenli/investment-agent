@@ -1,4 +1,3 @@
-
 // 定义 AssetMetaDetails 类型，包含资产元数据的详细信息
 export type AssetMetaDetails = {
   id: number;

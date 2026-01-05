@@ -4,7 +4,7 @@ import { MarketBizController } from '@/server/controller/market';
 
 class MarketAIHttpController extends BaseController {
   static controller = new MarketBizController();
-  
+
   @WithRequestContext()
   static async POST(request: Request) {
     const body = await super.getBody(request);

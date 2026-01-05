@@ -1,7 +1,6 @@
 import { StateCreator } from 'zustand';
 import { TradingAccountType, UpdateAccountRequestType } from '@typings/account';
 import { AccountStore } from '../../types';
-import { produce } from 'immer';
 
 export interface AccountSettingsAction {
   fetchAccountSettings: (accountId: string) => Promise<void>;
@@ -25,6 +24,15 @@ export const createAccountSettingsSlice: StateCreator<
   AccountSettingsAction
 > = (set, get) => ({
   initializeAccount: async () => {
+    // 先调用 /api/init 更新后端持仓价格
+    try {
+      await fetch('/api/init');
+    } catch (error) {
+      console.error('初始化持仓价格失败:', error);
+      // 即使初始化失败，继续获取账户数据
+    }
+
+    // 更新持仓价格后，再获取账户数据
     await get().fetchAccounts();
     await get().fetchSelectedAccount();
     const accounts = get().accounts;

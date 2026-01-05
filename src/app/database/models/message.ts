@@ -11,8 +11,7 @@ import { nanoid } from '@renderer/lib/utils/uuid';
  * @deprecated
  */
 export interface CreateMessageParams
-  extends Partial<Omit<ChatMessage, 'content' | 'role'>>,
-    Pick<ChatMessage, 'content' | 'role'> {
+  extends Partial<Omit<ChatMessage, 'content' | 'role'>>, Pick<ChatMessage, 'content' | 'role'> {
   files?: string[];
   fromModel?: string;
   fromProvider?: string;

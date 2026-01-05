@@ -80,9 +80,7 @@ class AssetPriceController extends BaseController {
         return this.error('资产代码不能为空', 'missing_symbol');
       }
 
-      const result = await finnhubService.batchQuoteByTencent([
-        { symbol },
-      ]);
+      const result = await finnhubService.batchQuoteByTencent([{ symbol }]);
 
       if (!result || result.length === 0) {
         return this.error('无法获取资产价格', 'price_not_found');

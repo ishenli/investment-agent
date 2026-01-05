@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import './globals.css';
 import { AppSidebar } from '@renderer/components/app-sidebar';
@@ -21,9 +21,8 @@ const PageLayout = ({
 }: Readonly<{
   children: React.ReactNode;
 }>) => {
-
   const path = usePathname();
-  if(path === '/chat') {
+  if (path === '/chat') {
     return <>{children}</>;
   }
 

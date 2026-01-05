@@ -2,12 +2,7 @@
 
 import { useState } from 'react';
 import { useReports, useGenerateReport, ReportType } from '@/app/hooks/useReport';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@renderer/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@renderer/components/ui/card';
 import { Badge } from '@renderer/components/ui/badge';
 import { Button } from '@renderer/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@renderer/components/ui/alert';
@@ -20,7 +15,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@renderer/components/ui/select";
+} from '@renderer/components/ui/select';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -42,7 +37,7 @@ export function ReportList() {
         onError: (err) => {
           toast.error(`生成失败: ${err instanceof Error ? err.message : '未知错误'}`);
         },
-      }
+      },
     );
   };
 
@@ -57,10 +52,14 @@ export function ReportList() {
 
   const getTypeLabel = (type: string) => {
     switch (type) {
-      case 'weekly': return '周报';
-      case 'monthly': return '月报';
-      case 'emergency': return '紧急报告';
-      default: return '报告';
+      case 'weekly':
+        return '周报';
+      case 'monthly':
+        return '月报';
+      case 'emergency':
+        return '紧急报告';
+      default:
+        return '报告';
     }
   };
 
@@ -92,10 +91,7 @@ export function ReportList() {
         <h2 className="text-2xl font-bold tracking-tight">报告列表</h2>
 
         <div className="flex items-center gap-2">
-          <Select
-            value={reportType}
-            onValueChange={(v) => setReportType(v as ReportType)}
-          >
+          <Select value={reportType} onValueChange={(v) => setReportType(v as ReportType)}>
             <SelectTrigger className="w-[120px]">
               <SelectValue placeholder="类型" />
             </SelectTrigger>
@@ -143,9 +139,12 @@ export function ReportList() {
                     <span>
                       {report.startDate && report.endDate ? (
                         <>
-                          {format(new Date(report.startDate), 'MM.dd')} - {format(new Date(report.endDate), 'MM.dd')}
+                          {format(new Date(report.startDate), 'MM.dd')} -{' '}
+                          {format(new Date(report.endDate), 'MM.dd')}
                         </>
-                      ) : '无时间范围'}
+                      ) : (
+                        '无时间范围'
+                      )}
                     </span>
                   </div>
                 </CardContent>

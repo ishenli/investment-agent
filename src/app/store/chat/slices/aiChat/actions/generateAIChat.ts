@@ -24,9 +24,9 @@ import { messageMapKey } from '../../message/selectors';
 export type Action =
   | string
   | {
-    [x: string | number | symbol]: unknown;
-    type: string;
-  };
+      [x: string | number | symbol]: unknown;
+      type: string;
+    };
 
 interface ProcessMessageParams {
   traceId?: string;

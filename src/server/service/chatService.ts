@@ -59,8 +59,10 @@ export class ChatService {
    */
   async chat(request: ChatRequest, emitter: SSEEmitter): Promise<void> {
     try {
-      this.logger.info(`[ChatService] 开始处理聊天请求: ${request.query}, Graph类型: ${request.agentId}`);
-      
+      this.logger.info(
+        `[ChatService] 开始处理聊天请求: ${request.query}, Graph类型: ${request.agentId}`,
+      );
+
       // 获取当前用户ID
       const accountInfo = await AuthService.getCurrentUserAccount();
 
@@ -68,32 +70,31 @@ export class ChatService {
         throw new Error('获取账户信息失败');
       }
 
-      const accountId = accountInfo.id
-      
+      const accountId = accountInfo.id;
+
       switch (request.agentId) {
         case 'investment_advisor':
           await this.handleInvestmentAdvisorChat(request, emitter, accountId);
           break;
-          
+
         case 'market_information':
           await this.handleMarketInformationChat(request, emitter);
           break;
-          
+
         case 'scenario_analyzer':
           await this.handleScenarioAnalyzerChat(request, emitter, accountId);
           break;
-          
+
         case 'diversification':
           await this.handleDiversificationChat(request, emitter, accountId);
           break;
-          
+
         case 'ai_insights':
           await this.handleAIInsightsChat(request, emitter, accountId);
           break;
-          
-        default:
-            await this.handleDefaultChat(request, emitter);
 
+        default:
+          await this.handleDefaultChat(request, emitter);
       }
     } catch (error) {
       this.logger.error(`[ChatService] 处理聊天请求时发生错误:`, error);
@@ -109,7 +110,7 @@ export class ChatService {
   private async handleInvestmentAdvisorChat(
     request: ChatRequest,
     emitter: SSEEmitter,
-    accountId: string
+    accountId: string,
   ): Promise<void> {
     try {
       // 创建投资顾问图实例
@@ -162,14 +163,13 @@ export class ChatService {
 
       // 执行图
       const result = await graph.invoke(initialState);
-      
+
       // 发送结果
       await emitter.sendOpenAICompatibleMessage({
         id: 'market_info_result',
         type: 'text',
         content: result.marketAnalysis,
       });
-
     } catch (error) {
       this.logger.error('[ChatService] 市场信息聊天处理失败:', error);
       throw error;
@@ -182,23 +182,23 @@ export class ChatService {
   private async handleScenarioAnalyzerChat(
     request: ChatRequest,
     emitter: SSEEmitter,
-    accountId: string
+    accountId: string,
   ): Promise<void> {
     try {
       // 获取投资组合数据
       const portfolioAnalysis = await portfolioAnalysisService.getPortfolioAnalysis(accountId);
-      
+
       // 创建场景分析图实例
       const scenarioGraph = new ScenarioAnalyzerGraph();
-      
+
       // 获取场景参数
       const scenarioParams = request.extraParams?.scenario as ScenarioParams | undefined;
       if (!scenarioParams) {
         throw new Error('场景分析需要提供场景参数');
       }
-      
+
       // 转换持仓数据格式
-      const positionAssets: PositionAsset[] = portfolioAnalysis.holdingsSummary.map(pos => ({
+      const positionAssets: PositionAsset[] = portfolioAnalysis.holdingsSummary.map((pos) => ({
         id: pos.id,
         symbol: pos.symbol,
         name: pos.chineseName || pos.symbol,
@@ -208,12 +208,12 @@ export class ChatService {
         currentPrice: pos.currentPrice,
         marketValue: pos.marketValue,
         unrealizedPnL: pos.unrealizedPnL,
-        unrealizedPnLPercentage: pos.averageCost > 0 ?
-          ((pos.currentPrice - pos.averageCost) / pos.averageCost) * 100 : 0,
+        unrealizedPnLPercentage:
+          pos.averageCost > 0 ? ((pos.currentPrice - pos.averageCost) / pos.averageCost) * 100 : 0,
         weight: pos.positionRatio || 0,
         lastUpdated: new Date(),
       }));
-      
+
       // 创建完整的 Portfolio 对象
       const portfolio: Portfolio = {
         id: 'portfolio-' + accountId,
@@ -230,14 +230,10 @@ export class ChatService {
         lastUpdated: new Date(),
         riskMode: 'retail', // 默认값
       };
-      
+
       // 执行分析
-      const result = await scenarioGraph.analyzeScenario(
-        positionAssets,
-        portfolio,
-        scenarioParams
-      );
-      
+      const result = await scenarioGraph.analyzeScenario(positionAssets, portfolio, scenarioParams);
+
       // 发送结果
       await emitter.send({
         type: 'scenario_analysis_result',
@@ -255,17 +251,17 @@ export class ChatService {
   private async handleDiversificationChat(
     request: ChatRequest,
     emitter: SSEEmitter,
-    accountId: string
+    accountId: string,
   ): Promise<void> {
     try {
       // 获取投资组合数据
       const portfolioAnalysis = await portfolioAnalysisService.getPortfolioAnalysis(accountId);
-      
+
       // 创建分散投资图实例
       const diversificationGraph = new DiversificationGraph();
-      
+
       // 转换持仓数据格式
-      const positionAssets: PositionAsset[] = portfolioAnalysis.holdingsSummary.map(pos => ({
+      const positionAssets: PositionAsset[] = portfolioAnalysis.holdingsSummary.map((pos) => ({
         id: pos.id,
         symbol: pos.symbol,
         name: pos.chineseName || pos.symbol,
@@ -275,12 +271,12 @@ export class ChatService {
         currentPrice: pos.currentPrice,
         marketValue: pos.marketValue,
         unrealizedPnL: pos.unrealizedPnL,
-        unrealizedPnLPercentage: pos.averageCost > 0 ?
-          ((pos.currentPrice - pos.averageCost) / pos.averageCost) * 100 : 0,
+        unrealizedPnLPercentage:
+          pos.averageCost > 0 ? ((pos.currentPrice - pos.averageCost) / pos.averageCost) * 100 : 0,
         weight: pos.positionRatio || 0,
         lastUpdated: new Date(),
       }));
-      
+
       // 创建完整的 Portfolio 对象
       const portfolio: Portfolio = {
         id: 'portfolio-' + accountId,
@@ -297,13 +293,13 @@ export class ChatService {
         lastUpdated: new Date(),
         riskMode: 'retail', // 默认값
       };
-      
+
       // 生成推荐
       const recommendations = await diversificationGraph.generateRecommendations(
         positionAssets,
-        portfolio
+        portfolio,
       );
-      
+
       // 发送结果
       await emitter.send({
         type: 'diversification_result',
@@ -321,17 +317,17 @@ export class ChatService {
   private async handleAIInsightsChat(
     request: ChatRequest,
     emitter: SSEEmitter,
-    accountId: string
+    accountId: string,
   ): Promise<void> {
     try {
       // 获取投资组合数据
       const portfolioAnalysis = await portfolioAnalysisService.getPortfolioAnalysis(accountId);
-      
+
       // 创建AI洞察图实例
       const aiInsightsGraph = new AIInsightsGraph();
-      
+
       // 转换持仓数据格式
-      const positionAssets: PositionAsset[] = portfolioAnalysis.holdingsSummary.map(pos => ({
+      const positionAssets: PositionAsset[] = portfolioAnalysis.holdingsSummary.map((pos) => ({
         id: pos.id,
         symbol: pos.symbol,
         name: pos.chineseName || pos.symbol,
@@ -341,12 +337,12 @@ export class ChatService {
         currentPrice: pos.currentPrice,
         marketValue: pos.marketValue,
         unrealizedPnL: pos.unrealizedPnL,
-        unrealizedPnLPercentage: pos.averageCost > 0 ?
-          ((pos.currentPrice - pos.averageCost) / pos.averageCost) * 100 : 0,
+        unrealizedPnLPercentage:
+          pos.averageCost > 0 ? ((pos.currentPrice - pos.averageCost) / pos.averageCost) * 100 : 0,
         weight: pos.positionRatio || 0,
         lastUpdated: new Date(),
       }));
-      
+
       // 创建完整的 Portfolio 对象
       const portfolio: Portfolio = {
         id: 'portfolio-' + accountId,
@@ -363,13 +359,10 @@ export class ChatService {
         lastUpdated: new Date(),
         riskMode: 'retail', // 默认값
       };
-      
+
       // 生成洞察
-      const insights = await aiInsightsGraph.generateInsights(
-        positionAssets,
-        portfolio
-      );
-      
+      const insights = await aiInsightsGraph.generateInsights(positionAssets, portfolio);
+
       // 发送结果
       await emitter.send({
         type: 'ai_insights_result',
@@ -384,19 +377,15 @@ export class ChatService {
   /**
    * 处理默认聊天请求，直接对接 LLM
    */
-  private async handleDefaultChat(
-    request: ChatRequest,
-    emitter: SSEEmitter,
-  ): Promise<void> {
-
+  private async handleDefaultChat(request: ChatRequest, emitter: SSEEmitter): Promise<void> {
     logger.info('[ChatService] 处理默认聊天请求: model=%s', request.model);
     try {
       // 初始化模型
       const llm = chatModelOpenAI(request.model);
-      
+
       // 创建消息
       const messages = request.messages || [new HumanMessage(request.query)];
-      
+
       // 调用模型获取响应
       const response = await llm.stream(messages);
 

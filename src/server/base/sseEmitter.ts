@@ -1,6 +1,9 @@
 import { ChatCompletionChunk } from '@typings/openai/chat';
 import { UIMessageChunk } from 'ai';
-import { convertToOpenAICompatibleMessage, OpenAICompatibleMessage } from '../core/utils/messageUtils';
+import {
+  convertToOpenAICompatibleMessage,
+  OpenAICompatibleMessage,
+} from '../core/utils/messageUtils';
 
 export class SSEEmitter {
   public readonly readable: ReadableStream<Uint8Array>;

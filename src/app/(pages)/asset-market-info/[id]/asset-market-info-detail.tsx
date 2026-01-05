@@ -30,7 +30,9 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
   const [assetMeta, setAssetMeta] = useState<AssetMetaType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'latest' | 'history' | 'company' | 'investment-memo'>('latest');
+  const [activeTab, setActiveTab] = useState<'latest' | 'history' | 'company' | 'investment-memo'>(
+    'latest',
+  );
   const [pagination, setPagination] = useState<{
     page: number;
     limit: number;
@@ -367,13 +369,12 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
         setActiveTab={setActiveTab}
         onRefresh={fetchData}
         onAddCompanyInfo={openAddCompanyInfoDialog}
-        onAddInvestmentMemo={!assetMeta?.investmentMemo ? () => setInvestmentMemoDialogOpen(true) : undefined}
+        onAddInvestmentMemo={
+          !assetMeta?.investmentMemo ? () => setInvestmentMemoDialogOpen(true) : undefined
+        }
       />
 
-      <TabNavigation
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-      />
+      <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
 
       {/* 最新信息视图 */}
       {activeTab === 'latest' && (

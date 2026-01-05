@@ -441,7 +441,9 @@ export async function getInsiderTrades(
 
     // Update endDate to the oldest filing date from current batch for next iteration
     currentEndDate = new Date(
-      Math.min(...insiderTrades.map((trade: InsiderTrade) => new Date(trade.filing_date).getTime())),
+      Math.min(
+        ...insiderTrades.map((trade: InsiderTrade) => new Date(trade.filing_date).getTime()),
+      ),
     )
       .toISOString()
       .split('T')[0];
@@ -525,7 +527,9 @@ export async function getCompanyNews(
     }
 
     // Update endDate to the oldest date from current batch for next iteration
-    currentEndDate = new Date(Math.min(...companyNews.map((news: CompanyNews) => new Date(news.date).getTime())))
+    currentEndDate = new Date(
+      Math.min(...companyNews.map((news: CompanyNews) => new Date(news.date).getTime())),
+    )
       .toISOString()
       .split('T')[0];
 

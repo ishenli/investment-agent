@@ -38,9 +38,7 @@ export class NoteController extends BaseBizController {
   }
 
   @WithRequestContext()
-  async getNoteById(param: {
-    id: string;
-  }) {
+  async getNoteById(param: { id: string }) {
     try {
       // 获取当前用户ID
       const userId = await AuthService.getCurrentUserId();
@@ -66,11 +64,7 @@ export class NoteController extends BaseBizController {
   }
 
   @WithRequestContext()
-  async createNote(body: {
-    title: string;
-    content: string;
-    tags: string[];
-  }) {
+  async createNote(body: { title: string; content: string; tags: string[] }) {
     try {
       // 获取当前用户ID
       const userId = await AuthService.getCurrentUserId();
@@ -97,12 +91,7 @@ export class NoteController extends BaseBizController {
   }
 
   @WithRequestContext()
-  async updateNote(body: {
-    id: string;
-    title: string;
-    content: string;
-    tags: string[];
-  }) {
+  async updateNote(body: { id: string; title: string; content: string; tags: string[] }) {
     try {
       // 获取当前用户ID
       const userId = await AuthService.getCurrentUserId();
@@ -136,9 +125,7 @@ export class NoteController extends BaseBizController {
   }
 
   @WithRequestContext()
-  async deleteNote(body: {
-    id: string;
-  }) {
+  async deleteNote(body: { id: string }) {
     try {
       // 获取当前用户ID
       const userId = await AuthService.getCurrentUserId();

@@ -4,7 +4,7 @@ import { AssetMetaBizController } from '@/server/controller/assetMeta';
 
 class AssetMetaHttpController extends BaseController {
   static controller = new AssetMetaBizController();
-  
+
   @WithRequestContext()
   static async GET(request: Request) {
     const json = await super.getQuery(request);

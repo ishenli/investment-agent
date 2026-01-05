@@ -6,12 +6,12 @@ import {
   UpdateAccountRequestSchema,
   CreateTradingAccountRequestSchema,
   TradingAccountSchema,
-  revenueHistoryQuerySchema
+  revenueHistoryQuerySchema,
 } from '@typings/account';
 import {
   TransactionRequestSchema,
   PartialTransactionRequestSchema,
-  TransactionRecordSchema
+  TransactionRecordSchema,
 } from '@typings/transaction';
 import logger from '@server/base/logger';
 import { z } from 'zod';
@@ -32,7 +32,7 @@ export class AssetAccountBizController extends BaseBizController {
       const balanceSchema = z.object({
         balance: z.number().min(0),
       });
-      
+
       const validationResult = balanceSchema.safeParse(request);
       if (!validationResult.success) {
         return this.responseValidateError(validationResult.error);
@@ -40,7 +40,10 @@ export class AssetAccountBizController extends BaseBizController {
       const validatedBody = validationResult.data;
 
       // 3. 更新账户余额
-      const updatedAccount = await accountService.updateAccountBalance(userId, validatedBody.balance);
+      const updatedAccount = await accountService.updateAccountBalance(
+        userId,
+        validatedBody.balance,
+      );
       if (!updatedAccount) {
         return this.error('账户不存在', 'account_not_found');
       }

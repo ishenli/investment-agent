@@ -1,7 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@renderer/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@renderer/components/ui/card';
 import { Badge } from '@renderer/components/ui/badge';
 import { Button } from '@renderer/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@renderer/components/ui/alert';
@@ -21,12 +27,14 @@ interface HistoryMarketInfoViewProps {
     total: number;
     totalPages: number;
   };
-  setPagination: React.Dispatch<React.SetStateAction<{
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  }>>;
+  setPagination: React.Dispatch<
+    React.SetStateAction<{
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    }>
+  >;
 }
 
 export function HistoryMarketInfoView({
@@ -36,7 +44,7 @@ export function HistoryMarketInfoView({
   onViewDetail,
   onDelete,
   pagination,
-  setPagination
+  setPagination,
 }: HistoryMarketInfoViewProps) {
   if (marketInfos.length === 0) {
     return (
@@ -66,9 +74,7 @@ export function HistoryMarketInfoView({
                   </CardDescription>
                 </div>
                 <div className="flex gap-2">
-                  <Badge className={getSentimentColor(info.sentiment)}>
-                    {info.sentiment}
-                  </Badge>
+                  <Badge className={getSentimentColor(info.sentiment)}>{info.sentiment}</Badge>
                   <Badge className={getImportanceColor(info.importance)}>
                     重要性: {info.importance}/10
                   </Badge>
@@ -80,18 +86,10 @@ export function HistoryMarketInfoView({
                 {info.summary}
               </p>
               <div className="mt-4 flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onViewDetail(info)}
-                >
+                <Button variant="outline" size="sm" onClick={() => onViewDetail(info)}>
                   查看详情
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onDelete(info)}
-                >
+                <Button variant="outline" size="sm" onClick={() => onDelete(info)}>
                   删除详情
                 </Button>
               </div>

@@ -14,7 +14,6 @@ export interface JwtPayload {
 }
 
 export class AuthService {
-
   static async getCurrentUserAccount(): Promise<AccountType | null> {
     const userId = await this.getCurrentUserId();
     return this.getUserSelectedAccount(userId);

@@ -20,9 +20,11 @@ class AssetMarketInfosController extends BaseController {
     const url = new URL(request.url);
     const searchParams = Object.fromEntries(url.searchParams);
     const marketController = new MarketBizController();
-    return Response.json(await marketController.deleteMarketInfo({
-      id: searchParams.id
-    }));
+    return Response.json(
+      await marketController.deleteMarketInfo({
+        id: searchParams.id,
+      }),
+    );
   }
 }
 

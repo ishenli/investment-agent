@@ -11,7 +11,6 @@ interface ContentPreviewProps {
 }
 
 const ContentPreview = ({ content, id }: ContentPreviewProps) => {
-
   // const [openMessageDetail] = useChatStore((s) => [s.openMessageDetail]);
 
   return (
@@ -29,7 +28,7 @@ const ContentPreview = ({ content, id }: ContentPreviewProps) => {
           size={'small'}
           variant={'filled'}
         >
-          {('chatList.longMessageDetail')}
+          {'chatList.longMessageDetail'}
         </Button>
       </Flexbox>
     </Flexbox>

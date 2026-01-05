@@ -12,7 +12,9 @@ async function testHistorySync() {
   const endDate = new Date('2023-12-01');
   const startDate = new Date('2023-11-01');
 
-  console.log(`Syncing data for ${symbol} from ${startDate.toISOString()} to ${endDate.toISOString()}...`);
+  console.log(
+    `Syncing data for ${symbol} from ${startDate.toISOString()} to ${endDate.toISOString()}...`,
+  );
 
   // Mock getCandles to verify DB logic despite API failure
   finnhubService.getCandles = async (sym, res, from, to) => {
@@ -26,21 +28,19 @@ async function testHistorySync() {
       t: [
         Math.floor(startDate.getTime() / 1000) + 3600, // +1 hour
         Math.floor(startDate.getTime() / 1000) + 86400 + 3600, // +1 day + 1 hour
-        Math.floor(startDate.getTime() / 1000) + 172800 + 3600 // +2 days + 1 hour
+        Math.floor(startDate.getTime() / 1000) + 172800 + 3600, // +2 days + 1 hour
       ],
-      v: [1000, 2000, 1500]
+      v: [1000, 2000, 1500],
     };
   };
 
   await finnhubService.syncHistoricalData(symbol, startDate, endDate, 'US');
 
   // Verify data in DB
-  const records = await db.select().from(assetPriceHistory).where(
-    and(
-      eq(assetPriceHistory.symbol, symbol),
-      gte(assetPriceHistory.date, startDate)
-    )
-  );
+  const records = await db
+    .select()
+    .from(assetPriceHistory)
+    .where(and(eq(assetPriceHistory.symbol, symbol), gte(assetPriceHistory.date, startDate)));
 
   console.log(`Found ${records.length} records for ${symbol} in the specified range.`);
   if (records.length > 0) {

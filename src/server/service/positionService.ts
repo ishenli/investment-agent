@@ -328,52 +328,55 @@ export class PositionService {
       const accountFundsRecords = await db.query.accountFunds.findMany({
         where: eq(accountFunds.accountId, parseInt(accountId)),
       });
-      
+
       // 计算包含现金的账户总价值
-      const cashBalance = accountFundsRecords.reduce((sum: number, fund: typeof accountFunds.$inferSelect) => sum + (fund.amountCents / 100), 0);
-      const totalAccountValue = new Decimal(totalStockMarketValue).plus(new Decimal(cashBalance)).toNumber();
+      const cashBalance = accountFundsRecords.reduce(
+        (sum: number, fund: typeof accountFunds.$inferSelect) => sum + fund.amountCents / 100,
+        0,
+      );
+      const totalAccountValue = new Decimal(totalStockMarketValue)
+        .plus(new Decimal(cashBalance))
+        .toNumber();
 
       const positionsResult = positionRecords
-        .map(
-          (record): PositionType => {
-            const latestPrice = priceMap[record.symbol]?.price || record.averagePriceCents / 100;
+        .map((record): PositionType => {
+          const latestPrice = priceMap[record.symbol]?.price || record.averagePriceCents / 100;
 
-            // 计算市值（使用Decimal提高精度）
-            const marketValue = new Decimal(record.quantity).mul(latestPrice).toNumber();
+          // 计算市值（使用Decimal提高精度）
+          const marketValue = new Decimal(record.quantity).mul(latestPrice).toNumber();
 
-            // 计算持仓占比（使用Decimal提高精度）
-            const positionRatio =
-              totalAccountValue > 0 ? new Decimal(marketValue).div(totalAccountValue).toNumber() : 0;
+          // 计算持仓占比（使用Decimal提高精度）
+          const positionRatio =
+            totalAccountValue > 0 ? new Decimal(marketValue).div(totalAccountValue).toNumber() : 0;
 
-            // 获取中文名称、市场信息、投资笔记和 assetMetaId
-            const assetMeta = assetMetaMap.get(record.symbol);
-            const chineseName = assetMeta?.chineseName || null;
-            const market = assetMeta?.market || undefined;
-            const investmentMemo = assetMeta?.investmentMemo || null;
-            const assetMetaId = assetMeta?.id || null;
+          // 获取中文名称、市场信息、投资笔记和 assetMetaId
+          const assetMeta = assetMetaMap.get(record.symbol);
+          const chineseName = assetMeta?.chineseName || null;
+          const market = assetMeta?.market || undefined;
+          const investmentMemo = assetMeta?.investmentMemo || null;
+          const assetMetaId = assetMeta?.id || null;
 
-            return {
-              id: record.id.toString(),
-              accountId: record.accountId.toString(),
-              symbol: record.symbol,
-              chineseName, // 添加中文名称
-              quantity: record.quantity,
-              averageCost: record.averagePriceCents / 100, // 转换为美元
-              currentPrice: latestPrice,
-              marketValue: marketValue,
-              unrealizedPnL: new Decimal(latestPrice)
-                .minus(record.averagePriceCents / 100)
-                .mul(record.quantity)
-                .toNumber(),
-              positionRatio, // 添加持仓占比
-              market,
-              investmentMemo, // 添加投资笔记
-              assetMetaId, // 添加 assetMetaId
-              createdAt: record.createdAt,
-              updatedAt: record.updatedAt,
-            };
-          },
-        )
+          return {
+            id: record.id.toString(),
+            accountId: record.accountId.toString(),
+            symbol: record.symbol,
+            chineseName, // 添加中文名称
+            quantity: record.quantity,
+            averageCost: record.averagePriceCents / 100, // 转换为美元
+            currentPrice: latestPrice,
+            marketValue: marketValue,
+            unrealizedPnL: new Decimal(latestPrice)
+              .minus(record.averagePriceCents / 100)
+              .mul(record.quantity)
+              .toNumber(),
+            positionRatio, // 添加持仓占比
+            market,
+            investmentMemo, // 添加投资笔记
+            assetMetaId, // 添加 assetMetaId
+            createdAt: record.createdAt,
+            updatedAt: record.updatedAt,
+          };
+        })
         .sort((a, b) => b.marketValue - a.marketValue); // 根据市值大小排列
 
       return positionsResult;

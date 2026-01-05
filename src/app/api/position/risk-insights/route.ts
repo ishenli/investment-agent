@@ -4,7 +4,7 @@ import { PositionBizController } from '@/server/controller/position';
 
 class PositionRiskInsightsHttpController extends BaseController {
   static controller = new PositionBizController();
-  
+
   @WithRequestContext()
   static async GET(request: Request) {
     const json = await super.getQuery(request);

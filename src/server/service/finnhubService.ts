@@ -166,26 +166,20 @@ class FinnhubService {
     }
 
     return new Promise((resolve) => {
-      finnhubClient.stockCandles(
-        symbol,
-        resolution,
-        from,
-        to,
-        (error: unknown, data: any) => {
-          if (error) {
-            logger.error(`Failed to get candles for ${symbol}:`, error);
-            resolve(null);
-            return;
-          }
+      finnhubClient.stockCandles(symbol, resolution, from, to, (error: unknown, data: any) => {
+        if (error) {
+          logger.error(`Failed to get candles for ${symbol}:`, error);
+          resolve(null);
+          return;
+        }
 
-          if (data.s === 'no_data') {
-            resolve(null);
-            return;
-          }
+        if (data.s === 'no_data') {
+          resolve(null);
+          return;
+        }
 
-          resolve(data);
-        },
-      );
+        resolve(data);
+      });
     });
   }
 
@@ -231,7 +225,6 @@ class FinnhubService {
 
     return [];
   }
-
 
   /**
    * 保存历史价格数据
@@ -290,7 +283,9 @@ class FinnhubService {
     market: MarketType = 'US',
   ): Promise<void> {
     try {
-      logger.info(`[FinnhubService] Syncing historical data for ${symbol} from ${startDate.toISOString()} to ${endDate.toISOString()}`);
+      logger.info(
+        `[FinnhubService] Syncing historical data for ${symbol} from ${startDate.toISOString()} to ${endDate.toISOString()}`,
+      );
 
       // Calculate timestamps in seconds
       const from = Math.floor(startDate.getTime() / 1000);
@@ -324,20 +319,21 @@ class FinnhubService {
           and(
             eq(assetPriceHistory.symbol, symbol),
             gte(assetPriceHistory.date, startDate),
-            lte(assetPriceHistory.date, endDate)
-          )
+            lte(assetPriceHistory.date, endDate),
+          ),
         );
 
-      const existingDates = new Set(existing.map(e => e.date.toISOString().split('T')[0]));
+      const existingDates = new Set(existing.map((e) => e.date.toISOString().split('T')[0]));
 
-      const newPrices = prices.filter(p => !existingDates.has(p.date.toISOString().split('T')[0]));
+      const newPrices = prices.filter(
+        (p) => !existingDates.has(p.date.toISOString().split('T')[0]),
+      );
 
       if (newPrices.length > 0) {
         await this.saveHistoricalPrices(newPrices, symbol, market);
       } else {
         logger.info(`[FinnhubService] No new prices to save for ${symbol}`);
       }
-
     } catch (error) {
       logger.error(`[FinnhubService] Failed to sync historical data for ${symbol}:`, error);
     }
@@ -347,7 +343,11 @@ class FinnhubService {
    * 获取特定日期的历史价格
    * 如果数据库中没有，尝试同步
    */
-  async getHistoricalPrice(symbol: string, date: Date, market: MarketType = 'US'): Promise<number | null> {
+  async getHistoricalPrice(
+    symbol: string,
+    date: Date,
+    market: MarketType = 'US',
+  ): Promise<number | null> {
     try {
       // Expand search range to cover the whole day in UTC
       const startOfDay = new Date(date);
@@ -359,8 +359,8 @@ class FinnhubService {
         where: and(
           eq(assetPriceHistory.symbol, symbol),
           gte(assetPriceHistory.date, startOfDay),
-          lte(assetPriceHistory.date, endOfDay)
-        )
+          lte(assetPriceHistory.date, endOfDay),
+        ),
       });
 
       if (record) {
@@ -381,12 +381,11 @@ class FinnhubService {
         where: and(
           eq(assetPriceHistory.symbol, symbol),
           gte(assetPriceHistory.date, startOfDay),
-          lte(assetPriceHistory.date, endOfDay)
-        )
+          lte(assetPriceHistory.date, endOfDay),
+        ),
       });
 
       return recordAfterSync ? recordAfterSync.priceCents / 100 : null;
-
     } catch (error) {
       logger.error(`[FinnhubService] Error getting historical price for ${symbol}:`, error);
       return null;

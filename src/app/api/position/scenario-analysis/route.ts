@@ -4,7 +4,7 @@ import { PositionBizController } from '@/server/controller/position';
 
 class ScenarioAnalysisHttpController extends BaseController {
   static controller = new PositionBizController();
-  
+
   @WithRequestContext()
   static async POST(request: Request) {
     const body = await super.getBody(request);

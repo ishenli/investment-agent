@@ -137,7 +137,6 @@ export const createPluginStoreSlice: StateCreator<
       suspense: true,
     }),
   useFetchPluginList: (params) => {
-
     return useSWR<PluginListResponse>(
       ['useFetchPluginList', 'en', ...Object.values(params)].filter(Boolean).join('-'),
       async () => toolService.getOldPluginList(params),

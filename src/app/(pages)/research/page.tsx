@@ -25,7 +25,10 @@ import { zhCN } from 'date-fns/locale';
 import { useStockStore } from '@renderer/store/stock/store';
 import { stockChatSelectors } from '@renderer/store/stock/slices/chat/selector';
 import StockChat from './components/StockChat';
-import { Conversation, ConversationScrollButton } from '@renderer/components/ai-elements/conversation';
+import {
+  Conversation,
+  ConversationScrollButton,
+} from '@renderer/components/ai-elements/conversation';
 
 export default function StockAnalysisPage() {
   const [formData, setFormData] = useState({

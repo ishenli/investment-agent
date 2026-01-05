@@ -12,7 +12,7 @@ class InitHttpController extends BaseController {
   static async GET() {
     const initController = new InitController();
     const data = await initController.init();
-    return Response.json(data)
+    return Response.json(data);
   }
 }
 

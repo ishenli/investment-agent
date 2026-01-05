@@ -4,7 +4,7 @@ import { PositionBizController } from '@/server/controller/position';
 
 class StrategyAdviceHttpController extends BaseController {
   static controller = new PositionBizController();
-  
+
   @WithRequestContext()
   static async GET(request: Request) {
     const json = await super.getQuery(request);
@@ -14,7 +14,9 @@ class StrategyAdviceHttpController extends BaseController {
   @WithRequestContext()
   static async POST(request: Request) {
     const body = await super.getBody(request);
-    return Response.json(await StrategyAdviceHttpController.controller.generateStrategyAdvice(body));
+    return Response.json(
+      await StrategyAdviceHttpController.controller.generateStrategyAdvice(body),
+    );
   }
 }
 

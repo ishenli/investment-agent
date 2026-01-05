@@ -22,7 +22,12 @@ interface EditPositionDialogProps {
   onUpdate: () => void;
 }
 
-export function EditPositionDialog({ open, onOpenChange, position, onUpdate }: EditPositionDialogProps) {
+export function EditPositionDialog({
+  open,
+  onOpenChange,
+  position,
+  onUpdate,
+}: EditPositionDialogProps) {
   const [quantity, setQuantity] = useState('');
   const [averageCost, setAverageCost] = useState('');
   const [loading, setLoading] = useState(false);
@@ -67,9 +72,7 @@ export function EditPositionDialog({ open, onOpenChange, position, onUpdate }: E
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>编辑持仓</DialogTitle>
-            <DialogDescription>
-              修改持仓信息，点击保存以应用更改。
-            </DialogDescription>
+            <DialogDescription>修改持仓信息，点击保存以应用更改。</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
@@ -77,11 +80,7 @@ export function EditPositionDialog({ open, onOpenChange, position, onUpdate }: E
                 股票代码
               </Label>
               <div className="col-span-3">
-                <Input
-                  id="symbol"
-                  value={position?.symbol || ''}
-                  disabled
-                />
+                <Input id="symbol" value={position?.symbol || ''} disabled />
               </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">

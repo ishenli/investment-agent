@@ -12,12 +12,13 @@ import { ChatPortalAction, chatPortalSlice } from './slices/portal/action';
 import { ChatBuiltinToolAction, chatToolSlice } from './slices/builtinTool/actions';
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ChatStoreAction
-  extends ChatMessageAction,
-  ChatTopicAction,
-  AIGenerateAction,
-  ChatPortalAction,
-  ChatBuiltinToolAction,
-  ChatMemoryAction {
+  extends
+    ChatMessageAction,
+    ChatTopicAction,
+    AIGenerateAction,
+    ChatPortalAction,
+    ChatBuiltinToolAction,
+    ChatMemoryAction {
   // xx
 }
 

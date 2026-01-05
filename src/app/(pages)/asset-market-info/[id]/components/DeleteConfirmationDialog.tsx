@@ -6,7 +6,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from '@renderer/components/ui/dialog';
 import { Button } from '@renderer/components/ui/button';
 import { format } from 'date-fns';
@@ -53,7 +53,7 @@ export function DeleteConfirmationDialog({
   onConfirm,
   deleting,
   infoToDelete,
-  companyInfoToDelete
+  companyInfoToDelete,
 }: DeleteConfirmationDialogProps) {
   const handleClose = () => {
     onOpenChange(false);

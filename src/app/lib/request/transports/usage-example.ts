@@ -62,7 +62,7 @@ export const ExampleComponent = () => {
     fetchData,
     submitData,
     updateData,
-    deleteData
+    deleteData,
   };
 };
 

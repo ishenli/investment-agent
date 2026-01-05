@@ -4,7 +4,7 @@ import { AssetAccountBizController } from '@/server/controller/assetAccount';
 
 class AssetAccountSummaryHttpController extends BaseController {
   static controller = new AssetAccountBizController();
-  
+
   @WithRequestContext()
   static async GET(request: Request) {
     const json = await super.getQuery(request);

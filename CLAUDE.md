@@ -17,8 +17,6 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 <!-- OPENSPEC:END -->
 
+### 上下文信息
 
-## Project Rule And Workflow
-
-+ the rule files is in `.codefuserules/rules-xxx` file folder, You Must read it and follow it.
-+ the command files is in `.codefuserules/workflows` file folder, You Must read it and follow it. 
+请必须阅读当前项目[AGENTS.md](./AGENTS.md) 的内容, 了解当前项目的上下文信息.

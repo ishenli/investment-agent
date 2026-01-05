@@ -92,7 +92,6 @@ export function create_news_analyst(llm: ChatOpenAI, logger: Logger) {
     // 🔧 使用统一新闻工具，简化工具调用
     logger.info(`[新闻分析师] 使用统一新闻工具，自动识别股票类型并获取相应新闻`);
 
-
     const tools = [stockSearchNewsTool];
     logger.info(`[新闻分析师] 已加载统一新闻工具: get_stock_news_unified`);
 

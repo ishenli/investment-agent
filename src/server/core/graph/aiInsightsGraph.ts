@@ -7,6 +7,7 @@ import { randomUUID } from 'node:crypto';
 import { chatModelOpenAI, ModelMap } from '@server/core/provider/chatModel';
 import logger from '@/server/base/logger';
 import { recordPrompt } from '@/server/utils/file';
+import { createDeepAgent } from 'deepagents';
 
 // 定义状态类型
 export interface AIInsightsState {
@@ -161,8 +162,17 @@ ${positions.map((pos) => `${pos.symbol}${pos.investmentMemo ? ` (${pos.investmen
 
       try {
         recordPrompt(prompt, 'ai-insights-opportunity-finder.md');
-        const response = await this.llm.invoke([new HumanMessage(prompt)]);
-        return { opportunities: response.content };
+        // const response = await this.llm.invoke([new HumanMessage(prompt)]);
+        const agent = createDeepAgent({
+          tools: [],
+          systemPrompt: `你是一个投资机会发掘专家`,
+        });
+
+        const response = await agent.invoke({
+          messages: [new HumanMessage(prompt)],
+        });
+        const result = response.messages[response.messages.length - 1].content;
+        return { opportunities: result };
       } catch (error) {
         logger.error('[AIInsightsGraph] Error in opportunity finder:', error);
         return { error: '机会识别失败' };
@@ -372,8 +382,8 @@ function getLatestDataUpdate(relatedAssets: string[], positions: PositionAsset[]
   }
 
   const updates = relatedAssets
-    .map(symbol => {
-      const position = positions.find(p => p.symbol === symbol);
+    .map((symbol) => {
+      const position = positions.find((p) => p.symbol === symbol);
       return position ? new Date(position.lastUpdated) : new Date();
     })
     .sort((a, b) => b.getTime() - a.getTime());

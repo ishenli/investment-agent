@@ -4,7 +4,7 @@ import { CompanyBizController } from '@/server/controller/company';
 
 class CompanyInfoListHttpController extends BaseController {
   static controller = new CompanyBizController();
-  
+
   @WithRequestContext()
   static async GET(request: Request) {
     const json = await super.getQuery(request);

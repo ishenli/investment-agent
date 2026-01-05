@@ -5,7 +5,6 @@ import { ChatCompletionTool } from '@/types/openai/chat';
 import { OpenAIPluginManifest } from '@/types/openai/plugin';
 import { genToolCallingName } from './toolCall';
 
-
 export const convertOpenAIManifestToLobeManifest = (
   data: OpenAIPluginManifest,
 ): LobeChatPluginManifest => {

@@ -63,17 +63,17 @@ export const dalleSlice: StateCreator<
       });
 
       toggleDallEImageLoading(messageId + params.prompt, false);
-      
+
       // Simulate upload process
       // const imageFile = await uploadService.getImageFileByUrlWithCORS(
       //   url,
       //   `${originPrompt || params.prompt}_${index}.png`,
       // );
-      // 
+      //
       // const data = await useFileStore.getState().uploadWithProgress({
       //   file: imageFile,
       // });
-      
+
       // For now, simulate an ID
       const data = { id: `image_${Date.now()}_${index}` };
 

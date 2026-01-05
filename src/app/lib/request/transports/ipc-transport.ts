@@ -10,19 +10,19 @@ export class IPCTransport implements RequestTransport {
     // 这里需要根据实际的 IPC 实现进行调整
     // 示例：通过 Electron 的 IPC 通道发送消息
     console.warn('IPC transport is not fully implemented yet. Falling back to HTTP-like behavior.');
-    
+
     // 临时实现，实际应通过 IPC 通道发送请求
     const response = await fetch(url, options);
-    
+
     if (!response.ok) {
       throw new Error(`IPC Request failed! status: ${response.status}`);
     }
-    
+
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
       return await response.json();
     }
-    
+
     return (await response.text()) as unknown as T;
   }
 

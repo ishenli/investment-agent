@@ -39,24 +39,22 @@ export class TransactionService {
       });
 
       // Calculate balance after each transaction
-      const transactionsWithBalance = transactionRecords.map(
-        (record) => {
-          return {
-            id: record.id.toString(),
-            accountId: record.accountId.toString(),
-            type: record.type as TransactionType,
-            amount: (record.totalAmountCents ?? 0) / 100,
-            description: record.description || '',
-            referenceId: record.id.toString(),
-            createdAt: record.createdAt,
-            tradeTime: record.tradeTime,
-            quantity: record.quantity || 0,
-            price: record.priceCents ? (record.priceCents ?? 0) / 100 : 0,
-            symbol: record.symbol || '',
-            market: record.market as 'US' | 'CN' | 'HK' | undefined,
-          };
-        },
-      );
+      const transactionsWithBalance = transactionRecords.map((record) => {
+        return {
+          id: record.id.toString(),
+          accountId: record.accountId.toString(),
+          type: record.type as TransactionType,
+          amount: (record.totalAmountCents ?? 0) / 100,
+          description: record.description || '',
+          referenceId: record.id.toString(),
+          createdAt: record.createdAt,
+          tradeTime: record.tradeTime,
+          quantity: record.quantity || 0,
+          price: record.priceCents ? (record.priceCents ?? 0) / 100 : 0,
+          symbol: record.symbol || '',
+          market: record.market as 'US' | 'CN' | 'HK' | undefined,
+        };
+      });
 
       return {
         transactions: transactionsWithBalance,

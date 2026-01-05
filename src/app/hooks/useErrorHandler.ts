@@ -11,10 +11,10 @@ export const useErrorHandler = () => {
 
   const handleError = useCallback((error: any, defaultMessage: string = '操作失败') => {
     console.error('Error occurred:', error);
-    
+
     let errorMessage = defaultMessage;
     let errorType = 'unknown';
-    
+
     if (error instanceof Error) {
       errorMessage = error.message;
       errorType = 'javascript_error';
@@ -29,7 +29,7 @@ export const useErrorHandler = () => {
         errorType = (error as { type: string }).type;
       }
     }
-    
+
     setError({ message: errorMessage, type: errorType });
   }, []);
 
@@ -37,20 +37,23 @@ export const useErrorHandler = () => {
     setError({ message: null, type: null });
   }, []);
 
-  const withLoading = useCallback(async <T,>(asyncFunction: () => Promise<T>): Promise<T | null> => {
-    setIsLoading(true);
-    clearError();
-    
-    try {
-      const result = await asyncFunction();
-      return result;
-    } catch (error) {
-      handleError(error);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [handleError, clearError]);
+  const withLoading = useCallback(
+    async <T>(asyncFunction: () => Promise<T>): Promise<T | null> => {
+      setIsLoading(true);
+      clearError();
+
+      try {
+        const result = await asyncFunction();
+        return result;
+      } catch (error) {
+        handleError(error);
+        return null;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [handleError, clearError],
+  );
 
   return {
     error: error.message,

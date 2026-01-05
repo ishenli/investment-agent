@@ -37,10 +37,10 @@ export class SettingBizController extends BaseBizController {
 
       // 2. 获取用户的所有设置
       const settings = await settingService.getSettingsByAccountId(parseInt(accountInfo.id));
-      
+
       // 3. 转换为键值对格式
       const settingsMap: Record<string, string> = {};
-      settings.forEach(setting => {
+      settings.forEach((setting) => {
         settingsMap[setting.key] = setting.value;
       });
 
@@ -76,7 +76,7 @@ export class SettingBizController extends BaseBizController {
       return this.success({
         key: setting.key,
         value: setting.value,
-        updatedAt: setting.updatedAt
+        updatedAt: setting.updatedAt,
       });
     } catch (error) {
       if (error instanceof z.ZodError) {

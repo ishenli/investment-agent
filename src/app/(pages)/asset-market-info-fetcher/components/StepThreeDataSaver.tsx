@@ -159,10 +159,7 @@ export function StepThreeDataSaver({
           {/* 资产选择器移到上方 */}
           <div className="space-y-2">
             <Label htmlFor="asset-select">选择关联资产 (可多选)</Label>
-            <Select
-              onValueChange={handleAssetSelect}
-              disabled={isLoadingAssets}
-            >
+            <Select onValueChange={handleAssetSelect} disabled={isLoadingAssets}>
               <SelectTrigger id="asset-select">
                 <SelectValue placeholder={isLoadingAssets ? '加载中...' : '添加关联资产'} />
               </SelectTrigger>
@@ -246,7 +243,10 @@ export function StepThreeDataSaver({
             <Button variant="outline" onClick={onBack}>
               上一步
             </Button>
-            <Button onClick={handleFinalSave} disabled={isFinalSaving || selectedAssetIds.length === 0}>
+            <Button
+              onClick={handleFinalSave}
+              disabled={isFinalSaving || selectedAssetIds.length === 0}
+            >
               {isFinalSaving ? (
                 <>
                   <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -5,7 +5,11 @@ import { ChatTopicState, initialTopicState } from './slices/topic/initialState';
 import { ChatPortalState, initialChatPortalState } from './slices/portal/initialState';
 import { ChatToolState, initialToolState } from './slices/builtinTool/initialState';
 
-export type ChatStoreState = ChatMessageState & ChatAIChatState & ChatTopicState & ChatPortalState & ChatToolState;
+export type ChatStoreState = ChatMessageState &
+  ChatAIChatState &
+  ChatTopicState &
+  ChatPortalState &
+  ChatToolState;
 
 export const initialState: ChatStoreState = {
   ...initialMessageState,
@@ -13,5 +17,4 @@ export const initialState: ChatStoreState = {
   ...initialTopicState,
   ...initialChatPortalState,
   ...initialToolState,
-  
 };

@@ -1,31 +1,29 @@
 import { createStyles } from 'antd-style';
 
 export const useContainerStyles = createStyles(({ css, token, stylish, cx, responsive }) => ({
-  preview: cx(
-    css`
-      overflow: hidden scroll;
+  preview: cx(css`
+    overflow: hidden scroll;
 
-      width: 100%;
-      max-height: 70dvh;
-      border: 1px solid ${token.colorBorder};
-      border-radius: ${token.borderRadiusLG}px;
+    width: 100%;
+    max-height: 70dvh;
+    border: 1px solid ${token.colorBorder};
+    border-radius: ${token.borderRadiusLG}px;
 
-      background: ${token.colorBgLayout};
+    background: ${token.colorBgLayout};
 
-      * {
-        pointer-events: none;
+    * {
+      pointer-events: none;
 
-        ::-webkit-scrollbar {
-          width: 0 !important;
-          height: 0 !important;
-        }
+      ::-webkit-scrollbar {
+        width: 0 !important;
+        height: 0 !important;
       }
+    }
 
-      ${responsive.mobile} {
-        max-height: 40dvh;
-      }
-    `,
-  ),
+    ${responsive.mobile} {
+      max-height: 40dvh;
+    }
+  `),
 }));
 
 export const useStyles = createStyles(({ responsive, token, css }) => ({

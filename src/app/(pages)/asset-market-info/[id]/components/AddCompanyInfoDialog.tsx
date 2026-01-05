@@ -7,7 +7,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from '@renderer/components/ui/dialog';
 import { Input } from '@renderer/components/ui/input';
 import { Textarea } from '@renderer/components/ui/textarea';
@@ -36,7 +36,7 @@ export function AddCompanyInfoDialog({
   saving,
   error,
   setError,
-  initialData
+  initialData,
 }: AddCompanyInfoDialogProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -76,9 +76,7 @@ export function AddCompanyInfoDialog({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>{initialData ? '编辑公司纪要' : '添加公司纪要'}</DialogTitle>
-          <DialogDescription>
-            请输入公司纪要的标题和内容
-          </DialogDescription>
+          <DialogDescription>请输入公司纪要的标题和内容</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           {error && (
@@ -111,24 +109,17 @@ export function AddCompanyInfoDialog({
               placeholder="请输入内容"
               rows={6}
               style={{
-                height: '300px'
+                height: '300px',
               }}
               disabled={saving}
             />
           </div>
         </div>
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={handleClose}
-            disabled={saving}
-          >
+          <Button variant="outline" onClick={handleClose} disabled={saving}>
             取消
           </Button>
-          <Button
-            onClick={handleSave}
-            disabled={saving || !title.trim() || !content.trim()}
-          >
+          <Button onClick={handleSave} disabled={saving || !title.trim() || !content.trim()}>
             {saving ? '保存中...' : '保存'}
           </Button>
         </DialogFooter>

@@ -1,4 +1,3 @@
-
 export interface StockChatState {
   messages: any[];
   requestAbortController?: AbortController;

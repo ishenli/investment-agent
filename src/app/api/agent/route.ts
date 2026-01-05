@@ -4,7 +4,7 @@ import { AgentBizController } from '@/server/controller/agent';
 
 class AgentHttpController extends BaseController {
   static controller = new AgentBizController();
-  
+
   @WithRequestContext()
   static async POST(request: Request) {
     const body = await super.getBody(request);

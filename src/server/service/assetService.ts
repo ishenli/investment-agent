@@ -550,10 +550,7 @@ export class AssetService {
       }
 
       // 根据粒度聚合成周/月数据
-      const aggregatedData = this.aggregateNetValuesByGranularity(
-        dailyNetValuesMap,
-        granularity,
-      );
+      const aggregatedData = this.aggregateNetValuesByGranularity(dailyNetValuesMap, granularity);
 
       if (aggregatedData.length === 0) {
         return {
@@ -574,18 +571,20 @@ export class AssetService {
       }
 
       // 计算衍生指标
-      const netValues = aggregatedData.map((d) => d.netValue).filter((v) => v !== undefined) as number[];
+      const netValues = aggregatedData
+        .map((d) => d.netValue)
+        .filter((v) => v !== undefined) as number[];
       const returnRates = aggregatedData.map((d) => d.returnRate);
       const drawdowns = calculateDrawdownSeries(netValues);
 
       // 计算总收益率
       const totalReturn =
-        netValues.length >= 2
-          ? (netValues[netValues.length - 1] - netValues[0]) / netValues[0]
-          : 0;
+        netValues.length >= 2 ? (netValues[netValues.length - 1] - netValues[0]) / netValues[0] : 0;
 
       // 计算衍生指标
-      const daysInvested = Math.floor((periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24));
+      const daysInvested = Math.floor(
+        (periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24),
+      );
       const annualizedReturn = calculateAnnualizedReturn(totalReturn, daysInvested);
       const volatility = calculateVolatility(returnRates, daysInvested);
       const sharpeRatio = calculateSharpeRatio(annualizedReturn, volatility);
@@ -654,8 +653,7 @@ export class AssetService {
     // 获取当前持仓信息
     const currentPositions = await positionService.getCurrentPositions(accountId);
     const currentTotalStockValue = currentPositions.reduce(
-      (sum: number, pos: any) =>
-        new Decimal(sum).plus(pos.marketValue || 0).toNumber(),
+      (sum: number, pos: any) => new Decimal(sum).plus(pos.marketValue || 0).toNumber(),
       0,
     );
 
@@ -701,7 +699,9 @@ export class AssetService {
 
     // 按天遍历时间范围，计算每日净值
     // 使用线性插值：净值会从期初到期末平滑变化
-    const totalDays = Math.floor((periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24));
+    const totalDays = Math.floor(
+      (periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24),
+    );
     let currentDay = 0;
     const tempDate = new Date(periodStart);
 
@@ -775,10 +775,7 @@ export class AssetService {
 
         let returnRate = 0;
         if (lastNetValue !== null) {
-          returnRate = new Decimal(monthNetValue)
-            .minus(lastNetValue)
-            .div(lastNetValue)
-            .toNumber();
+          returnRate = new Decimal(monthNetValue).minus(lastNetValue).div(lastNetValue).toNumber();
         }
 
         aggregatedData.push({

@@ -27,7 +27,7 @@ export const createBuiltinToolSlice: StateCreator<
   text2image: ({ prompts, size = '1024x1024' as const, quality = 'standard', style = 'vivid' }) =>
     prompts.map((p) => ({ prompt: p, quality, size, style })),
   toggleBuiltinToolLoading: (key, value) => {
-    set({ builtinToolLoading: { [key]: value } }, false, ('toggleBuiltinToolLoading'));
+    set({ builtinToolLoading: { [key]: value } }, false, 'toggleBuiltinToolLoading');
   },
 
   transformApiArgumentsToAiState: async (key, params) => {

@@ -2,12 +2,7 @@
 
 import { useReport, useDeleteReport } from '@/app/hooks/useReport';
 import { Button } from '@renderer/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@renderer/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@renderer/components/ui/card';
 import { Badge } from '@renderer/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@renderer/components/ui/alert';
 import { Markdown } from '@lobehub/ui';
@@ -26,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@renderer/components/ui/alert-dialog";
+} from '@renderer/components/ui/alert-dialog';
 
 interface ReportDetailProps {
   id: string;
@@ -48,7 +43,7 @@ export function ReportDetail({ id }: ReportDetailProps) {
         onError: (err) => {
           toast.error(`删除失败: ${err instanceof Error ? err.message : '未知错误'}`);
         },
-      }
+      },
     );
   };
 
@@ -106,7 +101,10 @@ export function ReportDetail({ id }: ReportDetailProps) {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>取消</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-white">
+              <AlertDialogAction
+                onClick={handleDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-white"
+              >
                 确认删除
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -129,7 +127,8 @@ export function ReportDetail({ id }: ReportDetailProps) {
               <div className="flex items-center">
                 <Calendar className="mr-2 h-4 w-4" />
                 <span>
-                  {format(new Date(report.startDate), 'yyyy-MM-dd')} 至 {format(new Date(report.endDate), 'yyyy-MM-dd')}
+                  {format(new Date(report.startDate), 'yyyy-MM-dd')} 至{' '}
+                  {format(new Date(report.endDate), 'yyyy-MM-dd')}
                 </span>
               </div>
             )}

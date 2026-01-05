@@ -1,8 +1,4 @@
-import {
-  LocalFileItem,
-  LocalMoveFilesResultItem,
-  LocalReadFileResult,
-} from '@/types/localFile';
+import { LocalFileItem, LocalMoveFilesResultItem, LocalReadFileResult } from '@/types/localFile';
 
 export interface FileResult {
   contentType?: string;
@@ -49,4 +45,3 @@ export interface LocalRenameFileState {
   oldPath: string;
   success: boolean;
 }
-

@@ -76,14 +76,12 @@ const ManualInputRequestSchema = z.object({
   tags: z.array(z.string()).optional(),
 });
 
-
 // 定义请求体验证模式
 const SummarizeContentRequestSchema = z.object({
   content: z.string().min(1, '内容不能为空'),
   title: z.string().optional(),
   language: z.string().optional().default('zh'),
 });
-
 
 export class MarketBizController extends BaseBizController {
   marketFetcherService: MarketFetcherService;
@@ -156,9 +154,7 @@ export class MarketBizController extends BaseBizController {
   }
 
   @WithRequestContext()
-  async deleteMarketInfo(query: {
-    id: string
-  }) {
+  async deleteMarketInfo(query: { id: string }) {
     try {
       logger.info('[MarketBizController] 收到删除资产市场信息请求', query);
 
@@ -232,12 +228,11 @@ export class MarketBizController extends BaseBizController {
       // 模拟 AI 分析内容的逻辑
       const analysis = await this.marketAIService.analyzeContent(content, title, language);
 
-          // 返回成功响应
+      // 返回成功响应
       return this.success({
         message: 'AI分析内容成功',
         data: analysis,
       });
-
     } catch (error) {
       logger.error('[MarketBizController] 内容分析失败:', error);
       return this.error('内容分析失败', 'analyze_content_error');
@@ -246,7 +241,7 @@ export class MarketBizController extends BaseBizController {
 
   @WithRequestContext()
   async crawlMarketInfo(body: any) {
-        try {
+    try {
       logger.info('[MarketFetcherController] 收到抓取市场信息请求');
 
       // 检查是否是手动输入请求
@@ -308,7 +303,6 @@ export class MarketBizController extends BaseBizController {
       return this.error('保存手动输入的市场信息失败', 'save_manual_input_error');
     }
   }
-
 
   @WithRequestContext()
   async getDataSources(query: any) {

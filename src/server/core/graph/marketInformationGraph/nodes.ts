@@ -46,10 +46,7 @@ export const createMarketInfoAnalyzer = (llm: ChatOpenAI, logger: Logger) => {
         tools,
       });
       const response = await agent.invoke({
-        messages: [
-          new SystemMessage(systemPrompt),
-          new HumanMessage(userPrompt),
-        ],
+        messages: [new SystemMessage(systemPrompt), new HumanMessage(userPrompt)],
       });
 
       logger.info('[MarketInfoAnalyzer] 分析完成');

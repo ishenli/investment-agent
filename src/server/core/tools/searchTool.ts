@@ -1,9 +1,8 @@
-import logger from "@/server/base/logger";
-import settingService from "@/server/service/settingService";
-import { tool } from "langchain";
-import z from "zod";
-import * as TavilyCore from '@tavily/core'
-
+import logger from '@/server/base/logger';
+import settingService from '@/server/service/settingService';
+import { tool } from 'langchain';
+import z from 'zod';
+import * as TavilyCore from '@tavily/core';
 
 // 帮我实现一个 note 的 query 工具
 const SearchQueryParams = z.object({
@@ -15,10 +14,10 @@ export const TravilySearchTool = tool(
     try {
       const { query } = params as z.infer<typeof SearchQueryParams>;
       logger.info(`[TravilySearchTool]: ${query}`);
-      const tavilyApiKey = await settingService.getConfigValueByKey('TAVILY_API_KEY')
+      const tavilyApiKey = await settingService.getConfigValueByKey('TAVILY_API_KEY');
       const tavilyClient = TavilyCore.tavily({ apiKey: tavilyApiKey });
-      const result = await tavilyClient.search(query)
-      
+      const result = await tavilyClient.search(query);
+
       logger.info(`[TravilySearchTool] search result count: ${result?.results.length}`);
       return `TravilySearchTool query result: ${result}`;
     } catch (error) {

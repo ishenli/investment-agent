@@ -66,12 +66,7 @@ const Render = memo<ArtifactProps>(({ identifier, title, type, language, childre
   const inThread = useContext(InPortalThreadContext);
   const { message } = App.useApp();
   const [isGenerating, isArtifactTagClosed, openArtifact, closeArtifact] = useChatStore((s) => {
-    return [
-      chatSelectors.isMessageGenerating(id)(s),
-      false,
-      s.openArtifact,
-      s.closeArtifact,
-    ];
+    return [chatSelectors.isMessageGenerating(id)(s), false, s.openArtifact, s.closeArtifact];
   });
 
   const openArtifactUI = () => {

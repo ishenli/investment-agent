@@ -42,7 +42,6 @@ async function testInitAPI() {
   const hkQuote = new TencentHKQuote();
   const hkQuoteData = await hkQuote.getStockData(['01810']);
   console.log('HK Quote Data:', hkQuoteData);
-
 }
 
 testInitAPI();

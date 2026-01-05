@@ -8,7 +8,13 @@ import { Button } from '@renderer/components/ui/button';
 import { Input } from '@renderer/components/ui/input';
 import { Textarea } from '@renderer/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@renderer/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@renderer/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@renderer/components/ui/select';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/navigation';
 
@@ -18,15 +24,15 @@ export default function NotePage() {
   useAccountGuard();
   // 错误处理 hooks
   const { error, isLoading, handleError, clearError } = useErrorHandler();
-  
+
   // 防抖定时器引用
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   // 笔记状态
   const [notes, setNotes] = useState<NoteType[]>([]);
   const [selectedNote, setSelectedNote] = useState<NoteType | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  
+
   // 搜索和筛选状态
   const [searchParams, setSearchParams] = useState<NoteSearchParams>({
     limit: 20,
@@ -34,69 +40,72 @@ export default function NotePage() {
     sortBy: 'createdAt',
     sortOrder: 'desc',
   });
-  
+
   // 表单状态
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState('');
-  
+
   // 标签管理状态
   const [allTags, setAllTags] = useState<string[]>([]);
-  
+
   // 分页状态
   const [totalCount, setTotalCount] = useState(0);
-  
+
   // 独立的加载状态
   const [isNotesLoading, setIsNotesLoading] = useState(false);
   const [isTagsLoading, setIsTagsLoading] = useState(false);
   const [isSaveLoading, setIsSaveLoading] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
-  
+
   // 创建一个带参数的 fetchNotes 函数
-  const fetchNotesWithParams = useCallback((params: NoteSearchParams) => {
-    setIsNotesLoading(true);
-    clearError();
-    
-    try {
-      const urlParams = new URLSearchParams();
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          urlParams.append(key, value.toString());
-        }
-      });
-      
-      fetch(`/api/note?${urlParams.toString()}`)
-        .then(response => response.json())
-        .then(result => {
-          if (result.success) {
-            setNotes(result.data.items);
-            setTotalCount(result.data.totalCount);
-          } else {
-            handleError(result.message || '获取笔记列表失败');
+  const fetchNotesWithParams = useCallback(
+    (params: NoteSearchParams) => {
+      setIsNotesLoading(true);
+      clearError();
+
+      try {
+        const urlParams = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+          if (value !== undefined) {
+            urlParams.append(key, value.toString());
           }
-        })
-        .catch(error => {
-          handleError(error);
-        })
-        .finally(() => {
-          setIsNotesLoading(false);
         });
-    } catch (error) {
-      handleError(error);
-      setIsNotesLoading(false);
-    }
-  }, [clearError, handleError]);
+
+        fetch(`/api/note?${urlParams.toString()}`)
+          .then((response) => response.json())
+          .then((result) => {
+            if (result.success) {
+              setNotes(result.data.items);
+              setTotalCount(result.data.totalCount);
+            } else {
+              handleError(result.message || '获取笔记列表失败');
+            }
+          })
+          .catch((error) => {
+            handleError(error);
+          })
+          .finally(() => {
+            setIsNotesLoading(false);
+          });
+      } catch (error) {
+        handleError(error);
+        setIsNotesLoading(false);
+      }
+    },
+    [clearError, handleError],
+  );
 
   // 获取所有标签
   const fetchTags = useCallback(async () => {
     setIsTagsLoading(true);
     clearError();
-    
+
     try {
       const response = await fetch('/api/note/tags');
       const result = await response.json();
-      
+
       if (result.success) {
         setAllTags(result.data);
       } else {
@@ -113,7 +122,7 @@ export default function NotePage() {
   useEffect(() => {
     fetchNotesWithParams(searchParams);
     fetchTags();
-    
+
     // 清理函数，组件卸载时清除定时器
     return () => {
       if (searchDebounceRef.current) {
@@ -128,16 +137,16 @@ export default function NotePage() {
     if (searchDebounceRef.current) {
       clearTimeout(searchDebounceRef.current);
     }
-    
+
     // 立即更新搜索参数以提供即时UI反馈
     const updatedParams = {
       ...searchParams,
       ...newParams,
-      offset: 0 // 重置分页
+      offset: 0, // 重置分页
     };
-    
+
     setSearchParams(updatedParams);
-    
+
     // 设置新的防抖定时器
     searchDebounceRef.current = setTimeout(() => {
       // 触发实际的搜索请求
@@ -149,9 +158,9 @@ export default function NotePage() {
   const handlePageChange = (newPage: number) => {
     const updatedParams = {
       ...searchParams,
-      offset: (newPage - 1) * (searchParams.limit || 20)
+      offset: (newPage - 1) * (searchParams.limit || 20),
     };
-    
+
     setSearchParams(updatedParams);
     // 分页变化后立即触发请求
     fetchNotesWithParams(updatedParams);
@@ -170,11 +179,11 @@ export default function NotePage() {
   const handleSaveNote = async () => {
     setIsSaveLoading(true);
     clearError();
-    
+
     try {
       const method = selectedNote ? 'PUT' : 'POST';
       const url = selectedNote ? `/api/note/${selectedNote.id}` : '/api/note';
-      
+
       const response = await fetch(url, {
         method,
         headers: {
@@ -183,12 +192,12 @@ export default function NotePage() {
         body: JSON.stringify({
           title,
           content,
-          tags
+          tags,
         }),
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         setIsEditing(false);
         await fetchNotesWithParams(searchParams); // 重新获取笔记列表
@@ -208,17 +217,17 @@ export default function NotePage() {
     if (!confirm('确定要删除这个笔记吗？')) {
       return;
     }
-    
+
     setIsDeleteLoading(true);
     clearError();
-    
+
     try {
       const response = await fetch(`/api/note/${noteId}`, {
         method: 'DELETE',
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         await fetchNotesWithParams(searchParams); // 重新获取笔记列表
         await fetchTags(); // 重新获取标签列表
@@ -232,7 +241,6 @@ export default function NotePage() {
     }
   };
 
-  
   // 处理添加标签
   const handleAddTag = () => {
     if (newTag.trim() && !tags.includes(newTag.trim())) {
@@ -243,7 +251,7 @@ export default function NotePage() {
 
   // 处理删除标签
   const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+    setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
   // 处理按标签筛选
@@ -282,10 +290,13 @@ export default function NotePage() {
               onChange={(e) => handleSearchParamChange({ search: e.target.value })}
             />
           </div>
-          
+
           {/* 排序选项 */}
           <div className="flex gap-2">
-            <Select value={searchParams.sortBy} onValueChange={(value) => handleSearchParamChange({ sortBy: value })}>
+            <Select
+              value={searchParams.sortBy}
+              onValueChange={(value) => handleSearchParamChange({ sortBy: value })}
+            >
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="排序字段" />
               </SelectTrigger>
@@ -295,8 +306,13 @@ export default function NotePage() {
                 <SelectItem value="title">标题</SelectItem>
               </SelectContent>
             </Select>
-            
-            <Select value={searchParams.sortOrder} onValueChange={(value) => handleSearchParamChange({ sortOrder: value as 'asc' | 'desc' })}>
+
+            <Select
+              value={searchParams.sortOrder}
+              onValueChange={(value) =>
+                handleSearchParamChange({ sortOrder: value as 'asc' | 'desc' })
+              }
+            >
               <SelectTrigger className="w-[100px]">
                 <SelectValue placeholder="排序方式" />
               </SelectTrigger>
@@ -305,19 +321,17 @@ export default function NotePage() {
                 <SelectItem value="asc">升序</SelectItem>
               </SelectContent>
             </Select>
-            <Button onClick={handleCreateNote}>
-              新建笔记
-            </Button>
+            <Button onClick={handleCreateNote}>新建笔记</Button>
           </div>
         </div>
-        
+
         {/* 标签筛选 */}
         <div className="mt-4 flex flex-wrap gap-2 items-center">
           <span className="text-sm font-medium ">标签筛选:</span>
-          {allTags.map(tag => (
+          {allTags.map((tag) => (
             <Button
               key={tag}
-              variant={searchParams.tag === tag ? "default" : "outline"}
+              variant={searchParams.tag === tag ? 'default' : 'outline'}
               size="sm"
               onClick={() => handleFilterByTag(tag)}
               className="rounded-full"
@@ -339,11 +353,7 @@ export default function NotePage() {
       </div>
 
       {/* 错误提示 */}
-      {error && (
-        <div className="p-4 bg-red-100 text-red-700">
-          {error}
-        </div>
-      )}
+      {error && <div className="p-4 bg-red-100 text-red-700">{error}</div>}
 
       {/* 笔记列表 */}
       <div className="flex-1 overflow-auto">
@@ -362,40 +372,40 @@ export default function NotePage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-            {notes.map(note => (
-              <Card 
-                key={note.id} 
+            {notes.map((note) => (
+              <Card
+                key={note.id}
                 className="hover:shadow-md transition-shadow gap-1 cursor-pointer"
               >
                 <CardHeader onClick={() => router.push(`/note/${note.id}`)}>
                   <CardTitle className="truncate">{note.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p 
+                  <p
                     className="text-gray-600 text-sm line-clamp-3 cursor-pointer"
                     onClick={() => router.push(`/note/${note.id}`)}
                   >
                     {note.content}
                   </p>
                   <div className="mt-3 flex flex-wrap gap-1">
-                    {note.tags.map(tag => (
-                      <span 
-                        key={tag} 
+                    {note.tags.map((tag) => (
+                      <span
+                        key={tag}
                         className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full"
                       >
                         {tag}
                       </span>
                     ))}
                   </div>
-                  
+
                   <div className="mt-3 text-xs text-right text-gray-500">
                     <div>更新: {dayjs(note.updatedAt).format('YYYY-MM-DD HH:mm')}</div>
                   </div>
-                  
+
                   <div className="mt-4 flex gap-2 justify-end">
-                    <Button 
-                      variant="destructive" 
-                      size="sm" 
+                    <Button
+                      variant="destructive"
+                      size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDeleteNote(note.id);
@@ -423,11 +433,11 @@ export default function NotePage() {
             >
               上一页
             </Button>
-            
+
             <span className="px-3 py-1 flex items-center">
               {currentPage} / {totalPages}
             </span>
-            
+
             <Button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages || isNotesLoading}
@@ -446,9 +456,7 @@ export default function NotePage() {
     <div className="flex flex-col h-full">
       {/* 编辑器头部 */}
       <div className="flex items-center justify-between py-4">
-        <h1 className="text-xl font-bold">
-          {selectedNote ? '编辑笔记' : '新建笔记'}
-        </h1>
+        <h1 className="text-xl font-bold">{selectedNote ? '编辑笔记' : '新建笔记'}</h1>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => setIsEditing(false)}>
             取消
@@ -458,7 +466,7 @@ export default function NotePage() {
           </Button>
         </div>
       </div>
-      
+
       {/* 加载指示器 */}
       {(isLoading || isSaveLoading) && (
         <div className="absolute top-4 right-4">
@@ -467,11 +475,7 @@ export default function NotePage() {
       )}
 
       {/* 错误提示 */}
-      {error && (
-        <div className="p-4 bg-red-100 text-red-700">
-          {error}
-        </div>
-      )}
+      {error && <div className="p-4 bg-red-100 text-red-700">{error}</div>}
 
       {/* 编辑器表单 */}
       <div className="flex-1 overflow-auto">
@@ -490,9 +494,9 @@ export default function NotePage() {
           {/* 标签管理 */}
           <div className="mb-6">
             <div className="flex flex-wrap gap-2 mb-2">
-              {tags.map(tag => (
-                <span 
-                  key={tag} 
+              {tags.map((tag) => (
+                <span
+                  key={tag}
                   className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full flex items-center"
                 >
                   {tag}
@@ -505,7 +509,7 @@ export default function NotePage() {
                 </span>
               ))}
             </div>
-            
+
             <div className="flex gap-2">
               <Input
                 className="h-9"
@@ -515,9 +519,7 @@ export default function NotePage() {
                 onChange={(e) => setNewTag(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
               />
-              <Button onClick={handleAddTag}>
-                添加
-              </Button>
+              <Button onClick={handleAddTag}>添加</Button>
             </div>
           </div>
 
@@ -538,11 +540,7 @@ export default function NotePage() {
   // 渲染主界面
   return (
     <div className="h-screen flex flex-col  p-4">
-      {isEditing ? (
-        renderNoteEditorView()
-      ) : (
-        renderNoteListView()
-      )}
+      {isEditing ? renderNoteEditorView() : renderNoteListView()}
     </div>
   );
 }

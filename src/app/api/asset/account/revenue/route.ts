@@ -4,11 +4,13 @@ import { AssetAccountBizController } from '@/server/controller/assetAccount';
 
 class AssetAccountRevenueHttpController extends BaseController {
   static controller = new AssetAccountBizController();
-  
+
   @WithRequestContext()
   static async GET(request: Request) {
     const json = await super.getQuery(request);
-    return Response.json(await AssetAccountRevenueHttpController.controller.getRevenueMetrics(json));
+    return Response.json(
+      await AssetAccountRevenueHttpController.controller.getRevenueMetrics(json),
+    );
   }
 }
 

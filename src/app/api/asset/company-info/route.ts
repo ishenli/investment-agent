@@ -4,7 +4,7 @@ import { CompanyBizController } from '@/server/controller/company';
 
 class CompanyInfoHttpController extends BaseController {
   static controller = new CompanyBizController();
-  
+
   @WithRequestContext()
   static async POST(request: Request) {
     const body = await super.getBody(request);

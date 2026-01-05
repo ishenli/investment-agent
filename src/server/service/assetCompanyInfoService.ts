@@ -95,7 +95,10 @@ export class AssetCompanyInfoService {
     request: UpdateAssetCompanyInfoRequest,
   ): Promise<AssetCompanyInfoType> {
     try {
-      logger.info('[AssetCompanyInfoService] Starting to update asset company info: %d', request.id);
+      logger.info(
+        '[AssetCompanyInfoService] Starting to update asset company info: %d',
+        request.id,
+      );
 
       const updateData: Partial<typeof assetCompanyInfo.$inferInsert> = {
         updatedAt: new Date(),
@@ -216,7 +219,10 @@ export class AssetCompanyInfoService {
 
   async getLatestAssetCompanyInfoBySymbol(symbol: string): Promise<AssetCompanyInfoType | null> {
     try {
-      logger.info('[AssetCompanyInfoService] Starting to get latest asset company info by symbol: %s', symbol);
+      logger.info(
+        '[AssetCompanyInfoService] Starting to get latest asset company info by symbol: %s',
+        symbol,
+      );
 
       // 获取 metaId
       const assetMetaId = await db.query.assetMeta.findFirst({
@@ -231,7 +237,10 @@ export class AssetCompanyInfoService {
         orderBy: [desc(assetCompanyInfo.createdAt)],
       });
 
-      logger.info('[AssetCompanyInfoService] Successfully got latest asset company info by symbol: %s', symbol);
+      logger.info(
+        '[AssetCompanyInfoService] Successfully got latest asset company info by symbol: %s',
+        symbol,
+      );
 
       return assetCompanyInfoRecord
         ? {
@@ -261,14 +270,20 @@ export class AssetCompanyInfoService {
    */
   async getAssetCompanyInfoCountByAssetMetaId(assetMetaId: number): Promise<number> {
     try {
-      logger.info('[AssetCompanyInfoService] Starting to get asset company info count: %d', assetMetaId);
+      logger.info(
+        '[AssetCompanyInfoService] Starting to get asset company info count: %d',
+        assetMetaId,
+      );
 
       const result = await db
         .select({ count: sql<number>`count(*)` })
         .from(assetCompanyInfo)
         .where(eq(assetCompanyInfo.assetMetaId, assetMetaId));
 
-      logger.info('[AssetCompanyInfoService] Successfully got asset company info count: %d', result[0].count);
+      logger.info(
+        '[AssetCompanyInfoService] Successfully got asset company info count: %d',
+        result[0].count,
+      );
 
       return result[0].count;
     } catch (error) {

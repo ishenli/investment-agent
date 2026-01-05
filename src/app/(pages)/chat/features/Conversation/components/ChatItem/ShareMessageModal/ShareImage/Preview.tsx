@@ -12,7 +12,10 @@ import { useSessionStore } from '@renderer/store/session';
 import { sessionMetaSelectors, sessionSelectors } from '@renderer/store/session/selectors';
 import { ChatMessage } from '@typings/message';
 
-import { SESSION_CONFIG_DESCRIPTION, SESSION_CONFIG_TITLE } from '@renderer/const/text/sessionConfig';
+import {
+  SESSION_CONFIG_DESCRIPTION,
+  SESSION_CONFIG_TITLE,
+} from '@renderer/const/text/sessionConfig';
 import React from 'react';
 import { useContainerStyles } from '../style';
 import { useStyles } from './style';
@@ -72,9 +75,7 @@ const Preview = memo<PreviewProps>(
             </Flexbox>
             {withFooter ? (
               <Flexbox align={'center'} className={styles.footer} gap={4}>
-                <div className={styles.mainTitle}>
-                  你的投资 AI 助手
-                </div>
+                <div className={styles.mainTitle}>你的投资 AI 助手</div>
               </Flexbox>
             ) : (
               <div />

@@ -11,7 +11,7 @@ class NoteHttpController extends BaseController {
   static async POST(request: Request) {
     const noteController = new NoteController();
     const body = await super.getBody(request);
-    
+
     // 如果有id参数则为更新操作，否则为创建操作
     if (body.id) {
       return Response.json(await noteController.updateNote(body));
@@ -19,13 +19,13 @@ class NoteHttpController extends BaseController {
       return Response.json(await noteController.createNote(body));
     }
   }
-  
+
   static async PUT(request: Request) {
     const noteController = new NoteController();
     const body = await super.getBody(request);
     return Response.json(await noteController.updateNote(body));
   }
-  
+
   static async DELETE(request: Request) {
     const noteController = new NoteController();
     const body = await super.getBody(request);

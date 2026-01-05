@@ -87,4 +87,3 @@ export class ReportController extends BaseController {
 // 导出对应的 HTTP 方法
 export const POST = ReportController.POST;
 export const GET = ReportController.GET;
-

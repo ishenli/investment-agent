@@ -4,11 +4,13 @@ import { MarketBizController } from '@/server/controller/market';
 
 class AssetMarketInfoListHttpController extends BaseController {
   static controller = new MarketBizController();
-  
+
   @WithRequestContext()
   static async GET(request: Request) {
     const json = await super.getQuery(request);
-    return Response.json(await AssetMarketInfoListHttpController.controller.getAssetMarketInfoList(json));
+    return Response.json(
+      await AssetMarketInfoListHttpController.controller.getAssetMarketInfoList(json),
+    );
   }
 }
 

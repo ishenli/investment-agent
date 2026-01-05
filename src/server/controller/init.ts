@@ -7,7 +7,6 @@ import { BaseBizController } from './base';
 export class InitController extends BaseBizController {
   async init() {
     try {
-
       // 获取所有账户
       const accounts = await accountService.getAllAccounts();
 

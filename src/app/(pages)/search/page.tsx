@@ -3,7 +3,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Input } from '@renderer/components/ui/input';
 import { Button } from '@renderer/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@renderer/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@renderer/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@renderer/components/ui/card';
 import {
   Dialog,
@@ -25,7 +31,7 @@ export default function SearchPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<SearchResultItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  
+
   // 分页状态
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
@@ -38,7 +44,7 @@ export default function SearchPage() {
   const searchLocalData = useCallback(async (query: string, page: number, size: number) => {
     try {
       const response = await get<SearchResponse>('/api/search/local', {
-        params: { query, page: page.toString(), pageSize: size.toString() }
+        params: { query, page: page.toString(), pageSize: size.toString() },
       });
       return response.data;
     } catch (err) {
@@ -49,7 +55,7 @@ export default function SearchPage() {
   const searchWebData = useCallback(async (query: string, page: number, size: number) => {
     try {
       const response = await get<SearchResponse>('/api/search/web', {
-        params: { query, page: page.toString(), pageSize: size.toString() }
+        params: { query, page: page.toString(), pageSize: size.toString() },
       });
       return response.data;
     } catch (err) {
@@ -69,7 +75,7 @@ export default function SearchPage() {
 
     setIsLoading(true);
     setError(null);
-    
+
     try {
       if (searchType === 'local' || searchType === 'all') {
         // 搜索本地数据
@@ -78,19 +84,19 @@ export default function SearchPage() {
         setTotalResults(localResponse.total);
         setTotalPages(localResponse.totalPages);
       }
-      
+
       if (searchType === 'web' || searchType === 'all') {
         // 搜索网络数据
         const webResponse = await searchWebData(searchQuery, currentPage, pageSize);
         setWebSearchResults(webResponse.results);
-        
+
         // 如果只搜索网络数据，更新总数和页数
         if (searchType === 'web') {
           setTotalResults(webResponse.total);
           setTotalPages(webResponse.totalPages);
         }
       }
-      
+
       setHasSearched(true);
     } catch (err) {
       setError('搜索失败，请稍后重试');
@@ -130,7 +136,11 @@ export default function SearchPage() {
       {title && <h2 className="text-lg font-semibold">{title}</h2>}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {results.map((result) => (
-          <Dialog key={result.id} open={selectedItem?.id === result.id && isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog
+            key={result.id}
+            open={selectedItem?.id === result.id && isDialogOpen}
+            onOpenChange={setIsDialogOpen}
+          >
             <DialogTrigger asChild>
               <Card
                 className="hover:shadow-md transition-shadow relative group cursor-pointer"
@@ -144,11 +154,13 @@ export default function SearchPage() {
                     <CardTitle className="text-base font-medium line-clamp-2">
                       {result.title}
                     </CardTitle>
-                    <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                      result.type === 'local'
-                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100'
-                        : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
-                    }`}>
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                        result.type === 'local'
+                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100'
+                          : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
+                      }`}
+                    >
                       {result.type === 'local' ? (
                         <>
                           <IconDatabase className="mr-1 size-3" />
@@ -169,9 +181,7 @@ export default function SearchPage() {
                       {result.description}
                     </p>
                     <div className="flex justify-between items-center">
-                      <span className="text-xs text-muted-foreground">
-                        {result.source}
-                      </span>
+                      <span className="text-xs text-muted-foreground">{result.source}</span>
                       {result.url && (
                         <a
                           href={result.url}
@@ -192,11 +202,13 @@ export default function SearchPage() {
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <span>{selectedItem?.title}</span>
-                  <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                    selectedItem?.type === 'local'
-                      ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100'
-                      : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
-                  }`}>
+                  <span
+                    className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                      selectedItem?.type === 'local'
+                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100'
+                        : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
+                    }`}
+                  >
                     {selectedItem?.type === 'local' ? '本地' : '网络'}
                   </span>
                 </DialogTitle>
@@ -256,21 +268,21 @@ export default function SearchPage() {
             />
             <IconSearch className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           </div>
-               {/* 搜索类型选项卡 */}
-        <Select value={searchType} onValueChange={(value) => setSearchType(value as 'all' | 'local' | 'web')}>
-          <SelectTrigger className="w-[130px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部数据</SelectItem>
-            <SelectItem value="local">本地数据</SelectItem>
-            <SelectItem value="web">网络信息</SelectItem>
-          </SelectContent>
-        </Select>
-          <Button 
-            onClick={handleSearch} 
-            disabled={isLoading || !searchQuery.trim()}
+          {/* 搜索类型选项卡 */}
+          <Select
+            value={searchType}
+            onValueChange={(value) => setSearchType(value as 'all' | 'local' | 'web')}
           >
+            <SelectTrigger className="w-[130px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部数据</SelectItem>
+              <SelectItem value="local">本地数据</SelectItem>
+              <SelectItem value="web">网络信息</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button onClick={handleSearch} disabled={isLoading || !searchQuery.trim()}>
             {isLoading ? (
               <>
                 <IconLoader className="mr-2 size-4 animate-spin" />
@@ -300,11 +312,7 @@ export default function SearchPage() {
       )}
 
       {/* 搜索结果 */}
-      {error && (
-        <div className="rounded-md bg-destructive/10 p-4 text-destructive">
-          {error}
-        </div>
-      )}
+      {error && <div className="rounded-md bg-destructive/10 p-4 text-destructive">{error}</div>}
 
       {hasSearched && searchQuery.trim() && (
         <div className="flex flex-col gap-4">
@@ -312,16 +320,14 @@ export default function SearchPage() {
             // 显示所有结果
             <>
               {searchResults.length > 0 && renderResultsCards(searchResults, '本地数据')}
-              
+
               {webSearchResults.length > 0 && renderResultsCards(webSearchResults, '网络信息')}
-              
+
               {searchResults.length === 0 && webSearchResults.length === 0 && !isLoading && (
                 <div className="flex flex-1 items-center justify-center">
                   <div className="text-center">
                     <div className="text-lg font-medium">未找到相关结果</div>
-                    <div className="text-muted-foreground">
-                      请尝试使用不同的关键词进行搜索
-                    </div>
+                    <div className="text-muted-foreground">请尝试使用不同的关键词进行搜索</div>
                   </div>
                 </div>
               )}
@@ -334,34 +340,26 @@ export default function SearchPage() {
               <div className="flex flex-1 items-center justify-center">
                 <div className="text-center">
                   <div className="text-lg font-medium">未找到相关本地数据</div>
-                  <div className="text-muted-foreground">
-                    请尝试使用不同的关键词进行搜索
-                  </div>
+                  <div className="text-muted-foreground">请尝试使用不同的关键词进行搜索</div>
                 </div>
               </div>
             ) : null
-          ) : (
-            // 只显示网络数据
-            webSearchResults.length > 0 ? (
-              renderResultsCards(webSearchResults)
-            ) : !isLoading ? (
-              <div className="flex flex-1 items-center justify-center">
-                <div className="text-center">
-                  <div className="text-lg font-medium">未找到相关网络信息</div>
-                  <div className="text-muted-foreground">
-                    请尝试使用不同的关键词进行搜索
-                  </div>
-                </div>
+          ) : // 只显示网络数据
+          webSearchResults.length > 0 ? (
+            renderResultsCards(webSearchResults)
+          ) : !isLoading ? (
+            <div className="flex flex-1 items-center justify-center">
+              <div className="text-center">
+                <div className="text-lg font-medium">未找到相关网络信息</div>
+                <div className="text-muted-foreground">请尝试使用不同的关键词进行搜索</div>
               </div>
-            ) : null
-          )}
+            </div>
+          ) : null}
 
           {/* 分页控件 */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">
-                共 {totalResults} 条结果
-              </div>
+              <div className="text-sm text-muted-foreground">共 {totalResults} 条结果</div>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -371,24 +369,24 @@ export default function SearchPage() {
                 >
                   上一页
                 </Button>
-                
+
                 <div className="flex items-center gap-1">
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     // 计算要显示的页码范围
                     let startPage = Math.max(1, currentPage - 2);
                     let endPage = Math.min(totalPages, startPage + 4);
-                    
+
                     if (endPage - startPage < 4) {
                       startPage = Math.max(1, endPage - 4);
                     }
-                    
+
                     const page = startPage + i;
                     if (page > endPage) return null;
-                    
+
                     return (
                       <Button
                         key={page}
-                        variant={currentPage === page ? "default" : "outline"}
+                        variant={currentPage === page ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => handlePageChange(page)}
                       >
@@ -397,7 +395,7 @@ export default function SearchPage() {
                     );
                   })}
                 </div>
-                
+
                 <Button
                   variant="outline"
                   size="sm"

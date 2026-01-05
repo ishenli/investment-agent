@@ -71,9 +71,7 @@ const PortalPanel = memo(({ children }: PropsWithChildren) => {
       expand={showPortal}
       maxWidth={CHAT_PORTAL_MAX_WIDTH}
       minWidth={
-        (showArtifactUI || showToolUI) && md
-          ? CHAT_PORTAL_TOOL_UI_WIDTH
-          : CHAT_PORTAL_WIDTH
+        (showArtifactUI || showToolUI) && md ? CHAT_PORTAL_TOOL_UI_WIDTH : CHAT_PORTAL_WIDTH
       }
       mode={md ? 'fixed' : 'float'}
       onSizeChange={handleSizeChange}

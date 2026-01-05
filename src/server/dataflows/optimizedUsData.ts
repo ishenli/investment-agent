@@ -175,9 +175,9 @@ class OptimizedUSDataProvider {
         // Add 1 day to end timestamp to include the end date fully
         const toTimestamp = Math.floor(end.getTime() / 1000) + 86400;
 
-        // imports are circular if we import finnhubService here directly if not careful, 
-        // but finnhubUtil exports finnhubClient which we use. 
-        // actually finnhubService IS where we added getCandles. 
+        // imports are circular if we import finnhubService here directly if not careful,
+        // but finnhubUtil exports finnhubClient which we use.
+        // actually finnhubService IS where we added getCandles.
         // Let's use finnhubService instance.
         const { default: finnhubService } = await import('@server/service/finnhubService');
         const candles = await finnhubService.getCandles(symbol, 'D', fromTimestamp, toTimestamp);

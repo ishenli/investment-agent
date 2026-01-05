@@ -4,7 +4,7 @@ import { AccountBizController } from '@/server/controller/account';
 
 class AssetAccountHttpController extends BaseController {
   static controller = new AccountBizController();
-  
+
   @WithRequestContext()
   static async POST(request: Request) {
     const body = await super.getBody(request);

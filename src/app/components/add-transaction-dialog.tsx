@@ -23,7 +23,6 @@ interface AddTransactionDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-
 export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialogProps) {
   const [type, setType] = useState<TransactionType>('buy');
   const [assetType, setAssetType] = useState<AssetType>('stock');
@@ -38,7 +37,6 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
   const fetchTransactions = useAssetStore((state) => state.fetchTransactions);
   const addTransaction = useAssetStore((state) => state.addTransaction);
   const addTransactionsError = useAssetStore((state) => state.addTransactionsError);
-  
 
   // 获取当前市场对应的货币符号
   const getCurrencySymbol = (market: MarketType) => {
@@ -127,10 +125,12 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
       cancelText="取消"
     >
       <div className="grid gap-4">
-        { addTransactionsError && <Alert variant="destructive">
-          <AlertCircleIcon />
-          <AlertTitle>请求参数错误.</AlertTitle>
-        </Alert>}
+        {addTransactionsError && (
+          <Alert variant="destructive">
+            <AlertCircleIcon />
+            <AlertTitle>请求参数错误.</AlertTitle>
+          </Alert>
+        )}
         <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="market" className="text-right">
             市场类型

@@ -26,20 +26,23 @@ export async function POST(req: NextRequest) {
     const lastUserMessage = messages?.filter((m: HumanMessage) => m.type === 'human').pop();
     const userQuery = lastUserMessage.content || '用户意图为空';
     const sseEmitter = new SSEEmitter();
-    
+
     // 获取当前用户ID
-    const accountId = (await AuthService.getCurrentUserId());
-    
+    const accountId = await AuthService.getCurrentUserId();
+
     // 调用 chatService 处理投资顾问聊天请求
     (async () => {
       try {
         sseEmitter.sendAISdkStart();
-        await chatService.chat({
-          query: userQuery,
-          agentId: 'investment_advisor',
-          model: body.model,
-          accountId: accountId,
-        }, sseEmitter);
+        await chatService.chat(
+          {
+            query: userQuery,
+            agentId: 'investment_advisor',
+            model: body.model,
+            accountId: accountId,
+          },
+          sseEmitter,
+        );
       } catch (error) {
         logger.error('[ChatController] 获取投资咨询数据失败:', error);
         sseEmitter.sendAISdkMessage({

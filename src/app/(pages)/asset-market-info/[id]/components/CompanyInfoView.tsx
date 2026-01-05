@@ -1,6 +1,12 @@
 'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@renderer/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@renderer/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@renderer/components/ui/alert';
 import { Button } from '@renderer/components/ui/button';
 import {
@@ -9,7 +15,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@renderer/components/ui/dialog";
+} from '@renderer/components/ui/dialog';
 import { Eye, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import dayjs from 'dayjs';
@@ -50,9 +56,7 @@ export function CompanyInfoView({ companyInfos, onEdit, onDelete }: CompanyInfoV
               <div>
                 <CardTitle className="text-xl">{info.title}</CardTitle>
                 <CardDescription className="mt-2">
-                  <span>
-                    {dayjs(new Date(info.createdAt)).format('YYYY年MM月DD日 HH:mm')}
-                  </span>
+                  <span>{dayjs(new Date(info.createdAt)).format('YYYY年MM月DD日 HH:mm')}</span>
                 </CardDescription>
               </div>
               <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -65,12 +69,7 @@ export function CompanyInfoView({ companyInfos, onEdit, onDelete }: CompanyInfoV
                   <Eye className="h-4 w-4" />
                 </Button>
                 {onEdit && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onEdit(info)}
-                    title="编辑"
-                  >
+                  <Button variant="ghost" size="icon" onClick={() => onEdit(info)} title="编辑">
                     <Pencil className="h-4 w-4" />
                   </Button>
                 )}
@@ -105,9 +104,7 @@ export function CompanyInfoView({ companyInfos, onEdit, onDelete }: CompanyInfoV
               {viewingInfo && dayjs(new Date(viewingInfo.createdAt)).format('YYYY年MM月DD日 HH:mm')}
             </DialogDescription>
           </DialogHeader>
-          <div className="mt-4 whitespace-pre-wrap">
-            {viewingInfo?.content}
-          </div>
+          <div className="mt-4 whitespace-pre-wrap">{viewingInfo?.content}</div>
         </DialogContent>
       </Dialog>
     </div>

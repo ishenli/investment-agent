@@ -204,14 +204,14 @@ export const createPositionSlice: StateCreator<
         set({ error: response.message, loading: false });
         return;
       }
-      
+
       // 更新本地状态
       const state = get();
-      const updatedPositions = state.positions.map(position => 
-        position.id === data.id ? { ...position, ...data } : position
+      const updatedPositions = state.positions.map((position) =>
+        position.id === data.id ? { ...position, ...data } : position,
       );
       set({ positions: updatedPositions, loading: false });
-      
+
       return response;
     } catch (error) {
       console.error('Error updating position:', error);

@@ -6,10 +6,7 @@ const metaList =
   (showDalle?: boolean) =>
   (s: ToolStoreState): LobeToolMeta[] =>
     s.builtinTools
-      .filter(
-        (item) =>
-          !item.hidden,
-      )
+      .filter((item) => !item.hidden)
       .map((t) => ({
         author: 'LobeHub',
         identifier: t.identifier,

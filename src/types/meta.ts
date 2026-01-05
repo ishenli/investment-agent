@@ -26,5 +26,5 @@ export interface BaseDataModel {
   id: string;
   meta: MetaData;
 
-  updatedAt: Date|number;
+  updatedAt: Date | number;
 }

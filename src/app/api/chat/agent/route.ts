@@ -23,7 +23,6 @@ const ChatAgentRequestSchema = z.object({
   model: z.string().optional().default('Qwen3-Next-80B-A3B-Instruct'),
 });
 
-
 class InvestmentAgentController extends BaseController {
   @WithRequestContextStatic()
   static async POST(request: Request) {
@@ -31,7 +30,10 @@ class InvestmentAgentController extends BaseController {
       const body = await this.validateBody(request, ChatAgentRequestSchema);
 
       const messages = (body.messages ?? [])
-        .filter((message) => message.role === 'user' || message.role === 'assistant' || message.role === 'system')
+        .filter(
+          (message) =>
+            message.role === 'user' || message.role === 'assistant' || message.role === 'system',
+        )
         .map((message) => {
           if (message.role === 'assistant') {
             return new AIMessage(message.content);
@@ -39,14 +41,15 @@ class InvestmentAgentController extends BaseController {
             return new SystemMessage(message.content);
           }
           return new HumanMessage(message.content);
-
         });
 
       // 从最后一条用户消息中提取查询内容
       const lastUserMessage = messages?.filter((m) => m._getType() === 'human').pop();
-      const userQuery = (typeof lastUserMessage?.content === 'string' ? lastUserMessage.content : '') || '用户意图为空';
+      const userQuery =
+        (typeof lastUserMessage?.content === 'string' ? lastUserMessage.content : '') ||
+        '用户意图为空';
       const sseEmitter = new SSEEmitter();
-      
+
       // 获取当前用户ID
       const accountInfo = await AuthService.getCurrentUserAccount();
       if (!accountInfo) {
@@ -58,13 +61,16 @@ class InvestmentAgentController extends BaseController {
       // 调用 chatService 处理投资顾问聊天请求
       (async () => {
         try {
-          await chatService.chat({
-            messages: messages,
-            query: userQuery,
-            agentId: agentId as GraphType,
-            model: body.model as ModelNameType,
-            accountId: accountId,
-          }, sseEmitter);
+          await chatService.chat(
+            {
+              messages: messages,
+              query: userQuery,
+              agentId: agentId as GraphType,
+              model: body.model as ModelNameType,
+              accountId: accountId,
+            },
+            sseEmitter,
+          );
         } catch (error) {
           logger.error('[InvestmentAgentController] 获取投资咨询数据失败:', error);
           sseEmitter.sendError(error instanceof Error ? error.message : '获取投资咨询数据失败');

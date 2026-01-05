@@ -38,9 +38,10 @@ const fetchReports = async (type?: ReportType, limit = 20, offset = 0) => {
 
   // The API returns { success: true, data: { items: [], totalCount: 0 } }
   // get() returns the full JSON response
-  const response = await get<{ success: boolean; data: { items: ReportListItem[]; totalCount: number } }>(
-    `/api/report?${params.toString()}`
-  );
+  const response = await get<{
+    success: boolean;
+    data: { items: ReportListItem[]; totalCount: number };
+  }>(`/api/report?${params.toString()}`);
   return response.data;
 };
 
@@ -49,10 +50,14 @@ const fetchReport = async (id: string) => {
   return response.data;
 };
 
-const generateReport = async (payload: { type: ReportType; startDate?: string; endDate?: string }) => {
+const generateReport = async (payload: {
+  type: ReportType;
+  startDate?: string;
+  endDate?: string;
+}) => {
   const response = await post<{ success: boolean; data: { id: string; status: string } }>(
     '/api/report',
-    payload
+    payload,
   );
   return response.data;
 };
@@ -78,7 +83,12 @@ export const useReport = (id: string) => {
     // 如果报告正在生成中（内容包含特定关键词），则轮询
     refetchInterval: (query) => {
       const data = query.state.data;
-      if (data && (data.content === '报告生成中...' || data.content === '正在收集数据...' || data.content === '正在生成AI分析...')) {
+      if (
+        data &&
+        (data.content === '报告生成中...' ||
+          data.content === '正在收集数据...' ||
+          data.content === '正在生成AI分析...')
+      ) {
         return 2000;
       }
       return false;

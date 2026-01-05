@@ -42,7 +42,12 @@ export function RevenueAnalytics() {
   const { data: metrics, isLoading, isError, refetch } = useRevenueQuery(period);
 
   // 使用React Query获取收益历史数据
-  const { data: historyData, isLoading: historyLoading, isError: historyError, refetch: refetchHistory } = useRevenueHistoryQuery(period, granularity);
+  const {
+    data: historyData,
+    isLoading: historyLoading,
+    isError: historyError,
+    refetch: refetchHistory,
+  } = useRevenueHistoryQuery(period, granularity);
 
   // 合并加载状态
   const isLoadingAny = isLoading || historyLoading;
@@ -331,7 +336,8 @@ export function RevenueAnalytics() {
               <div>
                 <CardTitle>收益率</CardTitle>
                 <CardDescription>
-                  {granularity === 'daily' ? '日度' : granularity === 'weekly' ? '周度' : '月度'}收益率表现
+                  {granularity === 'daily' ? '日度' : granularity === 'weekly' ? '周度' : '月度'}
+                  收益率表现
                 </CardDescription>
               </div>
             </div>
@@ -415,9 +421,7 @@ export function RevenueAnalytics() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">波动率</p>
-              <p className="text-2xl font-bold">
-                {(volatility * 100).toFixed(2)}%
-              </p>
+              <p className="text-2xl font-bold">{(volatility * 100).toFixed(2)}%</p>
             </div>
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">最大回撤</p>
@@ -431,9 +435,7 @@ export function RevenueAnalytics() {
             </div>
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">盈利交易</p>
-              <p className="text-2xl font-bold text-green-500">
-                {metrics.profitableTrades || 0}
-              </p>
+              <p className="text-2xl font-bold text-green-500">{metrics.profitableTrades || 0}</p>
             </div>
           </div>
         </CardContent>

@@ -10,12 +10,8 @@ import { PluginStoreAction, createPluginStoreSlice } from './slices/oldStore';
 
 //  ===============  聚合 createStoreFn ============ //
 
-export type ToolStore = ToolStoreState &
-  PluginAction &
-  PluginStoreAction &
-  BuiltinToolAction;
+export type ToolStore = ToolStoreState & PluginAction & PluginStoreAction & BuiltinToolAction;
 
-  
 const createStore: StateCreator<ToolStore, [['zustand/devtools', never]]> = (...parameters) => ({
   ...initialState,
   ...createPluginSlice(...parameters),

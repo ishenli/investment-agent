@@ -4,7 +4,9 @@ import { AccountStore } from '../../types';
 import { produce } from 'immer';
 
 export interface AccountCreateAction {
-  createAccount: (accountData: CreateTradingAccountRequestType) => Promise<TradingAccountType | null>;
+  createAccount: (
+    accountData: CreateTradingAccountRequestType,
+  ) => Promise<TradingAccountType | null>;
   setCreatedAccount: (account: TradingAccountType | null) => void;
   setCreating: (creating: boolean) => void;
   setError: (error: string | null) => void;

@@ -14,11 +14,7 @@ import { builtinToolSelectors, pluginSelectors } from '@renderer/store/tool/sele
 
 import ToolItem from './ToolItem';
 
-export const useControls = ({
-  setUpdating,
-}: {
-  setUpdating: (updating: boolean) => void;
-}) => {
+export const useControls = ({ setUpdating }: { setUpdating: (updating: boolean) => void }) => {
   const { showDalle } = { showDalle: false };
   const [checked, togglePlugin] = useAgentStore((s) => [
     agentSelectors.currentAgentPlugins(s),

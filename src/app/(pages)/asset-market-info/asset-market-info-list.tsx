@@ -47,10 +47,13 @@ export function AssetMarketInfoList() {
         params.endDate = dateRange.end.toISOString();
       }
 
-      const response = await get<{ data: { data: AssetMarketInfoType[] } }>('/api/asset/market-info', { params });
+      const response = await get<{ data: { data: AssetMarketInfoType[] } }>(
+        '/api/asset/market-info',
+        { params },
+      );
 
       setMarketInfos(response.data.data);
-      
+
       // 不再需要获取 assetMeta 信息，因为它们已经包含在 assetMetas 字段中
     } catch (err) {
       setError(err instanceof Error ? err.message : '未知错误');
@@ -125,19 +128,21 @@ export function AssetMarketInfoList() {
       <div className="border-b">
         <nav className="-mb-px flex space-x-8">
           <button
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'latest'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
-              }`}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'latest'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
+            }`}
             onClick={() => setActiveTab('latest')}
           >
             最新消息
           </button>
           <button
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'dateRange'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
-              }`}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'dateRange'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
+            }`}
             onClick={() => setActiveTab('dateRange')}
           >
             时间范围
@@ -190,9 +195,8 @@ export function AssetMarketInfoList() {
         <div className="grid gap-6">
           {marketInfos.map((info) => {
             // 直接从 assetMetas 字段获取资产的中文名称
-            const assetNames = info.assetMetas
-              .map(meta => meta.chineseName || meta.symbol);
-            
+            const assetNames = info.assetMetas.map((meta) => meta.chineseName || meta.symbol);
+
             // 如果没有找到中文名称，回退到symbol
             const displayNames = assetNames.length > 0 ? assetNames.join(', ') : info.symbol;
 
@@ -204,56 +208,69 @@ export function AssetMarketInfoList() {
                       <CardTitle className="text-xl">{info.title}</CardTitle>
                       <CardDescription className="mt-2">
                         <span className="text-muted-foreground">
-                          {format(new Date(info.createdAt), 'yyyy年MM月dd日 HH:mm', { locale: zhCN })}
+                          {format(new Date(info.createdAt), 'yyyy年MM月dd日 HH:mm', {
+                            locale: zhCN,
+                          })}
                         </span>
                       </CardDescription>
                     </div>
                     <div className="flex gap-2">
-                      <Badge variant="outline" className={getSentimentColor(info.sentiment) + ' w-12 text-center'}>{info.sentiment}</Badge>
-                      <Badge variant="outline" className={getImportanceColor(info.importance) + ' w-16 text-center'}>
+                      <Badge
+                        variant="outline"
+                        className={getSentimentColor(info.sentiment) + ' w-12 text-center'}
+                      >
+                        {info.sentiment}
+                      </Badge>
+                      <Badge
+                        variant="outline"
+                        className={getImportanceColor(info.importance) + ' w-16 text-center'}
+                      >
                         重要性 {info.importance}/10
                       </Badge>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{info.summary}</p>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                    {info.summary}
+                  </p>
                 </CardContent>
                 {/* 在卡片底部添加公司标签 */}
                 <div className="px-6 pb-4">
                   <div className="flex flex-wrap gap-2">
-                    {info.assetMetas && info.assetMetas.map(assetMeta => {
-                      const displayName = assetMeta.chineseName || assetMeta.symbol;
-                      // 根据资产符号或名称生成颜色类
-                      const getColorClass = (symbol: string) => {
-                        const colors = [
-                          'bg-blue-100 text-blue-800 hover:bg-blue-200',
-                          'bg-green-100 text-green-800 hover:bg-green-200',
-                          'bg-purple-100 text-purple-800 hover:bg-purple-200',
-                          'bg-yellow-100 text-yellow-800 hover:bg-yellow-200',
-                          'bg-pink-100 text-pink-800 hover:bg-pink-200',
-                          'bg-indigo-100 text-indigo-800 hover:bg-indigo-200',
-                        ];
-                        // 使用简单的哈希函数基于符号确定颜色
-                        let hash = 0;
-                        for (let i = 0; i < symbol.length; i++) {
-                          hash = symbol.charCodeAt(i) + ((hash << 5) - hash);
-                        }
-                        const index = Math.abs(hash) % colors.length;
-                        return colors[index];
-                      };
-                      
-                      return (
-                        <Link key={assetMeta.id} href={`/asset-market-info/${assetMeta.id}`}>
-                          <Badge 
-                            variant="secondary" 
-                            className={`cursor-pointer hover:underline ${getColorClass(assetMeta.symbol)}`}
-                          >
-                            {displayName}
-                          </Badge>
-                        </Link>
-                      );
-                    })}
+                    {info.assetMetas &&
+                      info.assetMetas.map((assetMeta) => {
+                        const displayName = assetMeta.chineseName || assetMeta.symbol;
+                        // 根据资产符号或名称生成颜色类
+                        const getColorClass = (symbol: string) => {
+                          const colors = [
+                            'bg-blue-100 text-blue-800 hover:bg-blue-200',
+                            'bg-green-100 text-green-800 hover:bg-green-200',
+                            'bg-purple-100 text-purple-800 hover:bg-purple-200',
+                            'bg-yellow-100 text-yellow-800 hover:bg-yellow-200',
+                            'bg-pink-100 text-pink-800 hover:bg-pink-200',
+                            'bg-indigo-100 text-indigo-800 hover:bg-indigo-200',
+                          ];
+                          // 使用简单的哈希函数基于符号确定颜色
+                          let hash = 0;
+                          for (let i = 0; i < symbol.length; i++) {
+                            hash = symbol.charCodeAt(i) + ((hash << 5) - hash);
+                          }
+                          const index = Math.abs(hash) % colors.length;
+                          return colors[index];
+                        };
+
+                        return (
+                          <Link key={assetMeta.id} href={`/asset-market-info/${assetMeta.id}`}>
+                            <Badge
+                              variant="secondary"
+                              className={`cursor-pointer hover:underline ${getColorClass(assetMeta.symbol)}`}
+                            >
+                              {displayName}
+                            </Badge>
+                          </Link>
+                        );
+                      })}
                   </div>
                 </div>
               </Card>

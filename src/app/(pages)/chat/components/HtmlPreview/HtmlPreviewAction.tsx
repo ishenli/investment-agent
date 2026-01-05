@@ -14,12 +14,7 @@ const HtmlPreviewAction = memo<HtmlPreviewActionProps>(({ content, size }) => {
 
   return (
     <>
-      <ActionIcon
-        icon={Eye}
-        onClick={() => setOpen(true)}
-        size={size}
-        title="预览"
-      />
+      <ActionIcon icon={Eye} onClick={() => setOpen(true)} size={size} title="预览" />
       <HtmlPreviewDrawer content={content} onClose={() => setOpen(false)} open={open} />
     </>
   );

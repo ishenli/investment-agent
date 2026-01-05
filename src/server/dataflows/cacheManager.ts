@@ -62,12 +62,9 @@ class StockDataCache {
     this.metadata_dir = path.join(this.cache_dir, 'metadata');
 
     // 创建所有目录
-    [
-      this.us_stock_dir,
-      this.us_news_dir,
-      this.us_fundamentals_dir,
-      this.metadata_dir,
-    ].forEach((dir) => this._createDirectory(dir));
+    [this.us_stock_dir, this.us_news_dir, this.us_fundamentals_dir, this.metadata_dir].forEach(
+      (dir) => this._createDirectory(dir),
+    );
 
     // 缓存配置 - 针对不同市场设置不同的TTL
     this.cache_config = {
@@ -76,7 +73,6 @@ class StockDataCache {
         max_files: 1000,
         description: '美股历史数据',
       },
-
     };
 
     // 内容长度限制配置（文件缓存默认不限制）

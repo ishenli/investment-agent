@@ -4,7 +4,7 @@ import { AccountBizController } from '@/server/controller/account';
 
 class AccountSettingsHttpController extends BaseController {
   static controller = new AccountBizController();
-  
+
   @WithRequestContext()
   static async GET(request: Request) {
     const json = await super.getQuery(request);
@@ -17,7 +17,9 @@ class AccountSettingsHttpController extends BaseController {
     const json = await super.getQuery(request);
     // 合并查询参数和请求体
     const params = { ...json, ...body };
-    return Response.json(await AccountSettingsHttpController.controller.updateAccountSettings(params));
+    return Response.json(
+      await AccountSettingsHttpController.controller.updateAccountSettings(params),
+    );
   }
 }
 
