@@ -15,6 +15,7 @@ import {
   TravilySearchTool,
 } from '../../tools';
 import { recordPrompt } from '@/server/utils/file';
+import { uuid } from '@renderer/lib/utils/uuid';
 
 // 用户意图分类工具
 const SYSTEM_PROMPT = `你是一个投资咨询助手，用户会给你一定的信息，包含用户的持仓情况、资产的价格以及相关的投资笔记，请支持以下意图的专业咨询：
@@ -141,10 +142,10 @@ ${state.marketAnalysis || '暂无市场分析数据'}`;
       for await (const chunk of result) {
         const [token, metadata] = chunk;
         id = token.id;
-        let delta = get(token, 'contentBlocks[0].text', '') as string;
+        const delta = get(token, 'contentBlocks[0].text', '') as string;
         if (token.type === 'tool') {
           send({
-            id: token.id,
+            id: token.id || uuid(),
             choices: [
               {
                 index: 0,
@@ -154,9 +155,11 @@ ${state.marketAnalysis || '暂无市场分析数据'}`;
                   tool_calls: [
                     {
                       id: token.id,
+                      // @ts-expect-error
                       index: token.index,
                       function: {
                         name: token.name,
+                        // @ts-expect-error
                         arguments: token.arguments,
                       },
                       type: 'function',
@@ -167,7 +170,7 @@ ${state.marketAnalysis || '暂无市场分析数据'}`;
             ],
           });
           send({
-            id: token.id,
+            id: token.id || uuid(),
             choices: [
               {
                 index: 0,
@@ -181,7 +184,7 @@ ${state.marketAnalysis || '暂无市场分析数据'}`;
           });
         } else {
           send({
-            id: token.id,
+            id: token.id || uuid()  ,
             choices: [
               {
                 index: 0,
@@ -198,7 +201,7 @@ ${state.marketAnalysis || '暂无市场分析数据'}`;
       }
 
       send({
-        id,
+        id: id || uuid(),
         choices: [
           {
             index: 0,

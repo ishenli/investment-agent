@@ -58,7 +58,7 @@ export function useAccountGuard() {
 
       try {
         await fetchAccounts();
-
+        const accounts = useAccountStore.getState().accounts;
         // 如果没有账户，重定向到创建页面
         if (accounts.length === 0) {
           sessionStorage.setItem('accountGuardRedirect', 'true');
