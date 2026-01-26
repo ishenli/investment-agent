@@ -1,7 +1,7 @@
 import { WithRequestContextStatic } from '@server/base/decorators';
 import { BaseController } from '@renderer/api/base/baseController';
 import priceService from '@server/service/priceService';
-import finnhubService from '@server/service/finnhubService';
+import { unifiedPriceService } from '@server/service/unifiedPriceService';
 import logger from '@server/base/logger';
 import { MarketType } from '@typings/asset';
 
@@ -66,7 +66,7 @@ class AssetPriceController extends BaseController {
   }
 
   /**
-   * 通过Tencent API获取资产的最新价格
+   * 通过统一价格服务获取资产的最新价格
    * @param request HTTP请求对象
    * @returns 资产价格信息
    */
@@ -74,26 +74,33 @@ class AssetPriceController extends BaseController {
   static async PUT(request: Request) {
     try {
       const body = await request.json();
-      const { symbol, market } = body as { symbol: string; market: MarketType };
+      const { symbol, market = 'US' } = body as { symbol: string; market?: MarketType };
 
       if (!symbol) {
         return this.error('资产代码不能为空', 'missing_symbol');
       }
 
-      const result = await finnhubService.batchQuoteByTencent([{ symbol }]);
+      const result = await unifiedPriceService.getQuote(symbol, market);
 
-      if (!result || result.length === 0) {
+      if (!result) {
         return this.error('无法获取资产价格', 'price_not_found');
       }
 
-      const priceData = result[0];
+      const priceData = {
+        symbol: result.symbol,
+        price: result.price,
+        currency: result.currency,
+        timestamp: result.timestamp,
+        source: result.source,
+        cached: result.cached,
+      };
 
       return this.success({
         message: '获取资产价格成功',
         data: priceData,
       });
     } catch (error) {
-      logger.error(`[AssetPriceController] 通过AllTick API获取资产价格失败: ${error}`);
+      logger.error(`[AssetPriceController] 获取资产价格失败: ${error}`);
       return this.error('获取资产价格失败', 'get_price_error');
     }
   }

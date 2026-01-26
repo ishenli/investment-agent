@@ -10,7 +10,12 @@
       "Bash(openspec archive:*)",
       "Bash(du:*)",
       "Bash(sqlite3:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:ts)",
+      "Bash(npx openspec validate:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npm run lint)",
+      "Bash(npx openspec:*)"
     ]
   }
 }

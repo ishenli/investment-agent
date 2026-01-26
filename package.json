@@ -10,11 +10,11 @@
   "scripts": {
     "langgraph:dev": "npx @langchain/langgraph-cli dev --port 54367",
     "langgraph:start": "npx @langchain/langgraph-cli up",
-    "dev": "next dev",
+    "dev": "next dev --port 8888",
     "build": "rm -rf .next && next build",
     "prepublishOnly": "npm run build",
     "types:check": "tsc --noEmit",
-    "start": "next start",
+    "start": "next start --port 8888",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "lint:staged": "lint-staged",

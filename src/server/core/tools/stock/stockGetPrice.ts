@@ -1,9 +1,8 @@
 import logger, { Logger } from '@server/base/logger';
-import { getUsStockDataCached } from '@server/dataflows/optimizedUsData';
-import { getHkStockDataCached } from '@server/dataflows/optimizedHkData';
-import finnhubService from '@server/service/finnhubService';
+import { getStockData } from '@server/service/stockDataService';
 import { StructuredTool, tool } from 'langchain';
 import z from 'zod';
+import type { MarketType } from '@typings/asset';
 
 const StockMarketDataParams = z.object({
   stock_code: z.string(),
@@ -12,50 +11,37 @@ const StockMarketDataParams = z.object({
   curr_date: z.string().optional(),
 });
 
-interface MarketInfo {
-  is_china: boolean;
-  is_hk: boolean;
-  is_us: boolean;
-  market_name: string;
-  currency_name: string;
-  currency_symbol: string;
-}
-
-const getMarketInfo = (ticker: string): MarketInfo => {
-  // This is a simplified implementation - in a real scenario, this would be more complex
+/**
+ * 根据股票代码识别市场类型
+ */
+const getMarketType = (ticker: string): MarketType => {
   const tickerStr = ticker.toString().toUpperCase();
 
   // Check if it's a Hong Kong stock
   if (tickerStr.includes('.HK') || tickerStr.includes('.hk')) {
-    return {
-      is_china: false,
-      is_hk: true,
-      is_us: false,
-      market_name: '港股',
-      currency_name: '港币',
-      currency_symbol: 'HK$',
-    };
+    return 'HK';
   }
 
-  // Assume it's a US stock otherwise
-  return {
-    is_china: false,
-    is_hk: false,
-    is_us: true,
-    market_name: '美股',
-    currency_name: '美元',
-    currency_symbol: '$',
-  };
+  // Check if it's a China stock (6-digit number)
+  if (/^\d{6}$/.test(tickerStr)) {
+    return 'CN';
+  }
+
+  // Default to US stock
+  return 'US';
 };
 
-// Local helper for China removed.
-// Local helper for HK removed. replaced by cached provider.
-
+/**
+ * 统一的股票市场数据获取工具
+ *
+ * 使用 StockDataService 提供统一的 API 来获取实时报价和历史行情数据
+ */
 export class StockMarketDataUnifiedTool extends StructuredTool {
   schema = StockMarketDataParams;
   name = 'get_stock_market_data_unified';
   description = '统一的股票市场数据获取工具，自动识别股票类型（A股、港股、美股）并调用相应的数据源';
   logger: Logger;
+
   constructor(logger: Logger) {
     super();
     this.logger = logger;
@@ -64,13 +50,14 @@ export class StockMarketDataUnifiedTool extends StructuredTool {
   async _call(params: z.infer<typeof StockMarketDataParams>): Promise<string> {
     const { stock_code, start_date, end_date, curr_date } = params;
     const logger = this.logger;
+
     logger.info(
-      `[StockMarketDataUnifiedTool]调用统一市场数据工具，参数: ${JSON.stringify(params)}`,
+      `[StockMarketDataUnifiedTool] 调用统一市场数据工具，参数: ${JSON.stringify(params)}`,
     );
+
     try {
-      // 自动识别股票类型
-      const marketInfo = getMarketInfo(stock_code);
-      const { is_china, is_hk, market_name, currency_name, currency_symbol } = marketInfo;
+      // 自动识别市场类型
+      const market = getMarketType(stock_code);
 
       // 设置默认日期
       const currentDate = curr_date || new Date().toISOString().split('T')[0];
@@ -78,48 +65,21 @@ export class StockMarketDataUnifiedTool extends StructuredTool {
         start_date || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
       const endDate = end_date || currentDate;
 
-      const resultData: string[] = [];
+      // 使用 StockDataService 获取数据
+      const data = await getStockData(
+        stock_code,
+        startDate,
+        endDate,
+        market,
+        false, // forceRefresh
+        logger,
+      );
 
-      if (is_hk) {
-        // 港股
-        try {
-          const hkData = await getHkStockDataCached(
-            stock_code,
-            startDate,
-            endDate,
-            false,
-            this.logger,
-          );
-          resultData.push(hkData);
-        } catch (e) {
-          const error = e as Error;
-          resultData.push(`## 港股数据获取失败: ${error.message}`);
-        }
-      } else {
-        // 美股 & 其他
-        try {
-          const usData = await getUsStockDataCached(
-            stock_code,
-            startDate,
-            endDate,
-            false,
-            this.logger,
-          );
-          resultData.push(usData);
-        } catch (e) {
-          const error = e as Error;
-          resultData.push(`## 美股数据获取失败: ${error.message}`);
-        }
-      }
-
-      // 组合所有数据
-      // Since specific providers now return full markdown with headers, we just join them.
-      const combinedResult = resultData.join('\n\n');
-
-      return combinedResult;
-    } catch (e) {
-      const error = e as Error;
-      const errorMsg = `统一市场数据工具执行失败: ${error.message}`;
+      return data;
+    } catch (error) {
+      const err = error as Error;
+      const errorMsg = `统一市场数据工具执行失败: ${err.message}`;
+      logger.error(`[StockMarketDataUnifiedTool] ${errorMsg}`, error);
       return errorMsg;
     }
   }
@@ -128,7 +88,7 @@ export class StockMarketDataUnifiedTool extends StructuredTool {
 export const stockGetPriceTool = tool(
   async (params) => {
     const toolInstance = new StockMarketDataUnifiedTool(logger);
-    const result = toolInstance.invoke(params);
+    const result = await toolInstance.invoke(params);
     return result;
   },
   {

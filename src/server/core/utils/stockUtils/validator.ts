@@ -4,11 +4,12 @@
  */
 
 import type { Logger } from '@server/base/logger';
-import { getUsStockDataCached } from '@server/dataflows/optimizedUsData';
+import { getStockData } from '@server/service/stockDataService';
 import dayjs from 'dayjs';
+import type { MarketType as AssetMarketType } from '@typings/asset';
 
 // 定义市场类型常量
-const MarketType = {
+const MarketTypeConstant = {
   CHINA_A: 'A股',
   HONG_KONG: '港股',
   US: '美股',
@@ -16,7 +17,7 @@ const MarketType = {
   UNKNOWN: '未知',
 } as const;
 
-type MarketType = (typeof MarketType)[keyof typeof MarketType];
+type ValidatorMarketType = (typeof MarketTypeConstant)[keyof typeof MarketTypeConstant];
 
 // 定义数据准备结果类
 export class StockDataPreparationResult {
@@ -169,18 +170,18 @@ export class StockDataPreparer {
     }
 
     // 根据市场类型验证格式
-    if (marketType === MarketType.CHINA_A) {
+    if (marketType === MarketTypeConstant.CHINA_A) {
       if (!/^\d{6}$/.test(stockCode)) {
         return new StockDataPreparationResult({
           is_valid: false,
           stock_code: stockCode,
-          market_type: MarketType.CHINA_A,
+          market_type: MarketTypeConstant.CHINA_A,
           stock_name: '',
           error_message: 'A股代码格式错误，应为6位数字',
           suggestion: '请输入6位数字的A股代码，如：000001、600519',
         });
       }
-    } else if (marketType === MarketType.HONG_KONG) {
+    } else if (marketType === MarketTypeConstant.HONG_KONG) {
       const hkFormat = /^\d{4,5}\.HK$/i.test(stockCode.toUpperCase());
       const digitFormat = /^\d{4,5}$/.test(stockCode);
 
@@ -188,18 +189,18 @@ export class StockDataPreparer {
         return new StockDataPreparationResult({
           is_valid: false,
           stock_code: stockCode,
-          market_type: MarketType.HONG_KONG,
+          market_type: MarketTypeConstant.HONG_KONG,
           stock_name: '',
           error_message: '港股代码格式错误',
           suggestion: '请输入4-5位数字.HK格式（如：0700.HK）或4-5位数字（如：0700）',
         });
       }
-    } else if (marketType === MarketType.US) {
+    } else if (marketType === MarketTypeConstant.US) {
       if (!/^[A-Z]{1,5}$/i.test(stockCode)) {
         return new StockDataPreparationResult({
           is_valid: false,
           stock_code: stockCode,
-          market_type: MarketType.US,
+          market_type: MarketTypeConstant.US,
           stock_name: '',
           error_message: '美股代码格式错误，应为1-5位字母',
           suggestion: '请输入1-5位字母的美股代码，如：AAPL、TSLA',
@@ -225,20 +226,20 @@ export class StockDataPreparer {
 
     // A股：6位数字
     if (/^\d{6}$/.test(stockCode)) {
-      return MarketType.CHINA_A;
+      return MarketTypeConstant.CHINA_A;
     }
 
     // 港股：4-5位数字.HK 或 纯4-5位数字
     if (/^\d{4,5}\.HK$/.test(stockCode) || /^\d{4,5}$/.test(stockCode)) {
-      return MarketType.HONG_KONG;
+      return MarketTypeConstant.HONG_KONG;
     }
 
     // 美股：1-5位字母
     if (/^[A-Z]{1,5}$/.test(stockCode)) {
-      return MarketType.US;
+      return MarketTypeConstant.US;
     }
 
-    return MarketType.UNKNOWN;
+    return MarketTypeConstant.UNKNOWN;
   }
 
   /**
@@ -259,11 +260,11 @@ export class StockDataPreparer {
 
     try {
       switch (marketType) {
-        case MarketType.CHINA_A:
+        case MarketTypeConstant.CHINA_A:
           return await this.prepareChinaStockData(stockCode, periodDays, analysisDate);
-        case MarketType.HONG_KONG:
+        case MarketTypeConstant.HONG_KONG:
           return await this.prepareHkStockData(stockCode, periodDays, analysisDate);
-        case MarketType.US:
+        case MarketTypeConstant.US:
           return await this.prepareUsStockData(stockCode, periodDays, analysisDate);
         default:
           return new StockDataPreparationResult({
@@ -346,7 +347,7 @@ export class StockDataPreparer {
             is_valid: false,
             stock_code: stockCode,
             stock_name: '',
-            market_type: MarketType.CHINA_A,
+            market_type: MarketTypeConstant.CHINA_A,
             error_message: `股票代码 ${stockCode} 不存在或信息无效`,
             suggestion: '请检查股票代码是否正确，或确认该股票是否已上市',
           });
@@ -357,7 +358,7 @@ export class StockDataPreparer {
           is_valid: false,
           stock_code: stockCode,
           stock_name: '',
-          market_type: MarketType.CHINA_A,
+          market_type: MarketTypeConstant.CHINA_A,
           error_message: `无法获取股票 ${stockCode} 的基本信息`,
           suggestion: '请检查股票代码是否正确，或确认该股票是否已上市',
         });
@@ -411,7 +412,7 @@ export class StockDataPreparer {
           return new StockDataPreparationResult({
             is_valid: false,
             stock_code: stockCode,
-            market_type: MarketType.CHINA_A,
+            market_type: MarketTypeConstant.CHINA_A,
             stock_name: stockName,
             error_message: `股票 ${stockCode} 的历史数据无效或不足`,
             suggestion: '该股票可能为新上市股票或数据源暂时不可用，请稍后重试',
@@ -424,7 +425,7 @@ export class StockDataPreparer {
         return new StockDataPreparationResult({
           is_valid: false,
           stock_code: stockCode,
-          market_type: MarketType.CHINA_A,
+          market_type: MarketTypeConstant.CHINA_A,
           stock_name: stockName,
           error_message: `无法获取股票 ${stockCode} 的历史数据`,
           suggestion: '请检查网络连接或数据源配置，或稍后重试',
@@ -438,7 +439,7 @@ export class StockDataPreparer {
       return new StockDataPreparationResult({
         is_valid: false,
         stock_code: stockCode,
-        market_type: MarketType.CHINA_A,
+        market_type: MarketTypeConstant.CHINA_A,
         stock_name: stockName,
         error_message: '',
         suggestion: '',
@@ -452,7 +453,7 @@ export class StockDataPreparer {
       return new StockDataPreparationResult({
         is_valid: false,
         stock_code: stockCode,
-        market_type: MarketType.CHINA_A,
+        market_type: MarketTypeConstant.CHINA_A,
         stock_name: stockName,
         error_message: `数据准备失败: ${error instanceof Error ? error.message : String(error)}`,
         suggestion: '请检查网络连接或数据源配置',
@@ -475,7 +476,7 @@ export class StockDataPreparer {
     return new StockDataPreparationResult({
       is_valid: false,
       stock_code: stockCode,
-      market_type: MarketType.HONG_KONG,
+      market_type: MarketTypeConstant.HONG_KONG,
       stock_name: '',
       error_message: '港股数据准备功能尚未实现',
       suggestion: '请实现港股数据准备逻辑',
@@ -503,10 +504,11 @@ export class StockDataPreparer {
     let cache_status = '';
 
     try {
-      const historical_data = await getUsStockDataCached(
+      const historical_data = await getStockData(
         formatted_code,
         startDateStr,
         endDateStr,
+        'US' as AssetMarketType,
         false,
         this.logger,
       );
@@ -539,7 +541,7 @@ export class StockDataPreparer {
           return new StockDataPreparationResult({
             is_valid: true,
             stock_code: formatted_code,
-            market_type: MarketType.US,
+            market_type: MarketTypeConstant.US,
             stock_name,
             has_historical_data,
             has_basic_info,
@@ -552,9 +554,9 @@ export class StockDataPreparer {
           return new StockDataPreparationResult({
             is_valid: false,
             stock_code: formatted_code,
-            market_type: MarketType.US,
+            market_type: MarketTypeConstant.US,
             stock_name: '',
-            error_message: `美股 {formatted_code} 的历史数据无效或不足`,
+            error_message: `美股 ${formatted_code} 的历史数据无效或不足`,
             suggestion: '该股票可能为新上市股票或数据源暂时不可用，请稍后重试',
           });
         }
@@ -563,24 +565,23 @@ export class StockDataPreparer {
         return new StockDataPreparationResult({
           is_valid: false,
           stock_code: formatted_code,
-          market_type: MarketType.US,
+          market_type: MarketTypeConstant.US,
           stock_name,
           error_message: `美股代码 ${formatted_code} 不存在或无法获取数据`,
           suggestion: '请检查美股代码是否正确，如：AAPL、TSLA、MSFT',
         });
       }
     } catch (error) {
-      console.log(error);
+      this.logger.error(`❌ [美股数据] 数据准备失败: ${String(error)}`);
+      return new StockDataPreparationResult({
+        is_valid: false,
+        stock_code: stockCode,
+        market_type: MarketTypeConstant.US,
+        stock_name: '',
+        error_message: '美股数据准备功能失败',
+        suggestion: '请实现美股数据准备逻辑',
+      });
     }
-    // 这里需要根据实际需求实现
-    return new StockDataPreparationResult({
-      is_valid: false,
-      stock_code: stockCode,
-      market_type: MarketType.US,
-      stock_name: '',
-      error_message: '美股数据准备功能尚未实现',
-      suggestion: '请实现美股数据准备逻辑',
-    });
   }
 }
 

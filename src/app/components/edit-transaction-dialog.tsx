@@ -42,8 +42,10 @@ export function EditTransactionDialog({
   // 初始化表单数据
   useEffect(() => {
     if (transaction && open) {
+      console.info('Transaction data:', transaction);
       setType(transaction.type);
       setMarketType(transaction.market || 'US');
+      setAssetType((transaction.sector as AssetType) || 'stock');
       setSymbol(transaction.symbol || '');
       setAmount(transaction.amount.toString());
       setQuantity(transaction.quantity?.toString() || '');
@@ -124,7 +126,7 @@ export function EditTransactionDialog({
           <Label htmlFor="market" className="text-right">
             市场类型
           </Label>
-          <Select value={marketType} onValueChange={(value: MarketType) => setMarketType(value)}>
+          <Select key={marketType} value={marketType} onValueChange={(value: MarketType) => setMarketType(value)}>
             <SelectTrigger className="col-span-3">
               <SelectValue placeholder="选择市场" />
             </SelectTrigger>
@@ -136,10 +138,10 @@ export function EditTransactionDialog({
           </Select>
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="type" className="text-right">
+          <Label htmlFor="assetType" className="text-right">
             资产类型
           </Label>
-          <Select value={assetType} onValueChange={(value: AssetType) => setAssetType(value)}>
+          <Select key={assetType} value={assetType} onValueChange={(value: AssetType) => setAssetType(value)}>
             <SelectTrigger className="col-span-3">
               <SelectValue placeholder="选择类型" />
             </SelectTrigger>
@@ -152,10 +154,11 @@ export function EditTransactionDialog({
           </Select>
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="type" className="text-right">
+          <Label htmlFor="transactionType" className="text-right">
             类型
           </Label>
           <Select
+            key={type}
             value={type}
             onValueChange={(value: 'buy' | 'sell' | 'deposit' | 'withdrawal') => setType(value)}
           >

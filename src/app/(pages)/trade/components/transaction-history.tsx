@@ -126,8 +126,8 @@ export function TransactionHistory() {
                     <SelectItem value="all">全部类型</SelectItem>
                     <SelectItem value="deposit">入金</SelectItem>
                     <SelectItem value="withdrawal">出金</SelectItem>
-                    <SelectItem value="buy">购买</SelectItem>
-                    <SelectItem value="sell">出售</SelectItem>
+                    <SelectItem value="buy">买入</SelectItem>
+                    <SelectItem value="sell">卖出</SelectItem>
                   </SelectContent>
                 </Select>
                 <div className="relative">
@@ -181,8 +181,8 @@ export function TransactionHistory() {
                         >
                           {transaction.type === 'deposit' && '入金'}
                           {transaction.type === 'withdrawal' && '出金'}
-                          {transaction.type === 'buy' && '购买'}
-                          {transaction.type === 'sell' && '出售'}
+                          {transaction.type === 'buy' && '买入'}
+                          {transaction.type === 'sell' && '卖出'}
                         </Badge>
                       </TableCell>
                       <TableCell>

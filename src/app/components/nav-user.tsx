@@ -5,6 +5,7 @@ import {
   IconDotsVertical,
   IconLogout,
   IconNotification,
+  IconSettings,
   IconUserCircle,
   IconUserPlus,
 } from '@tabler/icons-react';
@@ -96,6 +97,12 @@ export function NavUser({
                   <DropdownMenuItem>
                     <IconUserCircle />
                     账户设置
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="/setting">
+                  <DropdownMenuItem>
+                    <IconSettings />
+                    系统设置
                   </DropdownMenuItem>
                 </Link>
                 <DropdownMenuItem>

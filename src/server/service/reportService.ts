@@ -3,7 +3,6 @@ import { analysisReports, accounts } from '@/drizzle/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import logger from '@server/base/logger';
 import transactionService from './transactionService';
-import finnhubService from './finnhubService';
 import noteService from './noteService';
 import assetMarketInfoService from './assetMarketInfoService';
 import assetMetaService from './assetMetaService';

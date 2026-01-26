@@ -37,12 +37,43 @@ import {
 } from 'lucide-react';
 import { usePositionsQuery } from '@renderer/hooks/useAssetQueries';
 import { usePositionStore } from '@renderer/store/position/store';
-import { AddTransactionDialog } from '@renderer/components/add-transaction-dialog';
 import { EditPositionDialog } from './components/EditPositionDialog';
 import { PositionType } from '@typings/position';
 import { Skeleton } from '@renderer/components/ui/skeleton';
 import Link from 'next/link';
-import { marketToChinese } from '@/shared';
+import { marketToChinese, USD_TO_HKD } from '@/shared';
+
+
+// 辅助函数：根据市场获取货币符号和汇率
+const getCurrencyInfo = (market: string) => {
+  if (market === 'HK') {
+    return { symbol: 'HK$', rate: USD_TO_HKD, currency: 'HKD' };
+  }
+  return { symbol: '$', rate: 1, currency: 'USD' };
+};
+
+// 辅助函数：根据市场筛选条件获取货币信息
+const getCurrencyByFilter = (filterMarket: string) => {
+  if (filterMarket === '港股') {
+    return { symbol: 'HK$', rate: USD_TO_HKD, currency: 'HKD' };
+  }
+  return { symbol: '$', rate: 1, currency: 'USD' };
+};
+
+// 辅助函数：格式化价格显示
+const formatPrice = (price: number, currencySymbol: string, rate: number) => {
+  return `${currencySymbol}${(price * rate).toFixed(2)}`;
+};
+
+// 辅助函数：格式化市值/收益显示
+const formatValue = (value: number, currencySymbol: string, rate: number) => {
+  return `${currencySymbol}${(value * rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
+// 辅助函数：格式化市值/收益整数显示
+const formatValueWhole = (value: number, currencySymbol: string, rate: number) => {
+  return `${currencySymbol}${Math.round(value * rate).toLocaleString()}`;
+};
 
 // 定义排序配置类型
 type SortConfig = {
@@ -56,6 +87,10 @@ export function PositionManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterMarket, setFilterMarket] = useState('all');
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: 'ascending' });
+
+  // 根据市场筛选条件获取货币信息
+  const currency = getCurrencyByFilter(filterMarket);
+
   // 使用React Query获取持仓数据
   const { data: positions = [], isLoading, isError, refetch } = usePositionsQuery();
   const { alerts } = usePositionStore();
@@ -252,12 +287,12 @@ export function PositionManagement() {
               {/* 新增一个股票总金额的展示 */}
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-muted-foreground">股票总金额:</span>
-                <span className="text-lg font-bold">${totalMarketValue.toLocaleString()}</span>
+                <span className="text-lg font-bold">{formatValueWhole(totalMarketValue, currency.symbol, currency.rate)}</span>
               </div>
               {/* 新增一个股票总收益的展示 */}
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-muted-foreground">持仓总收益:</span>
-                <span className="text-lg font-bold">${stockGain.toLocaleString()}</span>
+                <span className="text-lg font-bold">{formatValueWhole(stockGain, currency.symbol, currency.rate)}</span>
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-2">
@@ -400,7 +435,7 @@ export function PositionManagement() {
                               : ''
                         }
                       >
-                        ${position.averageCost.toFixed(2)}
+                        {formatPrice(position.averageCost, currency.symbol, currency.rate)}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -413,10 +448,10 @@ export function PositionManagement() {
                               : ''
                         }
                       >
-                        ${position.currentPrice.toFixed(2)}
+                        {formatPrice(position.currentPrice, currency.symbol, currency.rate)}
                       </span>
                     </TableCell>
-                    <TableCell>${position.marketValue.toLocaleString()}</TableCell>
+                    <TableCell>{formatValueWhole(position.marketValue, currency.symbol, currency.rate)}</TableCell>
                     <TableCell>
                       <div className="flex items-center">
                         {position.unrealizedPnL >= 0 ? (
@@ -429,7 +464,7 @@ export function PositionManagement() {
                             position.unrealizedPnL >= 0 ? 'text-green-500' : 'text-red-500'
                           }
                         >
-                          ${Math.abs(position.unrealizedPnL).toLocaleString()}
+                          {formatValueWhole(Math.abs(position.unrealizedPnL), currency.symbol, currency.rate)}
                         </span>
                       </div>
                     </TableCell>

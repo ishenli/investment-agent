@@ -147,11 +147,11 @@ export const data = {
       url: '/search',
       icon: IconSearch,
     },
-    {
-      title: '首选项',
-      url: '/setting',
-      icon: IconSettings,
-    },
+    // {
+    //   title: '首选项',
+    //   url: '/setting',
+    //   icon: IconSettings,
+    // },
     // {
     //   title: '智能体设置',
     //   url: '/setting/agent',
