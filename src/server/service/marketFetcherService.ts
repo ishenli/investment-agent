@@ -6,8 +6,8 @@ import {
   DataSourceType,
   ContentFormat,
 } from '@typings/market';
-import { WebCrawler } from '@server/lib/market-fetcher/web-crawler';
-import { StorageService } from '@server/lib/market-fetcher/storage';
+import { WebCrawler } from '@/server/dataflows/market-fetcher/web-crawler';
+import { StorageService } from '@server/dataflows/market-fetcher/storage';
 import logger from '@server/base/logger';
 
 /**

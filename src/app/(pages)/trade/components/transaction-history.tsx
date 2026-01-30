@@ -102,11 +102,7 @@ export function TransactionHistory() {
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <CardTitle className="text-lg">交易历史</CardTitle>
-                {/* <CardDescription>查看您的所有交易记录</CardDescription> */}
-              </div>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-end gap-4">
               <div className="flex flex-col sm:flex-row gap-2">
                 <div className="relative">
                   <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />

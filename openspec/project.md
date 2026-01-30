@@ -35,9 +35,8 @@ This project is an advanced investment analysis platform built with Next.js that
 - Drizzle ORM for database interactions
 
 ### Testing Strategy
-- Unit testing with Jest
+- Unit testing with Vitest
 - Component testing with React Testing Library
-- End-to-end testing with Cypress
 - Integration testing for API endpoints
 
 ### Git Workflow
@@ -47,17 +46,23 @@ This project is an advanced investment analysis platform built with Next.js that
 - Conventional commits for clear commit messages
 
 ## Domain Context
-- Investment Analysis: A system for analyzing stocks using multiple AI agents
-- Multi-agent System: Market Analyst, News Analyst, Bullish Researcher, Bearish Researcher, Research Manager, Risk Manager, and Trader
-- Asset Management: Tracking and analyzing investment portfolios
-- Market Information Fetching: Automated retrieval and analysis of market information
+- Investment Analysis: A system for analyzing stocks using multiple AI agents with LangGraph workflows
+- Multi-agent System: AI agents for market analysis, news analysis, bullish/bearish research, risk management, and trading recommendations
+- Asset Management: Tracking and analyzing investment portfolios with position management and performance analytics
+- Market Information Fetching: Automated retrieval and analysis of market information from Finnhub API
 - Technical Analysis: Comprehensive technical indicators and charting capabilities
+- AI Insights Generation: AI-powered investment insights, diversification recommendations, and strategy advice
+- Portfolio Reporting: Automated generation of weekly and monthly investment reports with AI analysis
+- Financial Data Services: Real-time stock prices, company information, and market news integration
+- Account Management: Trading account management with balance tracking and transaction history
 
 ## Important Constraints
-- TypeScript strict mode enabled
-- Must follow AI/ML best practices for investment analysis
-- Performance optimization for real-time data processing
-- Integration with financial data providers
+- TypeScript strict mode enabled with strict type checking
+- Must follow AI/ML best practices for investment analysis and risk management
+- Performance optimization for real-time data processing with sub-second UI response times
+- Rate limiting and API quota management for financial data providers
+- Data validation using Zod schemas for all user inputs and external data
+- Security considerations for financial data handling and API key management
 - Data persistence with SQLite and Drizzle ORM
 
 ## External Dependencies
@@ -65,8 +70,10 @@ This project is an advanced investment analysis platform built with Next.js that
   - Stock price data
   - Technical indicators
   - News feeds
-- LangChain.js for AI agent orchestration
-- OpenAI API for AI models
+- LangChain.js and LangGraph for AI agent orchestration and workflow management
 - Drizzle ORM for database operations
 - Recharts for data visualization
-- Winston for logging
+- Winston for logging and monitoring
+- Tavily Search API for market research and news analysis
+- OpenAI API for advanced language model processing
+- Dexie.js for client-side IndexedDB management

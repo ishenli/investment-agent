@@ -1,21 +1,8 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-expect-error
-import * as finnhub from 'finnhub';
 import logger from '@server/base/logger';
 import type { MarketType } from '@typings/asset';
 import type { QuoteRequest, QuoteResponse } from '@server/service/unifiedPriceService/types';
 import { PriceSourceAdapter } from './PriceSourceAdapter';
-
-/**
- * Finnhub API 配置
- */
-const api_key = finnhub.ApiClient.instance.authentications['api_key'];
-api_key.apiKey = process.env.FINNHUB_API_KEY;
-
-/**
- * Finnhub 客户端实例
- */
-const finnhubClient = new finnhub.DefaultApi();
+import { finnhubClient, isFinnhubApiKeySet } from '@server/dataflows/finnhubUtil';
 
 /**
  * Finnhub 数据源适配器
@@ -31,8 +18,7 @@ export class FinnhubAdapter extends PriceSourceAdapter {
   async fetchQuote(request: QuoteRequest): Promise<QuoteResponse | null> {
     const { symbol, market } = request;
 
-    // 检查 API key
-    if (!process.env.FINNHUB_API_KEY) {
+    if (!isFinnhubApiKeySet()) {
       logger.warn('[FinnhubAdapter] FINNHUB_API_KEY not set');
       return null;
     }
@@ -63,28 +49,50 @@ export class FinnhubAdapter extends PriceSourceAdapter {
    * @param symbol 资产代码
    * @returns 价格，如果获取失败则返回 null
    */
-  private callFinnhubQuote(symbol: string): Promise<number | null> {
-    return new Promise((resolve) => {
-      finnhubClient.quote(symbol, (error: unknown, data: { c: number }) => {
-        if (error) {
-          logger.error(`[FinnhubAdapter] Finnhub API error for ${symbol}`, error);
-          resolve(null);
-          return;
-        }
+  private async callFinnhubQuote(symbol: string, retries: number = 3): Promise<number | null> {
+    for (let i = 0; i < retries; i++) {
+      try {
+        return await new Promise((resolve) => {
+          finnhubClient.quote(symbol, (error: unknown, data: { c: number }) => {
+            if (error) {
+              logger.error(
+                `[FinnhubAdapter] Finnhub API error for ${symbol} (attempt ${i + 1}/${retries})`,
+                error,
+              );
+              resolve(null);
+              return;
+            }
 
-        const c = data?.c ?? 0;
-        if (!c) {
-          resolve(null);
-          return;
-        }
+            const c = data?.c ?? 0;
+            if (!c) {
+              resolve(null);
+              return;
+            }
 
-        resolve(c);
-      });
-    });
+            resolve(c);
+          });
+        });
+      } catch (error) {
+        logger.error(
+          `[FinnhubAdapter] Error calling Finnhub API for ${symbol} (attempt ${i + 1}/${retries}):`,
+          error,
+        );
+
+        // 如果不是最后一次尝试，等待一段时间后重试
+        if (i < retries - 1) {
+          const delay = Math.pow(2, i) * 1000; // 指数退避：1s, 2s, 4s...
+          logger.info(`[FinnhubAdapter] Retrying ${symbol} in ${delay}ms...`);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
+      }
+    }
+
+    logger.error(`[FinnhubAdapter] Failed to get price for ${symbol} after ${retries} attempts`);
+    return null;
   }
 
   async healthCheck(): Promise<boolean> {
-    if (!process.env.FINNHUB_API_KEY) {
+    if (!isFinnhubApiKeySet()) {
       return false;
     }
 

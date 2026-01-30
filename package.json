@@ -173,6 +173,7 @@
     "@types/react-syntax-highlighter": "^15.5.13",
     "@types/unist": "^3.0.3",
     "@typescript-eslint/eslint-plugin": "^8.52.0",
+    "baseline-browser-mapping": "latest",
     "eslint": "^9.39.2",
     "eslint-config-next": "16.0.0",
     "eslint-plugin-sort-keys-fix": "^1.1.2",
