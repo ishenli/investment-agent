@@ -111,7 +111,7 @@
     "immer": "^10.2.0",
     "langchain": "^1.2.16",
     "lodash": "^4.17.23",
-    "lucide-react": "^0.545.0",
+    "lucide-react": "^0.563.0",
     "mdast-util-to-markdown": "^2.1.2",
     "modern-screenshot": "^4.6.8",
     "motion": "^12.29.2",
