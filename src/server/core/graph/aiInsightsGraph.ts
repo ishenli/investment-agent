@@ -164,6 +164,7 @@ ${positions.map((pos) => `${pos.symbol}${pos.investmentMemo ? ` (${pos.investmen
         recordPrompt(prompt, 'ai-insights-opportunity-finder.md');
         // const response = await this.llm.invoke([new HumanMessage(prompt)]);
         const agent = createDeepAgent({
+          model: chatModelOpenAI(ModelMap['Qwen3-Next-80B-A3B-Instruct']),
           tools: [],
           systemPrompt: `你是一个投资机会发掘专家`,
         });

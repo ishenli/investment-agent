@@ -23,6 +23,13 @@ export class FinnhubAdapter extends PriceSourceAdapter {
       return null;
     }
 
+    if (!this.supportedMarkets.includes(market)) {
+      logger.warn(`[FinnhubAdapter] Market ${market} not supported`);
+      return null;
+    }
+
+    logger.info(`[FinnhubAdapter] Fetching price for ${symbol} (${market})`);
+    
     try {
       const result = await this.callFinnhubQuote(symbol);
       if (!result) {

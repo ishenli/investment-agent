@@ -25,7 +25,7 @@ export const INBOX_SESSION_CONFIG: SessionCreateConfig = {
   slug: 'inbox',
   agentId: 'investment_advisor',
   title: '投研综合分析智能体',
-  description: '随便聊聊',
+  description: '投资研究综合分析',
   includeCreatedAt: true,
   avatar: DEFAULT_INBOX_AVATAR,
   backgroundColor: 'rgba(0,0,0,0)',

@@ -136,7 +136,7 @@ export class PriceService {
 
         result = updated;
         logger.info(
-          `[priceService#updatePrice] Updated price for ${priceData.symbol}: ${priceData.price}`,
+          `[priceService#updatePrice] Updated price for ${priceData.symbol}: ${priceData.price}: ${priceData.market}`,
         );
       } else {
         // 插入新记录
@@ -156,7 +156,7 @@ export class PriceService {
 
         result = inserted;
         logger.info(
-          `[priceService#updatePrice] Inserted price for ${priceData.symbol}: ${priceData.price}`,
+          `[priceService#updatePrice] Inserted price for ${priceData.symbol}: ${priceData.price}: ${priceData.market}`,
         );
       }
 

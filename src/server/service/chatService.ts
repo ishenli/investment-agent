@@ -1,16 +1,15 @@
 import { SSEEmitter } from '@server/base/sseEmitter';
-import { InvestmentAdvisorGraph } from '@server/core/graph/investmentAdvisorGraph';
+import { investmentAdvisorAgent } from '@server/core/deepagents/investmentAdvisorAgent';
 import { MarketInformationGraph } from '@server/core/graph/marketInformationGraph';
 import { ScenarioAnalyzerGraph } from '@server/core/graph/scenarioAnalyzerGraph';
 import { DiversificationGraph } from '@server/core/graph/diversificationGraph';
 import { AIInsightsGraph } from '@server/core/graph/aiInsightsGraph';
 import { AuthService } from '@server/service/authService';
-import { defaultConfig } from '@shared/config/config.default';
 import logger from '@server/base/logger';
 import portfolioAnalysisService from '@server/service/portfolioAnalysisService';
 import type { Logger } from '@server/base/logger';
 import type { PositionAsset, Portfolio } from '@renderer/store/position/types';
-import { chatModelOpenAI, ModelMap, ModelNameType } from '@server/core/provider/chatModel';
+import { chatModelOpenAI, ModelNameType } from '@server/core/provider/chatModel';
 import { BaseMessage, HumanMessage } from '@langchain/core/messages';
 
 // 定义支持的 Graph 类型
@@ -105,7 +104,7 @@ export class ChatService {
   }
 
   /**
-   * 处理投资顾问聊天请求
+   * 处理投资顾问聊天请求，使用 DeepAgents
    */
   private async handleInvestmentAdvisorChat(
     request: ChatRequest,
@@ -113,25 +112,9 @@ export class ChatService {
     accountId: string,
   ): Promise<void> {
     try {
-      // 创建投资顾问图实例
-      const investmentAdvisorGraph = new InvestmentAdvisorGraph({
-        logger: this.logger,
-        config: defaultConfig,
-        emitter,
-        modelCode: request.model || 'default',
-      });
-
-      // 使用投资顾问图处理用户查询
-      const graph = investmentAdvisorGraph.setupInvestmentAdvisorGraph();
-
-      // 初始化状态 - 使用个性化初始状态
-      const initialState = await investmentAdvisorGraph.createPersonalizedInitialState(
-        accountId,
-        request.query,
-      );
-
-      // 执行图
-      await graph.invoke(initialState);
+      // 使用 DeepAgents 处理投资顾问聊天
+      this.logger.info('[ChatService] 使用 DeepAgents 处理投资顾问聊天');
+      await investmentAdvisorAgent.chat(request.query, accountId, emitter);
     } catch (error) {
       this.logger.error('[ChatService] 投资顾问聊天处理失败:', error);
       throw error;
@@ -139,7 +122,7 @@ export class ChatService {
   }
 
   /**
-   * 处理市场信息聊天请求
+   * 处理市场信息聊天请求, 使用 langgraph
    */
   private async handleMarketInformationChat(
     request: ChatRequest,
@@ -177,7 +160,7 @@ export class ChatService {
   }
 
   /**
-   * 处理场景分析聊天请求
+   * 处理场景分析聊天请求, 使用 langgraph
    */
   private async handleScenarioAnalyzerChat(
     request: ChatRequest,
@@ -246,7 +229,7 @@ export class ChatService {
   }
 
   /**
-   * 处理分散投资聊天请求
+   * 处理分散投资聊天请求, 使用 langgraph
    */
   private async handleDiversificationChat(
     request: ChatRequest,
@@ -312,7 +295,7 @@ export class ChatService {
   }
 
   /**
-   * 处理AI洞察聊天请求
+   * 处理AI洞察聊天请求, 使用 langgraph
    */
   private async handleAIInsightsChat(
     request: ChatRequest,
@@ -375,7 +358,7 @@ export class ChatService {
   }
 
   /**
-   * 处理默认聊天请求，直接对接 LLM
+   * 处理默认聊天请求，直接对接 LLM, 使用 OpenAI 聊天模型
    */
   private async handleDefaultChat(request: ChatRequest, emitter: SSEEmitter): Promise<void> {
     logger.info('[ChatService] 处理默认聊天请求: model=%s', request.model);

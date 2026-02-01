@@ -6,7 +6,6 @@ import { MarkdownFormatter } from './formatters';
 import type {
   CompanyProfile,
 } from './formatters';
-import { StockDataCache, getCache } from '../../dataflows/cacheManager';
 import { finnhubClient } from '../../dataflows/finnhubUtil';
 
 /**
@@ -15,19 +14,15 @@ import { finnhubClient } from '../../dataflows/finnhubUtil';
  * 为 LLM Tools 提供统一的股票数据获取接口
  * - 实时报价 (<1天): 使用 UnifiedPriceService
  * - 历史数据 (>1天): 使用 HistoryService
- * - 支持文件缓存策略（cacheManager）
  * - 自动格式化为 Markdown 输出
  */
 export class StockDataService {
-  private cache: StockDataCache;
   private formatter: MarkdownFormatter;
   private historyService: HistoryService;
-  private readonly DEFAULT_CACHE_HOURS = 2; // 默认缓存2小时
   private readonly min_api_interval: number = 1.0; // 最小API调用间隔（秒）
   private last_api_call: number = 0;
 
   constructor({ logger }: { logger: Logger }) {
-    this.cache = getCache(logger);
     this.formatter = new MarkdownFormatter();
     this.historyService = new HistoryService();
     logger.info('[StockDataService] Stock data service initialized');
@@ -44,7 +39,6 @@ export class StockDataService {
    * @param startDate 开始日期
    * @param endDate 结束日期
    * @param market 市场类型
-   * @param forceRefresh 是否强制刷新缓存
    * @returns Markdown 格式的股票数据
    */
   async getStockData(
@@ -52,35 +46,13 @@ export class StockDataService {
     startDate: string,
     endDate: string,
     market: MarketType = 'US',
-    forceRefresh: boolean = false,
   ): Promise<string> {
     const start = new Date(startDate);
     const end = new Date(endDate);
     const diffTime = Math.abs(end.getTime() - start.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    // 检查缓存（除非强制刷新）
-    if (!forceRefresh) {
-      const data_source = this.getDataSource(diffDays);
-      const cacheKey = this.cache.findCachedStockData({
-        symbol,
-        start_date: startDate,
-        end_date: endDate,
-        data_source,
-        max_age_hours: this.DEFAULT_CACHE_HOURS,
-      });
-
-      if (cacheKey) {
-        const cachedData = this.cache.loadStockData(cacheKey);
-        if (cachedData) {
-          return cachedData;
-        }
-      }
-    }
-
-    // 缓存未命中，从 API 获取
     let formattedData: string | null = null;
-    const dataSource = this.getDataSource(diffDays);
 
     try {
       await this.wait_for_rate_limit();
@@ -116,15 +88,6 @@ export class StockDataService {
         market,
       );
     }
-
-    // 保存到缓存
-    this.cache.saveStockData({
-      symbol,
-      data: formattedData,
-      start_date: startDate,
-      end_date: endDate,
-      data_source: dataSource,
-    });
 
     return formattedData;
   }
@@ -228,16 +191,6 @@ export class StockDataService {
   }
 
   /**
-   * 根据日期范围确定数据源
-   */
-  private getDataSource(diffDays: number): string {
-    if (diffDays <= 1) {
-      return 'unified_price'; // 实时报价
-    }
-    return 'finnhub_history'; // 历史数据
-  }
-
-  /**
    * API 限流等待
    */
   private async wait_for_rate_limit(): Promise<void> {
@@ -252,13 +205,6 @@ export class StockDataService {
     }
 
     this.last_api_call = Date.now() / 1000;
-  }
-
-  /**
-   * 清除缓存
-   */
-  invalidateCache(): void {
-    this.cache = getCache({} as Logger);
   }
 }
 
@@ -287,7 +233,6 @@ export function getStockDataService(options: {
  * @param startDate 开始日期
  * @param endDate 结束日期
  * @param market 市场类型
- * @param forceRefresh 是否强制刷新缓存
  * @param logger 日志记录器
  * @returns Markdown 格式的股票数据
  */
@@ -296,9 +241,8 @@ export async function getStockData(
   startDate: string,
   endDate: string,
   market: MarketType = 'US',
-  forceRefresh: boolean = false,
   logger: Logger,
 ): Promise<string> {
   const service = getStockDataService({ logger });
-  return service.getStockData(symbol, startDate, endDate, market, forceRefresh);
+  return service.getStockData(symbol, startDate, endDate, market);
 }

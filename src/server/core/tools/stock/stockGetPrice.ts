@@ -71,7 +71,6 @@ export class StockMarketDataUnifiedTool extends StructuredTool {
         startDate,
         endDate,
         market,
-        false, // forceRefresh
         logger,
       );
 

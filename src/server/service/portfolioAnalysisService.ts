@@ -1,7 +1,6 @@
 import type { PositionType } from '@typings/position';
 import { UserContextReader } from '@server/dataflows/userContextReader';
 import logger from '@server/base/logger';
-import positionService from './positionService';
 
 // 资产配置类型
 export interface AssetAllocation {

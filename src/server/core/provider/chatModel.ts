@@ -11,6 +11,7 @@ export function chatModelOpenAI(model?: ModelNameType) {
 }
 
 export const ModelMap = {
+  'Kimi-K2.5': 'Kimi-K2.5',
   'Kimi-K2-Instruct': 'Kimi-K2-Instruct',
   'Qwen3-Next-80B-A3B-Instruct': 'Qwen3-Next-80B-A3B-Instruct',
   'Qwen3-235B-A22B-Instruct-2507': 'Qwen3-235B-A22B-Instruct-2507',

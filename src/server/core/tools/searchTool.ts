@@ -19,7 +19,7 @@ export const TravilySearchTool = tool(
       const result = await tavilyClient.search(query);
 
       logger.info(`[TravilySearchTool] search result count: ${result?.results.length}`);
-      return `TravilySearchTool query result: ${result}`;
+      return `TravilySearchTool query result: ${JSON.stringify(result)}`;
     } catch (error) {
       logger.error(`[TravilySearchTool]:`, error);
       return `TravilySearchTool query failed: ${error instanceof Error ? error.message : 'Unknown error'}`;

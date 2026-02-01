@@ -186,7 +186,6 @@ export class UnifiedPriceService {
     const failed: FailedQuote[] = [];
 
     // 检查缓存
-    const fromCache: QuoteRequest[] = [];
     const toFetch: QuoteRequest[] = [];
 
     if (options.useCache && !options.forceRefresh) {

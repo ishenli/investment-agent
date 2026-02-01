@@ -20,3 +20,7 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 ### 上下文信息
 
 请必须阅读当前项目[AGENTS.md](./AGENTS.md) 的内容, 了解当前项目的上下文信息.
+
+### 研发工具
+
+- 使用 cnpm 替代 npm

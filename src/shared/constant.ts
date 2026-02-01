@@ -11,4 +11,4 @@ export const CURRENCY_SYMBOLS = {
 
 
 // 定义汇率常量（USD 到 HKD）
-export const USD_TO_HKD = 7.8;
+export const USD_TO_HKD = 7.8138;

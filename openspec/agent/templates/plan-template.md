@@ -3,70 +3,125 @@
 **分支**：`[###-功能名称]` | **日期**：[日期] | **规范**：[链接]
 **输入**：来自 `/specs/[###-功能名称]/spec.md` 的功能规范
 
-**说明**：此模板由 `openspec-proposal` 命令填写。
-
 ## 概要
 
 [从功能规范中提取：主要需求 + 研究得出的技术方案]
 
 ## 技术上下文
 
-<!--
-  需要操作：验证下面预填的详细信息。
--->
-
-**语言/版本**：TypeScript (ES6+) / Node.js >= 20
-**主要依赖**：smallfish, React, zustand, antd-mobile
-**存储**：[如适用，例如：H5Data, RPC, LocalStorage 或 N/A]
-**测试**：fishlint, smallfish build/dev
-**目标平台**：移动端 H5（支付宝/蚂蚁生活）
-**项目类型**：SmallFish MPA（多页应用）
-**性能目标**：[例如：LCP < 1.2秒，包大小 < 200KB]
-**约束条件**：[例如：必须在支付宝 10.x+ 中工作，支持离线回退]
+**语言/版本**：TypeScript 5+ / Node.js >= 20
+**主要依赖**：Next.js 16, React 19, LangChain.js, LangGraph, Drizzle ORM
+**存储**：SQLite (prod), IndexedDB (client-side via Dexie)
+**测试**：Vitest, React Testing Library
+**目标平台**：桌面 Web (Electron + Web)
+**项目类型**：Next.js App Router (SSR + Client)
+**性能目标**：[例如：API 响应 < 1s，首屏加载 < 2s]
+**约束条件**：[例如：必须兼容 Electron, 支持离线缓存]
 
 ## 规范检查
 
-*门槛：必须在第0阶段研究前通过。在第1阶段设计后重新检查。*
-
-- 检查是否符合 [SmallFish 框架规范](file://.codefuserules/SmallFish%E6%A1%86%E6%9E%B6%E6%8A%80%E6%9C%AF%E8%A7%84%E8%8C%83.md)
 - 检查是否符合 [项目规范](file://openspec/agent/memory/constitution.md)
+- 检查 TypeScript 严格模式约束
+- 检查 OpenSpec delta 格式正确性
 
 ## 项目结构
 
 ### 文档（此功能）
 
 ```text
-changes/[###-功能]/
-├── plan.md              # 此文件
-├── data-model.md        # 第1阶段输出
-└── tasks.md             # 第2阶段输出
+openspec/changes/[change-id]/
+├── proposal.md              # 变更提案
+├── plan.md                  # 此文件
+├── tasks.md                 # 任务清单
+└── specs/
+    └── [capability]/        # 影响的 capability
+        └── spec.md          # Delta 变更
 ```
 
-### 源代码（仓库根目录）
+### 源代码（项目根目录）
 
 ```text
 src/
-├── pages/               # 页面组件和配置（MPA）
-│   └── [功能页面]/
-│       ├── index.tsx    # 页面入口
-│       ├── index.less   # 页面样式
-│       └── config.json  # 页面路由/标题配置
-├── services/            # API和业务逻辑（RPC/H5Data）
-├── stores/              # Zustand状态
-├── components/          # 共享UI组件
-├── hooks/               # 自定义React钩子
-├── styles/              # 全局样式（LESS）
-├── utils/               # 辅助函数
-└── common/              # 共享常量/类型
+├── app/
+│   ├── api/                 # API Routes
+│   │   └── [capability]/    # # 功能相关 API
+│   │       └── route.ts     # Next.js API handler
+│   └── [pages]/             # 页面组件
+├── server/
+│   ├── service/             # 服务层
+│   │   └── [capability]Service.ts
+│   ├── core/                # 核心逻辑
+│   │   └── graph/           # LangGraph 定义
+│   └── base/                # 基础设施
+├── renderer/
+│   ├── store/               # Zustand 状态管理
+│   ├── components/          # 共享 UI 组件
+│   └── api/                 # Renderer API 抽象
+├── shared/
+│   ├── config/              # 配置
+│   └── types/               # 共享类型定义
+└── components/              # React 组件
 ```
 
 **结构决策**：[记录所选结构并引用上面捕获的真实目录]
+
+## 需求拆分
+
+### User Stories (按优先级排序)
+
+| 优先级 | 用户故事 | 独立验证 |
+|--------|---------|---------|
+| P1 | [核心价值陈述] | [如何验证] |
+| P2 | [次要价值陈述] | [如何验证] |
+| P3 | [增强价值陈述] | [如何验证] |
+
+## 技术架构
+
+### 数据流
+```
+[用户输入] → [API Route] → [Service] → [Business Logic] → [Response]
+                 ↓                                    ↓
+            [AuthService]                         [SSEEmitter]
+```
+
+### 状态管理
+- **服务端**: [描述服务端状态]
+- **客户端**: [描述 Zustand store]
+- **缓存策略**: [描述缓存方案]
+
+### 外部集成
+- **LangGraph**: [描述 Agent 工作流]
+- **Finnhub API**: [描述金融数据集成]
+- **数据库**: [描述 Drizzle schema]
 
 ## 复杂性跟踪
 
 > **仅在规范检查有必须证明的违规时填写**
 
 | 违规 | 为何需要 | 更简单的替代方案被拒绝的原因 |
-|-----------|------------|-------------------------------------|
-| [例如：过度依赖] | [当前需求] | [为什么更简单的方法不足] |
-| [例如：自定义加载器] | [特定问题] | [为什么标准SmallFish不足] |
+|------|---------|----------------------------|
+| [例如：引入新的 Graph 类型] | [当前需求] | [为什么更简单的方法不足] |
+| [例如：自定义 SSE 处理] | [特定问题] | [为什么标准方案不足] |
+
+## 风险评估
+
+| 风险 | 影响 | 缓解措施 |
+|------|------|---------|
+| [风险 1] | [高/中/低] | [缓解方案] |
+| [风险 2] | [高/中/低] | [缓解方案] |
+
+## 性能考虑
+
+- [性能指标 1]: [目标值]
+- [性能指标 2]: [目标值]
+
+## 安全考虑
+
+- [安全点 1]
+- [安全点 2]
+
+## 测试策略
+
+- **单元测试**: [覆盖范围]
+- **集成测试**: [覆盖范围]
+- **端到端测试**: [覆盖范围]

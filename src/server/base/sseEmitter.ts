@@ -128,6 +128,79 @@ export class SSEEmitter {
   }
 
   /**
+   * 发送普通消息（包含 content 的消息）
+   * @param id 消息ID
+   * @param content 文本内容
+   * @param finishReason 结束原因
+   * @returns 是否发送成功
+   */
+  async sendMessage(
+    id: string,
+    content: string | null,
+    finishReason: 'stop' | 'tool_calls' | null = null,
+  ): Promise<boolean> {
+    return this.send({
+      id,
+      choices: [
+        {
+          index: 0,
+          finish_reason: finishReason,
+          delta: {
+            role: 'assistant',
+            content,
+          },
+        },
+      ],
+    });
+  }
+
+  /**
+   * 发送工具调用消息
+   * @param id 消息ID
+   * @param toolName 工具名称
+   * @param toolArgs 工具参数
+   * @param toolIndex 工具索引
+   * @returns 是否发送成功
+   */
+  async sendToolCall(
+    id: string,
+    toolName: string,
+    toolArgs: Record<string, unknown>,
+    toolIndex = 0,
+  ): Promise<boolean> {
+    const success = await this.send({
+      id,
+      choices: [
+        {
+          index: 0,
+          finish_reason: 'tool_calls',
+          delta: {
+            role: 'assistant',
+            tool_calls: [
+              {
+                id,
+                index: toolIndex,
+                function: {
+                  name: toolName,
+                  arguments: toolArgs,
+                },
+                type: 'function',
+              },
+            ],
+          },
+        },
+      ],
+    });
+
+    // 工具调用后发送换行符
+    if (success) {
+      await this.sendMessage(id, '\n', null);
+    }
+
+    return success;
+  }
+
+  /**
    * 获取可读流
    */
   getReadableStream(): ReadableStream<Uint8Array> {

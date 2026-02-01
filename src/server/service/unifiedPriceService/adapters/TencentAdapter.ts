@@ -14,7 +14,7 @@ import { PriceSourceAdapter } from './PriceSourceAdapter';
  * HKD 转 USD 的汇率转换
  */
 function hkdToUsd(hkd: number): number {
-  return hkd * EXCHANGE_RATES.HKD_TO_USD;
+  return Number((hkd * EXCHANGE_RATES.HKD_TO_USD).toFixed(2));
 }
 
 /**
@@ -47,6 +47,8 @@ export class TencentAdapter extends PriceSourceAdapter {
     if (batchResult.succeeded.length > 0) {
       return batchResult.succeeded[0];
     }
+
+    logger.error(`[TencentAdapter] Failed to fetch quote for ${request.symbol}`);
     return null;
   }
 
@@ -70,6 +72,7 @@ export class TencentAdapter extends PriceSourceAdapter {
       const prefixedCodes = stockCodes.map(genStockPrefix).join(',');
       const url = `${STOCK_API}${prefixedCodes}`;
 
+      logger.debug(`[TencentAdapter] Fetching quotes from Tencent API: ${url}`);
       const response = await axios.get(url, { responseType: 'text', timeout: 10000 });
 
       // 解析响应数据
