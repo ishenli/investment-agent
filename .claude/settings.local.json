@@ -20,7 +20,10 @@
       "mcp__acp__Write",
       "mcp__acp__Edit",
       "WebFetch(domain:github.com)",
-      "Bash(npm run types:check)"
+      "Bash(npm run types:check)",
+      "Bash(git diff:*)",
+      "Bash(xargs:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
