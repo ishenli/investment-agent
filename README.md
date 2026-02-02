@@ -1,7 +1,5 @@
 # 投资助手 Investment Agent
 
-> 版本: 0.1.3 | 作者: ishenli
-
 这是一个使用 Vibe Coding 打造的投资分析工具，利用 AI 提供全面的股票市场分析、资产管理和投资建议。
 
 > 主要探索 AI Agent 的产品实践，并不用于实际生产
