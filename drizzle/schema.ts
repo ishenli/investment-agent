@@ -152,6 +152,7 @@ export const assetMeta = sqliteTable('asset_meta', {
     .default('US'),
   chineseName: text('chinese_name'), // 中文名称
   investmentMemo: text('investment_memo'), // 投资笔记，用于AI分析的上下文信息
+  deletedAt: integer('deleted_at', { mode: 'timestamp' }), // 软删除时间戳
 });
 
 // 资产价格历史表：保存资产的每日价格历史

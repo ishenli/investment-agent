@@ -1,6 +1,6 @@
 import { db } from '@server/lib/db';
 import { assetMeta } from '@/drizzle/schema';
-import { eq, and, desc, gte, lt } from 'drizzle-orm';
+import { eq, and, desc, gte, lt, isNull } from 'drizzle-orm';
 import logger from '@server/base/logger';
 import { AssetType, MarketType } from '@typings/asset';
 
@@ -34,12 +34,17 @@ export class PriceService {
   /**
    * 获取资产的最新价格
    * @param symbol 资产代码
+   * @param includeDeleted 是否包含已删除的记录，默认为 false
    * @returns 最新价格信息
    */
-  async getLatestPrice(symbol: string): Promise<AssetPriceType | null> {
+  async getLatestPrice(symbol: string, includeDeleted: boolean = false): Promise<AssetPriceType | null> {
     try {
+      const whereClause = includeDeleted 
+        ? eq(assetMeta.symbol, symbol)
+        : and(eq(assetMeta.symbol, symbol), isNull(assetMeta.deletedAt));
+        
       const latestPrice = await db.query.assetMeta.findFirst({
-        where: eq(assetMeta.symbol, symbol),
+        where: whereClause,
         orderBy: [desc(assetMeta.createdAt)],
       });
 
@@ -66,15 +71,16 @@ export class PriceService {
   /**
    * 批量获取多个资产的最新价格
    * @param symbols 资产代码数组
+   * @param includeDeleted 是否包含已删除的记录，默认为 false
    * @returns 资产价格映射
    */
-  async getLatestPrices(symbols: string[]): Promise<Record<string, AssetPriceType>> {
+  async getLatestPrices(symbols: string[], includeDeleted: boolean = false): Promise<Record<string, AssetPriceType>> {
     try {
       const prices: Record<string, AssetPriceType> = {};
 
       // 对于每个符号，获取最新的价格
       for (const symbol of symbols) {
-        const latestPrice = await this.getLatestPrice(symbol);
+        const latestPrice = await this.getLatestPrice(symbol, includeDeleted);
         if (latestPrice) {
           prices[symbol] = latestPrice;
         }
@@ -98,7 +104,7 @@ export class PriceService {
   /**
    * 更新单个资产价格
    * @param priceData 价格数据
-   * @returns 更新后的价格记录
+   * @returns 更新后的价格记录，如果资产已被软删除则返回 null
    */
   async updatePrice(priceData: {
     symbol: string;
@@ -107,15 +113,19 @@ export class PriceService {
     currency?: string;
     source?: string;
     market?: MarketType;
-  }): Promise<AssetPriceType> {
+  }): Promise<AssetPriceType | null> {
     try {
       const priceCents = Math.round(priceData.price * 100);
       const dbMarket: 'CN' | 'US' | 'HK' = this.marketToDBMarket(priceData.market);
       const assetType = priceData.assetType || 'stock';
 
-      // 检查是否存在相同symbol和asset_type的最新记录
+      // 检查是否存在相同symbol和asset_type的最新记录（排除已删除的）
       const existingPrice = await db.query.assetMeta.findFirst({
-        where: and(eq(assetMeta.symbol, priceData.symbol), eq(assetMeta.assetType, assetType)),
+        where: and(
+          eq(assetMeta.symbol, priceData.symbol), 
+          eq(assetMeta.assetType, assetType),
+          isNull(assetMeta.deletedAt)
+        ),
         orderBy: [desc(assetMeta.createdAt)],
       });
 
@@ -139,6 +149,23 @@ export class PriceService {
           `[priceService#updatePrice] Updated price for ${priceData.symbol}: ${priceData.price}: ${priceData.market}`,
         );
       } else {
+        // 检查是否存在已软删除的记录，如果存在则跳过插入
+        const softDeletedPrice = await db.query.assetMeta.findFirst({
+          where: and(
+            eq(assetMeta.symbol, priceData.symbol),
+            eq(assetMeta.assetType, assetType)
+          ),
+          orderBy: [desc(assetMeta.createdAt)],
+        });
+
+        if (softDeletedPrice && softDeletedPrice.deletedAt) {
+          // 资产已被软删除，跳过插入
+          logger.info(
+            `[priceService#updatePrice] Skipped soft-deleted asset ${priceData.symbol}, not inserting new record`,
+          );
+          return null;
+        }
+
         // 插入新记录
         const [inserted] = await db
           .insert(assetMeta)
@@ -219,7 +246,11 @@ export class PriceService {
       const since = new Date(Date.now() - hours * 60 * 60 * 1000);
 
       const historicalPrices = await db.query.assetMeta.findMany({
-        where: and(eq(assetMeta.symbol, symbol), gte(assetMeta.createdAt, since)),
+        where: and(
+          eq(assetMeta.symbol, symbol), 
+          gte(assetMeta.createdAt, since),
+          isNull(assetMeta.deletedAt)
+        ),
         orderBy: [desc(assetMeta.createdAt)],
       });
 
@@ -247,13 +278,90 @@ export class PriceService {
     try {
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-      const result = await db.delete(assetMeta).where(lt(assetMeta.createdAt, thirtyDaysAgo));
+      // 只清理未被软删除的旧价格记录
+      const result = await db.delete(assetMeta).where(
+        and(
+          lt(assetMeta.createdAt, thirtyDaysAgo),
+          isNull(assetMeta.deletedAt)
+        )
+      );
 
       logger.info(`Cleaned up ${result.changes} old price records`);
       return result.changes;
     } catch (error) {
       logger.error(`Failed to cleanup old prices: ${error}`);
       return 0;
+    }
+  }
+
+  /**
+   * 软删除特定资产的价格记录（逻辑删除）
+   * @param symbol 资产代码
+   * @returns 是否成功软删除
+   */
+  async softDeletePriceCache(symbol: string): Promise<boolean> {
+    try {
+      const [result] = await db
+        .update(assetMeta)
+        .set({
+          deletedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(and(
+          eq(assetMeta.symbol, symbol),
+          isNull(assetMeta.deletedAt)  // 只软删除未被删除的记录
+        ))
+        .returning();
+      
+      const success = !!result;
+      logger.info(`Soft deleted price cache for ${symbol}, success: ${success}`);
+      return success;
+    } catch (error) {
+      logger.error(`Failed to soft delete price cache for ${symbol}: ${error}`);
+      return false;
+    }
+  }
+
+  /**
+   * 清除特定资产的价格缓存（物理删除 - 谨慎使用）
+   * @param symbol 资产代码
+   * @returns 是否成功清除
+   */
+  async clearPriceCache(symbol: string): Promise<boolean> {
+    try {
+      // 物理删除特定资产的所有价格记录（包括已软删除的）
+      const result = await db.delete(assetMeta).where(eq(assetMeta.symbol, symbol));
+      
+      logger.info(`Physically cleared price cache for ${symbol}, deleted ${result.changes} records`);
+      return result.changes > 0;
+    } catch (error) {
+      logger.error(`Failed to physically clear price cache for ${symbol}: ${error}`);
+      return false;
+    }
+  }
+
+  /**
+   * 恢复特定资产的软删除记录
+   * @param symbol 资产代码
+   * @returns 是否成功恢复
+   */
+  async restorePriceCache(symbol: string): Promise<boolean> {
+    try {
+      const result = await db
+        .update(assetMeta)
+        .set({
+          deletedAt: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(assetMeta.symbol, symbol))
+        .returning();
+      
+      const success = result.length > 0;
+      logger.info(`Restored price cache for ${symbol}, restored ${result.length} records`);
+      return success;
+    } catch (error) {
+      logger.error(`Failed to restore price cache for ${symbol}: ${error}`);
+      return false;
     }
   }
 }

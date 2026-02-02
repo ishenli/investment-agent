@@ -21,7 +21,7 @@
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md,css,scss,less}\"",
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md,css,scss,less}\"",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
+    "db:migrate": "INVESTMENT_AGENT_DATA_DIR=./ drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "test:asset": "npx tsx tests/test-asset-service.ts",
     "test:asset-api": "npx tsx tests/test-asset-api.ts",

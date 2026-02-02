@@ -201,7 +201,7 @@ export class AssetMetaBizController extends BaseBizController {
       }
 
       // 3. 删除 assetMeta 记录
-      const deleted = await assetMetaService.deleteAssetMeta(idNum);
+      const deleted = await assetMetaService.softDeleteAssetMeta(idNum);
 
       if (!deleted) {
         return this.error('未找到指定的资产元数据', 'asset_meta_not_found');

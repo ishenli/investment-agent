@@ -4,6 +4,7 @@ import { drizzle } from 'drizzle-orm/better-sqlite3';
 import Database from 'better-sqlite3';
 import { getProjectDir } from '@server/base/env';
 import * as schema from '@drizzle/schema';
+import logger from '../base/logger';
 
 // 获取项目根目录
 const projectDir = getProjectDir();
@@ -15,6 +16,7 @@ const dbPath = process.env.INVESTMENT_AGENT_DATA_DIR
 
 // const dbPath = `/Users/michael.sl/.investment-agent/sqlite.db`;
 
+logger.info('[drizzle] db start with dbPath:', dbPath);
 // 确保数据库目录存在
 const dbDir = path.dirname(dbPath);
 if (!fs.existsSync(dbDir)) {

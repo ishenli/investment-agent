@@ -411,11 +411,25 @@ export class UnifiedPriceService {
    * 清除指定资产的缓存
    *
    * 注意：当前实现是基于 assetMeta 表的当日缓存，
-   * 它没有删除本地缓存，只是下次查询时会从外部 API 获取。
+   * 我们通过清理数据库中的价格记录来实现缓存失效。
    */
   async invalidateCache(symbol: string, market: MarketType): Promise<void> {
-    // 目前是基于当日缓存的简单实现，不需要实际删除操作
-    // 支持此方法是为了未来可能引入本地内存缓存时的兼容性
-    logger.info(`[UnifiedPriceService] Cache invalidated for ${symbol} (${market})`);
+    // 为了真正清除缓存，我们需要清理数据库中的相关价格记录
+    // 这样在下次查询时就不会命中当日缓存
+    try {
+      // 直接从 priceService 清除相关记录
+      await this.clearPriceCache(symbol);
+      logger.info(`[UnifiedPriceService] Cache invalidated for ${symbol} (${market})`);
+    } catch (error) {
+      logger.error(`[UnifiedPriceService] Failed to invalidate cache for ${symbol}:`, error);
+    }
+  }
+
+  /**
+   * 内部方法：软删除价格服务中的缓存记录
+   */
+  private async clearPriceCache(symbol: string): Promise<void> {
+    // 调用价格服务软删除特定资产的价格缓存
+    await priceService.softDeletePriceCache(symbol);
   }
 }

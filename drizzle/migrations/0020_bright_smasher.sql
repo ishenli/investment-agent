@@ -1,0 +1,1 @@
+ALTER TABLE `asset_meta` ADD `deleted_at` integer;

@@ -24,4 +24,4 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 ### 研发工具
 
 - 使用 cnpm 替代 npm
-- 项目研发规范位于`./claude/rules`目录中，包含规则文件(./xxx-rule.md) 请按需查阅和遵循
+- 项目研发规范位于`./.claude/rules`目录中，包含以下规则文件：controller-rule.md, db-rule.md, request-rule.md, route-rule.md, script-rule.md, store-rule.md, test-rule.md，请按需查阅和遵循

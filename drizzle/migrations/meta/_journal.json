@@ -141,6 +141,13 @@
       "when": 1766040016101,
       "tag": "0019_bouncy_wallow",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1770040438342,
+      "tag": "0020_bright_smasher",
+      "breakpoints": true
     }
   ]
 }
