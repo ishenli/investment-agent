@@ -509,7 +509,6 @@ export class StockDataPreparer {
         startDateStr,
         endDateStr,
         'US' as AssetMarketType,
-        false,
         this.logger,
       );
 

@@ -70,7 +70,7 @@ export function PriceRefreshButton({
       title="刷新持仓价格"
     >
       <RotateCcw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-      {showText && (isRefreshing ? '刷新中...' : '刷新价格')}
+      {showText && (isRefreshing ? '刷新中...' : '刷新余额')}
     </Button>
   );
 }
