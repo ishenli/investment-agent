@@ -6,6 +6,12 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@/drizzle': path.resolve(__dirname, './drizzle'),
+      '@chat': path.resolve(__dirname, './src/app/(pages)/chat'),
+      '@renderer': path.resolve(__dirname, './src/app'),
+      '@server': path.resolve(__dirname, './src/server'),
+      '@typings': path.resolve(__dirname, './src/types'),
+      '@shared': path.resolve(__dirname, './src/shared'),
+      '@drizzle': path.resolve(__dirname, './drizzle'),
     },
   },
   test: {
@@ -22,6 +28,12 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@/drizzle': path.resolve(__dirname, './drizzle'),
+      '@chat': path.resolve(__dirname, './src/app/(pages)/chat'),
+      '@renderer': path.resolve(__dirname, './src/app'),
+      '@server': path.resolve(__dirname, './src/server'),
+      '@typings': path.resolve(__dirname, './src/types'),
+      '@shared': path.resolve(__dirname, './src/shared'),
+      '@drizzle': path.resolve(__dirname, './drizzle'),
     },
   },
 });

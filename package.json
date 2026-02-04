@@ -23,11 +23,9 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "INVESTMENT_AGENT_DATA_DIR=./ drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "test:asset": "npx tsx tests/test-asset-service.ts",
-    "test:asset-api": "npx tsx tests/test-asset-api.ts",
-    "test:init": "npx tsx tests/test-init-api.ts",
-    "test:investment-chat": "npx tsx tests/test-investment-chat.ts",
-    "test:position": "npx tsx tests/test-position-service.ts"
+"test": "vitest run",
+"test:watch": "vitest watch",
+"test:coverage": "vitest run --coverage"
   },
   "keywords": [
     "investment",
