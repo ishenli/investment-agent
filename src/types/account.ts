@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+const MARKET_ENUM = ['HK', 'CN', 'US'] as const;
+const RISK_MODE_ENUM = ['retail', 'advanced'] as const;
+
 /**
  * User Account Schema
  */

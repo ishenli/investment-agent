@@ -19,6 +19,6 @@ export abstract class BaseBizController {
   }
 
   error(message: string, code: string) {
-    return (ResultUtil.error(message, code), { status: 500 });
+    return ResultUtil.error(message, code);
   }
 }

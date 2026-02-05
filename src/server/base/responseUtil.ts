@@ -1,3 +1,4 @@
+import { message } from '@/app/(pages)/chat/components/AntdStaticMethods';
 import { TransformStream } from 'stream/web';
 
 type OpenAIPayload = {
@@ -61,10 +62,12 @@ export function createErrorResponse(error: string) {
 }
 
 export class ResultUtil {
-  static success(data: object) {
+  static success(data: any) {
     return {
       success: true,
       data,
+      message: '',
+      code: '',
     };
   }
 
@@ -73,6 +76,7 @@ export class ResultUtil {
       success: false,
       code,
       message,
+      data: null,
     };
   }
 }
