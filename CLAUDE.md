@@ -17,11 +17,9 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 <!-- OPENSPEC:END -->
 
-### 上下文信息
+# 项目上下文信息
 
-请必须阅读当前项目[AGENTS.md](./AGENTS.md) 的内容, 了解当前项目的上下文信息.
+## 研发工具
 
-### 研发工具
-
-- 使用 cnpm 替代 npm
-- 项目研发规范位于`./.claude/rules`目录中，包含以下规则文件：controller-rule.md, db-rule.md, request-rule.md, route-rule.md, script-rule.md, store-rule.md, test-rule.md，请按需查阅和遵循
+- 使用 pnpm 替代 npm
+- 项目研发规范位于`.claude/rules`目录中，包含以下规则文件：controller-rule.md, db-rule.md, request-rule.md, route-rule.md, script-rule.md, store-rule.md, test-rule.md，请按需查阅和遵循

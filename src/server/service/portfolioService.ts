@@ -125,7 +125,7 @@ export class PortfolioService {
       // Calculate total value for weight calculation
       // If portfolio is provided, use the total value from portfolio (including cash)
       // Otherwise, just use the sum of market values of positions
-      let totalValue =
+      const totalValue =
         portfolio?.totalValue ||
         positionRecords.reduce((sum, position) => sum + position.marketValue, 0);
 

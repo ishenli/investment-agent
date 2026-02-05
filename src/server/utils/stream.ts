@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 export function extractContent(content: unknown): string {
   if (typeof content === 'string') return content;
   if (Array.isArray(content)) {
@@ -32,11 +33,17 @@ export function extractContent(content: unknown): string {
 //   return content || null
 // }
 
-export function extractAssistantChunkText(data: unknown): string | null {
-  const tuple = data as [unknown, unknown];
-  const kwargs = tuple?.[0] || ({} as {});
+export function extractAssistantChunkText(data: [unknown, unknown]): string | null {
+  const tuple = data;
+  const kwargs =
+    tuple?.[0] ||
+    ({
+      content: '',
+    } as {
+      content?: string;
+    });
   // console.info('extractAssistantChunkText', kwargs)
-  // @ts-ignore
+  // @ts-expect-error
   const content = extractContent(kwargs?.content);
   return content || null;
 }
