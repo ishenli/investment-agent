@@ -13,6 +13,7 @@ vi.mock('@/drizzle/schema', () => ({
   notes: {},
   settings: {},
   userSelectedAccounts: {},
+  assetPositions: {},
 }));
 
 // Mock drizzle-orm
@@ -21,6 +22,15 @@ vi.mock('drizzle-orm', () => ({
   and: vi.fn((...args) => args),
   sql: vi.fn((...args) => args),
   desc: vi.fn(() => ({})),
+  asc: vi.fn(() => ({})),
+  like: vi.fn(() => ({})),
+  isNull: vi.fn(() => ({})),
+  count: vi.fn(() => ({})),
+  inArray: vi.fn(() => ({})),
+  or: vi.fn((...args) => args),
+  gt: vi.fn(() => ({})),
+  gte: vi.fn(() => ({})),
+  lt: vi.fn(() => ({})),
 }));
 
 // Mock logger - 导入自共享的 mock 工厂

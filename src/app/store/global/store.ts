@@ -6,7 +6,7 @@ import { generalActionSlice, GlobalGeneralAction } from './actions/general';
 import { GlobalWorkspacePaneAction, globalWorkspaceSlice } from './actions/workspacePane';
 import { GlobalState, initialState } from './initialState';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+ 
 export interface GlobalStore extends GlobalState, GlobalGeneralAction, GlobalWorkspacePaneAction {
   /* empty */
 }

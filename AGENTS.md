@@ -16,9 +16,3 @@ Use `@/openspec/AGENTS.md` to learn:
 Keep this managed block so 'openspec update' can refresh the instructions.
 
 <!-- OPENSPEC:END -->
-
-
-## Project Rule And Workflow
-
-+ the rule files is in `.codefuserules/rules-xxx` file folder, You Must read it and follow it.
-+ the command files is in `.codefuserules/workflows` file folder, You Must read it and follow it. 

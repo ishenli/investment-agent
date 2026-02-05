@@ -414,7 +414,6 @@ function calculateIntrinsicValue(financialLineItems: FinancialLineItem[]): {
   const stage1Years = 5; // High growth phase
   const stage2Years = 5; // Transition phase
 
-  let presentValue = 0;
   details.push(
     `Using three-stage DCF: Stage 1 (${(stage1Growth * 100).toFixed(1)}%, ${stage1Years}y), Stage 2 (${(stage2Growth * 100).toFixed(1)}%, ${stage2Years}y), Terminal (${(terminalGrowth * 100).toFixed(1)}%)`,
   );

@@ -49,7 +49,7 @@ const isArtifactTagClosed = (id: string) => (s: ChatStoreState) => {
   return ARTIFACT_TAG_CLOSED_REGEX.test(content || '');
 };
 
-/* eslint-disable sort-keys-fix/sort-keys-fix, typescript-sort-keys/interface */
+ 
 export const chatPortalSelectors = {
   isPluginUIOpen,
 

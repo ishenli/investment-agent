@@ -412,7 +412,7 @@ export const generateAIChat: StateCreator<
     const historyCount = agentChatConfigSelectors.historyCount(getAgentStoreState());
     const enableHistoryCount = agentChatConfigSelectors.enableHistoryCount(getAgentStoreState());
 
-    let preprocessMsgs = chatHelpers.getSlicedMessages(messages, {
+    const preprocessMsgs = chatHelpers.getSlicedMessages(messages, {
       includeNewUserMessage: true,
       enableHistoryCount,
       historyCount,

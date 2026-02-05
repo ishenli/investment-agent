@@ -17,7 +17,7 @@ export interface CustomPluginParams {
   manifestUrl?: string;
   useProxy?: boolean;
 
-  /* eslint-disable sort-keys-fix/sort-keys-fix , typescript-sort-keys/interface */
+   
   /**
    * TODO: 临时方案，后续需要做一次大重构
    */
@@ -38,7 +38,7 @@ export interface CustomPluginParams {
   };
   avatar?: string;
   description?: string;
-  /* eslint-enable */
+   
 }
 
 export interface LobeToolCustomPlugin {

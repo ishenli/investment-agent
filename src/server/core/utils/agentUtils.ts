@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
+ 
 import { HumanMessage, RemoveMessage } from '@langchain/core/messages';
 import { StateAnnotation } from '../graph/tradeDecision/agentState';
 

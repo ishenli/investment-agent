@@ -4,7 +4,7 @@ import { ChatModelCard } from '@typings/llm';
  * Parse model string to add or remove models.
  */
 export const parseModelString = (modelString: string = '', withDeploymentName = false) => {
-  let models: ChatModelCard[] = [];
+  const models: ChatModelCard[] = [];
   let removeAll = false;
   const removedModels: string[] = [];
   const modelNames = modelString.split(/[,，]/).filter(Boolean);

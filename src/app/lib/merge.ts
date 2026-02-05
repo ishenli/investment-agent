@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { merge as _merge, isEmpty, mergeWith } from 'lodash';
 
 /**

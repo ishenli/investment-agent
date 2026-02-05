@@ -146,7 +146,7 @@ export const investmentAdvisorAgent = {
     // Record prompt for debugging
     recordPrompt(contextPrompt, 'deepagents-investment-prompt.md');
 
-    let id = '';
+    const id = '';
     try {
       // 处理流式请求
       const messages = [new HumanMessage(contextPrompt)];
@@ -242,8 +242,13 @@ export const investmentAdvisorAgent = {
             if (!id) continue;
             emitter.sendMessage(id, content, null);
           } else if (type === 'tool') {
-             const meta = getToolMessageMeta(chunk);
-            emitter.sendToolCall(meta.toolCallId as string, meta.toolName as string, meta.toolArgs || {}, 0);
+            const meta = getToolMessageMeta(chunk);
+            emitter.sendToolCall(
+              meta.toolCallId as string,
+              meta.toolName as string,
+              meta.toolArgs || {},
+              0,
+            );
           }
         }
         // Send final stop message

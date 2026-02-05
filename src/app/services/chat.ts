@@ -139,7 +139,7 @@ const createSmoothMessage = (params: {
   const { startSpeed = START_ANIMATION_SPEED } = params;
 
   let buffer = '';
-  let outputQueue: string[] = [];
+  const outputQueue: string[] = [];
   let isAnimationActive = false;
   let animationFrameId: number | null = null;
   let lastFrameTime = 0;
@@ -195,7 +195,7 @@ const createSmoothMessage = (params: {
         if (charsToProcess > 0) {
           accumulatedTime -= (charsToProcess * 1000) / currentSpeed;
 
-          let actualChars = Math.min(charsToProcess, outputQueue.length);
+          const actualChars = Math.min(charsToProcess, outputQueue.length);
           // actualChars = Math.min(speed, actualChars); // 速度上限
 
           // if (actualChars * 2 < outputQueue.length && /[\dA-Za-z]/.test(outputQueue[actualChars])) {

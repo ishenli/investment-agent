@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import accountService, { AccountService } from '../accountService';
 
@@ -226,7 +227,7 @@ describe('AccountService', () => {
         values: mockValues,
       });
 
-      // @ts-ignore
+      // @ts-expect-error
       (db.query.transactions.insert as any).mockResolvedValue(undefined);
 
       const result = await accountService.createTradingAccount({

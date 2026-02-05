@@ -14,7 +14,7 @@ export interface SessionGroupAction {
   updateSessionGroupSort: (items: SessionGroupItem[]) => Promise<void>;
   internal_dispatchSessionGroups: (payload: SessionGroupsDispatch) => void;
 }
-/* eslint-enable */
+ 
 
 export const createSessionGroupSlice: StateCreator<
   SessionStore,

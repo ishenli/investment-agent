@@ -68,13 +68,16 @@ export class RiskCalculatorService {
     const categoryWeights: Record<string, number> = {};
 
     // 添加各类别资产的占比
+    // 使用 round 避免浮点数精度问题，例如 50.00000000000001 变成 50.00
     Object.entries(categoryMarketValues).forEach(([category, marketValue]) => {
-      categoryWeights[category] = (marketValue / portfolio.totalValue) * 100;
+      categoryWeights[category] =
+        Math.round((marketValue / portfolio.totalValue) * 100 * 100) / 100;
     });
 
     // 添加现金占比
     if (portfolio.cashValue > 0) {
-      categoryWeights['现金'] = (portfolio.cashValue / portfolio.totalValue) * 100;
+      const cashWeight = Math.round((portfolio.cashValue / portfolio.totalValue) * 100 * 100) / 100;
+      categoryWeights['现金'] = cashWeight;
     }
 
     // 计算行业集中度 (使用Herfindahl-Hirschman指数)
@@ -119,7 +122,10 @@ export class RiskCalculatorService {
       }
     }
 
-    const avgCorrelation = count > 0 ? sumCorrelations / count : 0;
+    console.log('sumCorrelations:', sumCorrelations);
+    console.log('sumCorrelations:', sumCorrelations.toFixed(2));
+    console.log('count:', count);
+    const avgCorrelation = count > 0 ? Number(sumCorrelations.toFixed(2)) / count : 0;
 
     // 转换为风险评分 (0-100)
     // 相关性越高，风险评分越高
@@ -335,28 +341,14 @@ export class RiskCalculatorService {
           const assetPrices = historicalPrices.map((price) => price.price);
           priceData.push(assetPrices);
         } else {
-          // 如果没有历史数据，生成模拟数据作为补充
+          // 如果没有历史数据, 就是空的数据
           const assetPrices: number[] = [];
-          let basePrice = position.currentPrice || 100;
-          for (let d = 0; d < days; d++) {
-            // 添加一些随机波动
-            const change = (Math.random() - 0.5) * 0.1; // ±5% 的日波动
-            basePrice = basePrice * (1 + change);
-            assetPrices.push(basePrice);
-          }
           priceData.push(assetPrices);
         }
       } catch (error) {
         // 如果获取数据时出错，生成模拟数据作为补充
-        console.warn(`获取${symbol}历史数据时出错:`, error);
+        logger.warn(`获取${symbol}历史数据时出错:`, error);
         const assetPrices: number[] = [];
-        let basePrice = position.currentPrice || 100;
-        for (let d = 0; d < days; d++) {
-          // 添加一些随机波动
-          const change = (Math.random() - 0.5) * 0.1; // ±5% 的日波动
-          basePrice = basePrice * (1 + change);
-          assetPrices.push(basePrice);
-        }
         priceData.push(assetPrices);
       }
     }
