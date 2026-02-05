@@ -60,7 +60,7 @@ export async function requestSSE({
     });
   };
 
-  let current = '';
+  const current = '';
   try {
     while (true) {
       const { value, done } = await reader.read();

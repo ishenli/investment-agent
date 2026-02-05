@@ -33,8 +33,8 @@ export function extractContent(content: unknown): string {
 //   return content || null
 // }
 
-export function extractAssistantChunkText(data: [unknown, unknown]): string | null {
-  const tuple = data;
+export function extractAssistantChunkText(data: unknown): string | null {
+  const tuple = data as [unknown, unknown];
   const kwargs =
     tuple?.[0] ||
     ({

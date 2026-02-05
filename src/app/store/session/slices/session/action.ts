@@ -71,7 +71,7 @@ export interface SessionAction {
     customGroups: LobeSessionGroups,
     actions?: string,
   ) => void;
-  /* eslint-enable */
+   
 }
 
 export const createSessionSlice: StateCreator<

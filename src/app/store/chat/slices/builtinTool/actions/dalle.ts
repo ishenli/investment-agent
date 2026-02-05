@@ -37,7 +37,7 @@ export const dalleSlice: StateCreator<
 
     const parent = getMessageById(message!.parentId!);
     const originPrompt = parent?.content;
-    let errorArray: any[] = [];
+    const errorArray: any[] = [];
 
     // TODO: Implement image generation service
     // For now, we'll just simulate the process

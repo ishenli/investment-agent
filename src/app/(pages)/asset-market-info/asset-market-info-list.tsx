@@ -40,7 +40,7 @@ export function AssetMarketInfoList() {
       setLoading(true);
       setError(null);
 
-      let params: Record<string, any> = { type: activeTab };
+      const params: Record<string, any> = { type: activeTab };
 
       if (activeTab === 'dateRange') {
         params.startDate = dateRange.start.toISOString();

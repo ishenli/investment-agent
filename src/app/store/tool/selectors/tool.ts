@@ -36,7 +36,7 @@ const enabledSystemRoles =
         const meta = manifest.meta || {};
 
         const title = pluginHelpers.getPluginTitle(meta) || manifest.identifier;
-        let systemRole = manifest.systemRole || pluginHelpers.getPluginDesc(meta);
+        const systemRole = manifest.systemRole || pluginHelpers.getPluginDesc(meta);
 
         // Use the global context manager to fill the template
         // if (systemRole) {
