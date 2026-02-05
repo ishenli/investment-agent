@@ -155,7 +155,12 @@ export class AccountService {
         userId: parseInt(validatedRequest.userId),
         accountName: validatedRequest.accountName,
         market: validatedRequest.market,
-        currency: validatedRequest.market,
+        currency:
+          validatedRequest.market === 'US'
+            ? 'USD'
+            : validatedRequest.market === 'CN'
+              ? 'CNY'
+              : 'HKD',
         leverage: validatedRequest.leverage,
         riskMode: 'retail',
         createdAt: new Date(),

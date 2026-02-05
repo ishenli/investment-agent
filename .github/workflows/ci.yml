@@ -39,3 +39,7 @@ jobs:
       # 4️⃣ 检查
       - name: Run type checking
         run: pnpm types:check
+
+      # 5️⃣ 测试
+      - name: Run tests
+        run: pnpm test
