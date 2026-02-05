@@ -23,9 +23,9 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "INVESTMENT_AGENT_DATA_DIR=./ drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-"test": "vitest run",
-"test:watch": "vitest watch",
-"test:coverage": "vitest run --coverage"
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:coverage": "vitest run --coverage"
   },
   "keywords": [
     "investment",
@@ -180,6 +180,7 @@
     "prettier": "^3.8.1",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
+    "vite-tsconfig-paths": "^6.0.5",
     "vitest": "^3.2.4"
   },
   "lint-staged": {
