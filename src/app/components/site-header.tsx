@@ -7,6 +7,13 @@ import { useMemo } from 'react';
 // Import the navigation data
 import { data } from '@renderer/components/app-sidebar';
 
+/**
+ * Renders the site header and displays a title derived from the current route.
+ *
+ * The header includes the sidebar trigger, a separator, and the computed title for the active pathname.
+ *
+ * @returns A header element containing navigation controls and the route-specific title, or `null` when the current route is `/chat`.
+ */
 export function SiteHeader() {
   const pathname = usePathname();
 

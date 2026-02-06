@@ -12,6 +12,15 @@ import dayjs from 'dayjs';
 import { getNoteById, updateNote } from '@/app/services/note';
 import { Markdown } from '@lobehub/ui';
 
+/**
+ * Displays a single note (identified by the route `id`) and provides a view and edit interface.
+ *
+ * Fetches the note by ID, shows read-only detail view with rendered Markdown and tags, and offers
+ * an edit mode that allows updating title, content, and tags. Handles loading and error states,
+ * supports adding/removing tags, persists changes to the server, and navigates back to the note list.
+ *
+ * @returns A React element rendering the note detail or edit page.
+ */
 export default function NoteDetailPage() {
   const router = useRouter();
   const params = useParams();

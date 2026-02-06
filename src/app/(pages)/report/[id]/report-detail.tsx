@@ -29,6 +29,17 @@ interface ReportDetailProps {
   id: string;
 }
 
+/**
+ * Displays the detailed view for a single report and exposes edit and delete actions.
+ *
+ * Renders loading, error/not-found, and success states; in the success state it shows
+ * report metadata, content rendered as Markdown, a delete action (with confirmation)
+ * that removes the report and navigates back to the report list, and an edit action
+ * that opens an edit drawer. When the report is edited, the component refreshes its data.
+ *
+ * @param id - The identifier of the report to load and display
+ * @returns A React element containing the report detail view
+ */
 export function ReportDetail({ id }: ReportDetailProps) {
   const router = useRouter();
   const { data: report, isLoading, error, refetch } = useReport(id);
