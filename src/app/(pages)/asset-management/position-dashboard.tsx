@@ -180,9 +180,9 @@ export function PositionManagement() {
     setIsEditPositionOpen(true);
   };
 
-  // 计算总市值和总收益
-  const totalMarketValue = positions.reduce((sum, position) => sum + position.marketValue, 0);
-  const stockGain = positions.reduce((sum, position) => sum + position.unrealizedPnL, 0);
+  // 计算总市值和总收益（基于筛选后的数据）
+  const totalMarketValue = filteredPositions.reduce((sum, position) => sum + position.marketValue, 0);
+  const stockGain = filteredPositions.reduce((sum, position) => sum + position.unrealizedPnL, 0);
 
   const handleUpdatePositions = () => {
     refetch();
