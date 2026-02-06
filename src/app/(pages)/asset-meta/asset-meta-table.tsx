@@ -177,8 +177,9 @@ export function AssetMetaTable() {
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogTrigger asChild>
             <Button
+              className="cursor-pointer"
               onClick={() => {
-                setEditingAssetMeta({
+                const newAssetMeta: AssetMetaType = {
                   id: 0,
                   symbol: '',
                   priceCents: 0,
@@ -190,7 +191,8 @@ export function AssetMetaTable() {
                   market: 'US',
                   chineseName: null,
                   investmentMemo: null,
-                });
+                };
+                setEditingAssetMeta(newAssetMeta);
                 setIsEditDialogOpen(true);
               }}
             >
@@ -206,6 +208,7 @@ export function AssetMetaTable() {
             </DialogHeader>
             {editingAssetMeta && (
               <AssetMetaEditForm
+                key={editingAssetMeta.id || 'new'}
                 assetMeta={editingAssetMeta}
                 onSave={handleSave}
                 onCancel={() => {
@@ -234,7 +237,18 @@ export function AssetMetaTable() {
           </TableHeader>
           <TableBody>
             {filteredAssetMetas.map((assetMeta) => (
-              <TableRow key={assetMeta.id}>
+              <TableRow
+                key={assetMeta.id}
+                className={
+                  assetMeta.market === 'US'
+                    ? 'bg-blue-50/50 hover:bg-blue-100/50'
+                    : assetMeta.market === 'HK'
+                      ? 'bg-purple-50/50 hover:bg-purple-100/50'
+                      : assetMeta.market === 'CN'
+                        ? 'bg-green-50/50 hover:bg-green-100/50'
+                        : ''
+                }
+              >
                 <TableCell className="font-medium">
                   {assetMeta.symbol}
                   <span className="ml-2 text-sm text-gray-500">
@@ -244,7 +258,27 @@ export function AssetMetaTable() {
                 <TableCell>${(assetMeta.priceCents / 100).toFixed(2)}</TableCell>
                 <TableCell>{assetMeta.assetType}</TableCell>
                 <TableCell>{assetMeta.currency}</TableCell>
-                <TableCell>{assetMeta.market}</TableCell>
+                <TableCell>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      assetMeta.market === 'US'
+                        ? 'bg-blue-100 text-blue-800'
+                        : assetMeta.market === 'HK'
+                          ? 'bg-purple-100 text-purple-800'
+                          : assetMeta.market === 'CN'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
+                    {assetMeta.market === 'US'
+                      ? '美股'
+                      : assetMeta.market === 'HK'
+                        ? '港股'
+                        : assetMeta.market === 'CN'
+                          ? 'A股'
+                          : assetMeta.market}
+                  </span>
+                </TableCell>
                 <TableCell>{assetMeta.source}</TableCell>
                 <TableCell>
                   {assetMeta.updatedAt
@@ -293,10 +327,6 @@ function AssetMetaEditForm({
   const [formData, setFormData] = useState<Partial<AssetMetaType> & { id?: number }>(
     assetMeta || {},
   );
-
-  useEffect(() => {
-    setFormData(assetMeta || {});
-  }, [assetMeta]);
 
   const handleChange = (field: keyof AssetMetaType, value: string | number | Date | null) => {
     setFormData((prev) => ({ ...prev, [field]: value }));

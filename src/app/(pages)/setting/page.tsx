@@ -142,7 +142,7 @@ export default function SettingPage() {
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">系统设置</h1>
+        <h1 className="text-2xl font-bold">API KEY 配置</h1>
       </div>
 
       {message && (
@@ -157,8 +157,9 @@ export default function SettingPage() {
         {ALLOWED_KEYS.map((key) => (
           <div key={key} className="border rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
-              <label className="font-medium">{key}</label>
-              <span className="text-sm text-gray-500">{getSettingDescription(key)}</span>
+              <label className="font-medium">
+                {getSettingDescription(key)}({key})
+              </label>
             </div>
 
             <div className="flex gap-2">

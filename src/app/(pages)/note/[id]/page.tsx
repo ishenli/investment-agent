@@ -132,7 +132,7 @@ export default function NoteDetailPage() {
     if (!note) return null;
 
     return (
-      <div className="container mx-auto py-8 px-4">
+      <div className="py-8 px-4">
         <div className="mb-6 flex justify-between items-center">
           <Button onClick={handleBack} variant="outline">
             ← 返回笔记列表
@@ -140,7 +140,7 @@ export default function NoteDetailPage() {
           <Button onClick={handleEdit}>编辑笔记</Button>
         </div>
 
-        <Card className="mx-auto">
+        <Card className="">
           <CardHeader>
             <CardTitle className="text-2xl">{note.title}</CardTitle>
             <div className="flex justify-between text-sm text-gray-500">
