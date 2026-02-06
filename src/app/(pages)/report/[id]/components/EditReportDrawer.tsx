@@ -31,6 +31,16 @@ interface EditReportDrawerProps {
   onUpdate: () => void;
 }
 
+/**
+ * Renders a right-side drawer that allows editing a report's Markdown content and saving changes to the server.
+ *
+ * @param open - Whether the drawer is open
+ * @param onOpenChange - Callback to change the drawer open state; called with `false` to close
+ * @param reportId - Identifier of the report to update
+ * @param initialContent - Initial text to populate the editor when the drawer opens
+ * @param onUpdate - Callback invoked after the report is successfully updated
+ * @returns The drawer React element for editing a report
+ */
 export function EditReportDrawer({
   open,
   onOpenChange,

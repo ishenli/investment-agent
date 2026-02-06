@@ -17,6 +17,17 @@ const ALLOWED_KEYS = [
 
 type SettingKey = (typeof ALLOWED_KEYS)[number];
 
+/**
+ * Render the API key/settings management UI with per-key fetch, update, and delete actions.
+ *
+ * Displays a list of allowed setting keys with editable inputs and Save/Delete controls.
+ * On mount, it fetches existing settings and merges them into the local state.
+ * Saving updates a single setting via PUT and reflects the change in state on success.
+ * Deleting removes a setting via DELETE and clears its value on success.
+ * Success and error messages are shown briefly after operations.
+ *
+ * @returns A React element containing the settings management interface.
+ */
 export default function SettingPage() {
   const [settings, setSettings] = useState<Record<SettingKey, string>>({
     MODEL_PROVIDER_URL: '',
