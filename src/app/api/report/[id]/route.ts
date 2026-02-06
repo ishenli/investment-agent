@@ -8,6 +8,10 @@ const ReportIdSchema = z.object({
   reportId: z.string(),
 });
 
+const UpdateReportSchema = z.object({
+  content: z.string().min(1, '内容不能为空'),
+});
+
 export class WeeklyReportDetailController extends BaseController {
   @WithRequestContextStatic()
   static async GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -58,7 +62,39 @@ export class WeeklyReportDetailController extends BaseController {
       return this.error('删除报告失败', 'DELETE_REPORT_ERROR');
     }
   }
+
+  @WithRequestContextStatic()
+  static async PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    try {
+      // 获取当前用户ID
+      const accountInfo = await AuthService.getCurrentUserAccount();
+      if (!accountInfo) {
+        return this.error('用户未登录', 'UNAUTHORIZED');
+      }
+
+      const { id: reportId } = await params;
+      const accountId = accountInfo.id;
+
+      // 验证请求体
+      const body = await this.validateBody(request, UpdateReportSchema);
+
+      // 更新报告内容
+      const result = await reportService.updateReportContent(reportId, accountId, body.content);
+
+      if (result) {
+        return this.success(result);
+      } else {
+        return this.error('报告更新失败', 'UPDATE_REPORT_ERROR');
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('Validation')) {
+        return this.responseValidateError(JSON.parse(error.message));
+      }
+      return this.error('更新报告失败', 'UPDATE_REPORT_ERROR');
+    }
+  }
 }
 
 export const GET = WeeklyReportDetailController.GET;
 export const DELETE = WeeklyReportDetailController.DELETE;
+export const PATCH = WeeklyReportDetailController.PATCH;
