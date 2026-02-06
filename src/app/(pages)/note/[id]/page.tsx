@@ -12,6 +12,15 @@ import dayjs from 'dayjs';
 import { getNoteById, updateNote } from '@/app/services/note';
 import { Markdown } from '@lobehub/ui';
 
+/**
+ * Displays a single note (identified by the route `id`) and provides a view and edit interface.
+ *
+ * Fetches the note by ID, shows read-only detail view with rendered Markdown and tags, and offers
+ * an edit mode that allows updating title, content, and tags. Handles loading and error states,
+ * supports adding/removing tags, persists changes to the server, and navigates back to the note list.
+ *
+ * @returns A React element rendering the note detail or edit page.
+ */
 export default function NoteDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -132,7 +141,7 @@ export default function NoteDetailPage() {
     if (!note) return null;
 
     return (
-      <div className="container mx-auto py-8 px-4">
+      <div className="py-8 px-4">
         <div className="mb-6 flex justify-between items-center">
           <Button onClick={handleBack} variant="outline">
             ← 返回笔记列表
@@ -140,7 +149,7 @@ export default function NoteDetailPage() {
           <Button onClick={handleEdit}>编辑笔记</Button>
         </div>
 
-        <Card className="mx-auto">
+        <Card className="">
           <CardHeader>
             <CardTitle className="text-2xl">{note.title}</CardTitle>
             <div className="flex justify-between text-sm text-gray-500">

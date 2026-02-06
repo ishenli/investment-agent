@@ -150,7 +150,7 @@ export class ReportService {
       ).catch((error) => {
         logger.error('[ReportService] 报告生成失败', { reportId: reportRecord.id, error });
         // 更新报告状态为失败
-        this.updateReportContent(reportRecord.id.toString(), `报告生成失败: ${error.message}`);
+        this.updateReportContent(reportRecord.id.toString(), request.accountId, `报告生成失败: ${error.message}`);
       });
 
       logger.info('[ReportService] 报告生成请求已接受', { reportId: reportRecord.id });
@@ -180,19 +180,19 @@ export class ReportService {
   ): Promise<void> {
     try {
       // 更新报告状态为处理中
-      await this.updateReportContent(reportId, '正在收集数据...');
+      await this.updateReportContent(reportId, accountId, '正在收集数据...');
 
       // 聚合本周数据
       const reportData = await this.aggregateWeeklyData(accountId, startDate, endDate);
 
       // 更新报告状态为生成AI内容中
-      await this.updateReportContent(reportId, '正在生成AI分析...');
+      await this.updateReportContent(reportId, accountId, '正在生成AI分析...');
 
       // 生成AI报告内容
       const reportContent = await this.generateAIReportContent(reportData);
 
       // 更新报告内容
-      await this.updateReportContent(reportId, reportContent);
+      await this.updateReportContent(reportId, accountId, reportContent);
 
       logger.info('[ReportService] 报告生成完成', { reportId });
     } catch (error) {
@@ -540,19 +540,59 @@ Output Requirement:
     }
   }
   /**
-   * 更新报告内容辅助方法
+   * 更新报告内容公共方法
    * @param reportId 报告ID
+   * @param accountId 账户ID（用于权限验证）
    * @param content 报告内容
+   * @returns 更新后的报告详情，失败返回 null
    */
-  private async updateReportContent(reportId: string, content: string): Promise<void> {
+  async updateReportContent(
+    reportId: string,
+    accountId: string,
+    content: string,
+  ): Promise<ReportDetail | null> {
     try {
-      await db
+      // 验证内容不为空
+      if (!content || content.trim().length === 0) {
+        logger.error('[ReportService] 更新报告失败：内容不能为空', { reportId });
+        return null;
+      }
+
+      // 验证报告存在且属于指定账户
+      const report = await db.query.analysisReports.findFirst({
+        where: and(
+          eq(analysisReports.id, parseInt(reportId)),
+          eq(analysisReports.accountId, parseInt(accountId)),
+        ),
+      });
+
+      if (!report) {
+        logger.error('[ReportService] 更新报告失败：报告不存在或无权限', { reportId, accountId });
+        return null;
+      }
+
+      // 更新报告内容
+      const [updatedReport] = await db
         .update(analysisReports)
         .set({ content })
-        .where(eq(analysisReports.id, parseInt(reportId)));
+        .where(eq(analysisReports.id, parseInt(reportId)))
+        .returning();
+
+      logger.info('[ReportService] 更新报告成功', { reportId, accountId });
+
+      return {
+        id: updatedReport.id.toString(),
+        accountId: updatedReport.accountId.toString(),
+        type: updatedReport.type as ReportType,
+        title: updatedReport.title,
+        content: updatedReport.content,
+        startDate: updatedReport.startDate ? new Date(updatedReport.startDate) : null,
+        endDate: updatedReport.endDate ? new Date(updatedReport.endDate) : null,
+        createdAt: new Date(updatedReport.createdAt),
+      };
     } catch (error) {
-      logger.error('[ReportService] 更新报告失败', { reportId, error });
-      // 这里的错误我们通常选择记录但不抛出，因为不希望中断主流程（特别是异步流程中）
+      logger.error('[ReportService] 更新报告失败', { reportId, accountId, error });
+      return null;
     }
   }
 }

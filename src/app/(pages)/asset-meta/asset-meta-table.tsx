@@ -31,6 +31,15 @@ import dayjs from 'dayjs';
 import { fetchLatestPrice } from '@renderer/services/assetService';
 import { useRouter } from 'next/navigation';
 
+/**
+ * Render the asset metadata management interface.
+ *
+ * Displays a searchable table of asset metadata and provides UI for creating, editing,
+ * deleting, refreshing prices, and navigating to asset detail pages. Data is loaded
+ * from the server on mount and changes are synced to the list after create/update/delete.
+ *
+ * @returns The React element that contains the full asset metadata table and associated dialogs, controls, and action handlers.
+ */
 export function AssetMetaTable() {
   const [assetMetas, setAssetMetas] = useState<AssetMetaType[]>([]);
   const [loading, setLoading] = useState(true);
@@ -177,8 +186,9 @@ export function AssetMetaTable() {
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogTrigger asChild>
             <Button
+              className="cursor-pointer"
               onClick={() => {
-                setEditingAssetMeta({
+                const newAssetMeta: AssetMetaType = {
                   id: 0,
                   symbol: '',
                   priceCents: 0,
@@ -190,7 +200,8 @@ export function AssetMetaTable() {
                   market: 'US',
                   chineseName: null,
                   investmentMemo: null,
-                });
+                };
+                setEditingAssetMeta(newAssetMeta);
                 setIsEditDialogOpen(true);
               }}
             >
@@ -206,6 +217,7 @@ export function AssetMetaTable() {
             </DialogHeader>
             {editingAssetMeta && (
               <AssetMetaEditForm
+                key={editingAssetMeta.id || 'new'}
                 assetMeta={editingAssetMeta}
                 onSave={handleSave}
                 onCancel={() => {
@@ -234,7 +246,18 @@ export function AssetMetaTable() {
           </TableHeader>
           <TableBody>
             {filteredAssetMetas.map((assetMeta) => (
-              <TableRow key={assetMeta.id}>
+              <TableRow
+                key={assetMeta.id}
+                className={
+                  assetMeta.market === 'US'
+                    ? 'bg-blue-50/50 hover:bg-blue-100/50'
+                    : assetMeta.market === 'HK'
+                      ? 'bg-purple-50/50 hover:bg-purple-100/50'
+                      : assetMeta.market === 'CN'
+                        ? 'bg-green-50/50 hover:bg-green-100/50'
+                        : ''
+                }
+              >
                 <TableCell className="font-medium">
                   {assetMeta.symbol}
                   <span className="ml-2 text-sm text-gray-500">
@@ -244,7 +267,27 @@ export function AssetMetaTable() {
                 <TableCell>${(assetMeta.priceCents / 100).toFixed(2)}</TableCell>
                 <TableCell>{assetMeta.assetType}</TableCell>
                 <TableCell>{assetMeta.currency}</TableCell>
-                <TableCell>{assetMeta.market}</TableCell>
+                <TableCell>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      assetMeta.market === 'US'
+                        ? 'bg-blue-100 text-blue-800'
+                        : assetMeta.market === 'HK'
+                          ? 'bg-purple-100 text-purple-800'
+                          : assetMeta.market === 'CN'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
+                    {assetMeta.market === 'US'
+                      ? '美股'
+                      : assetMeta.market === 'HK'
+                        ? '港股'
+                        : assetMeta.market === 'CN'
+                          ? 'A股'
+                          : assetMeta.market}
+                  </span>
+                </TableCell>
                 <TableCell>{assetMeta.source}</TableCell>
                 <TableCell>
                   {assetMeta.updatedAt
@@ -280,7 +323,17 @@ export function AssetMetaTable() {
   );
 }
 
-// 编辑表单组件
+/**
+ * Form used to create or edit an asset's metadata.
+ *
+ * Renders inputs for symbol, chinese name, price (in cents), asset type, currency, market, data source, and investment notes;
+ * includes a refresh button to fetch the latest price and actions to save or cancel.
+ *
+ * @param assetMeta - Initial values to populate the form; when `null`, an empty form is shown for creating a new asset.
+ * @param onSave - Called with the form data (partial `AssetMetaType` with optional `id`) when the form is submitted.
+ * @param onCancel - Called when the user cancels editing.
+ * @returns The React element for the edit/create asset form.
+ */
 function AssetMetaEditForm({
   assetMeta,
   onSave,
@@ -293,10 +346,6 @@ function AssetMetaEditForm({
   const [formData, setFormData] = useState<Partial<AssetMetaType> & { id?: number }>(
     assetMeta || {},
   );
-
-  useEffect(() => {
-    setFormData(assetMeta || {});
-  }, [assetMeta]);
 
   const handleChange = (field: keyof AssetMetaType, value: string | number | Date | null) => {
     setFormData((prev) => ({ ...prev, [field]: value }));

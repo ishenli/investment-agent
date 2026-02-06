@@ -81,6 +81,16 @@ type SortConfig = {
   direction: 'ascending' | 'descending';
 };
 
+/**
+ * Renders the Positions Management UI for viewing, filtering, sorting, and editing stock positions.
+ *
+ * Displays a searchable and market-filterable table of positions with sortable columns, per-position actions
+ * (edit and asset info), aggregated totals (total market value and total unrealized gain), and risk alerts.
+ * Handles loading and error states by showing a skeleton screen or an error card respectively, and opens an
+ * edit dialog when a position is edited.
+ *
+ * @returns The JSX element for the positions management interface.
+ */
 export function PositionManagement() {
   const [isEditPositionOpen, setIsEditPositionOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<PositionType | null>(null);
@@ -180,9 +190,9 @@ export function PositionManagement() {
     setIsEditPositionOpen(true);
   };
 
-  // 计算总市值和总收益
-  const totalMarketValue = positions.reduce((sum, position) => sum + position.marketValue, 0);
-  const stockGain = positions.reduce((sum, position) => sum + position.unrealizedPnL, 0);
+  // 计算总市值和总收益（基于筛选后的数据）
+  const totalMarketValue = filteredPositions.reduce((sum, position) => sum + position.marketValue, 0);
+  const stockGain = filteredPositions.reduce((sum, position) => sum + position.unrealizedPnL, 0);
 
   const handleUpdatePositions = () => {
     refetch();

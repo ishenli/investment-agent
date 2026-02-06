@@ -1,6 +1,5 @@
 'use client';
 
-import { Button } from '@renderer/components/ui/button';
 import { Separator } from '@renderer/components/ui/separator';
 import { SidebarTrigger } from '@renderer/components/ui/sidebar';
 import { usePathname } from 'next/navigation';
@@ -8,6 +7,13 @@ import { useMemo } from 'react';
 // Import the navigation data
 import { data } from '@renderer/components/app-sidebar';
 
+/**
+ * Renders the site header and displays a title derived from the current route.
+ *
+ * The header includes the sidebar trigger, a separator, and the computed title for the active pathname.
+ *
+ * @returns A header element containing navigation controls and the route-specific title, or `null` when the current route is `/chat`.
+ */
 export function SiteHeader() {
   const pathname = usePathname();
 
@@ -40,6 +46,7 @@ export function SiteHeader() {
     if (pathname.startsWith('/asset-market-info')) return '资产市场信息';
     if (pathname.startsWith('/note')) return '投资笔记';
     if (pathname.startsWith('/report')) return '投资报告';
+    if (pathname.startsWith('/setting')) return '系统设置';
 
     // Default fallback
     return 'Documents';
