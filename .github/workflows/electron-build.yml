@@ -16,8 +16,16 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, windows-latest]
-
     steps:
+      - name: Get release tag
+        id: get-tag
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
       - name: Checkout code
         uses: actions/checkout@v4
 
