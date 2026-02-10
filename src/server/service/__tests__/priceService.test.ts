@@ -262,7 +262,7 @@ describe('PriceService', () => {
 
   describe('cleanupOldPrices', () => {
     it('应该成功清理过期的价格数据', async () => {
-      const mockWhere = vi.fn().mockReturnValue({ changes: 10 });
+      const mockWhere = vi.fn().mockReturnValue({ rowsAffected: 10 });
       (db.delete as any).mockReturnValue({ where: mockWhere });
 
       const result = await priceService.cleanupOldPrices();
@@ -320,7 +320,7 @@ describe('PriceService', () => {
 
   describe('clearPriceCache', () => {
     it('应该成功物理删除价格缓存', async () => {
-      const mockWhere = vi.fn().mockReturnValue({ changes: 5 });
+      const mockWhere = vi.fn().mockReturnValue({ rowsAffected: 5 });
       (db.delete as any).mockReturnValue({ where: mockWhere });
 
       const result = await priceService.clearPriceCache('AAPL');
@@ -329,7 +329,7 @@ describe('PriceService', () => {
     });
 
     it('没有记录时应该返回 false', async () => {
-      const mockWhere = vi.fn().mockReturnValue({ changes: 0 });
+      const mockWhere = vi.fn().mockReturnValue({ rowsAffected: 0 });
       (db.delete as any).mockReturnValue({ where: mockWhere });
 
       const result = await priceService.clearPriceCache('AAPL');

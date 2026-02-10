@@ -1,7 +1,6 @@
 import { StateCreator } from 'zustand';
 import { TradingAccountType, CreateTradingAccountRequestType } from '@typings/account';
 import { AccountStore } from '../../types';
-import { produce } from 'immer';
 
 export interface AccountCreateAction {
   createAccount: (

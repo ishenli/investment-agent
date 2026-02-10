@@ -2,6 +2,7 @@
 // @ts-expect-error
 import * as finnhub from 'finnhub';
 import { ChatAgentProxy } from '@server/core/provider/chatAgent';
+import logger from '@server/base/logger';
 
 /**
  * Finnhub API 配置与客户端实例

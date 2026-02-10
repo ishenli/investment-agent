@@ -29,7 +29,7 @@ export class FinnhubAdapter extends PriceSourceAdapter {
     }
 
     logger.info(`[FinnhubAdapter] Fetching price for ${symbol} (${market})`);
-    
+
     try {
       const result = await this.callFinnhubQuote(symbol);
       if (!result) {
@@ -63,7 +63,7 @@ export class FinnhubAdapter extends PriceSourceAdapter {
           finnhubClient.quote(symbol, (error: unknown, data: { c: number }) => {
             if (error) {
               logger.error(
-                `[FinnhubAdapter] Finnhub API error for ${symbol} (attempt ${i + 1}/${retries})`,
+                `[FinnhubAdapter] Finnhub API error for ${symbol} (attempt ${i + 1}/${retries}). Code: ${(error as any).code}, Message: ${(error as any).message}`,
                 error,
               );
               resolve(null);

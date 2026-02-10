@@ -533,7 +533,7 @@ Output Requirement:
           ),
         );
 
-      return result.changes > 0;
+      return result.rowsAffected > 0;
     } catch (error) {
       logger.error('[ReportService] 删除报告失败', { reportId, error });
       return false;

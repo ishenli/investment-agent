@@ -181,7 +181,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }, [initializeAccount]);
 
   return (
-    <Sidebar collapsible="icon" {...props} className="text-dark">
+    <Sidebar collapsible="icon" {...props} className="text-dark mt-4">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>

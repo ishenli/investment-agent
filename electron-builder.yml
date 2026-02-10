@@ -1,0 +1,107 @@
+appId: com.ig.app
+productName: ig
+directories:
+  output: release
+files:
+  - dist-electron/**/*
+  - node_modules/@libsql/**/* # 必须包含，否则 asarUnpack 没东西可抽离
+  - "!node_modules"
+  - "!src"
+  - "!electron"
+  - "!.next"
+  - "!build"
+  - "!scripts"
+  - "!docs"
+  - "!release"
+  - "!data"
+extraResources:
+  - from: .next/standalone/
+    to: standalone/
+    filter:
+      - "**/*"
+      - "!node_modules"
+      - "!release"
+      - "!dist-electron"
+      - "!bin"
+      - "!drizzle"
+      - "!logs"
+      - "!electron"
+      - "!build"
+      - "!data_cache"
+      - "!src"
+      - "!openspec"
+      - "!public"
+      - "!run"
+      - "!docs"
+      - "!report"
+      - "!tests"
+      - "!scripts"
+      - "!tsconfig.tsbuildinfo"
+      - "!pnpm-lock.yaml"
+      - "!pnpm-workspace.yaml"
+      - "!sqlite.db"
+  - from: .next/standalone/node_modules/
+    to: standalone/node_modules/
+    filter: ["**/*"]
+  - from: .next/standalone/.next/
+    to: standalone/.next/
+    filter: ["**/*"]
+  - from: .next/static/
+    to: standalone/.next/static/
+    filter: ["**/*"]
+  - from: public/
+    to: standalone/public/
+    filter: ["**/*"]
+  - from: build/
+    to: .
+    filter: ["icon.*"]
+  - from: "drizzle"
+    to: "standalone/drizzle"
+afterPack: scripts/after-pack.js
+asarUnpack:
+  - "**/*.node"
+  - "**/better-sqlite3/**"
+  - "**/@libsql/**"
+  - resources/**
+mac:
+  icon: build/icon.icns
+  entitlementsInherit: build/entitlements.mac.plist
+  extendInfo:
+    - NSCameraUsageDescription: Application requests access to the device's camera.
+    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
+    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
+    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
+  category: public.app-category.developer-tools
+  artifactName: "${productName}-${version}-${arch}.${ext}"
+  target:
+    - target: dmg
+      arch: [arm64]
+  notarize: false
+win:
+  icon: build/icon.ico
+  target:
+    - target: nsis
+      arch: [x64, arm64]
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+linux:
+  icon: build/icon.png
+  category: Development
+  artifactName: "${productName}-${version}-${arch}.${ext}"
+  desktop:
+    entry:
+      Name: ig
+      Comment: A Investment Agent
+      Categories: Development;IDE;
+      StartupWMClass: ig
+  target:
+    - target: AppImage
+      arch: [x64, arm64]
+    - target: deb
+      arch: [x64, arm64]
+    - target: rpm
+      arch: [x64, arm64]

@@ -205,7 +205,7 @@ export class AssetCompanyInfoService {
 
       logger.info('[AssetCompanyInfoService] Successfully deleted asset company info: %d', id);
 
-      return result.changes > 0;
+      return result.rowsAffected > 0;
     } catch (error) {
       logger.error(
         '[AssetCompanyInfoService] Failed to delete asset company info: %s',

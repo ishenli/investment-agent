@@ -890,7 +890,7 @@ export class AssetMarketInfoService {
 
       logger.info('[AssetMarketInfoService] 成功删除资产市场信息: %d', id);
 
-      return result.changes > 0;
+      return result.rowsAffected > 0;
     } catch (error) {
       logger.error(
         '[AssetMarketInfoService] 删除资产市场信息失败: %s',

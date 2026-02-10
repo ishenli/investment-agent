@@ -286,8 +286,8 @@ export class PriceService {
         )
       );
 
-      logger.info(`Cleaned up ${result.changes} old price records`);
-      return result.changes;
+      logger.info(`Cleaned up ${result.rowsAffected} old price records`);
+      return result.rowsAffected;
     } catch (error) {
       logger.error(`Failed to cleanup old prices: ${error}`);
       return 0;
@@ -332,8 +332,8 @@ export class PriceService {
       // 物理删除特定资产的所有价格记录（包括已软删除的）
       const result = await db.delete(assetMeta).where(eq(assetMeta.symbol, symbol));
       
-      logger.info(`Physically cleared price cache for ${symbol}, deleted ${result.changes} records`);
-      return result.changes > 0;
+      logger.info(`Physically cleared price cache for ${symbol}, deleted ${result.rowsAffected} records`);
+      return result.rowsAffected > 0;
     } catch (error) {
       logger.error(`Failed to physically clear price cache for ${symbol}: ${error}`);
       return false;

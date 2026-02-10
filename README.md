@@ -534,6 +534,10 @@ investment-agent/
 - 编写 **TypeScript** 类型定义
 - 添加必要的 **单元测试**
 
+### 部分调试细节
+
+- Electon 的内容：/Users/[UserName]/Library/Application Support/investment-agent
+
 ## 许可证
 
 本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件。

@@ -33,7 +33,6 @@ export function AccountCreate() {
   const [initialDeposit, setInitialDeposit] = useState('');
   const [market, setMarket] = useState<'US' | 'CN' | 'HK'>('US');
   const [leverage, setLeverage] = useState('1');
-  const [navigating, setNavigating] = useState(false);
 
   const handleCreateAccount = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,33 +49,30 @@ export function AccountCreate() {
 
   // 监听账户创建成功后的行为
   useEffect(() => {
-    if (createdAccount && !navigating) {
-      setNavigating(true);
+    if (!createdAccount) return;
 
-      // 自动设置为选中账户并跳转到资产页面
-      const handleAccountCreated = async () => {
-        try {
-          // 刷新账户列表
-          await fetchAccounts();
+    // 自动设置为选中账户并跳转到资产页面
+    const handleAccountCreated = async () => {
+      try {
+        // 刷新账户列表
+        await fetchAccounts();
 
-          // 设置为选中账户
-          await setAccount(createdAccount);
+        // 设置为选中账户
+        await setAccount(createdAccount);
 
-          // 延迟 300ms 后跳转，确保状态更新
-          setTimeout(() => {
-            router.replace('/asset');
-          }, 300);
-        } catch (error) {
-          console.error('Failed to set account or navigate:', error);
-          setNavigating(false);
-          // 如果设置或跳转失败，清空 createdAccount 状态允许用户手动操作
-          setCreatedAccount(null);
-        }
-      };
+        // 延迟 300ms 后跳转,确保状态更新
+        setTimeout(() => {
+          router.replace('/asset');
+        }, 300);
+      } catch (error) {
+        console.error('Failed to set account or navigate:', error);
+        // 如果设置或跳转失败,清空 createdAccount 状态允许用户手动操作
+        setCreatedAccount(null);
+      }
+    };
 
-      handleAccountCreated();
-    }
-  }, [createdAccount, setAccount, router, setCreatedAccount, navigating, fetchAccounts]);
+    handleAccountCreated();
+  }, [createdAccount, setAccount, router, setCreatedAccount, fetchAccounts]);
 
   // 如果账户已创建，显示成功消息和跳转提示
   if (createdAccount) {
@@ -96,17 +92,16 @@ export function AccountCreate() {
               正在设置账户并跳转...
             </div>
 
-            {/* 如果自动跳转失败，提供手动跳转按钮 */}
-            {!navigating && (
-              <Button
-                onClick={() => {
-                  setAccount(createdAccount).then(() => router.push('/asset'));
-                }}
-                className="w-full"
-              >
-                手动跳转到资产页面
-              </Button>
-            )}
+            {/* 如果自动跳转失败,提供手动跳转按钮 */}
+            <Button
+              onClick={() => {
+                setAccount(createdAccount).then(() => router.push('/asset'));
+              }}
+              className="w-full mt-4"
+              variant="outline"
+            >
+              手动跳转到资产页面
+            </Button>
           </div>
         </CardContent>
       </Card>
