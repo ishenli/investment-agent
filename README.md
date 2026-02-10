@@ -1,11 +1,12 @@
 # 投资助手 Investment Agent
+![投资 Agent](https://mdn.alipayobjects.com/huamei_ptvnul/afts/img/A*75cHQpMc8-4AAAAAcFAAAAgAeg-GAQ/original)
 
-这是一个使用 Vibe Coding 打造的投资分析工具，利用 AI 提供全面的股票市场分析、资产管理和投资建议。
-
-> 主要探索 AI Agent 的产品实践，并不用于实际生产
+这是一个使用 AI Coding 打造的本地化投资分析工具，利用 AI 提供全面的股票市场分析、资产管理和投资建议。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node version](https://img.shields.io/node/v/investment-agent.svg)](https://nodejs.org)
+[![CI](https://github.com/ishenli/investment-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/ishenli/investment-agent/actions/workflows/ci.yml)
+[![Dependabot Updates](https://github.com/ishenli/investment-agent/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/ishenli/investment-agent/actions/workflows/dependabot/dependabot-updates)
+
 
 ## 目录
 
@@ -37,6 +38,52 @@
 
 投资助手是一个先进的投资分析平台，使用多代理 AI 系统来分析股票并提供投资建议。它结合了技术分析、新闻情绪、基本面数据和市场趋势，提供全面的投资洞察。平台还支持资产组合管理和市场信息获取功能。
 
+### 功能特性
+
+![投顾智能体对话](https://mdn.alipayobjects.com/huamei_ptvnul/afts/img/A*rBlqR5EDXF4AAAAAXYAAAAgAeg-GAQ/original)
+
+<center>智能体对话</center>
+
+![](https://mdn.alipayobjects.com/huamei_ptvnul/afts/img/A*xb4HTbkfOcoAAAAAWhAAAAgAeg-GAQ/original)
+
+<center>仓位管理</center>
+
+![市场信息获取](https://mdn.alipayobjects.com/huamei_ptvnul/afts/img/A*K5SeQbplfAQAAAAAYbAAAAgAeg-GAQ/original)
+
+<center>市场信息获取</center>
+
+### 整体功能列表
+
+- **多代理 AI 分析**：利用专门的 AI 代理进行股票分析的不同方面
+  - 市场分析师：技术指标分析
+  - 新闻分析师：市场情绪分析
+  - 看涨/看跌研究员：多角度观点
+  - 风险经理：投资风险评估
+  - 交易员：最终决策制定
+
+- **实时数据获取**：与金融数据提供商集成，获取最新的市场信息
+
+- **全面技术分析**：
+  - 移动平均线（MA）
+  - 相对强弱指数（RSI）
+  - 移动指数平均线（MACD）
+  - 其他专业指标
+
+- **智能新闻情绪分析**：评估新闻来源的市场情绪及其对股价的潜在影响
+
+- **多层风险评估系统**：
+  - 技术风险评估
+  - 市场风险评估
+  - 投资组合风险分析
+
+- **交互式仪表板**：用户友好的界面，具有实时数据可视化功能
+
+- **资产组合管理**：跟踪和分析投资组合的收益和风险
+
+- **市场信息自动获取**：自动获取、分析和存储市场信息
+
+- **持久化数据存储**：使用 SQLite 和 Drizzle ORM 进行可靠的数据持久化
+
 ## 安装与使用
 
 ### 全局安装
@@ -51,12 +98,6 @@ npm install -g investment-agent
 # investment-agent: 主命令
 # ig: 简写命令
 ```
-
-### 先决条件
-
-- Node.js 18.x 或更高版本
-- npm、pnpm 或 yarn 包管理器
-- Git
 
 ### 本地开发
 
@@ -113,38 +154,6 @@ LANGSMITH_API_KEY=your_langsmith_api_key
 # 金融数据集密钥
 FINANCIAL_DATASETS_KEY=your_financial_datasets_key
 ```
-
-## 功能特性
-
-- **多代理 AI 分析**：利用专门的 AI 代理进行股票分析的不同方面
-  - 市场分析师：技术指标分析
-  - 新闻分析师：市场情绪分析
-  - 看涨/看跌研究员：多角度观点
-  - 风险经理：投资风险评估
-  - 交易员：最终决策制定
-
-- **实时数据获取**：与金融数据提供商集成，获取最新的市场信息
-
-- **全面技术分析**：
-  - 移动平均线（MA）
-  - 相对强弱指数（RSI）
-  - 移动指数平均线（MACD）
-  - 其他专业指标
-
-- **智能新闻情绪分析**：评估新闻来源的市场情绪及其对股价的潜在影响
-
-- **多层风险评估系统**：
-  - 技术风险评估
-  - 市场风险评估
-  - 投资组合风险分析
-
-- **交互式仪表板**：用户友好的界面，具有实时数据可视化功能
-
-- **资产组合管理**：跟踪和分析投资组合的收益和风险
-
-- **市场信息自动获取**：自动获取、分析和存储市场信息
-
-- **持久化数据存储**：使用 SQLite 和 Drizzle ORM 进行可靠的数据持久化
 
 ## 架构设计
 
@@ -205,6 +214,8 @@ pnpm start
 
 ### LangGraph 开发
 
+> 只需要用于调试 langgraph，非必需
+
 ```bash
 # LangGraph 开发服务器 (端口 54367)
 pnpm langgraph:dev
@@ -249,19 +260,7 @@ pnpm db:studio
 
 ```bash
 # 测试资产服务
-pnpm test:asset
-
-# 测试资产 API
-pnpm test:asset-api
-
-# 测试初始化 API
-pnpm test:init
-
-# 测试投资聊天功能
-pnpm test:investment-chat
-
-# 测试持仓服务
-pnpm test:position
+pnpm test
 ```
 
 ## 数据库操作
@@ -292,14 +291,6 @@ pnpm test:position
    ```
 
 2. 打开浏览器访问 [http://localhost:3000](http://localhost:3000)
-
-3. 主要功能页面：
-
-   - **股票分析页面** (`/stock`)：输入股票代码进行 AI 深度分析
-   - **市场概览** (`/dashboard`)：查看市场整体状况和趋势
-   - **资产管理** (`/asset-management`)：管理您的投资组合
-   - **市场信息获取** (`/asset-market-info-fetcher`)：自动获取市场信息
-   - **AI 投资建议**：查看 AI 生成的实时投资建议
 
 ### CLI 工具
 
@@ -393,8 +384,7 @@ investment-agent/
 
 - **Ant Design** 5.29.3 - 企业级 UI 设计语言
 - **@ant-design/x** 1.6.1 - Ant Design 扩展组件
-- **Radix UI** - 无样式基础组件库
-  - Dialog, Avatar, Select, Tabs, Tooltip 等
+- **Radix UI** - 无样式基础组件库，Dialog, Avatar, Select, Tabs, Tooltip 等
 - **LobeHub UI** 2.24.3 - 高级 UI 组件
 - **Framer Motion** 12.25.0 - 动画库
 - **Tailwind Animate CSS** 1.4.0 - Tailwind 动画扩展
@@ -478,31 +468,6 @@ investment-agent/
 ✓ 安全审计
 ```
 
-#### 2. **代码质量工作流** (`code-quality.yml`)
-
-**触发条件**：
-- 推送到 `main` 或 `develop` 分支
-- Pull Request 合并到 `main`
-
-**检查项目**：
-- ESLint 代码规范
-- Prettier 代码格式
-- TypeScript 类型错误
-- 依赖安全性审查
-
-#### 3. **部署工作流** (`deploy.yml`)
-
-**触发条件**：
-- 推送到 `main` 分支
-- 发布新版本 (tag)
-
-**部署流程**：
-```yaml
-✓ 运行完整检查和测试
-✓ 构建生产版本
-✓ 部署到生产环境 (Vercel/其他平台)
-```
-
 ### Git Hooks
 
 使用 Husky 管理 Git Hooks，在提交前自动运行代码检查：
@@ -516,34 +481,18 @@ investment-agent/
 
 ## 部署
 
-### Vercel（推荐）
-
-最简单的部署方式是使用 [Vercel 平台](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme)。
-
-快速部署步骤：
-
-1.  Fork 本仓库
-2.  在 Vercel 导入项目
-3.  配置环境变量（参考"环境变量"章节）
-4.  自动部署完成
-
-查看 [Next.js 部署文档](https://nextjs.org/docs/app/building-your-application/deploying) 了解更多选项。
-
-### 其他部署选项
-
-- **Docker 容器**：可自定义 Dockerfile 进行容器化部署
-- **Node.js 服务器**：使用 PM2 或类似进程管理器
-- **静态导出**：`next build && next export` (需配置)
+直接本地部署即可
 
 ## 贡献指南
 
 欢迎贡献！请遵循以下步骤：
 
 1. **Fork 项目**
+   
    ```bash
    # 在 GitHub 上点击 Fork 按钮
    ```
-
+   
 2. **克隆您的 Fork**
    ```bash
    git clone https://github.com/YOUR_USERNAME/investment-agent.git
@@ -585,6 +534,10 @@ investment-agent/
 - 编写 **TypeScript** 类型定义
 - 添加必要的 **单元测试**
 
+### 部分调试细节
+
+- Electon 的内容：/Users/[UserName]/Library/Application Support/investment-agent
+
 ## 许可证
 
 本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件。
@@ -592,7 +545,7 @@ investment-agent/
 ```text
 MIT License
 
-Copyright (c) 2023 ishenli
+Copyright (c) 2025 ishenli
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -619,23 +572,10 @@ SOFTWARE.
 
 本项目基于以下优秀项目的研究和代码：
 
-1. **[TradingAgents](https://github.com/TauricResearch/TradingAgents)**
-   - 作者: [Tauric Research Team](https://github.com/TauricResearch)
-   - 提供了多代理交易系统的核心架构思路
-   - 论文参考: [arxiv.org/pdf/2412.20138](https://arxiv.org/pdf/2412.20138)
-
-2. **[TradingAgents](https://github.com/delenzhang/TradingAgents)**
-   - 作者: [@delenzhang](https://github.com/delenzhang)
-   - 中文优化和适配工作
-
-3. **[TradingAgents-CN](https://github.com/hsliuping/TradingAgents-CN)**
-   - 作者: [@hsliuping](https://github.com/hsliuping)
-   - 本地化改进和功能扩展
-
-### UI/UX 设计参考
-
 | 作者 | 仓库/项目 | 贡献 |
 |------|----------|------|
+| [Tauric Research Team](https://github.com/TauricResearch) | **[TradingAgents](https://github.com/TauricResearch/TradingAgents)** | 提供了多代理交易系统的核心架构思路，论文参考: [arxiv.org/pdf/2412.20138](https://arxiv.org/pdf/2412.20138) |
+| [@delenzhang](https://github.com/delenzhang) | **[TradingAgents](https://github.com/delenzhang/TradingAgents)** | 中文优化和适配工作 |
 | [@canisminor1990](https://github.com/canisminor1990) | [lobehub-ui](https://ui.lobehub.com/) | 高级 UI 组件和设计系统 |
 
 ### 技术支持
@@ -646,7 +586,6 @@ SOFTWARE.
 - **LangChain** - AI 应用开发
 - **Ant Design** - UI 组件库
 - **Radix UI** - 无样式组件
-- **Vercel** - 部署平台
 - 以及所有开源依赖的维护者们
 
 ---

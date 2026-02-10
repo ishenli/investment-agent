@@ -1,2 +1,15 @@
+ignoredBuiltDependencies:
+  - '@scarf/scarf'
+  - '@tree-sitter-grammars/tree-sitter-yaml'
+  - core-js-pure
+  - electron
+  - electron-winstaller
+  - es5-ext
+  - esbuild
+  - sharp
+  - tree-sitter
+  - tree-sitter-json
+  - unrs-resolver
+
 onlyBuiltDependencies:
   - better-sqlite3

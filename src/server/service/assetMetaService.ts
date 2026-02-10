@@ -205,9 +205,9 @@ export class AssetMetaService {
       const result = await db.delete(assetMeta).where(eq(assetMeta.id, id));
 
       logger.info('[AssetMetaService] hardDeleteAssetMeta result', {
-        changes: result.changes,
+        changes: result.rowsAffected,
       });
-      return result.changes > 0;
+      return result.rowsAffected > 0;
     } catch (error) {
       logger.error(`Failed to hard delete asset meta with id ${id}: ${error}`);
       throw new Error(`Database hard delete failed: ${error}`);

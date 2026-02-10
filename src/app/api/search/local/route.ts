@@ -11,7 +11,7 @@ import {
   transactions,
   accounts,
 } from '@drizzle/schema';
-import { and, or, like, sql } from 'drizzle-orm';
+import { or, like, sql } from 'drizzle-orm';
 
 // 定义搜索请求参数的验证模式
 const SearchQuerySchema = z.object({

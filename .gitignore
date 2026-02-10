@@ -17,8 +17,6 @@
 /.next/
 /out/
 
-# production
-/build
 
 # misc
 .DS_Store
@@ -51,3 +49,9 @@ run
 *.db
 *.db-*
 !.gitkeep
+.turbo
+.qoder
+
+# electron
+/dist-electron/
+/release/

@@ -1,0 +1,284 @@
+import { drizzle } from 'drizzle-orm/libsql';
+import { createClient } from '@libsql/client';
+import { getProjectDir, isDevelopment as isDev, isElectron } from '../base/env';
+import * as schema from '../../../drizzle/schema';
+import * as fs from 'fs';
+import * as path from 'path';
+import { LibSQLDatabase } from 'drizzle-orm/libsql';
+import { migrate } from 'drizzle-orm/libsql/migrator';
+import logger from '../base/logger';
+
+// 定义数据库类型，包含完整的 schema 查询能力
+type DatabaseType = LibSQLDatabase<typeof schema>;
+
+/**
+ * 数据库管理器类
+ *
+ * 此类负责管理 Electron 应用中的 SQLite 数据库连接。
+ * 它解决了原始实现中的一个问题：当 Electron 应用打包后，
+ * 数据库文件可能不存在于应用目录中，导致无法访问数据库。
+ *
+ * 主要特性：
+ * 1. 使用单例模式确保整个应用只有一个数据库连接实例
+ * 2. 自动检测开发环境和生产环境，并相应地设置数据库路径
+ * 3. 在生产环境中将数据库文件存储在用户数据目录中
+ * 4. 提供数据库迁移功能
+ * 5. 包含完善的错误处理和日志记录
+ *
+ * 特别处理了 Electron 打包后迁移文件访问的问题：
+ * - 开发环境中直接从项目目录读取迁移文件
+ * - 生产环境中从资源目录或用户数据目录读取迁移文件
+ */
+export class DatabaseManager {
+  private static instance: DatabaseManager;
+  private db: DatabaseType | null = null;
+  private client: any = null;
+  private dbPath: string = '';
+  private migrationsPath: string = '';
+  private appPath: string;
+
+  private constructor({
+    userDataPath,
+    appPath,
+  }: {
+    userDataPath?: string;
+    appPath?: string;
+  } = {}) {
+    console.log('DatabaseManager constructor', { userDataPath, appPath });
+    this.initDatabase(userDataPath);
+    this.appPath = appPath || '';
+  }
+
+  /**
+   * 获取 DatabaseManager 单例实例
+   *
+   * @param options - 可选的配置参数
+   * @param options.userDataPath - 用户数据目录路径（Desktop 应用需要）
+   * @param options.appPath - 应用程序路径（Desktop 应用需要）
+   * @returns DatabaseManager 实例
+   *
+   * @example
+   * // Web 应用使用（无参数）
+   * const dbManager = DatabaseManager.getInstance();
+   *
+   * @example
+   * // Desktop 应用使用（带参数）
+   * const dbManager = DatabaseManager.getInstance({
+   *   userDataPath: app.getPath('userData'),
+   *   appPath: app.getAppPath()
+   * });
+   */
+  public static getInstance(options?: {
+    userDataPath?: string;
+    appPath?: string;
+  }): DatabaseManager {
+    if (!DatabaseManager.instance) {
+      DatabaseManager.instance = new DatabaseManager(options || {});
+    }
+    return DatabaseManager.instance;
+  }
+
+  /**
+   * 初始化数据库
+   *
+   * 此方法会：
+   * 1. 确定正确的数据库文件路径（开发环境 vs 生产环境）
+   * 2. 确保数据库文件所在的目录存在
+   * 3. 创建数据库连接
+   * 4. 创建 Drizzle ORM 实例
+   */
+  private initDatabase(userDataPath?: string): void {
+
+    logger.info('Initializing database... with userDataPath:' + userDataPath)
+    logger.info('isDev:' + isDev())
+    try {
+      // 在生产环境中，将数据库存储在用户数据目录中
+      // 这样可以确保即使应用更新或重新安装，用户数据也不会丢失
+      let projectDir: string;
+
+      if (userDataPath) {
+        // Desktop 应用：使用 userDataPath（开发和生产环境都适用）
+        projectDir = userDataPath;
+        logger.info('Using Desktop userDataPath:', { projectDir });
+      } else {
+        // Web 应用：使用项目目录
+        projectDir = getProjectDir();
+        logger.info('Using Web projectDir:', { projectDir });
+      }
+
+      // 确保目录存在
+      if (!fs.existsSync(projectDir)) {
+        fs.mkdirSync(projectDir, { recursive: true });
+      }
+      this.dbPath = path.join(projectDir, 'sqlite.db');
+
+      // 设置数据库文件路径
+      logger.info('Database path:' + this.dbPath);
+      console.log('Database path:', this.dbPath);
+
+      // 检查数据库文件是否存在
+      const dbExists = fs.existsSync(this.dbPath);
+
+      // 创建 LibSQL 客户端 - 使用 file:// 协议
+      this.client = createClient({
+        url: `file:${this.dbPath}`
+      });
+
+      // 创建 Drizzle ORM 实例
+      this.db = drizzle(this.client, { schema });
+
+      logger.info(`Database initialized at: ${this.dbPath}`);
+
+      // 如果是新数据库，可能需要运行迁移
+      if (!dbExists) {
+        logger.info('New database created, you may need to run migrations');
+      }
+
+      this.migrate();
+    } catch (error) {
+      logger.error('Failed to initialize database:', error);
+      throw new Error(`Database initialization failed: ${error}`);
+    }
+  }
+
+  /**
+   * 获取数据库实例 (Drizzle ORM)
+   *
+   * @returns Drizzle ORM 数据库实例
+   */
+  public getDb(): DatabaseType {
+    if (!this.db) {
+      throw new Error('Database not initialized');
+    }
+    return this.db;
+  }
+
+  /**
+   * 获取原生 LibSQL 客户端实例
+   *
+   * @returns LibSQL 客户端实例
+   */
+  public getClient(): any {
+    if (!this.client) {
+      throw new Error('LibSQL client not initialized');
+    }
+    return this.client;
+  }
+
+  /**
+   * 获取数据库文件路径
+   *
+   * @returns 数据库文件的完整路径
+   */
+  public getDbPath(): string {
+    return this.dbPath;
+  }
+
+  /**
+   * 关闭数据库连接
+   *
+   * 在应用退出时应该调用此方法以正确关闭数据库连接
+   */
+  public close(): void {
+    if (this.client) {
+      this.client.close();
+      logger.info('Database connection closed');
+    }
+  }
+
+  /**
+   * 递归复制文件夹
+   *
+   * @param source 源文件夹路径
+   * @param target 目标文件夹路径
+   */
+  private copyFolderRecursiveSync(source: string, target: string): void {
+    // 检查源文件夹是否存在
+    if (!fs.existsSync(source)) {
+      throw new Error(`Source folder does not exist: ${source}`);
+    }
+
+    // 创建目标文件夹
+    if (!fs.existsSync(target)) {
+      fs.mkdirSync(target, { recursive: true });
+    }
+
+    // 读取源文件夹中的所有文件和子文件夹
+    const files = fs.readdirSync(source);
+
+    files.forEach(file => {
+      const sourcePath = path.join(source, file);
+      const targetPath = path.join(target, file);
+
+      const stats = fs.statSync(sourcePath);
+
+      if (stats.isDirectory()) {
+        // 递归复制子文件夹
+        this.copyFolderRecursiveSync(sourcePath, targetPath);
+      } else {
+        // 复制文件
+        fs.copyFileSync(sourcePath, targetPath);
+      }
+    });
+  }
+
+  /**
+   * 执行数据库迁移
+   *
+   * 此方法会将数据库结构更新到最新版本
+   * 应该在应用启动时或需要更新数据库结构时调用
+   *
+   * 特别处理了 Electron 打包后迁移文件访问的问题：
+   * - 开发环境中直接从项目目录读取迁移文件
+   * - 生产环境中从用户数据目录读取迁移文件
+   */
+  public async migrate(): Promise<void> {
+
+    try {
+
+      // 动态导入迁移模块
+      if (!this.db) {
+        throw new Error('Database not initialized');
+      }
+      let migrationsFolder: string;
+
+      // 确定迁移文件夹路径
+      if (isDev()) {
+        // 开发环境中使用项目目录中的迁移文件
+        migrationsFolder = path.join(getProjectDir(), 'drizzle/migrations');
+      } else if (isElectron()) {
+        // Electron 生产环境中使用用户数据目录中的迁移文件，cwd 指向 standalone 目录
+        migrationsFolder = path.join(process.cwd(), 'drizzle/migrations');
+      } else {
+        // Web 生产环境中使用项目目录中的迁移文件
+        migrationsFolder = path.join(getProjectDir(), 'drizzle/migrations');
+      }
+
+      logger.info('Migrations folder:', { migrationsFolder });
+
+      // 检查迁移文件夹是否存在
+      if (!fs.existsSync(migrationsFolder)) {
+        logger.warn(`Migrations folder not found: ${migrationsFolder}`);
+        logger.warn('Skipping migrations');
+        return;
+      }
+
+      // 执行迁移 - 对于 libsql，迁移URL路径不需要 file:// 前缀
+      await migrate(this.db, { migrationsFolder: migrationsFolder });
+
+      logger.info('Database migration completed');
+    } catch (error) {
+      logger.error('Database migration failed:', error);
+      throw new Error(`Database migration failed: ${error}`);
+    }
+  }
+
+  /**
+   * 检查数据库是否已初始化
+   *
+   * @returns 如果数据库已成功初始化则返回 true，否则返回 false
+   */
+  public isInitialized(): boolean {
+    return this.db !== null && this.client !== null;
+  }
+}

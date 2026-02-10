@@ -139,7 +139,7 @@ export class SettingService {
         .delete(settings)
         .where(and(eq(settings.accountId, parseInt(accountId)), eq(settings.key, key)));
 
-      return result.lastInsertRowid === 0;
+      return result.lastInsertRowid === BigInt(0);
     } catch (error) {
       logger.error(`Failed to delete setting ${key} for account ${accountId}: ${error}`);
       throw new Error(`Database delete failed: ${error}`);
@@ -154,7 +154,7 @@ export class SettingService {
   async deleteAllSettings(accountId: string): Promise<boolean> {
     try {
       const result = await db.delete(settings).where(eq(settings.accountId, parseInt(accountId)));
-      return result.lastInsertRowid === 0;
+      return result.lastInsertRowid === BigInt(0);
     } catch (error) {
       logger.error(`Failed to delete all settings for account ${accountId}: ${error}`);
       throw new Error(`Database delete failed: ${error}`);

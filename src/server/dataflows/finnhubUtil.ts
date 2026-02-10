@@ -2,6 +2,7 @@
 // @ts-expect-error
 import * as finnhub from 'finnhub';
 import { ChatAgentProxy } from '@server/core/provider/chatAgent';
+import logger from '@server/base/logger';
 
 /**
  * Finnhub API 配置与客户端实例
@@ -13,6 +14,9 @@ api_key.apiKey = process.env.FINNHUB_API_KEY;
 finnhub.ApiClient.instance.basePath =
   process.env.FINNHUB_BASE_PATH || finnhub.ApiClient.instance.basePath;
 finnhub.ApiClient.instance.timeout = 30000;
+
+logger.info(`[Debug] Env Key exists: ${!!process.env.FINNHUB_API_KEY}`);
+logger.info(`[Debug] HTTPS_PROXY: ${process.env.HTTPS_PROXY || 'Not Set'}`);
 
 export const finnhubClient = new finnhub.DefaultApi();
 
