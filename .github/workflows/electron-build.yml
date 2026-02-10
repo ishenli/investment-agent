@@ -15,7 +15,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        os: [macos-latest, windows-latest]
 
     steps:
       - name: Checkout code
@@ -45,17 +45,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pack for Windows
-        if: matrix.os == 'windows-latest'
-        run: pnpm exec electron-builder --win --config electron-builder.yml
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Pack for Linux
-        if: matrix.os == 'ubuntu-latest'
-        run: pnpm exec electron-builder --linux --config electron-builder.yml
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Pack for Windows
+      #   if: matrix.os == 'windows-latest'
+      #   run: pnpm exec electron-builder --win --config electron-builder.yml
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4

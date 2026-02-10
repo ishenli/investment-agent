@@ -15,9 +15,6 @@ finnhub.ApiClient.instance.basePath =
   process.env.FINNHUB_BASE_PATH || finnhub.ApiClient.instance.basePath;
 finnhub.ApiClient.instance.timeout = 30000;
 
-logger.info(`[Debug] Env Key exists: ${!!process.env.FINNHUB_API_KEY}`);
-logger.info(`[Debug] HTTPS_PROXY: ${process.env.HTTPS_PROXY || 'Not Set'}`);
-
 export const finnhubClient = new finnhub.DefaultApi();
 
 /**

@@ -285,7 +285,7 @@ describe('AssetMetaService', () => {
 
   describe('hardDeleteAssetMeta', () => {
     it('应该成功物理删除 assetMeta 记录', async () => {
-      const mockWhere = vi.fn().mockReturnValue({ changes: 1 });
+      const mockWhere = vi.fn().mockReturnValue({ rowsAffected: 1 });
       (db.delete as any).mockReturnValue({ where: mockWhere });
 
       const result = await assetMetaService.hardDeleteAssetMeta(1);
@@ -294,7 +294,7 @@ describe('AssetMetaService', () => {
     });
 
     it('记录不存在时应该返回 false', async () => {
-      const mockWhere = vi.fn().mockReturnValue({ changes: 0 });
+      const mockWhere = vi.fn().mockReturnValue({ rowsAffected: 0 });
       (db.delete as any).mockReturnValue({ where: mockWhere });
 
       const result = await assetMetaService.hardDeleteAssetMeta(999);

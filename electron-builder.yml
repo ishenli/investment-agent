@@ -95,7 +95,7 @@ linux:
   desktop:
     entry:
       Name: ig
-      Comment: A native desktop GUI for Claude Code
+      Comment: A Investment Agent
       Categories: Development;IDE;
       StartupWMClass: ig
   target:

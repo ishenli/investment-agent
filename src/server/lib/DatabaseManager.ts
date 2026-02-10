@@ -45,7 +45,9 @@ export class DatabaseManager {
     appPath?: string;
   } = {}) {
     console.log('DatabaseManager constructor', { userDataPath, appPath });
-    this.initDatabase(userDataPath);
+    this.initDatabase(userDataPath).catch(err => {
+      logger.error('Database initialization failed:', err);
+    });
     this.appPath = appPath || '';
   }
 
@@ -87,7 +89,7 @@ export class DatabaseManager {
    * 3. 创建数据库连接
    * 4. 创建 Drizzle ORM 实例
    */
-  private initDatabase(userDataPath?: string): void {
+  private async initDatabase(userDataPath?: string): Promise<void> {
 
     logger.info('Initializing database... with userDataPath:' + userDataPath)
     logger.info('isDev:' + isDev())
@@ -134,7 +136,7 @@ export class DatabaseManager {
         logger.info('New database created, you may need to run migrations');
       }
 
-      this.migrate();
+      await this.migrate();
     } catch (error) {
       logger.error('Failed to initialize database:', error);
       throw new Error(`Database initialization failed: ${error}`);

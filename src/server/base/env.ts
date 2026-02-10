@@ -3,6 +3,8 @@ export const isProduction = () => process.env.NODE_ENV === 'production';
 export const isDevelopment = () => process.env.NODE_ENV !== 'production';
 
 export const isTest = () => process.env.NODE_ENV === 'test';
+import os from 'os';
+import path from 'path';
 
 export const isElectron = () => process.env.IN_ELECTRON === 'Y';
 
@@ -12,7 +14,15 @@ export const getProjectRoot = () => {
   const isDev = process.env.NODE_ENV === 'development';
 
   if (isElectron()) {
-    return process.env.NEXT_APP_USER_DATA || '';
+    const userData = process.env.NEXT_APP_USER_DATA;
+    if (!userData) {
+      // Provide a safe fallback instead of returning empty string
+      // Use a deterministic path under system temp directory to ensure DB/files are never placed under empty path
+      const fallbackPath = path.join(os.tmpdir(), 'investment-agent-user-data');
+      console.warn('NEXT_APP_USER_DATA not set in Electron mode, using fallback path:', fallbackPath);
+      return fallbackPath;
+    }
+    return userData;
   }
 
   if (isDev) {

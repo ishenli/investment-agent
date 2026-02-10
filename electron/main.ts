@@ -365,9 +365,28 @@ app.on('activate', async () => {
         await waitForServer(port);
         serverPort = port;
       }
-      createWindow(serverPort || 3000);
+      
+      // Guard against undefined/null serverPort
+      if (serverPort === null || serverPort === undefined) {
+        console.error('Server port is not defined - showing error dialog');
+        dialog.showErrorBox(
+          'ig - Server Not Ready',
+          'The application server is not ready yet. Please wait a moment and try again, or restart the application.'
+        );
+        return;
+      }
+      
+      createWindow(serverPort);
     } catch (err) {
       console.error('Failed to restart server:', err);
+      dialog.showErrorBox(
+        'ig - Failed to Restart',
+        `Could not restart the internal server.
+
+${err instanceof Error ? err.message : String(err)}
+
+Please try restarting the application.`
+      );
     }
   }
 });

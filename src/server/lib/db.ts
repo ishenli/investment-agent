@@ -20,8 +20,8 @@ import * as schema from '@drizzle/schema';
 
 // 获取 DatabaseManager 实例
 const databaseManager = DatabaseManager.getInstance({
-  userDataPath: process.env.NEXT_APP_USER_DATA || './',
-  appPath: process.env.NEXT_APP_DATA_PATH || './',
+  userDataPath: process.env.NEXT_APP_USER_DATA || undefined,
+  appPath: process.env.NEXT_APP_DATA_PATH || undefined,
 });
 
 // 导出数据库实例
