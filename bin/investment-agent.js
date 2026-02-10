@@ -190,49 +190,69 @@ class InvestmentAgentCLI {
         return;
       }
 
-      // 使用 better-sqlite3 直接执行 SQL
-      const Database = require('better-sqlite3');
-      const db = new Database(dbPath);
+      // 使用 @libsql/client 直接执行 SQL
+      const { createClient } = require('@libsql/client');
+      const client = createClient({
+        url: `file:${dbPath}`,
+      });
 
-      // 创建迁移记录表（如果不存在）
-      db.exec(`
-        CREATE TABLE IF NOT EXISTS __drizzle_migrations (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          hash TEXT NOT NULL,
-          created_at INTEGER DEFAULT (strftime('%s', 'now'))
-        );
-      `);
+      try {
+        // 创建迁移记录表（如果不存在）
+        await client.execute(`
+          CREATE TABLE IF NOT EXISTS __drizzle_migrations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            hash TEXT NOT NULL,
+            created_at INTEGER DEFAULT (strftime('%s', 'now'))
+          );
+        `);
 
-      // 执行每个迁移文件
-      for (const file of migrationFiles) {
-        const filePath = path.join(migrationDir, file);
-        const sql = fs.readFileSync(filePath, 'utf-8');
+        // 执行每个迁移文件
+        for (const file of migrationFiles) {
+          const filePath = path.join(migrationDir, file);
+          const sql = fs.readFileSync(filePath, 'utf-8');
 
-        // 检查是否已执行过
-        const fileHash = require('crypto').createHash('md5').update(sql).digest('hex');
-        const existingMigration = db
-          .prepare('SELECT * FROM __drizzle_migrations WHERE hash = ?')
-          .get(fileHash);
+          // 检查是否已执行过
+          const fileHash = require('crypto').createHash('md5').update(sql).digest('hex');
+          const existingMigration = await client.execute({
+            sql: 'SELECT * FROM __drizzle_migrations WHERE hash = ?',
+            args: [fileHash],
+          });
 
-        if (existingMigration) {
-          console.log(`  ✓ Migration ${file} already applied`);
-          continue;
+          if (existingMigration.rows.length > 0) {
+            console.log(`  ✓ Migration ${file} already applied`);
+            continue;
+          }
+
+          try {
+            console.log(`  → Applying migration ${file}...`);
+            // LibSQL client doesn't support executing multiple statements in one call easily if they are not inside a transaction block in a specific way,
+            // but for migration files which often contain multiple statements, we might need to split them or use executeMultiple if available.
+            // However, typical drizzle migrations are single statements or wrapped.
+            // Let's assume standard drizzle migration format.
+            // If the SQL contains multiple statements separated by semicolons, we should split them.
+            const statements = sql
+              .split(';')
+              .map((s) => s.trim())
+              .filter((s) => s.length > 0);
+
+            for (const statement of statements) {
+              await client.execute(statement);
+            }
+
+            // 记录迁移
+            await client.execute({
+              sql: 'INSERT INTO __drizzle_migrations (hash) VALUES (?)',
+              args: [fileHash],
+            });
+            console.log(`  ✓ Applied migration ${file}`);
+          } catch (sqlError) {
+            console.log(`  ⚠️  Failed to apply migration ${file}:`, sqlError.message);
+            throw sqlError;
+          }
         }
-
-        try {
-          console.log(`  → Applying migration ${file}...`);
-          db.exec(sql);
-
-          // 记录迁移
-          db.prepare('INSERT INTO __drizzle_migrations (hash) VALUES (?)').run(fileHash);
-          console.log(`  ✓ Applied migration ${file}`);
-        } catch (sqlError) {
-          console.log(`  ⚠️  Failed to apply migration ${file}:`, sqlError.message);
-          throw sqlError;
-        }
+      } finally {
+        client.close();
       }
-
-      db.close();
 
       console.log('✅ Database initialization completed');
 
@@ -249,38 +269,43 @@ class InvestmentAgentCLI {
 
     try {
       const dbPath = path.join(this.dataDir, 'sqlite.db');
-      const Database = require('better-sqlite3');
-      const db = new Database(dbPath);
+      const { createClient } = require('@libsql/client');
+      const client = createClient({
+        url: `file:${dbPath}`,
+      });
 
-      // 检查是否已经有用户
-      const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get();
-      if (userCount.count > 0) {
-        console.log('✅ Default user already exists');
-        db.close();
-        return;
+      try {
+        // 检查是否已经有用户
+        const userCountResult = await client.execute('SELECT COUNT(*) as count FROM users');
+        const userCount = userCountResult.rows[0].count; 
+        // Note: @libsql/client rows are objects { col: val }
+
+        if (Number(userCount) > 0) {
+          console.log('✅ Default user already exists');
+          return;
+        }
+
+        // 插入默认用户
+        const result = await client.execute({
+          sql: `
+            INSERT INTO users (username, email, password_hash, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?)
+          `,
+          args: [
+            'admin',
+            'admin@investment-agent.local',
+            'placeholder_hash',
+            new Date().toISOString(),
+            new Date().toISOString(),
+          ],
+        });
+
+        console.log(`✅ Default user created with ID: ${result.lastInsertRowid}`);
+        console.log('   Username: admin');
+        console.log('   Email: admin@investment-agent.local');
+      } finally {
+        client.close();
       }
-
-      // 插入默认用户
-      const result = db
-        .prepare(
-          `
-        INSERT INTO users (username, email, password_hash, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?)
-      `,
-        )
-        .run(
-          'admin',
-          'admin@investment-agent.local',
-          'placeholder_hash',
-          new Date().toISOString(),
-          new Date().toISOString(),
-        );
-
-      console.log(`✅ Default user created with ID: ${result.lastInsertRowid}`);
-      console.log('   Username: admin');
-      console.log('   Email: admin@investment-agent.local');
-
-      db.close();
     } catch (error) {
       console.error('❌ Failed to initialize default user:', error.message);
       throw error;

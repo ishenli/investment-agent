@@ -2,7 +2,7 @@
 ![投资 Agent](https://mdn.alipayobjects.com/huamei_ptvnul/afts/img/A*75cHQpMc8-4AAAAAcFAAAAgAeg-GAQ/original)
 
 这是一个使用 AI Coding 打造的本地化投资分析工具，利用 AI 提供全面的股票市场分析、资产管理和投资建议。
-
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/ishenli/investment-agent)](https://github.com/ishenli/investment-agent/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/ishenli/investment-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/ishenli/investment-agent/actions/workflows/ci.yml)
 [![Dependabot Updates](https://github.com/ishenli/investment-agent/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/ishenli/investment-agent/actions/workflows/dependabot/dependabot-updates)
@@ -127,7 +127,7 @@ npm install -g investment-agent
    # 访问 http://localhost:3000
    ```
 
-### 环境变量
+### 本地项目环境变量
 
 在 `.env.local` 文件中配置以下环境变量：
 
@@ -154,6 +154,10 @@ LANGSMITH_API_KEY=your_langsmith_api_key
 # 金融数据集密钥
 FINANCIAL_DATASETS_KEY=your_financial_datasets_key
 ```
+
+## 全局环境变量
+
+使用 Electron 时，环境变量需要配置在全局环境变量中，而不是 `.env.local` 文件中。
 
 ## 架构设计
 
@@ -210,6 +214,9 @@ pnpm build
 
 # 启动生产服务器
 pnpm start
+
+# 构建 Electron 应用
+pnpm electron:build
 ```
 
 ### LangGraph 开发
@@ -292,6 +299,16 @@ pnpm test
 
 2. 打开浏览器访问 [http://localhost:3000](http://localhost:3000)
 
+### Electron 应用
+
+1. 构建应用：
+
+   ```bash
+   pnpm electron:build
+   ```
+
+2. 构建完成后，可以在 `release` 目录下找到对应平台的安装包。
+
 ### CLI 工具
 
 如果已全局安装，可以使用：
@@ -330,11 +347,6 @@ investment-agent/
 │   │   └── tradingagents/      # AI 代理实现
 │   └── shared/                 # 客户端和服务端共享代码
 ├── tests/                      # 测试文件
-│   ├── test-asset-service.ts
-│   ├── test-asset-api.ts
-│   ├── test-init-api.ts
-│   ├── test-investment-chat.ts
-│   └── test-position-service.ts
 ├── drizzle/                    # Drizzle ORM 配置
 │   ├── config.ts               # 数据库配置
 │   └── schema/                 # 数据库 schema 定义
@@ -356,6 +368,8 @@ investment-agent/
 - **TypeScript** 5.9.3 - 类型安全的 JavaScript
 - **Tailwind CSS** 4.1.18 - 实用优先的 CSS 框架
 - **PostCSS** - CSS 转换工具
+- **Electron** 40.0.0 - 跨平台桌面应用开发框架
+- **Electron Builder** 26.7.0 - Electron 应用打包工具
 
 ### AI 与 LLM
 
@@ -369,10 +383,11 @@ investment-agent/
 
 ### 数据库与存储
 
-- **Better SQLite3** 12.6.0 - 嵌入式数据库
+- **Better SQLite3** 12.6.2 - 嵌入式数据库
 - **Drizzle ORM** 0.44.7 - 类型安全的 ORM
-- **Drizzle Kit** 0.31.8 - 数据库迁移工具
-- **Dexie** 4.2.1 - IndexedDB 封装（客户端存储）
+- **Drizzle Kit** 0.31.9 - 数据库迁移工具
+- **Dexie** 4.3.0 - IndexedDB 封装（客户端存储）
+- **@libsql/client** 0.17.0 - LibSQL 客户端 (用于 Electron 环境)
 
 ### 数据可视化与图表
 

@@ -57,10 +57,8 @@ extraResources:
     filter: ["icon.*"]
   - from: "drizzle"
     to: "standalone/drizzle"
-afterPack: scripts/after-pack.js
 asarUnpack:
   - "**/*.node"
-  - "**/better-sqlite3/**"
   - "**/@libsql/**"
   - resources/**
 mac:
