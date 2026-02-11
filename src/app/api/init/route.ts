@@ -8,7 +8,6 @@ class InitHttpController extends BaseController {
   /**
    * 初始化功能：根据当前持仓信息，调用 Finnhub API 更新每个持仓标的价格
    */
-  @WithRequestContext()
   static async GET() {
     const initController = new InitController();
     const data = await initController.init();

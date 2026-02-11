@@ -5,10 +5,24 @@ on:
     branches: [ main ]
     tags:
       - 'v*'
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
-
+    inputs:
+      tag:
+        description: "Release tag (e.g. v1.0.0)"
+        required: true
+        default: "v1.0.0"
+      platform:
+        description: "Build platform"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - windows
+          - mac
+          - linux
+permissions:
+  contents: write
 jobs:
   build:
     name: Build on ${{ matrix.os }}
@@ -58,13 +72,6 @@ jobs:
       #   run: pnpm exec electron-builder --win --config electron-builder.yml
       #   env:
       #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-${{ matrix.os }}
-          path: release/
-          if-no-files-found: warn
       # 发布
       - name: Release
         uses: ncipollo/release-action@v1

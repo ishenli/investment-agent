@@ -83,7 +83,7 @@
 - [ ] CHK037 单元测试覆盖关键逻辑
 - [ ] CHK038 集成测试覆盖 API 端点
 - [ ] CHK039 `npm run lint` 无错误
-- [ ] CHK040 `npm run type-check` 无错误
+- [ ] CHK040 `npm run types:check` 无错误
 - [ ] CHK041 `npm test` 全部通过
 
 ## 文档

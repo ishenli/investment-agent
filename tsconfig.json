@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2018",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -21,15 +25,32 @@
         "name": "next",
       },
     ],
+    "baseUrl": "./",
     "paths": {
-      "@/*": ["./src/*"],
-      "@chat/*": ["./src/app/(pages)/chat/*"],
-      "@renderer/*": ["./src/app/*"],
-      "@server/*": ["./src/server/*"],
-      "@typings/*": ["./src/types/*"],
-      "@shared/*": ["./src/shared/*"],
-      "@/drizzle/*": ["./drizzle/*"],
-      "@drizzle/*": ["./drizzle/*"],
+      "@/*": [
+        "./src/*"
+      ],
+      "@chat/*": [
+        "./src/app/(pages)/chat/*"
+      ],
+      "@renderer/*": [
+        "./src/app/*"
+      ],
+      "@server/*": [
+        "./src/server/*"
+      ],
+      "@typings/*": [
+        "./src/types/*"
+      ],
+      "@shared/*": [
+        "./src/shared/*"
+      ],
+      "@/drizzle/*": [
+        "./drizzle/*"
+      ],
+      "@drizzle/*": [
+        "./drizzle/*"
+      ],
     },
   },
   "include": [
@@ -39,5 +60,9 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
   ],
-  "exclude": ["node_modules", "tests", "**/__tests__/**"],
+  "exclude": [
+    "node_modules",
+    "tests",
+    "**/__tests__/**"
+  ],
 }

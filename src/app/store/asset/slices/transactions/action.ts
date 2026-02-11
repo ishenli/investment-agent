@@ -30,7 +30,7 @@ export const createAssetTransactionsSlice: StateCreator<
     }));
     try {
       const response = await fetch(
-        `/api/asset/account/transactions?limit=${limit}&offset=${offset}`,
+        `/api/asset/transactions?limit=${limit}&offset=${offset}`,
       );
       if (!response.ok) {
         throw new Error('Failed to fetch transactions');
@@ -58,7 +58,7 @@ export const createAssetTransactionsSlice: StateCreator<
       transactionsError: null,
     }));
     try {
-      const response = await fetch(`/api/asset/account/transactions`, {
+      const response = await fetch(`/api/asset/transactions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -97,7 +97,7 @@ export const createAssetTransactionsSlice: StateCreator<
       transactionsError: null,
     }));
     try {
-      const response = await fetch(`/api/asset/account/transactions/${transactionId}`, {
+      const response = await fetch(`/api/asset/transactions/${transactionId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

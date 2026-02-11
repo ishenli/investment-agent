@@ -57,7 +57,7 @@
 
 ### 获取账户详情接口
 
-**Endpoint**: `GET /api/asset/account/{accountId}`
+**Endpoint**: `GET /api/asset/{accountId}`
 
 **路径参数**:
 
@@ -82,7 +82,7 @@
 
 ### 更新账户设置接口
 
-**Endpoint**: `PUT /api/asset/account/{accountId}`
+**Endpoint**: `PUT /api/asset/{accountId}`
 
 **路径参数**:
 
@@ -117,7 +117,7 @@
 
 ### 获取账户余额接口
 
-**Endpoint**: `GET /api/asset/account/{accountId}/balance`
+**Endpoint**: `GET /api/asset/{accountId}/balance`
 
 **路径参数**:
 
@@ -134,7 +134,7 @@
 
 ### 获取交易历史接口
 
-**Endpoint**: `GET /api/asset/account/{accountId}/transactions`
+**Endpoint**: `GET /api/asset/{accountId}/transactions`
 
 **路径参数**:
 
@@ -166,7 +166,7 @@
 
 ### 获取当前持仓接口
 
-**Endpoint**: `GET /api/asset/account/{accountId}/positions`
+**Endpoint**: `GET /api/asset/{accountId}/positions`
 
 **路径参数**:
 
@@ -194,7 +194,7 @@
 
 ### 获取业绩指标接口
 
-**Endpoint**: `GET /api/asset/account/{accountId}/revenue`
+**Endpoint**: `GET /api/asset/{accountId}/revenue`
 
 **路径参数**:
 
@@ -264,7 +264,7 @@ curl -X POST /api/asset/account \
 **请求**:
 
 ```
-curl -X GET /api/asset/account/asset_acc_1234567890/positions
+curl -X GET /api/asset/asset_acc_1234567890/positions
 ```
 
 **响应**:

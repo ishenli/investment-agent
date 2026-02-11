@@ -1,3 +1,4 @@
+import { WithRequestContext } from '../base/decorators';
 import logger from '../base/logger';
 import accountService from '../service/accountService';
 import { unifiedPriceService } from '../service/unifiedPriceService';
@@ -37,6 +38,7 @@ interface MarketStats {
 }
 
 export class InitController extends BaseBizController {
+  @WithRequestContext()
   async init() {
     try {
       // 获取所有账户

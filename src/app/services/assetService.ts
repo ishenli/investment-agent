@@ -13,21 +13,21 @@ export const fetchAccount = async (): Promise<TradingAccountType> => {
 // 持仓相关API
 export const fetchPositions = async (): Promise<PositionType[]> => {
   const response = await get<{ data: { positions: PositionType[] } }>(
-    '/api/asset/account/positions',
+    '/api/asset/positions',
   );
   return response.data.positions;
 };
 
 // 交易记录相关API
 export const fetchTransactions = async () => {
-  const response = await get('/api/asset/account/transactions');
+  const response = await get('/api/asset/transactions');
   return response.data;
 };
 
 // 收益相关API
 export const fetchRevenue = async (period: string = '30d'): Promise<revenueMetricType> => {
   const response = await get<{ data: { metrics: revenueMetricType } }>(
-    `/api/asset/account/revenue?period=${period}`,
+    `/api/asset/revenue?period=${period}`,
   );
   return response.data.metrics;
 };
@@ -38,14 +38,14 @@ export const fetchRevenueHistory = async (
   granularity: string = 'monthly',
 ): Promise<revenueHistoryType> => {
   const response = await get<{ data: revenueHistoryType }>(
-    `/api/asset/account/revenue/history?period=${period}&granularity=${granularity}`,
+    `/api/asset/revenue/history?period=${period}&granularity=${granularity}`,
   );
   return response.data;
 };
 
 // 摘要相关API
 export const fetchSummary = async (): Promise<AssetSummaryType> => {
-  const response = await get<{ data: { summary: AssetSummaryType } }>('/api/asset/account/summary');
+  const response = await get<{ data: { summary: AssetSummaryType } }>('/api/asset/summary');
   return response.data.summary;
 };
 
@@ -73,7 +73,7 @@ export const fetchLatestPrice = async (symbol: string, market: string) => {
 
 // 更新账户余额
 export const updateAccountBalance = async (newBalance: number): Promise<TradingAccountType> => {
-  const response = await put<{ data: TradingAccountType }>('/api/asset/account/balance', {
+  const response = await put<{ data: TradingAccountType }>('/api/asset/balance', {
     balance: newBalance,
   });
   return response.data;
