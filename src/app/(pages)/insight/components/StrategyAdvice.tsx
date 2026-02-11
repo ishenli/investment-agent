@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -12,11 +13,24 @@ import { LightbulbIcon, ThumbsUpIcon, ThumbsDownIcon } from 'lucide-react';
 import { useStrategyAdviceQuery } from '@renderer/hooks/usePositionQueries';
 import { Spinner } from '@renderer/components/ui/spinner';
 import { AdviceType } from '@typings/insight';
+import { RotateCcwIcon } from 'lucide-react';
 
 // 策略建议组件
 export function StrategyAdvice() {
-  const { data: advice, isLoading: isStrategyAdviceLoading } =
+  const { data: advice, isLoading: isStrategyAdviceLoading, refetch, isRefetching } =
     useStrategyAdviceQuery<AdviceType[]>();
+
+  const [loading, setLoading] = useState(false);
+
+  // 手动触发刷新
+  const handleRefresh = async () => {
+    setLoading(true);
+    try {
+      await refetch();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (isStrategyAdviceLoading) {
     return (
@@ -52,8 +66,25 @@ export function StrategyAdvice() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg font-semibold">投资组合策略建议</CardTitle>
-        <CardDescription>基于您投资组合的个性化策略建议</CardDescription>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle className="text-lg font-semibold">投资组合策略建议</CardTitle>
+            <CardDescription>基于您投资组合的个性化策略建议</CardDescription>
+          </div>
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading}>
+            {loading ? (
+              <>
+                <Spinner className="mr-2 h-4 w-4" />
+                刷新中...
+              </>
+            ) : (
+              <>
+                <RotateCcwIcon className="h-4 w-4 mr-2" />
+                刷新
+              </>
+            )}
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

@@ -50,18 +50,18 @@ const ActionPopover = memo<ActionPopoverProps>(
       <Popover
         arrow={false}
         classNames={{
-          ...classNames,
-          body: cx(styles.popoverContent, classNames?.body),
+          ...((typeof classNames === 'function' ? undefined : classNames) as Partial<PopoverProps['classNames']>),
+          content: cx(styles.popoverContent, (typeof classNames === 'function' ? undefined : classNames)?.content),
         }}
         placement={placement}
         styles={{
-          ...customStyles,
-          body: {
+          ...((typeof customStyles === 'function' ? undefined : customStyles) as Partial<PopoverProps['styles']>),
+          content: {
             maxHeight,
             maxWidth: maxWidth,
             minWidth: minWidth,
             width: '100vw',
-            ...customStyles?.body,
+            ...(typeof customStyles === 'function' ? undefined : customStyles)?.content,
           },
         }}
         title={

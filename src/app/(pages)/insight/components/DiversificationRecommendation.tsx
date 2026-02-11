@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -19,11 +20,28 @@ import {
 import { useDiversificationRecommendationsQuery } from '@renderer/hooks/usePositionQueries';
 import { Spinner } from '@renderer/components/ui/spinner';
 import { RecommendationType } from '@typings/insight';
+import { RotateCcwIcon } from 'lucide-react';
 
 // 分散建议组件
 export function DiversificationRecommendation() {
-  const { data: recommendations, isLoading: isDiversificationLoading } =
-    useDiversificationRecommendationsQuery<RecommendationType[]>();
+  const {
+    data: recommendations,
+    isLoading: isDiversificationLoading,
+    refetch,
+    isRefetching,
+  } = useDiversificationRecommendationsQuery<RecommendationType[]>();
+
+  const [loading, setLoading] = useState(false);
+
+  // 手动触发刷新
+  const handleRefresh = async () => {
+    setLoading(true);
+    try {
+      await refetch();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (isDiversificationLoading) {
     return (
@@ -59,8 +77,25 @@ export function DiversificationRecommendation() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg font-semibold">分散投资建议</CardTitle>
-        <CardDescription>基于风险分析的投资组合优化建议</CardDescription>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle className="text-lg font-semibold">分散投资建议</CardTitle>
+            <CardDescription>基于风险分析的投资组合优化建议</CardDescription>
+          </div>
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading}>
+            {loading ? (
+              <>
+                <Spinner className="mr-2 h-4 w-4" />
+                刷新中...
+              </>
+            ) : (
+              <>
+                <RotateCcwIcon className="h-4 w-4 mr-2" />
+                刷新
+              </>
+            )}
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <Table>

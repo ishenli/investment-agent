@@ -1,5 +1,5 @@
 import settingService from '@/server/service/settingService';
-import { XStream } from '@ant-design/x';
+import { XStream } from '@ant-design/x-sdk';
 
 export const llmOptions = {
   model: 'DeepSeek-V3',
@@ -54,7 +54,7 @@ export async function requestSSE({
   let isCancelled = false;
   abortRef.current = () => {
     isCancelled = true;
-    reader.cancel().catch((err) => {
+    reader.cancel().catch((err: any) => {
       // 忽略取消请求导致的错误
       console.log('Cancel operation error:', err.message);
     });
