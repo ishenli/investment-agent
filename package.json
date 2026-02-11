@@ -45,10 +45,9 @@
     "url": "https://github.com/ishenli/investment-agent"
   },
   "dependencies": {
-    "@ant-design/cssinjs": "^1.24.0",
+    "@ant-design/cssinjs": "^2.1.0",
     "@ant-design/nextjs-registry": "^1.3.0",
-    "@ant-design/v5-patch-for-react-19": "^1.0.3",
-    "@ant-design/x": "^1.6.1",
+    "@ant-design/x": "^2.2.2",
     "@block-kit/variable": "^1.0.21",
     "@cfworker/json-schema": "^4.1.1",
     "@codesandbox/sandpack-react": "^2.20.0",
@@ -91,7 +90,7 @@
     "@xyflow/react": "^12.10.0",
     "ahooks": "^3.9.6",
     "ai": "^5.0.129",
-    "antd": "^5.29.3",
+    "antd": "^6.3.0",
     "antd-style": "^3.7.1",
     "axios": "^1.13.5",
     "bcryptjs": "^3.0.3",

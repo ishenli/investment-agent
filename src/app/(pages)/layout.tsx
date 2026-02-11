@@ -4,8 +4,6 @@ import '../globals.css';
 import { AppSidebar } from '@renderer/components/app-sidebar';
 import { SiteHeader } from '@renderer/components/site-header';
 import { SidebarProvider, SidebarInset } from '@renderer/components/ui/sidebar';
-import { initAppData } from '../lib/app';
-import '@ant-design/v5-patch-for-react-19';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';

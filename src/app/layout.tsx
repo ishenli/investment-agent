@@ -3,7 +3,6 @@
 import './globals.css';
 import { initAppData } from './lib/app';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
-import '@ant-design/v5-patch-for-react-19';
 import { useEffect } from 'react';
 import { Providers } from './providers';
 
