@@ -5,8 +5,6 @@ on:
     branches: [ main ]
     tags:
       - 'v*'
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
     inputs:
       tag:
@@ -23,7 +21,8 @@ on:
           - windows
           - mac
           - linux
-
+permissions:
+  contents: write
 jobs:
   build:
     name: Build on ${{ matrix.os }}
