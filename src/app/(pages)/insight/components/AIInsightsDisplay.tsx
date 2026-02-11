@@ -107,6 +107,7 @@ export function AIInsightsDisplay() {
                   刷新
                 </>
               )}
+            </Button>
           </div>
         </CardContent>
       </Card>

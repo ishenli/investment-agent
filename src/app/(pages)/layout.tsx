@@ -30,9 +30,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  useEffect(() => {
-    initAppData();
-  }, []);
   return (
     <SidebarProvider
       // open={true}
