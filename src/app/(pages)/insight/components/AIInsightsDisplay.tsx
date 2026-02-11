@@ -90,19 +90,23 @@ export function AIInsightsDisplay() {
             <LightbulbIcon className="h-12 w-12 mx-auto mb-4 text-yellow-500" />
             <p>暂无分析结论</p>
             <Button
-              className="mt-4 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              variant="outline"
+              size="sm"
+              className="mt-4"
               onClick={handleFetchAIInsights}
               disabled={loading}
             >
               {loading ? (
                 <>
                   <Spinner className="mr-2 h-4 w-4" />
-                  分析中...
+                  刷新中...
                 </>
               ) : (
-                '开始分析'
+                <>
+                  <RotateCcwIcon className="h-4 w-4 mr-2" />
+                  刷新
+                </>
               )}
-            </Button>
           </div>
         </CardContent>
       </Card>
