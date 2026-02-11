@@ -6,7 +6,7 @@ export const usePositionsQuery = () => {
   return useQuery({
     queryKey: ['positions'],
     queryFn: async () => {
-      const response = await get<{ data: { positions: any[] } }>('/api/asset/account/positions');
+      const response = await get<{ data: { positions: any[] } }>('/api/asset/positions');
       return response.data.positions;
     },
     staleTime: 1000 * 60 * 1, // 1分钟内数据视为新鲜

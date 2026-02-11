@@ -38,7 +38,7 @@
   - 返回统一格式的成功/错误响应
 
 - [x] **TASK-1.5**: 创建新的 API 路由
-  - File: `src/app/api/asset/account/revenue/history/route.ts` (新建)
+  - File: `src/app/api/asset/revenue/history/route.ts` (新建)
   - 实现 `GET` 方法
   - 从 Request 中提取 query 参数
   - 调用 `AssetAccountBizController.getRevenueHistory()`
@@ -50,7 +50,7 @@
   - File: `src/app/services/assetService.ts`
   - 导出 `fetchRevenueHistory(period: string, granularity: string)`
   - 使用现有的 `get()` 工具函数
-  - 请求路径: `/api/asset/account/revenue/history`
+  - 请求路径: `/api/asset/revenue/history`
   - 解析响应并返回 `revenueHistoryType` 类型数据
   - 错误处理：抛出异常交由 React Query 处理
 

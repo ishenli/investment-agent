@@ -1,36 +1,63 @@
-import { JwtPayload } from '../service/authService';
+import jwt from 'jsonwebtoken';
+
+// JWT 密钥配置
+const JWT_SECRET = process.env.JWT_SECRET || 'investment-agent-secret-key-change-in-production';
+const TOKEN_EXPIRY = '7d'; // Token 过期时间
 
 /**
- * 验证JWT token（模拟实现）
- * @param token JWT token
- * @returns 解析后的payload或null（如果无效）
+ * JWT payload 类型（签发时使用，不包含 exp 和 iat）
  */
-export function verifyJwtToken(token: string): JwtPayload | null {
-  // 在实际应用中，这里应该使用jwt库来验证token
-  // 例如：return jwt.verify(token, process.env.JWT_SECRET);
+export interface JwtPayload {
+  userId: string;
+  username: string;
+}
 
-  // 临时实现：假设token是简单的用户ID（仅用于开发环境）
+/**
+ * JWT decoded payload 类型（验证后使用，包含 exp 和 iat）
+ */
+export interface DecodedJwtPayload extends JwtPayload {
+  exp: number;
+  iat: number;
+}
+
+/**
+ * 生成 JWT token
+ * @param payload 要包含在 token 中的数据
+ * @returns 生成的 token
+ */
+export function signJwtToken(payload: JwtPayload): string {
+  return jwt.sign(payload, JWT_SECRET, {
+    expiresIn: TOKEN_EXPIRY,
+  });
+}
+
+/**
+ * 验证 JWT token
+ * @param token JWT token
+ * @returns 解析后的 payload 或 null（如果无效）
+ */
+export function verifyJwtToken(token: string): DecodedJwtPayload | null {
   try {
-    return { userId: '1' };
+    const decoded = jwt.verify(token, JWT_SECRET);
+    // 验证返回的对象是否包含必需的字段
+    if (
+      typeof decoded === 'object' &&
+      decoded !== null &&
+      'userId' in decoded &&
+      'username' in decoded &&
+      'exp' in decoded &&
+      'iat' in decoded
+    ) {
+      return {
+        userId: decoded.userId as string,
+        username: decoded.username as string,
+        exp: decoded.exp as number,
+        iat: decoded.iat as number,
+      };
+    }
+    return null;
   } catch (error) {
     console.error('Error verifying JWT token:', error);
     return null;
   }
-}
-
-/**
- * 生成JWT token（模拟实现）
- * @param payload 要包含在token中的数据
- * @returns 生成的token
- */
-export function signJwtToken(payload: object): string {
-  // 在实际应用中，这里应该使用jwt库来生成token
-  // 例如：return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-  // 临时实现：直接返回用户ID（仅用于开发环境）
-  if ('userId' in payload && typeof payload.userId === 'string') {
-    return payload.userId;
-  }
-
-  return '1'; // 默认用户ID
 }

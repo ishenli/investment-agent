@@ -80,8 +80,14 @@ export const createAccountSettingsSlice: StateCreator<
         throw new Error('Failed to fetch selected account');
       }
       const res = await response.json();
-      const selectedAccount = res.data.selectedAccount;
-      set((state) => ({ ...state, account: selectedAccount }));
+      if (res.code === 'unauthorized') {
+        set((state) => ({ ...state, account: null, showSwitchAccountDialog: false }));
+      } else if (res.data.selectedAccount) {
+        const selectedAccount = res.data.selectedAccount;
+        set((state) => ({ ...state, account: selectedAccount }));
+      } else {
+        set((state) => ({ ...state, account: null, showSwitchAccountDialog: false }));
+      }
     } catch (error) {
       console.error('Failed to fetch selected account:', error);
     }

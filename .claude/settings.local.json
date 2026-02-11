@@ -23,7 +23,10 @@
       "Bash(npm run types:check)",
       "Bash(git diff:*)",
       "Bash(xargs:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm type-check:*)",
+      "Bash(pnpm test:*)"
     ]
   }
 }

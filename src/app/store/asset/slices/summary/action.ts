@@ -21,7 +21,7 @@ export const createAssetSummarySlice: StateCreator<
       summaryError: null,
     }));
     try {
-      const response = await fetch(`/api/asset/account/summary`);
+      const response = await fetch(`/api/asset/summary`);
       if (!response.ok) {
         throw new Error('Failed to fetch asset summary');
       }

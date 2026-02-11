@@ -55,7 +55,7 @@ export const revenueHistoryQuerySchema = z.object({
 ## 3. API Design
 
 ### 3.1 New API Endpoint
-**Route**: `GET /api/asset/account/revenue/history`
+**Route**: `GET /api/asset/revenue/history`
 
 **Query Parameters**:
 - `period`: string (required) - '7d', '30d', '90d', '365d', 'all'
@@ -197,7 +197,7 @@ Sharpe = (Annualized Return - Risk Free Rate) / Volatility
 1. User selects period (30d) and granularity (monthly)
 2. revenue-analytics.tsx triggers useRevenueHistoryQuery('30d', 'monthly')
 3. React Query calls fetchRevenueHistory('30d', 'monthly')
-4. assetService.get() fetches from /api/asset/account/revenue/history
+4. assetService.get() fetches from /api/asset/revenue/history
 5. Cache response for 5 minutes (staleTime)
 ```
 
