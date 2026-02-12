@@ -1,6 +1,6 @@
 'use client';
 
-import { InsightDashboardClientWrapper } from './modules/InsightDashboardClientWrapper';
+import { RiskDashboard } from './modules/InsightDashboard';
 import { useAccountGuard } from '@renderer/hooks/useAccountGuard';
 
 export default function InsightPage() {
@@ -9,7 +9,7 @@ export default function InsightPage() {
 
   return (
     <div className="container mx-auto p-8">
-      <InsightDashboardClientWrapper />
+      <RiskDashboard />
     </div>
   );
 }

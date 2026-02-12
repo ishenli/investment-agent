@@ -20,7 +20,8 @@ import {
 import { useDiversificationRecommendationsQuery } from '@renderer/hooks/usePositionQueries';
 import { Spinner } from '@renderer/components/ui/spinner';
 import { RecommendationType } from '@typings/insight';
-import { RotateCcwIcon } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
+import { cn } from '@renderer/lib/utils';
 
 // 分散建议组件
 export function DiversificationRecommendation() {
@@ -28,32 +29,37 @@ export function DiversificationRecommendation() {
     data: recommendations,
     isLoading: isDiversificationLoading,
     refetch,
-    isRefetching,
+    isFetching,
   } = useDiversificationRecommendationsQuery<RecommendationType[]>();
 
-  const [loading, setLoading] = useState(false);
-
-  // 手动触发刷新
-  const handleRefresh = async () => {
-    setLoading(true);
-    try {
-      await refetch();
-    } finally {
-      setLoading(false);
-    }
-  };
+  const header = (
+    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <div className="flex flex-col space-y-1.5">
+        <CardTitle className="text-lg font-semibold">分散投资建议</CardTitle>
+        <CardDescription>基于风险分析的投资组合优化建议</CardDescription>
+      </div>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => refetch()}
+        disabled={isDiversificationLoading || isFetching}
+        className="h-8 w-8"
+      >
+        <RefreshCw
+          className={cn('h-4 w-4', (isDiversificationLoading || isFetching) && 'animate-spin')}
+        />
+      </Button>
+    </CardHeader>
+  );
 
   if (isDiversificationLoading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">分散投资建议</CardTitle>
-          <CardDescription>基于风险分析的投资组合优化建议</CardDescription>
-        </CardHeader>
+        {header}
         <CardContent>
           <div className="flex items-center justify-center py-8 text-muted-foreground">
             <Spinner />
-            <p>正在加载中...</p>
+            <p>正在分析中...</p>
           </div>
         </CardContent>
       </Card>
@@ -63,10 +69,7 @@ export function DiversificationRecommendation() {
   if (!recommendations || recommendations.length === 0) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">分散投资建议</CardTitle>
-          <CardDescription>基于风险分析的投资组合优化建议</CardDescription>
-        </CardHeader>
+        {header}
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">暂无分散投资建议</div>
         </CardContent>
@@ -76,27 +79,7 @@ export function DiversificationRecommendation() {
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <div>
-            <CardTitle className="text-lg font-semibold">分散投资建议</CardTitle>
-            <CardDescription>基于风险分析的投资组合优化建议</CardDescription>
-          </div>
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading}>
-            {loading ? (
-              <>
-                <Spinner className="mr-2 h-4 w-4" />
-                刷新中...
-              </>
-            ) : (
-              <>
-                <RotateCcwIcon className="h-4 w-4 mr-2" />
-                刷新
-              </>
-            )}
-          </Button>
-        </div>
-      </CardHeader>
+      {header}
       <CardContent>
         <Table>
           <TableHeader>

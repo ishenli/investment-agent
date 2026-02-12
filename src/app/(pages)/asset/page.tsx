@@ -6,6 +6,7 @@ import { AssetDashboard } from './components/asset-dashboard';
 import { RevenueAnalytics } from './components/revenue-analytics';
 import { useAccountGuard } from '@renderer/hooks/useAccountGuard';
 import { PriceRefreshButton } from '@renderer/components/refresh-button';
+import { AssetStructure } from './components/asset-structure';
 
 export default function AssetPage() {
   // 保护页面，确保用户有账户才能访问
@@ -21,6 +22,7 @@ export default function AssetPage() {
           <TabsList>
             <TabsTrigger value="dashboard">账户信息</TabsTrigger>
             <TabsTrigger value="revenue">业绩分析</TabsTrigger>
+            <TabsTrigger value="position">资产结构</TabsTrigger>
           </TabsList>
 
           {/* 添加价格刷新按钮 */}
@@ -37,6 +39,10 @@ export default function AssetPage() {
 
         <TabsContent value="revenue" className="space-y-4">
           <RevenueAnalytics />
+        </TabsContent>
+
+        <TabsContent value="position" className="space-y-4">
+          <AssetStructure />
         </TabsContent>
       </Tabs>
     </div>
