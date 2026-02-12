@@ -39,7 +39,6 @@ export const TradingAccountSchema = z.object({
   riskMode: z.enum(['retail', 'advanced']).default('retail'),
   createdAt: z.date(),
   updatedAt: z.date(),
-  isActive: z.boolean(),
 });
 
 export type TradingAccountType = z.infer<typeof TradingAccountSchema>;

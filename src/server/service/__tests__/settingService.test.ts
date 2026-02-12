@@ -17,13 +17,13 @@ vi.mock('@server/lib/db', () => ({
 }));
 
 vi.mock('@server/service/authService', () => ({
-  AuthService: {
+  default: {
     getCurrentUserId: vi.fn(),
   },
 }));
 
-import { db } from '@server/lib/db';
-import { AuthService } from '../authService';
+import { db } from '../../lib/db';
+import authService from '../authService';
 
 const mockSetting: SettingType = {
   id: 1,
@@ -44,7 +44,7 @@ describe('SettingService', () => {
 
   describe('getConfigValueByKey', () => {
     it('应该返回设置的值', async () => {
-      (AuthService.getCurrentUserId as any).mockResolvedValue('1');
+      (authService.getCurrentUserId as any).mockResolvedValue('1');
       vi.spyOn(settingService, 'getSettingByKey').mockResolvedValue(mockSetting);
 
       const result = await settingService.getConfigValueByKey('test_key');
@@ -53,7 +53,7 @@ describe('SettingService', () => {
     });
 
     it('设置不存在时应该返回 process.env 值', async () => {
-      (AuthService.getCurrentUserId as any).mockResolvedValue('1');
+      (authService.getCurrentUserId as any).mockResolvedValue('1');
       vi.spyOn(settingService, 'getSettingByKey').mockResolvedValue(null);
 
       const result = await settingService.getConfigValueByKey('NODE_ENV');
@@ -189,7 +189,7 @@ describe('SettingService', () => {
 
   describe('getModelServiceApiUrl', () => {
     it('应该从设置中返回模型服务 API 地址', async () => {
-      (AuthService.getCurrentUserId as any).mockResolvedValue('1');
+      (authService.getCurrentUserId as any).mockResolvedValue('1');
       vi.spyOn(settingService, 'getSettingByKey').mockResolvedValue({
         ...mockSetting,
         key: 'MODEL_PROVIDER_URL',
@@ -202,7 +202,7 @@ describe('SettingService', () => {
     });
 
     it('设置不存在时应该返回 process.env 值', async () => {
-      (AuthService.getCurrentUserId as any).mockResolvedValue('1');
+      (authService.getCurrentUserId as any).mockResolvedValue('1');
       vi.spyOn(settingService, 'getSettingByKey').mockResolvedValue(null);
       process.env.MODEL_PROVIDER_URL = 'https://env.example.com';
 
@@ -212,7 +212,7 @@ describe('SettingService', () => {
     });
 
     it('设置和环境变量都不存在时应该返回 null', async () => {
-      (AuthService.getCurrentUserId as any).mockResolvedValue('1');
+      (authService.getCurrentUserId as any).mockResolvedValue('1');
       vi.spyOn(settingService, 'getSettingByKey').mockResolvedValue(null);
       delete process.env.MODEL_PROVIDER_URL;
 

@@ -18,13 +18,13 @@ vi.mock('@server/lib/db', () => ({
 }));
 
 vi.mock('@server/service/authService', () => ({
-  AuthService: {
+  default: {
     getCurrentUserId: vi.fn(),
   },
 }));
 
-import { db } from '@server/lib/db';
-import { AuthService } from '../authService';
+import { db } from '../../lib/db';
+import authService from '../authService';
 
 const mockNote = {
   id: 1,
@@ -318,7 +318,7 @@ describe('NoteService', () => {
 
   describe('searchNotes', () => {
     it('应该搜索用户的笔记', async () => {
-      (AuthService.getCurrentUserId as any).mockResolvedValue('1');
+      (authService.getCurrentUserId as any).mockResolvedValue('1');
       (db.query.notes.findMany as any).mockResolvedValue([mockNote]);
 
       const result = await noteService.searchNotes('content');
@@ -328,7 +328,7 @@ describe('NoteService', () => {
     });
 
     it('用户未登录时应该返回空数组', async () => {
-      (AuthService.getCurrentUserId as any).mockResolvedValue('');
+      (authService.getCurrentUserId as any).mockResolvedValue('');
 
       const result = await noteService.searchNotes('content');
 
@@ -336,7 +336,7 @@ describe('NoteService', () => {
     });
 
     it('数据库错误时应该返回空数组', async () => {
-      (AuthService.getCurrentUserId as any).mockResolvedValue('1');
+      (authService.getCurrentUserId as any).mockResolvedValue('1');
       (db.query.notes.findMany as any).mockRejectedValue(new Error('Database error'));
 
       const result = await noteService.searchNotes('content');

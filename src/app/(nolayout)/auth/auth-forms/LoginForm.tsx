@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@renderer/components/ui/card';
 import { Button } from '@renderer/components/ui/button';
 import { Input } from '@renderer/components/ui/input';
@@ -13,12 +13,29 @@ import type { LoginInput } from '@/types/auth';
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setAuth, setLoading, loading, error, setError } = useAuthStore();
 
   const [formData, setFormData] = useState<LoginInput>({
     username: '',
     password: '',
   });
+
+  // 获取重定向URL
+  const redirectUrl = searchParams.get('redirect') || '/asset';
+
+  // 检查是否已登录
+  useEffect(() => {
+    const token = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('auth_token='))
+      ?.split('=')[1];
+
+    if (token) {
+      // 如果有token且有效，直接跳转到目标页面
+      router.push(redirectUrl);
+    }
+  }, [redirectUrl, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,9 +60,15 @@ export function LoginForm() {
       const data = await response.json();
 
       if (data.success) {
+        // 设置认证状态
         setAuth(data.data.user, data.data.token);
-        // 登录成功后跳转到资产页面
-        router.push('/asset');
+
+        // 将 token 保存到 cookie（用于 middleware 验证）
+        const maxAge = 7 * 24 * 60 * 60; // 7天
+        document.cookie = `auth_token=${data.data.token}; path=/; max-age=${maxAge}; secure; samesite=lax`;
+
+        // 跳转到目标页面或默认页面
+        router.push(redirectUrl);
       } else {
         setError(data.message || '登录失败，请稍后重试');
       }

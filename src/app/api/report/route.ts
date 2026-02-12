@@ -1,8 +1,9 @@
 import { WithRequestContextStatic } from '@/server/base/decorators';
 import { BaseController } from '@/app/api/base/baseController';
 import reportService from '@/server/service/reportService';
-import { AuthService } from '@/server/service/authService';
 import { z } from 'zod';
+import authService from '@/server/service/authService';
+
 
 // 定义请求体和参数的验证模式
 const GenerateReportSchema = z.object({
@@ -24,7 +25,7 @@ export class ReportController extends BaseController {
   static async POST(request: Request) {
     try {
       // 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'UNAUTHORIZED');
       }
@@ -32,7 +33,7 @@ export class ReportController extends BaseController {
       // 验证请求体
       const body = await this.validateBody(request, GenerateReportSchema);
 
-      const accountInfo = await AuthService.getCurrentUserAccount();
+      const accountInfo = await authService.getCurrentUserAccount();
       const accountId = body.accountId || accountInfo?.id;
 
       if (!accountId) {
@@ -60,7 +61,7 @@ export class ReportController extends BaseController {
   static async GET(request: Request) {
     try {
       // 获取当前用户ID
-      const accountInfo = await AuthService.getCurrentUserAccount();
+      const accountInfo = await authService.getCurrentUserAccount();
       if (!accountInfo) {
         return this.error('用户未登录', 'UNAUTHORIZED');
       }

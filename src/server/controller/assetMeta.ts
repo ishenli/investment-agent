@@ -3,14 +3,14 @@ import { BaseBizController } from './base';
 import logger from '@server/base/logger';
 import { z } from 'zod';
 import assetMetaService from '@server/service/assetMetaService';
-import { AuthService } from '@server/service/authService';
+import authService from '../service/authService';
 
 export class AssetMetaBizController extends BaseBizController {
   @WithRequestContext()
   async getAllAssetMetas(query: { symbol?: string; id?: string }) {
     try {
       // 1. 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -57,7 +57,7 @@ export class AssetMetaBizController extends BaseBizController {
   }) {
     try {
       // 1. 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -122,7 +122,7 @@ export class AssetMetaBizController extends BaseBizController {
   }) {
     try {
       // 1. 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -185,7 +185,7 @@ export class AssetMetaBizController extends BaseBizController {
   async deleteAssetMeta(query: { id: string }) {
     try {
       // 1. 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }

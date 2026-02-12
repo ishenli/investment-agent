@@ -2,7 +2,8 @@ import { db } from '@server/lib/db';
 import { notes } from '@/drizzle/schema';
 import { eq, like, and, desc, asc, or, inArray, count } from 'drizzle-orm';
 import logger from '@server/base/logger';
-import { AuthService } from './authService';
+import authService from '@server/service/authService';
+
 
 // 定义笔记类型
 export type NoteType = {
@@ -289,7 +290,7 @@ export class NoteService {
    * @returns 笔记列表
    */
   async searchNotes(query: string): Promise<NoteType[]> {
-    const userId = await AuthService.getCurrentUserId();
+    const userId = await authService.getCurrentUserId();
     if (!userId) return [];
     try {
       const result = await db.query.notes.findMany({

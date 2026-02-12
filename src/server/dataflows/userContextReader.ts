@@ -3,6 +3,7 @@ import type { TradingAccountType } from '@typings/account';
 import logger from '@server/base/logger';
 import positionService from '@server/service/positionService';
 import { PositionType } from '@typings/position';
+import authService from '../service/authService';
 
 // 投资组合摘要类型
 interface PortfolioSummary {
@@ -61,7 +62,8 @@ export class UserContextReader {
    */
   static async getUserAccount(accountId: string): Promise<TradingAccountType | null> {
     try {
-      const account = await accountService.getTradingAccount(accountId);
+      const userId = await authService.getCurrentUserId();
+      const account = await accountService.getTradingAccount(accountId, userId);
       logger.info(`[UserContextReader] 获取到用户账户信息: ${accountId}`);
       return account;
     } catch (error) {
@@ -77,7 +79,8 @@ export class UserContextReader {
    */
   static async getCashBalance(accountId: string): Promise<number> {
     try {
-      const account = await accountService.getTradingAccount(accountId);
+      const userId = await authService.getCurrentUserId();
+      const account = await accountService.getTradingAccount(accountId, userId);
       return account ? account.balance : 0;
     } catch (error) {
       logger.error(`[UserContextReader] 获取用户 ${accountId} 现金余额失败:`, error);
@@ -92,7 +95,8 @@ export class UserContextReader {
    */
   static async getCashAsset(accountId: string): Promise<CashAsset> {
     try {
-      const account = await accountService.getTradingAccount(accountId);
+      const userId = await authService.getCurrentUserId();
+      const account = await accountService.getTradingAccount(accountId, userId);
       const balance = account ? account.balance : 0;
 
       return {

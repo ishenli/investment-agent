@@ -2,7 +2,7 @@ import { db } from '@server/lib/db';
 import { settings } from '@/drizzle/schema';
 import { eq, and } from 'drizzle-orm';
 import logger from '@server/base/logger';
-import { AuthService } from './authService';
+import authService from './authService';
 
 export type SettingType = {
   id: number;
@@ -19,7 +19,7 @@ export class SettingService {
   }
 
   async getConfigValueByKey(key: string) {
-    const accountId = await AuthService.getCurrentUserId();
+    const accountId = await authService.getCurrentUserId();
     const value = await this.getSettingByKey(accountId, key);
     if (value) {
       return value.value;
@@ -163,7 +163,7 @@ export class SettingService {
 
   // 获取模型服务 API 地址
   async getModelServiceApiUrl(): Promise<string | null> {
-    const accountId = await AuthService.getCurrentUserId();
+    const accountId = await authService.getCurrentUserId();
     const setting = await this.getSettingByKey(accountId, 'MODEL_PROVIDER_URL');
     return setting ? setting.value : process.env.MODEL_PROVIDER_URL || null;
   }
