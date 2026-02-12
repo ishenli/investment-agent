@@ -28,7 +28,6 @@ export const sessionsReducer = (state: LobeSessions, payload: SessionDispatch): 
         if (!session) return;
 
         // TODO: 后续将 Date 类型做个迁移，就可以移除这里的 ignore 了
-        // @ts-ignore
         draft.unshift({
           ...session,
           createdAt: new Date(),
@@ -52,7 +51,6 @@ export const sessionsReducer = (state: LobeSessions, payload: SessionDispatch): 
         const index = draftState.findIndex((item) => item.id === id);
 
         if (index !== -1) {
-          // @ts-expect-error - update
           draftState[index] = {
             ...draftState[index],
             ...value,
