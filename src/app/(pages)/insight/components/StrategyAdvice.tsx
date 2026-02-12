@@ -42,7 +42,7 @@ export function StrategyAdvice() {
         <CardContent>
           <div className="flex items-center justify-center py-8 text-muted-foreground">
             <Spinner />
-            <p>正在加载中...</p>
+            <p>正在分析中...</p>
           </div>
         </CardContent>
       </Card>

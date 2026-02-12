@@ -12,7 +12,7 @@ import { finnhubClient, isFinnhubApiKeySet } from '@server/dataflows/finnhubUtil
  */
 export class FinnhubAdapter extends PriceSourceAdapter {
   name = 'finnhub';
-  supportedMarkets: MarketType[] = ['US', 'CN'];
+  supportedMarkets: MarketType[] = ['US'];
   supportsBatch = false;
 
   async fetchQuote(request: QuoteRequest): Promise<QuoteResponse | null> {

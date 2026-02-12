@@ -10,5 +10,6 @@ export const CURRENCY_SYMBOLS = {
 };
 
 
-// 定义汇率常量（USD 到 HKD）
+// 定义汇率常量（USD 到 HKD 和 CNY）
 export const USD_TO_HKD = 7.8138;
+export const USD_TO_CNY = 6.98;

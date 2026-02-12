@@ -41,21 +41,15 @@ import { EditPositionDialog } from './components/EditPositionDialog';
 import { PositionType } from '@typings/position';
 import { Skeleton } from '@renderer/components/ui/skeleton';
 import Link from 'next/link';
-import { marketToChinese, USD_TO_HKD } from '@/shared';
-
-
-// 辅助函数：根据市场获取货币符号和汇率
-const getCurrencyInfo = (market: string) => {
-  if (market === 'HK') {
-    return { symbol: 'HK$', rate: USD_TO_HKD, currency: 'HKD' };
-  }
-  return { symbol: '$', rate: 1, currency: 'USD' };
-};
+import { marketToChinese, USD_TO_HKD, USD_TO_CNY } from '@/shared';
 
 // 辅助函数：根据市场筛选条件获取货币信息
 const getCurrencyByFilter = (filterMarket: string) => {
-  if (filterMarket === '港股') {
+  if (filterMarket === '港股' || filterMarket === 'HK') {
     return { symbol: 'HK$', rate: USD_TO_HKD, currency: 'HKD' };
+  }
+  if (filterMarket === 'A股' || filterMarket === 'CN') {
+    return { symbol: '¥', rate: USD_TO_CNY, currency: 'CNY' };
   }
   return { symbol: '$', rate: 1, currency: 'USD' };
 };
@@ -324,8 +318,8 @@ export function PositionManagement() {
                   <SelectContent>
                     <SelectItem value="all">全部市场</SelectItem>
                     <SelectItem value="美股">美股</SelectItem>
-                    <SelectItem value="A股">A股</SelectItem>
                     <SelectItem value="港股">港股</SelectItem>
+                    <SelectItem value="A股">A股</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -523,13 +517,12 @@ export function PositionManagement() {
               {alerts.map((alert) => (
                 <div key={alert.id} className="flex items-start gap-3 p-3 rounded-lg border">
                   <AlertTriangleIcon
-                    className={`h-5 w-5 mt-0.5 ${
-                      alert.severity === 'high'
-                        ? 'text-red-500'
-                        : alert.severity === 'medium'
-                          ? 'text-yellow-500'
-                          : 'text-green-500'
-                    }`}
+                    className={`h-5 w-5 mt-0.5 ${alert.severity === 'high'
+                      ? 'text-red-500'
+                      : alert.severity === 'medium'
+                        ? 'text-yellow-500'
+                        : 'text-green-500'
+                      }`}
                   />
                   <div className="flex-1">
                     <p className="font-medium">{alert.message}</p>

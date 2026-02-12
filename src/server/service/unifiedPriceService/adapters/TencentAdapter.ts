@@ -14,7 +14,14 @@ import { PriceSourceAdapter } from './PriceSourceAdapter';
  * HKD 转 USD 的汇率转换
  */
 function hkdToUsd(hkd: number): number {
-  return Number((hkd * EXCHANGE_RATES.HKD_TO_USD).toFixed(2));
+  return Number((hkd * EXCHANGE_RATES.HKD_TO_USD).toFixed(4));
+}
+
+/**
+ * CNY 转 USD 的汇率转换
+ */
+function cnyToUsd(cny: number): number {
+  return Number((cny * EXCHANGE_RATES.CNY_TO_USD).toFixed(4));
 }
 
 /**
@@ -25,8 +32,20 @@ const STOCK_API = 'http://sqt.gtimg.cn/utf8/q=';
 /**
  * 生成带前缀的股票代码
  */
-function genStockPrefix(stockCode: string): string {
-  return `r_hk${stockCode}`;
+function genStockPrefix(stockCode: string, market: MarketType): string {
+  if (market === 'HK') {
+    return `r_hk${stockCode}`;
+  }
+  if (market === 'CN') {
+    // A股代码通常是 6xxxxx (SH), 0xxxxx/3xxxxx (SZ)
+    // 腾讯接口前缀是 sh 或 sz
+    const prefix =
+      stockCode.startsWith('6') || stockCode.startsWith('9') || stockCode.startsWith('11')
+        ? 'sh'
+        : 'sz';
+    return `${prefix}${stockCode}`;
+  }
+  return stockCode;
 }
 
 /**
@@ -37,7 +56,7 @@ function genStockPrefix(stockCode: string): string {
  */
 export class TencentAdapter extends PriceSourceAdapter {
   name = 'tencent';
-  supportedMarkets: MarketType[] = ['HK'];
+  supportedMarkets: MarketType[] = ['HK', 'CN'];
   supportsBatch = true;
 
   async fetchQuote(request: QuoteRequest): Promise<QuoteResponse | null> {
@@ -69,7 +88,7 @@ export class TencentAdapter extends PriceSourceAdapter {
 
     try {
       // 构建批量请求 URL
-      const prefixedCodes = stockCodes.map(genStockPrefix).join(',');
+      const prefixedCodes = requests.map((r) => genStockPrefix(r.symbol, r.market)).join(',');
       const url = `${STOCK_API}${prefixedCodes}`;
 
       logger.debug(`[TencentAdapter] Fetching quotes from Tencent API: ${url}`);
@@ -82,10 +101,11 @@ export class TencentAdapter extends PriceSourceAdapter {
       requests.forEach((request) => {
         const stockData = stocksData[request.symbol];
         if (stockData) {
+          const isHK = request.market === 'HK';
           succeeded.push({
             symbol: request.symbol,
-            price: hkdToUsd(stockData.price),
-            currency: 'HKD',
+            price: isHK ? hkdToUsd(stockData.price) : cnyToUsd(stockData.price),
+            currency: isHK ? 'HKD' : 'CNY',
             timestamp: new Date(),
             source: 'tencent',
             cached: false,
@@ -121,8 +141,8 @@ export class TencentAdapter extends PriceSourceAdapter {
   private parseResponseData(responseData: string): Record<string, { price: number }> {
     const result: Record<string, { price: number }> = {};
 
-    // 使用正则表达式匹配股票数据: v_r_hk00981="lotSize~name~code~price~..."
-    const rawQuotations = responseData.match(/v_r_hk\d+=".*?"/g) || [];
+    // 使用正则表达式匹配股票数据: v_r_hk00981="..." 或 v_sh600519="..." 或 v_sz000001="..."
+    const rawQuotations = responseData.match(/v_(r_hk|sh|sz)\d+=".*?"/g) || [];
 
     for (const rawQuotation of rawQuotations) {
       const match = rawQuotation.match(/"(.*?)"/);

@@ -15,12 +15,14 @@ import {
   AlertTriangleIcon,
   RotateCcwIcon,
   ClockIcon,
+  RefreshCw,
 } from 'lucide-react';
 import dayjs from 'dayjs';
 import { Button } from '@renderer/components/ui/button';
 import { Spinner } from '@renderer/components/ui/spinner';
 import { useAIInsightsQuery } from '@renderer/hooks/usePositionQueries';
 import { AIInsight } from '@renderer/store/position/aiInsightsTypes';
+import { cn } from '@/app/lib/utils';
 
 // 数据新鲜度映射到中文和颜色
 const dataFreshnessConfig = {
@@ -122,18 +124,16 @@ export function AIInsightsDisplay() {
             <CardTitle className="text-lg font-semibold">机会识别</CardTitle>
             <CardDescription>基于 AI 大模型的数据分析的智能洞察</CardDescription>
           </div>
-          <Button variant="outline" size="sm" onClick={handleFetchAIInsights} disabled={loading}>
-            {loading ? (
-              <>
-                <Spinner className="mr-2 h-4 w-4" />
-                刷新中...
-              </>
-            ) : (
-              <>
-                <RotateCcwIcon className="h-4 w-4 mr-2" />
-                刷新
-              </>
-            )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleFetchAIInsights()}
+            disabled={loading || isRefetching}
+            className="h-8 w-8"
+          >
+            <RefreshCw
+              className={cn('h-4 w-4', (loading || isRefetching) && 'animate-spin')}
+            />
           </Button>
         </div>
       </CardHeader>
@@ -181,40 +181,40 @@ export function AIInsightsDisplay() {
                 {(insight.metadata?.confidenceReason ||
                   insight.metadata?.lastDataUpdate ||
                   insight.metadata?.relatedAssets?.length) && (
-                  <div className="bg-muted/50 rounded-md p-3 text-xs space-y-2">
-                    {insight.metadata?.confidenceReason && (
-                      <div className="flex gap-2">
-                        <span className="text-muted-foreground font-medium">置信依据：</span>
-                        <span className="text-foreground">{insight.metadata.confidenceReason}</span>
-                      </div>
-                    )}
-                    {insight.metadata?.lastDataUpdate && (
-                      <div className="flex gap-2">
-                        <span className="text-muted-foreground font-medium">数据时间：</span>
-                        <span className="text-foreground">
-                          {dayjs(insight.metadata.lastDataUpdate).format('YYYY-MM-DD HH:mm')}
-                        </span>
-                      </div>
-                    )}
-                    {insight.metadata?.relatedAssets &&
-                      insight.metadata?.relatedAssets.length > 0 && (
+                    <div className="bg-muted/50 rounded-md p-3 text-xs space-y-2">
+                      {insight.metadata?.confidenceReason && (
                         <div className="flex gap-2">
-                          <span className="text-muted-foreground font-medium">相关标的：</span>
-                          <div className="flex gap-1 flex-wrap">
-                            {insight.metadata.relatedAssets.map((asset: string, idx: number) => (
-                              <Badge
-                                key={idx}
-                                variant="outline"
-                                className="text-xs px-1.5 py-0 h-5"
-                              >
-                                {asset}
-                              </Badge>
-                            ))}
-                          </div>
+                          <span className="text-muted-foreground font-medium">置信依据：</span>
+                          <span className="text-foreground">{insight.metadata.confidenceReason}</span>
                         </div>
                       )}
-                  </div>
-                )}
+                      {insight.metadata?.lastDataUpdate && (
+                        <div className="flex gap-2">
+                          <span className="text-muted-foreground font-medium">数据时间：</span>
+                          <span className="text-foreground">
+                            {dayjs(insight.metadata.lastDataUpdate).format('YYYY-MM-DD HH:mm')}
+                          </span>
+                        </div>
+                      )}
+                      {insight.metadata?.relatedAssets &&
+                        insight.metadata?.relatedAssets.length > 0 && (
+                          <div className="flex gap-2">
+                            <span className="text-muted-foreground font-medium">相关标的：</span>
+                            <div className="flex gap-1 flex-wrap">
+                              {insight.metadata.relatedAssets.map((asset: string, idx: number) => (
+                                <Badge
+                                  key={idx}
+                                  variant="outline"
+                                  className="text-xs px-1.5 py-0 h-5"
+                                >
+                                  {asset}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                    </div>
+                  )}
               </div>
             );
           })}
