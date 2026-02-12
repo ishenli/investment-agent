@@ -1,6 +1,6 @@
 import { AIMessage, HumanMessage, SystemMessage } from 'langchain';
 import logger from '@server/base/logger';
-import { AuthService } from '@server/service/authService';
+import  authService from '@server/service/authService';
 import { SSEEmitter } from '@server/base/sseEmitter';
 import { createSSEResponse } from '@server/base/responseUtil';
 import { WithRequestContextStatic } from '@server/base/decorators';
@@ -51,7 +51,7 @@ class InvestmentAgentController extends BaseController {
       const sseEmitter = new SSEEmitter();
 
       // 获取当前用户ID
-      const accountInfo = await AuthService.getCurrentUserAccount();
+      const accountInfo = await authService.getCurrentUserAccount();
       if (!accountInfo) {
         return this.error('用户未登录', 'unauthorized');
       }

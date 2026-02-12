@@ -9,15 +9,15 @@ import {
 import type { CreateTradingAccountRequestType } from '@typings/account';
 import logger from '@server/base/logger';
 import { z } from 'zod';
-import { AuthService } from '@server/service/authService';
 import { BaseBizController } from './base';
+import authService from '../service/authService';
 
 export class AccountBizController extends BaseBizController {
   @WithRequestContext()
   async createAccount(body: any) {
     try {
       // 1. 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -42,7 +42,6 @@ export class AccountBizController extends BaseBizController {
         riskMode: result.tradingAccount.riskMode,
         createdAt: result.tradingAccount.createdAt,
         updatedAt: result.tradingAccount.updatedAt,
-        isActive: result.tradingAccount.isActive,
       };
 
       return this.success(publicAccountData);
@@ -55,6 +54,11 @@ export class AccountBizController extends BaseBizController {
   @WithRequestContext()
   async getAccount(query: any) {
     try {
+       // 1. 获取当前用户ID
+      const userId = await authService.getCurrentUserId();
+      if (!userId) {
+        return this.error('用户未登录', 'unauthorized');
+      }
       const accountId = query.accountId;
       const limitParam = query.limit;
       const offsetParam = query.offset;
@@ -63,7 +67,7 @@ export class AccountBizController extends BaseBizController {
 
       if (!accountId) {
         // Return paginated list of accounts
-        const list = await accountService.getAllTradingAccounts(limit, offset);
+        const list = await accountService.getAllTradingAccounts(userId, limit, offset);
 
         // Map items through schema minimally
         const safeItems = list.items.map((a) => TradingAccountSchema.parse(a));
@@ -71,7 +75,7 @@ export class AccountBizController extends BaseBizController {
         return this.success({ items: safeItems, totalCount: list.totalCount });
       }
 
-      const account = await accountService.getTradingAccount(accountId);
+      const account = await accountService.getTradingAccount(accountId, userId);
       if (!account) {
         return this.error('账户不存在', 'account_not_found');
       }
@@ -93,7 +97,7 @@ export class AccountBizController extends BaseBizController {
   async updateAccount(request: { accountId?: string } & any) {
     try {
       // 1. 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -111,7 +115,7 @@ export class AccountBizController extends BaseBizController {
       }
       const validatedBody = validationResult.data;
 
-      const updatedAccount = await accountService.updateTradingAccount(accountId, validatedBody);
+      const updatedAccount = await accountService.updateTradingAccount(accountId, userId, validatedBody);
       if (!updatedAccount) {
         return this.error('账户不存在', 'account_not_found');
       }
@@ -130,7 +134,7 @@ export class AccountBizController extends BaseBizController {
   async createTradingAccount(body: CreateTradingAccountRequestType) {
     try {
       // 1. 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -167,7 +171,7 @@ export class AccountBizController extends BaseBizController {
   async getTradingAccount(query: any) {
     try {
       // 1. 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -175,7 +179,7 @@ export class AccountBizController extends BaseBizController {
       // 2. 获取账户ID（从查询参数或默认为当前用户ID）
       const accountId = query.accountId || userId;
 
-      const account = await accountService.getTradingAccount(accountId);
+      const account = await accountService.getTradingAccount(accountId, userId);
       if (!account) {
         return this.error('账户不存在', 'account_not_found');
       }
@@ -197,7 +201,7 @@ export class AccountBizController extends BaseBizController {
   async updateTradingAccount(request: { accountId?: string } & any) {
     try {
       // 1. 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -212,7 +216,7 @@ export class AccountBizController extends BaseBizController {
       }
       const validatedBody = validationResult.data;
 
-      const updatedAccount = await accountService.updateTradingAccount(accountId, validatedBody);
+      const updatedAccount = await accountService.updateTradingAccount(accountId, userId, validatedBody);
       if (!updatedAccount) {
         return this.error('账户不存在', 'account_not_found');
       }
@@ -231,13 +235,13 @@ export class AccountBizController extends BaseBizController {
   async getSelectedAccount(query: any) {
     try {
       // 1. 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
 
       // 2. 获取选中的账户
-      const selectedAccount = await AuthService.getUserSelectedAccount(userId);
+      const selectedAccount = await accountService.getUserSelectedAccount(userId);
 
       // 3. 返回成功响应
       return this.success({ selectedAccount });
@@ -251,7 +255,7 @@ export class AccountBizController extends BaseBizController {
   async setSelectedAccount(body: { accountId: string } & any) {
     try {
       // 1. 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -264,13 +268,13 @@ export class AccountBizController extends BaseBizController {
       }
 
       // 3. 验证用户是否有权访问该账户
-      const hasAccess = await AuthService.userHasAccessToAccount(userId, accountId);
+      const hasAccess = await authService.userHasAccessToAccount(userId, accountId);
       if (!hasAccess) {
         return this.error('无权访问该账户', 'access_denied');
       }
 
       // 4. 设置用户选中的账户
-      await AuthService.setUserSelectedAccount(userId, accountId);
+      await accountService.setUserSelectedAccount(userId, accountId);
 
       // 5. 返回成功响应
       return this.success({ message: '选中账户设置成功' });
@@ -283,6 +287,10 @@ export class AccountBizController extends BaseBizController {
   @WithRequestContext()
   async getAccountSettings(query: { accountId: string } & any) {
     try {
+      const accountInfo = await authService.getCurrentUserAccount();
+      if (!accountInfo) {
+        return this.error('用户未登录', 'unauthorized');
+      }
       // 1. 获取账户ID
       const { accountId } = query;
 
@@ -291,7 +299,7 @@ export class AccountBizController extends BaseBizController {
       }
 
       // 2. 获取账户信息
-      const account = await accountService.getTradingAccount(accountId);
+      const account = await accountService.getTradingAccount(accountId, accountInfo.userId);
       if (!account) {
         return this.error('账户不存在', 'account_not_found');
       }
@@ -299,6 +307,7 @@ export class AccountBizController extends BaseBizController {
       // 3. 返回成功响应
       return this.success({ riskMode: account.riskMode });
     } catch (error) {
+      logger.error('[AccountBizController] 获取账户设置失败:', error);
       return this.error('获取设置失败', 'get_settings_error');
     }
   }
@@ -306,6 +315,11 @@ export class AccountBizController extends BaseBizController {
   @WithRequestContext()
   async updateAccountSettings(request: { accountId: string } & any) {
     try {
+
+      const accountInfo = await authService.getCurrentUserAccount();
+      if (!accountInfo) {
+        return this.error('用户未登录', 'unauthorized');
+      }
       // 1. 获取账户ID
       const { accountId } = request;
 
@@ -325,7 +339,7 @@ export class AccountBizController extends BaseBizController {
       const validatedBody = validationResult.data;
 
       // 3. 更新账户的风险模式设置
-      const updatedAccount = await accountService.updateTradingAccount(accountId, validatedBody);
+      const updatedAccount = await accountService.updateTradingAccount(accountId, accountInfo.userId, validatedBody);
       if (!updatedAccount) {
         return this.error('账户不存在', 'account_not_found');
       }
@@ -333,6 +347,7 @@ export class AccountBizController extends BaseBizController {
       // 4. 返回成功响应
       return this.success({ riskMode: updatedAccount.riskMode });
     } catch (error) {
+      logger.error('[AccountBizController] 更新账户设置失败:', error);
       return this.error('更新设置失败', 'update_settings_error');
     }
   }

@@ -4,7 +4,7 @@ import { AssetCompanyInfoService } from '@server/service/assetCompanyInfoService
 import { AssetMetaService } from '@server/service/assetMetaService';
 import { z } from 'zod';
 import logger from '@server/base/logger';
-import { AuthService } from '@server/service/authService';
+import authService from '@server/service/authService';
 
 const ListCompanyInfoRequestSchema = z.object({
   assetMetaId: z.string().transform((val) => parseInt(val, 10)),
@@ -37,7 +37,7 @@ export class CompanyBizController extends BaseBizController {
   async getCompanyInfoList(query: { assetMetaId?: string; page?: string; limit?: string }) {
     try {
       // 1. 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -104,7 +104,7 @@ export class CompanyBizController extends BaseBizController {
   }) {
     try {
       // 1. 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -164,7 +164,7 @@ export class CompanyBizController extends BaseBizController {
   async deleteCompanyInfo(query: { id: string }) {
     try {
       // 1. 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }

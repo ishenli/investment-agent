@@ -1,5 +1,5 @@
 import { WithRequestContext } from '../base/decorators';
-import { AuthService } from '../service/authService';
+import authService from '../service/authService';
 import noteService from '../service/noteService';
 import { BaseBizController } from './base';
 
@@ -15,7 +15,7 @@ export class NoteController extends BaseBizController {
   }) {
     try {
       // 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -41,7 +41,7 @@ export class NoteController extends BaseBizController {
   async getNoteById(param: { id: string }) {
     try {
       // 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -67,7 +67,7 @@ export class NoteController extends BaseBizController {
   async createNote(body: { title: string; content: string; tags: string[] }) {
     try {
       // 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -94,7 +94,7 @@ export class NoteController extends BaseBizController {
   async updateNote(body: { id: string; title: string; content: string; tags: string[] }) {
     try {
       // 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -128,7 +128,7 @@ export class NoteController extends BaseBizController {
   async deleteNote(body: { id: string }) {
     try {
       // 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -154,7 +154,7 @@ export class NoteController extends BaseBizController {
   async getUserTags() {
     try {
       // 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }

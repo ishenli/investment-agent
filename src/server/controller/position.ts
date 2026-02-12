@@ -3,7 +3,7 @@ import assetService from '@server/service/assetService';
 import positionService from '@server/service/positionService';
 import logger from '@server/base/logger';
 import { z } from 'zod';
-import { AuthService } from '@server/service/authService';
+import authService from '@server/service/authService';
 import { BaseBizController } from './base';
 import { AIInsightsService } from '../service/aiInsightsService';
 import { PortfolioService } from '../service/portfolioService';
@@ -15,7 +15,7 @@ export class PositionBizController extends BaseBizController {
   async getPositions(query: any) {
     try {
       // 1. 获取当前用户ID
-      const accountInfo = await AuthService.getCurrentUserAccount();
+      const accountInfo = await authService.getCurrentUserAccount();
       if (!accountInfo) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -36,7 +36,7 @@ export class PositionBizController extends BaseBizController {
     try {
       // 1. 获取当前用户ID
       // Get the authenticated user's account ID
-      const accountInfo = await AuthService.getCurrentUserAccount();
+      const accountInfo = await authService.getCurrentUserAccount();
 
       if (!accountInfo) {
         return this.error('用户未认证', 'unauthorized');
@@ -75,7 +75,7 @@ export class PositionBizController extends BaseBizController {
   async getAIInsights(query: any) {
     try {
       // 1. 获取当前用户ID
-      const accountInfo = await AuthService.getCurrentUserAccount();
+      const accountInfo = await authService.getCurrentUserAccount();
       if (!accountInfo) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -104,7 +104,7 @@ export class PositionBizController extends BaseBizController {
   async generateAIInsights(body: any) {
     try {
       // 1. 获取当前用户ID
-      const accountInfo = await AuthService.getCurrentUserAccount();
+      const accountInfo = await authService.getCurrentUserAccount();
 
       if (!accountInfo) {
         return this.error('用户未认证', 'unauthorized');
@@ -142,7 +142,7 @@ export class PositionBizController extends BaseBizController {
   async getPortfolio(query: any) {
     try {
       // Get the authenticated user's account ID
-      const accountInfo = await AuthService.getCurrentUserAccount();
+      const accountInfo = await authService.getCurrentUserAccount();
 
       if (!accountInfo) {
         return this.error('用户未认证', 'unauthorized');
@@ -163,7 +163,7 @@ export class PositionBizController extends BaseBizController {
   async getDiversificationRecommendations(query: any) {
     try {
       // Get the authenticated user's account ID
-      const accountId = await AuthService.getCurrentUserId();
+      const accountId = await authService.getCurrentUserId();
 
       if (!accountId) {
         return this.error('用户未认证', 'unauthorized');
@@ -211,7 +211,7 @@ export class PositionBizController extends BaseBizController {
   async generateDiversificationRecommendations(body: any) {
     try {
       // 1. 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -251,7 +251,7 @@ export class PositionBizController extends BaseBizController {
   async getRiskInsights(query: any) {
     try {
       // Get the authenticated user's account ID
-      const accountInfo = await AuthService.getCurrentUserAccount();
+      const accountInfo = await authService.getCurrentUserAccount();
 
       if (!accountInfo) {
         return this.error('用户未认证', 'unauthorized');
@@ -282,7 +282,7 @@ export class PositionBizController extends BaseBizController {
   async analyzeScenario(body: any) {
     try {
       // Get the authenticated user's account ID
-      const accountInfo = await AuthService.getCurrentUserAccount();
+      const accountInfo = await authService.getCurrentUserAccount();
 
       if (!accountInfo) {
         return this.error('用户未认证', 'unauthorized');
@@ -324,7 +324,7 @@ export class PositionBizController extends BaseBizController {
   async getStrategyAdvice(query: any) {
     try {
       // Get the authenticated user's account ID
-      const accountInfo = await AuthService.getCurrentUserAccount();
+      const accountInfo = await authService.getCurrentUserAccount();
 
       if (!accountInfo) {
         return this.error('账户未认证', 'unauthorized');
@@ -368,7 +368,7 @@ export class PositionBizController extends BaseBizController {
   async generateStrategyAdvice(body: any) {
     try {
       // Get the authenticated user's account ID
-      const accountInfo = await AuthService.getCurrentUserAccount();
+      const accountInfo = await authService.getCurrentUserAccount();
 
       if (!accountInfo) {
         return this.error('账户未认证', 'unauthorized');

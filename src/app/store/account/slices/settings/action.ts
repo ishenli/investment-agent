@@ -118,6 +118,11 @@ export const createAccountSettingsSlice: StateCreator<
         throw new Error('Failed to fetch accounts');
       }
       const res = await response.json();
+      if (res.code === 'unauthorized') {
+        set((state) => ({ ...state, loading: false }));
+        window.location.replace('/auth?redirect=' + encodeURIComponent(window.location.pathname));
+        return;
+      }
       set((state) => ({ ...state, accounts: res.data.items || [], loading: false }));
     } catch (error) {
       set((state) => ({

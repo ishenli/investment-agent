@@ -4,7 +4,7 @@ import { MarketInformationGraph } from '@server/core/graph/marketInformationGrap
 import { ScenarioAnalyzerGraph } from '@server/core/graph/scenarioAnalyzerGraph';
 import { DiversificationGraph } from '@server/core/graph/diversificationGraph';
 import { AIInsightsGraph } from '@server/core/graph/aiInsightsGraph';
-import { AuthService } from '@server/service/authService';
+import authService from '@server/service/authService';
 import logger from '@server/base/logger';
 import portfolioAnalysisService from '@server/service/portfolioAnalysisService';
 import type { Logger } from '@server/base/logger';
@@ -63,7 +63,7 @@ export class ChatService {
       );
 
       // 获取当前用户ID
-      const accountInfo = await AuthService.getCurrentUserAccount();
+      const accountInfo = await authService.getCurrentUserAccount();
 
       if (!accountInfo) {
         throw new Error('获取账户信息失败');

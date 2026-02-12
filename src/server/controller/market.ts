@@ -4,10 +4,10 @@ import assetMarketInfoService from '@server/service/assetMarketInfoService';
 import { z } from 'zod';
 import logger from '@server/base/logger';
 import assetMetaService from '@server/service/assetMetaService';
-import { AuthService } from '@server/service/authService';
 import { ContentFormat, DataSourceType } from '@/types/market';
 import { MarketFetcherService } from '../service/marketFetcherService';
 import { MarketAIService } from '../service/marketAIService';
+import authService from '@server/service/authService';
 
 // 定义请求参数验证模式
 const GetMarketInfoListSchema = z.object({
@@ -355,7 +355,7 @@ export class MarketBizController extends BaseBizController {
   async getAssetMarketInfo(query: { assetMetaId?: string; type?: string; id?: string }) {
     try {
       // 1. 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -428,7 +428,7 @@ export class MarketBizController extends BaseBizController {
   async getAssetMarketInfoList(query: { assetMetaId?: string; page?: string; limit?: string }) {
     try {
       // 1. 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }

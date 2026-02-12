@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { AuthService } from '@server/service/authService';
-import accountService from '@server/service/accountService';
+import authService from '../../service/authService';
+import accountService from '../../service/accountService';
 import { AccountBizController } from '../account';
 
 // Mock decorators before importing the controller - decorators are applied at import time
@@ -34,7 +34,7 @@ describe('AccountBizController', () => {
 
   describe('createAccount', () => {
     it('用户未登录时应该返回错误', async () => {
-      vi.spyOn(AuthService, 'getCurrentUserId').mockResolvedValue('');
+      vi.spyOn(authService, 'getCurrentUserId').mockResolvedValue('');
 
       const result = await controller.createAccount({
         username: 'testuser',
@@ -51,7 +51,7 @@ describe('AccountBizController', () => {
     });
 
     it('有效请求应该返回成功响应', async () => {
-      vi.spyOn(AuthService, 'getCurrentUserId').mockResolvedValue('1');
+      vi.spyOn(authService, 'getCurrentUserId').mockResolvedValue('1');
       vi.spyOn(accountService, 'createAccount').mockResolvedValue({
         userAccount: { id: '1', username: 'testuser' },
         tradingAccount: {
@@ -118,7 +118,7 @@ describe('AccountBizController', () => {
 
   describe('updateAccount', () => {
     it('缺少 accountId 时应该返回错误', async () => {
-      vi.spyOn(AuthService, 'getCurrentUserId').mockResolvedValue('1');
+      vi.spyOn(authService, 'getCurrentUserId').mockResolvedValue('1');
 
       const result = await controller.updateAccount({
         leverage: 2,
@@ -130,7 +130,7 @@ describe('AccountBizController', () => {
     });
 
     it('用户未登录时应该返回错误', async () => {
-      vi.spyOn(AuthService, 'getCurrentUserId').mockResolvedValue('');
+      vi.spyOn(authService, 'getCurrentUserId').mockResolvedValue('');
 
       const result = await controller.updateAccount({
         accountId: '1',
@@ -145,7 +145,7 @@ describe('AccountBizController', () => {
 
   describe('getTradingAccount', () => {
     it('用户未登录时应该返回错误', async () => {
-      vi.spyOn(AuthService, 'getCurrentUserId').mockResolvedValue('');
+      vi.spyOn(authService, 'getCurrentUserId').mockResolvedValue('');
 
       const result = await controller.getTradingAccount({});
 
@@ -155,7 +155,7 @@ describe('AccountBizController', () => {
     });
 
     it('账户不存在时应该返回错误', async () => {
-      vi.spyOn(AuthService, 'getCurrentUserId').mockResolvedValue('1');
+      vi.spyOn(authService, 'getCurrentUserId').mockResolvedValue('1');
       vi.spyOn(accountService, 'getTradingAccount').mockResolvedValue(null);
 
       const result = await controller.getTradingAccount({});
@@ -168,7 +168,7 @@ describe('AccountBizController', () => {
 
   describe('getSelectedAccount', () => {
     it('用户未登录时应该返回错误', async () => {
-      vi.spyOn(AuthService, 'getCurrentUserId').mockResolvedValue('');
+      vi.spyOn(authService, 'getCurrentUserId').mockResolvedValue('');
 
       const result = await controller.getSelectedAccount({});
 
@@ -178,8 +178,8 @@ describe('AccountBizController', () => {
     });
 
     it('应该返回用户选中的账户', async () => {
-      vi.spyOn(AuthService, 'getCurrentUserId').mockResolvedValue('1');
-      vi.spyOn(AuthService, 'getUserSelectedAccount').mockResolvedValue({
+      vi.spyOn(authService, 'getCurrentUserId').mockResolvedValue('1');
+      vi.spyOn(accountService, 'getUserSelectedAccount').mockResolvedValue({
         id: '1',
         accountName: 'Selected Account',
         balance: 10000,
@@ -194,7 +194,7 @@ describe('AccountBizController', () => {
 
   describe('setSelectedAccount', () => {
     it('accountId 为空时应该返回错误', async () => {
-      vi.spyOn(AuthService, 'getCurrentUserId').mockResolvedValue('1');
+      vi.spyOn(authService, 'getCurrentUserId').mockResolvedValue('1');
 
       const result = await controller.setSelectedAccount({});
 
@@ -204,8 +204,8 @@ describe('AccountBizController', () => {
     });
 
     it('用户无权访问账户时应该返回错误', async () => {
-      vi.spyOn(AuthService, 'getCurrentUserId').mockResolvedValue('1');
-      vi.spyOn(AuthService, 'userHasAccessToAccount').mockResolvedValue(false);
+      vi.spyOn(authService, 'getCurrentUserId').mockResolvedValue('1');
+      vi.spyOn(authService, 'userHasAccessToAccount').mockResolvedValue(false);
 
       const result = await controller.setSelectedAccount({ accountId: '999' });
 
@@ -215,9 +215,9 @@ describe('AccountBizController', () => {
     });
 
     it('应该成功设置选中账户', async () => {
-      vi.spyOn(AuthService, 'getCurrentUserId').mockResolvedValue('1');
-      vi.spyOn(AuthService, 'userHasAccessToAccount').mockResolvedValue(true);
-      vi.spyOn(AuthService, 'setUserSelectedAccount').mockResolvedValue(undefined);
+      vi.spyOn(authService, 'getCurrentUserId').mockResolvedValue('1');
+      vi.spyOn(authService, 'userHasAccessToAccount').mockResolvedValue(true);
+      vi.spyOn(accountService, 'setUserSelectedAccount').mockResolvedValue();
 
       const result = await controller.setSelectedAccount({ accountId: '1' });
 

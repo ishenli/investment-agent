@@ -5,18 +5,18 @@ import {
   UpdateAccountRequestType,
 } from '@/types';
 import { db } from '@server/lib/db';
-import { users, accounts, accountFunds, transactions } from '@/drizzle/schema';
-import { eq, sql, desc } from 'drizzle-orm';
+import { users, accounts, accountFunds, transactions, userSelectedAccounts } from '@/drizzle/schema';
+import { eq, sql, desc, and } from 'drizzle-orm';
 import logger from '@server/base/logger';
 import { validateWithFormat } from '@/shared';
 import {
+  AccountType,
   CreateAccountRequestSchema,
   CreateTradingAccountDoSchema,
   CreateTradingAccountDoType,
-  CreateTradingAccountRequestSchema,
-  CreateTradingAccountRequestType,
   UpdateAccountRequestSchema,
 } from '@typings/account';
+import authService, { AuthService } from './authService';
 
 export class AccountService {
   constructor() {
@@ -28,11 +28,14 @@ export class AccountService {
    * @param accountId Account ID
    * @returns Trading account
    */
-  async getTradingAccount(accountId: string): Promise<TradingAccountType | null> {
+  async getTradingAccount(accountId: string, userId?: string): Promise<TradingAccountType | null> {
     try {
+      if (!userId) {
+        userId = await authService.getDefaultUserId();
+      };
       // First, get the account row
       const account = await db.query.accounts.findFirst({
-        where: eq(accounts.id, parseInt(accountId)),
+        where: and(eq(accounts.id, parseInt(accountId)), eq(accounts.userId, parseInt(userId))),
       });
 
       if (!account) return null;
@@ -58,7 +61,6 @@ export class AccountService {
         riskMode: account.riskMode || 'retail',
         createdAt: account.createdAt,
         updatedAt: account.updatedAt,
-        isActive: true,
       };
     } catch (error) {
       logger.error(`Failed to read trading account ${accountId}: ${error}`);
@@ -74,6 +76,7 @@ export class AccountService {
    */
   async updateTradingAccount(
     accountId: string,
+    userId: string,
     request: UpdateAccountRequestType,
   ): Promise<TradingAccountType | null> {
     // Validate request
@@ -86,7 +89,7 @@ export class AccountService {
 
     try {
       // Get existing account
-      const account = await this.getTradingAccount(accountId);
+      const account = await this.getTradingAccount(accountId, userId);
       if (!account) {
         return null;
       }
@@ -210,39 +213,52 @@ export class AccountService {
       riskMode: newAccount.riskMode || 'retail',
       createdAt: newAccount.createdAt,
       updatedAt: newAccount.updatedAt,
-      isActive: true,
     };
   }
 
   /**
    * Get paginated list of trading accounts
+   * @param userId User ID
    * @param limit number of items
    * @param offset offset
    */
   async getAllTradingAccounts(
+    userId: string,
     limit: number = 50,
     offset: number = 0,
   ): Promise<{ items: TradingAccountType[]; totalCount: number }> {
     try {
-      const [totalCountResult] = await db.select({ count: sql<number>`count(*)` }).from(accounts);
+      const userIdNum = parseInt(userId);
 
-      const accountRows = await db.query.accounts.findMany({
-        orderBy: [desc(accounts.createdAt)],
-        limit,
-        offset,
-      });
+      // 并行查询：统计总数 + 获取分页数据
+      const [[totalCountResult], accountRows, currentUser] = await Promise.all([
+        db.select({ count: sql<number>`count(*)` })
+          .from(accounts)
+          .where(eq(accounts.userId, userIdNum)),
+        db.query.accounts.findMany({
+          where: eq(accounts.userId, userIdNum),
+          orderBy: [desc(accounts.createdAt)],
+          limit,
+          offset,
+        }),
+        db.query.users.findFirst({ where: eq(users.id, userIdNum) }),
+      ]);
 
-      const items: TradingAccountType[] = [];
-      for (const acc of accountRows) {
-        const fund = await db.query.accountFunds.findFirst({
-          where: eq(accountFunds.accountId, acc.id),
-        });
-        const user = await db.query.users.findFirst({ where: eq(users.id, acc.userId) });
+      // 并行获取所有账户的资金信息
+      const funds = await Promise.all(
+        accountRows.map((acc) =>
+          db.query.accountFunds.findFirst({
+            where: eq(accountFunds.accountId, acc.id),
+          }),
+        ),
+      );
 
-        items.push({
+      const items: TradingAccountType[] = accountRows.map((acc, index) => {
+        const fund = funds[index];
+        return {
           id: acc.id.toString(),
           userId: acc.userId.toString(),
-          accountName: acc.accountName || `${user?.username || '用户'}的账户`,
+          accountName: acc.accountName || `${currentUser?.username || '用户'}的账户`,
           balance: fund ? fund.amountCents / 100 : 0,
           currency: fund ? fund.currency : acc.currency,
           leverage: acc.leverage,
@@ -251,8 +267,8 @@ export class AccountService {
           createdAt: acc.createdAt,
           updatedAt: acc.updatedAt,
           isActive: true,
-        });
-      }
+        };
+      });
 
       return { items, totalCount: totalCountResult?.count || 0 };
     } catch (error) {
@@ -431,11 +447,12 @@ export class AccountService {
    */
   async updateAccountBalance(
     accountId: string,
+    userId: string,
     newBalance: number,
   ): Promise<TradingAccountType | null> {
     try {
       // Get existing account
-      const account = await this.getTradingAccount(accountId);
+      const account = await this.getTradingAccount(accountId, userId);
       if (!account) {
         return null;
       }
@@ -490,6 +507,79 @@ export class AccountService {
       return null;
     }
   }
+
+
+    /**
+     * 获取用户选择的账户
+     * @param userId 用户ID
+     * @returns 用户选择的账户ID或null
+     */
+    async getUserSelectedAccount(userId: string): Promise<AccountType | null> {
+      try {
+        const selectedAccountId = await db.query.userSelectedAccounts.findFirst({
+          where: eq(userSelectedAccounts.userId, parseInt(userId)),
+          orderBy: (userSelectedAccounts, { desc }) => [desc(userSelectedAccounts.updatedAt)],
+        });
+  
+        if (!selectedAccountId) {
+          return null;
+        }
+  
+        const selectedAccount = await db.query.accounts.findFirst({
+          where: eq(accounts.id, selectedAccountId.accountId),
+        });
+  
+        return selectedAccount ? (selectedAccount as unknown as AccountType) : null;
+      } catch (error) {
+        console.error('Error getting user selected account:', error);
+        return null;
+      }
+    }
+  
+    /**
+     * 设置用户选择的账户
+     * @param userId 用户ID
+     * @param accountId 账户ID
+     */
+    async setUserSelectedAccount(userId: string, accountId: string): Promise<void> {
+      try {
+        // 检查账户是否属于该用户
+        const account = await db.query.accounts.findFirst({
+          where: and(eq(accounts.id, parseInt(accountId)), eq(accounts.userId, parseInt(userId))),
+        });
+  
+        if (!account) {
+          throw new Error('Account does not belong to user');
+        }
+  
+        // 检查是否已存在该用户的选中账户记录
+        const existing = await db.query.userSelectedAccounts.findFirst({
+          where: eq(userSelectedAccounts.userId, parseInt(userId)),
+        });
+  
+        if (existing) {
+          // 更新现有记录
+          await db
+            .update(userSelectedAccounts)
+            .set({
+              accountId: parseInt(accountId),
+              updatedAt: new Date(),
+            })
+            .where(eq(userSelectedAccounts.userId, parseInt(userId)));
+        } else {
+          // 插入新记录
+          await db.insert(userSelectedAccounts).values({
+            userId: parseInt(userId),
+            accountId: parseInt(accountId),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+        }
+      } catch (error) {
+        logger.error('Error setting user selected account:', error);
+        throw error;
+      }
+    }
 }
 
 const accountService = new AccountService();

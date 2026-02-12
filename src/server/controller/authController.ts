@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { BaseBizController } from './base';
-import { AuthService } from '../service/authService';
 import logger from '../base/logger';
+import authService from '../service/authService';
 
 // 注册请求 Schema
 const RegisterSchema = z.object({
@@ -29,7 +29,7 @@ export class AuthController extends BaseBizController {
       const params = await this.validateParams({ username, password }, RegisterSchema);
 
       // 调用服务层进行注册
-      const { user, token } = await AuthService.registerUser(params.username, params.password);
+      const { user, token } = await authService.registerUser(params.username, params.password);
 
       logger.info(`[AuthController] 用户注册成功: ${user.username}`);
 
@@ -61,7 +61,7 @@ export class AuthController extends BaseBizController {
       const params = await this.validateParams({ username, password }, LoginSchema);
 
       // 调用服务层进行登录
-      const { user, token } = await AuthService.loginUser(params.username, params.password);
+      const { user, token } = await authService.loginUser(params.username, params.password);
 
       logger.info(`[AuthController] 用户登录成功: ${user.username}`);
 
@@ -96,7 +96,7 @@ export class AuthController extends BaseBizController {
         });
       }
 
-      const { isAuthenticated, user } = await AuthService.checkAuthStatus(token);
+      const { isAuthenticated, user } = await authService.checkAuthStatus(token);
 
       return this.success({
         isAuthenticated,
@@ -116,7 +116,7 @@ export class AuthController extends BaseBizController {
    */
   async hasUsers() {
     try {
-      const hasUsers = await AuthService.hasUsers();
+      const hasUsers = await authService.hasUsers();
       return this.success({
         hasUsers,
       });

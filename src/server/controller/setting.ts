@@ -1,9 +1,9 @@
 import { WithRequestContext } from '@server/base/decorators';
 import { BaseBizController } from './base';
 import settingService from '@server/service/settingService';
-import { AuthService } from '@server/service/authService';
 import { z } from 'zod';
 import logger from '@server/base/logger';
+import authService from '../service/authService';
 
 // 定义设置键的枚举，对应注释中的配置项
 const SettingKeySchema = z.enum([
@@ -30,7 +30,7 @@ export class SettingBizController extends BaseBizController {
   async getSettings() {
     try {
       // 1. 获取当前用户ID
-      const accountInfo = await AuthService.getCurrentUserAccount();
+      const accountInfo = await authService.getCurrentUserAccount();
       if (!accountInfo) {
         return this.error('用户未认证', 'unauthorized');
       }
@@ -56,7 +56,7 @@ export class SettingBizController extends BaseBizController {
   async updateSetting(body: { key: string; value: string }) {
     try {
       // 1. 获取当前用户ID
-      const accountInfo = await AuthService.getCurrentUserAccount();
+      const accountInfo = await authService.getCurrentUserAccount();
       if (!accountInfo) {
         return this.error('账户未认证', 'unauthorized');
       }
@@ -91,7 +91,7 @@ export class SettingBizController extends BaseBizController {
   async deleteSetting(query: { key: string }) {
     try {
       // 1. 获取当前用户ID
-      const accountInfo = await AuthService.getCurrentUserAccount();
+      const accountInfo = await authService.getCurrentUserAccount();
       if (!accountInfo) {
         return this.error('用户未认证', 'unauthorized');
       }

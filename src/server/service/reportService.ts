@@ -7,7 +7,7 @@ import noteService from './noteService';
 import assetMarketInfoService from './assetMarketInfoService';
 import assetMetaService from './assetMetaService';
 import positionService from './positionService';
-import { AuthService } from './authService';
+import authService from './authService';
 import { AssetMarketInfoType } from '@/types/marketInfo';
 import { NoteType } from './noteService';
 import { PositionType } from '@typings/position';
@@ -230,7 +230,7 @@ export class ReportService {
       // 获取本周用户笔记
       // 注意：noteService.searchNotes 按用户ID搜索，但这里需要按账户ID搜索
       // 我们假设账户ID与用户ID相同，或者需要修改 noteService 以支持账户ID搜索
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       const notes = userId
         ? await noteService.getUserNotes(userId, 50, 0, 'createdAt', 'desc')
         : { items: [], totalCount: 0 };

@@ -53,13 +53,14 @@ export interface RiskInsights {
     allocationAlerts: string[];
   };
   // correlationData: 相关性数据，用于CorrelationHeatmap组件显示
-  correlationData: {
-    // correlationMatrix: 相关性矩阵，用于相关性热力图显示
-    // correlationMatrix: number[][];
-    // highCorrelationPairs: 高相关性资产对，用于风险仪表板显示
-    // highCorrelationPairs: Array<{ asset1: string; asset2: string; correlation: number }>;
-    // correlationAlerts: string[];
-  };
+  correlationData: any;
+  // correlationData: {
+  //   // correlationMatrix: 相关性矩阵，用于相关性热力图显示
+  //   // correlationMatrix: number[][];
+  //   // highCorrelationPairs: 高相关性资产对，用于风险仪表板显示
+  //   // highCorrelationPairs: Array<{ asset1: string; asset2: string; correlation: number }>;
+  //   // correlationAlerts: string[];
+  // };
   // strategySuggestions: 策略建议，用于风险仪表板显示
   strategySuggestions: string[];
 }

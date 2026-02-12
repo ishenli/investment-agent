@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { AuthService } from '../../service/authService';
+import authService from '../../service/authService';
 import { AuthController } from '../authController';
 
 // Mock decorators before importing the controller
@@ -43,7 +43,7 @@ describe('AuthController', () => {
 
   describe('register', () => {
     it('成功注册应该返回用户信息和 token', async () => {
-      vi.spyOn(AuthService, 'registerUser').mockResolvedValue({
+      vi.spyOn(authService, 'registerUser').mockResolvedValue({
         user: mockUser,
         token: mockToken,
       });
@@ -57,7 +57,7 @@ describe('AuthController', () => {
     });
 
     it('用户名已存在应该返回错误', async () => {
-      vi.spyOn(AuthService, 'registerUser').mockRejectedValue(
+      vi.spyOn(authService, 'registerUser').mockRejectedValue(
         new Error('用户名已存在')
       );
 
@@ -87,7 +87,7 @@ describe('AuthController', () => {
     });
 
     it('服务层抛出未知错误应该返回通用错误', async () => {
-      vi.spyOn(AuthService, 'registerUser').mockRejectedValue(
+      vi.spyOn(authService, 'registerUser').mockRejectedValue(
         new Error('Database connection failed')
       );
 
@@ -101,7 +101,7 @@ describe('AuthController', () => {
 
   describe('login', () => {
     it('成功登录应该返回用户信息和 token', async () => {
-      vi.spyOn(AuthService, 'loginUser').mockResolvedValue({
+      vi.spyOn(authService, 'loginUser').mockResolvedValue({
         user: mockUser,
         token: mockToken,
       });
@@ -115,7 +115,7 @@ describe('AuthController', () => {
     });
 
     it('用户名或密码错误应该返回错误', async () => {
-      vi.spyOn(AuthService, 'loginUser').mockRejectedValue(
+      vi.spyOn(authService, 'loginUser').mockRejectedValue(
         new Error('用户名或密码错误')
       );
 
@@ -139,7 +139,7 @@ describe('AuthController', () => {
     });
 
     it('服务层抛出未知错误应该返回通用错误', async () => {
-      vi.spyOn(AuthService, 'loginUser').mockRejectedValue(
+      vi.spyOn(authService, 'loginUser').mockRejectedValue(
         new Error('Database connection failed')
       );
 
@@ -153,7 +153,7 @@ describe('AuthController', () => {
 
   describe('checkAuth', () => {
     it('有效 token 应该返回已认证状态和用户信息', async () => {
-      vi.spyOn(AuthService, 'checkAuthStatus').mockResolvedValue({
+      vi.spyOn(authService, 'checkAuthStatus').mockResolvedValue({
         isAuthenticated: true,
         user: mockUser,
       });
@@ -166,7 +166,7 @@ describe('AuthController', () => {
     });
 
     it('无效 token 应该返回未认证状态', async () => {
-      vi.spyOn(AuthService, 'checkAuthStatus').mockResolvedValue({
+      vi.spyOn(authService, 'checkAuthStatus').mockResolvedValue({
         isAuthenticated: false,
         user: null,
       });
@@ -187,7 +187,7 @@ describe('AuthController', () => {
     });
 
     it('服务层抛出错误应该返回未认证状态', async () => {
-      vi.spyOn(AuthService, 'checkAuthStatus').mockRejectedValue(
+      vi.spyOn(authService, 'checkAuthStatus').mockRejectedValue(
         new Error('Token validation failed')
       );
 
@@ -201,7 +201,7 @@ describe('AuthController', () => {
 
   describe('hasUsers', () => {
     it('有用户存在时应该返回 true', async () => {
-      vi.spyOn(AuthService, 'hasUsers').mockResolvedValue(true);
+      vi.spyOn(authService, 'hasUsers').mockResolvedValue(true);
 
       const result = await controller.hasUsers();
 
@@ -210,7 +210,7 @@ describe('AuthController', () => {
     });
 
     it('没有用户时应该返回 false', async () => {
-      vi.spyOn(AuthService, 'hasUsers').mockResolvedValue(false);
+      vi.spyOn(authService, 'hasUsers').mockResolvedValue(false);
 
       const result = await controller.hasUsers();
 
@@ -219,7 +219,7 @@ describe('AuthController', () => {
     });
 
     it('服务层抛出错误应该返回 false', async () => {
-      vi.spyOn(AuthService, 'hasUsers').mockRejectedValue(
+      vi.spyOn(authService, 'hasUsers').mockRejectedValue(
         new Error('Database error')
       );
 

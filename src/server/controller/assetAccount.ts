@@ -3,9 +3,6 @@ import accountService from '@server/service/accountService';
 import assetService from '@server/service/assetService';
 import transactionService from '@server/service/transactionService';
 import {
-  UpdateAccountRequestSchema,
-  CreateTradingAccountRequestSchema,
-  TradingAccountSchema,
   revenueHistoryQuerySchema,
 } from '@typings/account';
 import {
@@ -15,7 +12,7 @@ import {
 } from '@typings/transaction';
 import logger from '@server/base/logger';
 import { z } from 'zod';
-import { AuthService } from '@server/service/authService';
+import authService from '@server/service/authService';
 import { BaseBizController } from './base';
 
 export class AssetAccountBizController extends BaseBizController {
@@ -23,7 +20,7 @@ export class AssetAccountBizController extends BaseBizController {
   async updateAccountBalance(request: { balance: number } & any) {
     try {
       // 1. 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -39,8 +36,14 @@ export class AssetAccountBizController extends BaseBizController {
       }
       const validatedBody = validationResult.data;
 
+      // 2. 获取选中的账户ID
+      const account = await accountService.getUserSelectedAccount(userId);
+      if (!account) {
+        return this.error('账户不存在', 'account_not_found');
+      }
       // 3. 更新账户余额
       const updatedAccount = await accountService.updateAccountBalance(
+        account.id,
         userId,
         validatedBody.balance,
       );
@@ -63,7 +66,7 @@ export class AssetAccountBizController extends BaseBizController {
   async getRevenueMetrics(query: any) {
     try {
       // 1. 获取当前用户ID
-      const accountInfo = await AuthService.getCurrentUserAccount();
+      const accountInfo = await authService.getCurrentUserAccount();
       if (!accountInfo) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -109,7 +112,7 @@ export class AssetAccountBizController extends BaseBizController {
   async getRevenueHistory(query: any) {
     try {
       // 1. 获取当前用户ID
-      const accountInfo = await AuthService.getCurrentUserAccount();
+      const accountInfo = await authService.getCurrentUserAccount();
       if (!accountInfo) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -155,7 +158,7 @@ export class AssetAccountBizController extends BaseBizController {
   async getAssetSummary(query: any) {
     try {
       // 1. 获取当前用户ID
-      const accountInfo = await AuthService.getCurrentUserAccount();
+      const accountInfo = await authService.getCurrentUserAccount();
       if (!accountInfo) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -181,7 +184,7 @@ export class AssetAccountBizController extends BaseBizController {
   async getTransactionHistory(query: any) {
     try {
       // 1. 获取当前用户ID
-      const accountInfo = await AuthService.getCurrentUserAccount();
+      const accountInfo = await authService.getCurrentUserAccount();
       if (!accountInfo) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -205,7 +208,7 @@ export class AssetAccountBizController extends BaseBizController {
   async addTransaction(body: any) {
     try {
       // 1. 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
@@ -249,7 +252,7 @@ export class AssetAccountBizController extends BaseBizController {
   async updateTransaction(request: { id: string } & any) {
     try {
       // 1. 获取当前用户ID
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }

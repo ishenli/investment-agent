@@ -52,7 +52,7 @@ export const sessionsReducer = (state: LobeSessions, payload: SessionDispatch): 
         const index = draftState.findIndex((item) => item.id === id);
 
         if (index !== -1) {
-          // @ts-ignore
+          // @ts-expect-error - update
           draftState[index] = {
             ...draftState[index],
             ...value,

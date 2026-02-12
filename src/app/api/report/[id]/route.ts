@@ -1,7 +1,7 @@
 import { WithRequestContextStatic } from '@/server/base/decorators';
 import { BaseController } from '@/app/api/base/baseController';
 import reportService from '@/server/service/reportService';
-import { AuthService } from '@/server/service/authService';
+import authService, { AuthService } from '@/server/service/authService';
 import { z } from 'zod';
 
 const ReportIdSchema = z.object({
@@ -17,7 +17,7 @@ export class WeeklyReportDetailController extends BaseController {
   static async GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
       // 获取当前用户ID
-      const accountInfo = await AuthService.getCurrentUserAccount();
+      const accountInfo = await authService.getCurrentUserAccount();
       if (!accountInfo) {
         return this.error('用户未登录', 'UNAUTHORIZED');
       }
@@ -42,7 +42,7 @@ export class WeeklyReportDetailController extends BaseController {
   static async DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
       // 获取当前用户ID
-      const accountInfo = await AuthService.getCurrentUserAccount();
+      const accountInfo = await authService.getCurrentUserAccount();
       if (!accountInfo) {
         return this.error('用户未登录', 'UNAUTHORIZED');
       }
@@ -67,7 +67,7 @@ export class WeeklyReportDetailController extends BaseController {
   static async PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
       // 获取当前用户ID
-      const accountInfo = await AuthService.getCurrentUserAccount();
+      const accountInfo = await authService.getCurrentUserAccount();
       if (!accountInfo) {
         return this.error('用户未登录', 'UNAUTHORIZED');
       }

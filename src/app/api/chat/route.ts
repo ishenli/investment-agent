@@ -2,10 +2,10 @@ import { UIMessage } from 'ai';
 import { AIMessage, HumanMessage } from 'langchain';
 import { NextRequest, NextResponse } from 'next/server';
 import logger from '@server/base/logger';
-import { AuthService } from '@server/service/authService';
 import { SSEEmitter } from '@server/base/sseEmitter';
 import { createSSEResponse } from '@server/base/responseUtil';
 import chatService from '@server/service/chatService';
+import authService from '@server/service/authService';
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     const sseEmitter = new SSEEmitter();
 
     // 获取当前用户ID
-    const accountId = await AuthService.getCurrentUserId();
+    const accountId = await authService.getCurrentUserId();
 
     // 调用 chatService 处理投资顾问聊天请求
     (async () => {
