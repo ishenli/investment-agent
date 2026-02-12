@@ -48,6 +48,8 @@ const createStore: StateCreator<AuthStore, [['zustand/devtools', never]]> = (set
 
   logout: () => {
     localStorage.removeItem(TOKEN_STORAGE_KEY);
+    // 清除 cookie
+    document.cookie = 'auth_token=; path=/; max-age=0; secure; samesite=lax';
     set({ isAuthenticated: false, user: null, token: null, error: null });
   },
 
@@ -82,15 +84,18 @@ const createStore: StateCreator<AuthStore, [['zustand/devtools', never]]> = (set
         } else {
           set({ isAuthenticated: false, user: null });
           localStorage.removeItem(TOKEN_STORAGE_KEY);
+          document.cookie = 'auth_token=; path=/; max-age=0; secure; samesite=lax';
         }
       } else {
         set({ isAuthenticated: false, user: null });
         localStorage.removeItem(TOKEN_STORAGE_KEY);
+        document.cookie = 'auth_token=; path=/; max-age=0; secure; samesite=lax';
       }
     } catch (error) {
       console.error('检查认证状态失败:', error);
       set({ isAuthenticated: false, user: null });
       localStorage.removeItem(TOKEN_STORAGE_KEY);
+      document.cookie = 'auth_token=; path=/; max-age=0; secure; samesite=lax';
     } finally {
       set({ loading: false });
     }

@@ -78,7 +78,16 @@ export function RegisterForm() {
       const data = await response.json();
 
       if (data.success) {
+        // 设置认证状态
         setAuth(data.data.user, data.data.token);
+
+        // 将 token 保存到 cookie(用于 middleware 验证)
+        const maxAge = 7 * 24 * 60 * 60; // 7天
+        // 在开发环境中不使用 secure 属性(HTTP),生产环境使用 secure(HTTPS)
+        const isSecure = window.location.protocol === 'https:';
+        const securePart = isSecure ? '; secure' : '';
+        document.cookie = `auth_token=${data.data.token}; path=/; max-age=${maxAge}${securePart}; samesite=lax`;
+
         // 注册成功后跳转到资产页面
         router.push('/asset');
       } else {
