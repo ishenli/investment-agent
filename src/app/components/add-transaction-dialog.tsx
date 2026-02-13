@@ -187,12 +187,28 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
             </Select>
           </div>
         )}
-    
+        {type === 'deposit' || type === 'withdrawal' && (
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="currency" className="text-right">
+              资金类型
+            </Label>
+            <Select value={currencyType} onValueChange={(value: MarketType) => setCurrencyType(value)}>
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="选择资金类型" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="US">美元 (USD)</SelectItem>
+                <SelectItem value="HK">港币 (HKD)</SelectItem>
+                <SelectItem value="CN">人民币 (CNY)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         {type === 'deposit' || type === 'withdrawal' ? (
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="amount" className="text-right">
-              金额 ({getCurrencySymbol(marketType)})
+              金额 ({getCurrencySymbol(currencyType)})
             </Label>
             <Input
               id="amount"
@@ -200,7 +216,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
               value={amount}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAmount(e.target.value)}
               className="col-span-3"
-              placeholder={`请输入金额 (${getCurrencySymbol(marketType)})`}
+              placeholder={`请输入金额 (${getCurrencySymbol(currencyType)})`}
               required
             />
           </div>
