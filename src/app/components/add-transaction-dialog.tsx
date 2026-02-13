@@ -101,6 +101,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
       // 重置表单
       setType('buy');
       setMarketType('US');
+      setCurrencyType('US');
       setAmount('');
       setQuantity('');
       setPrice('');
@@ -151,37 +152,41 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
             </SelectContent>
           </Select>
         </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="market" className="text-right">
-            市场类型
-          </Label>
-          <Select value={marketType} onValueChange={(value: MarketType) => setMarketType(value)}>
-            <SelectTrigger className="col-span-3">
-              <SelectValue placeholder="选择市场" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="US">美股</SelectItem>
-              <SelectItem value="HK">港股</SelectItem>
-              <SelectItem value="CN">A股</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="type" className="text-right">
-            资产类型
-          </Label>
-          <Select value={assetType} onValueChange={(value: AssetType) => setAssetType(value)}>
-            <SelectTrigger className="col-span-3">
-              <SelectValue placeholder="选择类型" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="stock">股票</SelectItem>
-              <SelectItem value="crypto">加密货币</SelectItem>
-              <SelectItem value="fund">基金</SelectItem>
-              <SelectItem value="etf">etf</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {type !== 'deposit' && type !== 'withdrawal' && (
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="market" className="text-right">
+              市场类型
+            </Label>
+            <Select value={marketType} onValueChange={(value: MarketType) => setMarketType(value)}>
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="选择市场" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="US">美股</SelectItem>
+                <SelectItem value="HK">港股</SelectItem>
+                <SelectItem value="CN">A股</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+        {type !== 'deposit' && type !== 'withdrawal' && (
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="type" className="text-right">
+              资产类型
+            </Label>
+            <Select value={assetType} onValueChange={(value: AssetType) => setAssetType(value)}>
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="选择类型" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="stock">股票</SelectItem>
+                <SelectItem value="crypto">加密货币</SelectItem>
+                <SelectItem value="fund">基金</SelectItem>
+                <SelectItem value="etf">etf</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
     
 
         {type === 'deposit' || type === 'withdrawal' ? (
