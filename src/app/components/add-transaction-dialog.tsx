@@ -12,7 +12,7 @@ import {
 } from '@renderer/components/ui/select';
 import { useAssetStore } from '@renderer/store/asset/store';
 import { CURRENCY_SYMBOLS, EXCHANGE_RATES } from '@shared/constant';
-import { TransactionRecordBaseType, TransactionType } from '@/types';
+import { TransactionType } from '@/types';
 import { AssetType, MarketType } from '@typings/asset';
 import { useState } from 'react';
 import { Alert, AlertTitle } from './ui/alert';
@@ -27,6 +27,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
   const [type, setType] = useState<TransactionType>('buy');
   const [assetType, setAssetType] = useState<AssetType>('stock');
   const [marketType, setMarketType] = useState<MarketType>('US');
+  const [currencyType, setCurrencyType] = useState<MarketType>('US'); // 资金类型：USD/HKD/CNY
   const [symbol, setSymbol] = useState('');
   const [amount, setAmount] = useState('');
   const [quantity, setQuantity] = useState('');
@@ -132,6 +133,25 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
           </Alert>
         )}
         <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="type" className="text-right">
+            类型
+          </Label>
+          <Select
+            value={type}
+            onValueChange={(value: 'buy' | 'sell' | 'deposit' | 'withdrawal') => setType(value)}
+          >
+            <SelectTrigger className="col-span-3">
+              <SelectValue placeholder="选择类型" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="buy">买入</SelectItem>
+              <SelectItem value="sell">卖出</SelectItem>
+              <SelectItem value="deposit">入金</SelectItem>
+              <SelectItem value="withdrawal">出金</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="market" className="text-right">
             市场类型
           </Label>
@@ -162,25 +182,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
             </SelectContent>
           </Select>
         </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="type" className="text-right">
-            类型
-          </Label>
-          <Select
-            value={type}
-            onValueChange={(value: 'buy' | 'sell' | 'deposit' | 'withdrawal') => setType(value)}
-          >
-            <SelectTrigger className="col-span-3">
-              <SelectValue placeholder="选择类型" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="buy">买入</SelectItem>
-              <SelectItem value="sell">卖出</SelectItem>
-              <SelectItem value="deposit">入金</SelectItem>
-              <SelectItem value="withdrawal">出金</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+    
 
         {type === 'deposit' || type === 'withdrawal' ? (
           <div className="grid grid-cols-4 items-center gap-4">
