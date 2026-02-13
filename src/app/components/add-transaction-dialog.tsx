@@ -67,13 +67,13 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
       // 处理出入金
       if (type === 'deposit' || type === 'withdrawal') {
         const originalAmount = parseFloat(amount);
-        const usdAmount = convertToUSD(originalAmount, marketType);
+        const usdAmount = convertToUSD(originalAmount, currencyType);
 
         transactionData = {
           type: type,
           amount: usdAmount,
           description,
-          market: marketType,
+          market: currencyType, // 存储资金类型
           tradeTime: tradeTime ? new Date(tradeTime) : undefined,
         };
       } else {
