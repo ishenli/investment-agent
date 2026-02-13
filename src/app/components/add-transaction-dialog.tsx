@@ -12,7 +12,7 @@ import {
 } from '@renderer/components/ui/select';
 import { useAssetStore } from '@renderer/store/asset/store';
 import { CURRENCY_SYMBOLS, EXCHANGE_RATES } from '@shared/constant';
-import { TransactionRecordBaseType, TransactionType } from '@/types';
+import { TransactionType } from '@/types';
 import { AssetType, MarketType } from '@typings/asset';
 import { useState } from 'react';
 import { Alert, AlertTitle } from './ui/alert';
@@ -27,6 +27,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
   const [type, setType] = useState<TransactionType>('buy');
   const [assetType, setAssetType] = useState<AssetType>('stock');
   const [marketType, setMarketType] = useState<MarketType>('US');
+  const [currencyType, setCurrencyType] = useState<MarketType>('US'); // 资金类型：USD/HKD/CNY
   const [symbol, setSymbol] = useState('');
   const [amount, setAmount] = useState('');
   const [quantity, setQuantity] = useState('');
@@ -66,13 +67,13 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
       // 处理出入金
       if (type === 'deposit' || type === 'withdrawal') {
         const originalAmount = parseFloat(amount);
-        const usdAmount = convertToUSD(originalAmount, marketType);
+        const usdAmount = convertToUSD(originalAmount, currencyType);
 
         transactionData = {
           type: type,
           amount: usdAmount,
           description,
-          market: marketType,
+          market: currencyType, // 存储资金类型
           tradeTime: tradeTime ? new Date(tradeTime) : undefined,
         };
       } else {
@@ -97,9 +98,11 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
       }
 
       await addTransaction(transactionData);
+    
       // 重置表单
       setType('buy');
       setMarketType('US');
+      setCurrencyType('US');
       setAmount('');
       setQuantity('');
       setPrice('');
@@ -109,7 +112,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
       onOpenChange(false);
       fetchTransactions();
     } catch (error) {
-      console.error('Failed to add transaction:', error);
+      console.error('Failed to add transaction', error);
     } finally {
       setLoading(false);
     }
@@ -132,37 +135,6 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
           </Alert>
         )}
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="market" className="text-right">
-            市场类型
-          </Label>
-          <Select value={marketType} onValueChange={(value: MarketType) => setMarketType(value)}>
-            <SelectTrigger className="col-span-3">
-              <SelectValue placeholder="选择市场" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="US">美股</SelectItem>
-              <SelectItem value="HK">港股</SelectItem>
-              <SelectItem value="CN">A股</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="type" className="text-right">
-            资产类型
-          </Label>
-          <Select value={assetType} onValueChange={(value: AssetType) => setAssetType(value)}>
-            <SelectTrigger className="col-span-3">
-              <SelectValue placeholder="选择类型" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="stock">股票</SelectItem>
-              <SelectItem value="crypto">加密货币</SelectItem>
-              <SelectItem value="fund">基金</SelectItem>
-              <SelectItem value="etf">etf</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="type" className="text-right">
             类型
           </Label>
@@ -181,11 +153,63 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
             </SelectContent>
           </Select>
         </div>
+        {type !== 'deposit' && type !== 'withdrawal' && (
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="market" className="text-right">
+              市场类型
+            </Label>
+            <Select value={marketType} onValueChange={(value: MarketType) => setMarketType(value)}>
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="选择市场" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="US">美股</SelectItem>
+                <SelectItem value="HK">港股</SelectItem>
+                <SelectItem value="CN">A股</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+        {type !== 'deposit' && type !== 'withdrawal' && (
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="type" className="text-right">
+              资产类型
+            </Label>
+            <Select value={assetType} onValueChange={(value: AssetType) => setAssetType(value)}>
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="选择类型" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="stock">股票</SelectItem>
+                <SelectItem value="crypto">加密货币</SelectItem>
+                <SelectItem value="fund">基金</SelectItem>
+                <SelectItem value="etf">etf</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+        {(type === 'deposit' || type === 'withdrawal') && (
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="currency" className="text-right">
+              资金类型
+            </Label>
+            <Select key={`currency-${type}`} value={currencyType} onValueChange={(value: MarketType) => setCurrencyType(value)}>
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="选择资金类型" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="US">美元 (USD)</SelectItem>
+                <SelectItem value="HK">港币 (HKD)</SelectItem>
+                <SelectItem value="CN">人民币 (CNY)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         {type === 'deposit' || type === 'withdrawal' ? (
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="amount" className="text-right">
-              金额 ({getCurrencySymbol(marketType)})
+              金额 ({getCurrencySymbol(currencyType)})
             </Label>
             <Input
               id="amount"
@@ -193,7 +217,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
               value={amount}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAmount(e.target.value)}
               className="col-span-3"
-              placeholder={`请输入金额 (${getCurrencySymbol(marketType)})`}
+              placeholder={`请输入金额 (${getCurrencySymbol(currencyType)})`}
               required
             />
           </div>
@@ -255,6 +279,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTradeTime(e.target.value)}
             className="col-span-3"
             placeholder="请选择交易时间"
+            required
           />
         </div>
         <div className="grid grid-cols-4 items-center gap-4">

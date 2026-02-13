@@ -71,6 +71,9 @@ export const createAssetTransactionsSlice: StateCreator<
       }
 
       const newTransactionRep = await response.json();
+      if (!newTransactionRep.success) {
+        throw new Error(newTransactionRep.message || 'Failed to add transaction');
+      }
       const newTransaction = newTransactionRep.data as TransactionRecordType;
 
       // 更新本地状态

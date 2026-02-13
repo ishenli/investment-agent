@@ -81,6 +81,7 @@ jobs:
           draft: true
           allowUpdates: true
           makeLatest: false
+          skipIfReleaseExists: true
           tag: ${{ steps.get-tag.outputs.tag }}
           artifacts: "release/*.exe,release/*.zip,release/*.dmg,release/*.AppImage,release/*.snap,release/*.deb,release/*.rpm,release/*.tar.gz,release/latest*.yml,release/rc*.yml,release/beta*.yml,release/*.blockmap"
           token: ${{ secrets.GITHUB_TOKEN }}
