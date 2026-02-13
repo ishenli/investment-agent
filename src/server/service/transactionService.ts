@@ -144,6 +144,46 @@ export class TransactionService {
         })
         .returning();
 
+      // 如果是出入金交易，同步更新账户资金余额
+      if (transactionData.type === 'deposit' || transactionData.type === 'withdrawal') {
+        const accountFund = await db.query.accountFunds.findFirst({
+          where: eq(accountFunds.accountId, parseInt(transactionData.accountId)),
+        });
+
+        if (accountFund) {
+          // 计算新的余额：入金增加，出金减少
+          const balanceChange = transactionData.type === 'deposit' ? totalAmountCents : -totalAmountCents;
+          const newAmountCents = accountFund.amountCents + balanceChange;
+
+          await db
+            .update(accountFunds)
+            .set({
+              amountCents: newAmountCents,
+              updatedAt: new Date(),
+            })
+            .where(eq(accountFunds.accountId, parseInt(transactionData.accountId)));
+
+          logger.info(
+            `Account balance updated for deposit/withdrawal: accountId=${transactionData.accountId}, type=${transactionData.type}, change=${balanceChange / 100}, newBalance=${newAmountCents / 100}`
+          );
+        } else {
+          // 如果没有 accountFunds 记录，创建一条新的（入金时）
+          if (transactionData.type === 'deposit') {
+            await db.insert(accountFunds).values({
+              accountId: parseInt(transactionData.accountId),
+              amountCents: totalAmountCents,
+              currency: transactionData.market === 'HK' ? 'HKD' :
+                       transactionData.market === 'CN' ? 'CNY' : 'USD',
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            });
+            logger.info(
+              `Created new account funds record for deposit: accountId=${transactionData.accountId}, amount=${totalAmountCents / 100}`
+            );
+          }
+        }
+      }
+
       // 如果是股票交易，则更新仓位
       if (transactionData.type === 'buy' || transactionData.type === 'sell') {
         await positionService.processTransaction(
@@ -277,30 +317,74 @@ export class TransactionService {
         .where(eq(transactions.id, parseInt(transactionId)))
         .returning();
 
-      // 如果交易类型或相关字段被更新，需要相应地调整仓位
+      // 如果交易类型或相关字段被更新，需要相应地调整仓位或余额
       // 修复：正确处理仓位更新，确保平均价格计算准确
+      const originalType = existingTransaction.type as TransactionType;
+      const originalQuantity = existingTransaction.quantity || 0;
+      const originalPriceCents = existingTransaction.priceCents || 0;
+      const originalSymbol = existingTransaction.symbol || '';
+      const originalTotalAmountCents = existingTransaction.totalAmountCents || 0;
+
+      // 获取更新后的交易信息
+      const newType = transactionData.type || originalType;
+      const newQuantity =
+        transactionData.quantity !== undefined ? transactionData.quantity : originalQuantity;
+      const newPriceCents =
+        transactionData.price !== undefined
+          ? Math.round(transactionData.price * 100)
+          : originalPriceCents;
+      const newSymbol = transactionData.symbol || originalSymbol;
+      const newTotalAmountCents = updatedTransaction.totalAmountCents || 0;
+
+      // 处理出入金交易对余额的影响
+      if (originalType === 'deposit' || originalType === 'withdrawal' ||
+          newType === 'deposit' || newType === 'withdrawal') {
+        const accountFund = await db.query.accountFunds.findFirst({
+          where: eq(accountFunds.accountId, existingTransaction.accountId),
+        });
+
+        if (accountFund) {
+          let balanceChangeCents = 0;
+
+          // 撤销原交易的影响
+          if (originalType === 'deposit') {
+            balanceChangeCents -= originalTotalAmountCents;  // 入金要减去
+          } else if (originalType === 'withdrawal') {
+            balanceChangeCents += originalTotalAmountCents;  // 出金要加回
+          }
+
+          // 应用新交易的影响
+          if (newType === 'deposit') {
+            balanceChangeCents += newTotalAmountCents;
+          } else if (newType === 'withdrawal') {
+            balanceChangeCents -= newTotalAmountCents;
+          }
+
+          if (balanceChangeCents !== 0) {
+            const newAmountCents = accountFund.amountCents + balanceChangeCents;
+
+            await db
+              .update(accountFunds)
+              .set({
+                amountCents: newAmountCents,
+                updatedAt: new Date(),
+              })
+              .where(eq(accountFunds.accountId, existingTransaction.accountId));
+
+            logger.info(
+              `Account balance updated for transaction update: accountId=${existingTransaction.accountId}, balanceChange=${balanceChangeCents / 100}, newBalance=${newAmountCents / 100}`
+            );
+          }
+        }
+      }
+
+      // 如果交易类型或相关字段被更新，需要相应地调整仓位
       if (
         transactionData.type !== undefined ||
         transactionData.quantity !== undefined ||
         transactionData.price !== undefined ||
         transactionData.symbol !== undefined
       ) {
-        // 获取更新前的交易信息
-        const originalType = existingTransaction.type as TransactionType;
-        const originalQuantity = existingTransaction.quantity || 0;
-        const originalPriceCents = existingTransaction.priceCents || 0;
-        const originalSymbol = existingTransaction.symbol || '';
-
-        // 获取更新后的交易信息
-        const newType = transactionData.type || originalType;
-        const newQuantity =
-          transactionData.quantity !== undefined ? transactionData.quantity : originalQuantity;
-        const newPriceCents =
-          transactionData.price !== undefined
-            ? Math.round(transactionData.price * 100)
-            : originalPriceCents;
-        const newSymbol = transactionData.symbol || originalSymbol;
-
         // 如果原交易是股票交易，需要移除其对仓位的影响
         if (originalType === 'buy' || originalType === 'sell') {
           // 获取原交易对应的仓位信息
