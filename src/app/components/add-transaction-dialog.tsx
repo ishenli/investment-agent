@@ -98,6 +98,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
       }
 
       await addTransaction(transactionData);
+    
       // 重置表单
       setType('buy');
       setMarketType('US');
@@ -111,7 +112,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
       onOpenChange(false);
       fetchTransactions();
     } catch (error) {
-      console.error('Failed to add transaction:', error);
+      console.error('Failed to add transaction', error);
     } finally {
       setLoading(false);
     }
@@ -187,12 +188,12 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
             </Select>
           </div>
         )}
-        {type === 'deposit' || type === 'withdrawal' && (
+        {(type === 'deposit' || type === 'withdrawal') && (
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="currency" className="text-right">
               资金类型
             </Label>
-            <Select value={currencyType} onValueChange={(value: MarketType) => setCurrencyType(value)}>
+            <Select key={`currency-${type}`} value={currencyType} onValueChange={(value: MarketType) => setCurrencyType(value)}>
               <SelectTrigger className="col-span-3">
                 <SelectValue placeholder="选择资金类型" />
               </SelectTrigger>
@@ -278,6 +279,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTradeTime(e.target.value)}
             className="col-span-3"
             placeholder="请选择交易时间"
+            required
           />
         </div>
         <div className="grid grid-cols-4 items-center gap-4">

@@ -14,6 +14,7 @@ import { useAssetStore } from '@renderer/store/asset/store';
 import { TransactionRecordType, TransactionType } from '@typings/index';
 import { AssetType, MarketType } from '@typings/asset';
 import { useState, useEffect } from 'react';
+import { CURRENCY_SYMBOLS, EXCHANGE_RATES } from '@shared/constant';
 
 interface EditTransactionDialogProps {
   open: boolean;
@@ -39,12 +40,33 @@ export function EditTransactionDialog({
   const fetchTransactions = useAssetStore((state) => state.fetchTransactions);
   const updateTransaction = useAssetStore((state) => state.updateTransaction);
 
+  // 资金类型状态
+  const [currencyType, setCurrencyType] = useState<MarketType>('US');
+
+  // 获取当前市场对应的货币符号
+  const getCurrencySymbol = (market: MarketType) => {
+    return CURRENCY_SYMBOLS[market] || '$';
+  };
+
+  // 将金额转换为美元
+  const convertToUSD = (amount: number, market: MarketType): number => {
+    switch (market) {
+      case 'HK':
+        return amount * EXCHANGE_RATES.HKD_TO_USD;
+      case 'CN':
+        return amount * EXCHANGE_RATES.CNY_TO_USD;
+      default:
+        return amount; // USD 不需要转换
+    }
+  };
+
   // 初始化表单数据
   useEffect(() => {
     if (transaction && open) {
       console.info('Transaction data:', transaction);
       setType(transaction.type);
       setMarketType(transaction.market || 'US');
+      setCurrencyType(transaction.market || 'US');
       setAssetType((transaction.sector as AssetType) || 'stock');
       setSymbol(transaction.symbol || '');
       setAmount(transaction.amount.toString());
@@ -78,11 +100,14 @@ export function EditTransactionDialog({
 
       // 处理出入金
       if (type === 'deposit' || type === 'withdrawal') {
+        const originalAmount = parseFloat(amount);
+        const usdAmount = convertToUSD(originalAmount, currencyType);
+
         transactionData = {
           type: type,
-          amount: parseFloat(amount),
+          amount: usdAmount,
           description,
-          market: marketType,
+          market: currencyType, // 存储资金类型
           tradeTime: tradeTime ? new Date(tradeTime) : undefined,
         };
       } else {
@@ -122,10 +147,11 @@ export function EditTransactionDialog({
       cancelText="取消"
     >
       <div className="grid gap-4 py-4">
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="market" className="text-right">
-            市场类型
-          </Label>
+        {type !== 'deposit' && type !== 'withdrawal' && (
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="market" className="text-right">
+              市场类型
+            </Label>
           <Select key={marketType} value={marketType} onValueChange={(value: MarketType) => setMarketType(value)}>
             <SelectTrigger className="col-span-3">
               <SelectValue placeholder="选择市场" />
@@ -137,22 +163,42 @@ export function EditTransactionDialog({
             </SelectContent>
           </Select>
         </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="assetType" className="text-right">
-            资产类型
-          </Label>
-          <Select key={assetType} value={assetType} onValueChange={(value: AssetType) => setAssetType(value)}>
-            <SelectTrigger className="col-span-3">
-              <SelectValue placeholder="选择类型" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="stock">股票</SelectItem>
-              <SelectItem value="crypto">加密货币</SelectItem>
-              <SelectItem value="fund">基金</SelectItem>
-              <SelectItem value="etf">etf</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        )}
+        {type !== 'deposit' && type !== 'withdrawal' && (
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="assetType" className="text-right">
+              资产类型
+            </Label>
+            <Select key={assetType} value={assetType} onValueChange={(value: AssetType) => setAssetType(value)}>
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="选择类型" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="stock">股票</SelectItem>
+                <SelectItem value="crypto">加密货币</SelectItem>
+                <SelectItem value="fund">基金</SelectItem>
+                <SelectItem value="etf">etf</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+        {(type === 'deposit' || type === 'withdrawal') && (
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="currency" className="text-right">
+              资金类型
+            </Label>
+            <Select key={`currency-${type}`} value={currencyType} onValueChange={(value: MarketType) => setCurrencyType(value)}>
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="选择资金类型" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="US">美元 (USD)</SelectItem>
+                <SelectItem value="HK">港币 (HKD)</SelectItem>
+                <SelectItem value="CN">人民币 (CNY)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="transactionType" className="text-right">
             类型
@@ -177,7 +223,7 @@ export function EditTransactionDialog({
         {type === 'deposit' || type === 'withdrawal' ? (
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="amount" className="text-right">
-              金额
+              金额 ({getCurrencySymbol(currencyType)})
             </Label>
             <Input
               id="amount"
@@ -185,7 +231,7 @@ export function EditTransactionDialog({
               value={amount}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAmount(e.target.value)}
               className="col-span-3"
-              placeholder="请输入金额"
+              placeholder={`请输入金额 (${getCurrencySymbol(currencyType)})`}
               required
             />
           </div>

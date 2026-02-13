@@ -8,13 +8,13 @@
     "ig": "./bin/ig.js"
   },
   "scripts": {
-    "electron:dev": "concurrently -k \"npm run dev\" \"wait-on http://localhost:8888 && electron .\"",
+    "electron:dev": "concurrently -k \"next dev --port 8888\" \"wait-on http://localhost:8888 && electron .\"",
     "electron:build": "cross-env BUILD_TARGET=electron next build && node scripts/build-electron.mjs",
     "electron:pack": "npm run electron:build && electron-builder --config electron-builder.yml",
     "electron:pack:mac": "npm run electron:build && electron-builder --mac --config electron-builder.yml",
     "langgraph:dev": "npx @langchain/langgraph-cli dev --port 54367",
     "langgraph:start": "npx @langchain/langgraph-cli up",
-    "dev": "next dev --port 8888",
+    "dev": "next dev",
     "build": "rm -rf .next && next build",
     "build:npm": "npm run build",
     "prepublishOnly": "npm run build:npm",
