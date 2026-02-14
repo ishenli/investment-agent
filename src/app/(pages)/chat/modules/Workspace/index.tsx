@@ -18,7 +18,8 @@ const Page = memo(() => {
         style={{
           overflow: 'hidden',
           position: 'relative',
-          backgroundColor: '#fbfbfb',
+          // backgroundColor: '#fbfbfb',
+          backgroundColor: 'var(--antd-bg-color-container)',
         }}
         width={'100%'}
       >

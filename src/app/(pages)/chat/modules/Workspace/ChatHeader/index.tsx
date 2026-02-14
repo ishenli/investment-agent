@@ -1,8 +1,8 @@
 import { ChatHeader } from '@lobehub/ui/chat';
-
 import React from 'react';
 import HeaderAction from './HeaderAction';
 import Main from './Main';
+
 
 const Header = () => {
   return (
@@ -13,7 +13,7 @@ const Header = () => {
         paddingInline: 8,
         position: 'initial',
         zIndex: 11,
-        backgroundColor: '#fbfbfb',
+        backgroundColor: 'var(--antd-bg-color-container)',
       }}
     />
   );

@@ -46,7 +46,7 @@ const Layout = ({}: LayoutProps) => {
           horizontal
           className="relative h-[calc(100vh-2)] bg-background overflow-hidden"
           style={{
-            borderLeft: '1px solid #f0f0f0',
+            // borderLeft: '1px solid #f0f0f0',
             maxWidth: '100%',
             // height: 'calc(100vh-2)',
           }}

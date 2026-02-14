@@ -2,7 +2,6 @@
 
 import './globals.css';
 import { initAppData } from './lib/app';
-import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { useEffect } from 'react';
 import { Providers } from './providers';
 
@@ -17,11 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`antialiased`} id="app">
-        <AntdRegistry>
-          <Providers>
-            {children}
-          </Providers>
-        </AntdRegistry>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

@@ -2,7 +2,9 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
-
+import { AntdRegistry } from '@ant-design/nextjs-registry';
+import { ThemeProvider } from './components/ui/theme-provider';
+import { AntDesignThemeSync } from './components/antd-theme-sync';
 // 创建 QueryClient 实例的函数
 function makeQueryClient() {
   return new QueryClient({
@@ -38,5 +40,21 @@ export function Providers({ children }: { children: ReactNode }) {
   // 在组件内部创建 queryClient 实例，而不是作为 prop 传递
   const queryClient = getQueryClient();
 
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AntdRegistry>
+        <ThemeProvider
+          defaultTheme="system"
+          storageKey="investment-agent-theme"
+          attribute="class"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AntDesignThemeSync>
+            {children}
+          </AntDesignThemeSync>
+        </ThemeProvider>
+      </AntdRegistry>
+    </QueryClientProvider>
+  );
 }

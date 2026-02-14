@@ -65,7 +65,7 @@ const DesktopChatInput = memo<DesktopChatInputProps>(
             style={{
               minHeight: CHAT_TEXTAREA_HEIGHT,
               position: 'relative',
-              backgroundColor: '#fbfbfb',
+              backgroundColor: 'var(--antd-bg-color-container)',
             }}
           >
             <Head
