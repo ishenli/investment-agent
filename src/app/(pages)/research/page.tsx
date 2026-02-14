@@ -106,13 +106,13 @@ export default function StockAnalysisPage() {
         <Flexbox horizontal gap={12}>
           {/* Left sidebar - fixed width */}
           <div className="w-60 shrink-0">
-            <div className="bg-white shadow rounded-lg p-6">
+            <div className="shadow rounded-lg p-6">
               <form onSubmit={handleSubmit} className="space-y-3">
                 <div className="grid grid-cols-1 gap-2">
                   <div>
                     <label
                       htmlFor="stockSymbol"
-                      className="block text-sm font-medium text-gray-700 mb-1"
+                      className="block text-sm font-medium mb-1"
                     >
                       股票代码 *
                     </label>
@@ -130,7 +130,7 @@ export default function StockAnalysisPage() {
                   <div>
                     <label
                       htmlFor="analysisDate"
-                      className="block text-sm font-medium text-gray-700 mb-1"
+                      className="block text-sm font-medium mb-1"
                     >
                       分析日期 *
                     </label>
@@ -165,7 +165,7 @@ export default function StockAnalysisPage() {
                   <div>
                     <label
                       htmlFor="marketType"
-                      className="block text-sm font-medium text-gray-700 mb-1"
+                      className="block text-sm font-medium mb-1"
                     >
                       市场类型
                     </label>
@@ -190,7 +190,7 @@ export default function StockAnalysisPage() {
                   <div>
                     <label
                       htmlFor="researchDepth"
-                      className="block text-sm font-medium text-gray-700 mb-1"
+                      className="block text-sm font-medium mb-1"
                     >
                       研究深度
                     </label>
@@ -208,7 +208,7 @@ export default function StockAnalysisPage() {
                   <div>
                     <label
                       htmlFor="llmModel"
-                      className="block text-sm font-medium text-gray-700 mb-1"
+                      className="block text-sm font-medium mb-1"
                     >
                       LLM模型
                     </label>
@@ -226,7 +226,7 @@ export default function StockAnalysisPage() {
                 <div>
                   <label
                     htmlFor="analysts"
-                    className="block text-sm font-medium text-gray-700 mb-1"
+                    className="block text-sm font-medium mb-1"
                   >
                     分析师列表 (用逗号分隔)
                   </label>
@@ -294,7 +294,7 @@ export default function StockAnalysisPage() {
                       />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-1">暂无分析结果</h3>
+                  <h3 className="text-lg font-medium mb-1">暂无分析结果</h3>
                   <p className="text-gray-500 max-w-md">
                     请输入股票信息并点击&quot;开始分析&quot;按钮获取详细的股票分析报告。
                   </p>

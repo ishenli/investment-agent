@@ -59,9 +59,9 @@ export function NavDocuments({
           return (
             <SidebarMenuItem key={item.name}>
               <SidebarMenuButton asChild isActive={isActive}>
-                <Link href={item.url} className="text-black">
+                <Link href={item.url}>
                   <item.icon />
-                  <span>{item.name}</span>
+                  <button>{item.name}</button>
                 </Link>
               </SidebarMenuButton>
               {item.dropdownItems && item.dropdownItems.length > 0 ? (

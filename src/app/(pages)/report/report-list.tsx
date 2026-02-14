@@ -118,7 +118,7 @@ export function ReportList() {
           <AlertDescription>您还没有生成过任何投资报告。点击上方按钮开始生成。</AlertDescription>
         </Alert>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {reports.map((report) => (
             <Link key={report.id} href={`/report/${report.id}`}>
               <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">

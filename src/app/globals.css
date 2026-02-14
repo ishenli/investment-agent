@@ -76,6 +76,19 @@
   --sidebar-ring: oklch(0.708 0 0);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
+
+  /* Ant Design CSS Variables */
+  --antd-primary-color: var(--primary);
+  --antd-primary-color-hover: color-mix(in oklch, var(--primary) 90%, black);
+  --antd-bg-color-container: var(--card);
+  --antd-bg-color-container-hover: oklch(0.985 0 0);
+  --antd-text-color: var(--foreground);
+  --antd-text-color-secondary: var(--muted-foreground);
+  --antd-border-color: var(--border);
+  --antd-border-radius: var(--radius);
+  --antd-color-border-light: oklch(0.95 0 0);
+  --antd-color-bg-elevated: oklch(1 0 0);
+  --antd-color-bg-layout: var(--background);
 }
 
 .dark {
@@ -110,6 +123,19 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  /* Ant Design Dark Theme Variables */
+  --antd-primary-color: var(--primary); /* Already adjusted for dark theme in .dark */
+  --antd-primary-color-hover: color-mix(in oklch, var(--primary) 80%, white);
+  --antd-bg-color-container: var(--card); /* Already dark in .dark theme */
+  --antd-bg-color-container-hover: oklch(0.269 0 0);
+  --antd-text-color: var(--foreground); /* Already light in .dark theme */
+  --antd-text-color-secondary: var(--muted-foreground); /* Already light in .dark theme */
+  --antd-border-color: var(--border); /* Already light in .dark theme */
+  --antd-border-radius: var(--radius);
+  --antd-color-border-light: oklch(1 0 0 / 8%);
+  --antd-color-bg-elevated: oklch(0.269 0 0);
+  --antd-color-bg-layout: var(--background); /* Already dark in .dark theme */
 }
 
 @layer base {
@@ -118,6 +144,23 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Theme transitions */
+@supports (color: oklch(0 0 0)) {
+  * {
+    transition: background-color 200ms ease-in-out,
+                color 200ms ease-in-out,
+                border-color 200ms ease-in-out,
+                box-shadow 200ms ease-in-out;
+  }
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
   }
 }
 
