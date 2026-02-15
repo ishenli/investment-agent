@@ -25,13 +25,13 @@ export function SiteHeader() {
     }
 
     // Check secondary navigation items
-    const secondaryNavItem = data.navSecondary.find(
+    const secondaryNavItem = data.settings.find(
       (item) => item.url === pathname || pathname === '/',
     );
     if (secondaryNavItem) {
-      return secondaryNavItem.title === '设置' && pathname === '/'
+      return secondaryNavItem.name === '设置' && pathname === '/'
         ? '账户分析'
-        : secondaryNavItem.title;
+        : secondaryNavItem.name;
     }
 
     // Check documents navigation items
@@ -62,7 +62,7 @@ export function SiteHeader() {
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
         <h1 className="text-base font-medium w-full" style={{
-          // @ts-ignore
+          // @ts-expect-error - WebkitAppRegion is not a standard CSS property
           WebkitAppRegion: 'drag',
           appRegion: 'drag',
           WebkitUserSelect: 'none',

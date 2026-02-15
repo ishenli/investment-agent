@@ -2,31 +2,25 @@
 
 import * as React from 'react';
 import {
-  IconChartBar,
   IconDatabase,
   IconFileWord,
-  IconHelp,
   IconReport,
   IconSearch,
   IconSettings,
-  IconReportAnalytics,
   IconWallet,
   IconTrademark,
   IconMessage,
   IconAnalyze,
   IconAsset,
-  IconShare3,
-  IconTrash,
   IconCirclePlusFilled,
-  IconRefresh,
   type Icon,
   IconEye,
   IconAnalyzeFilled,
   IconRobot,
+  IconServer,
 } from '@tabler/icons-react';
 
 import { NavMain } from '@renderer/components/nav-main';
-import { NavSecondary } from '@renderer/components/nav-secondary';
 import { NavUser } from '@renderer/components/nav-user';
 import {
   Sidebar,
@@ -37,12 +31,11 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@renderer/components/ui/sidebar';
-import Link from 'next/link';
 import { useAccountStore } from '@renderer/store/account/store';
 import { useEffect } from 'react';
 import { SwitchAccountDialog } from './switch-account-dialog';
 import { NavDocuments } from './nav-documents';
-import { GalleryVerticalEnd } from 'lucide-react';
+import { NavSettings } from './nav-setting';
 
 export const data = {
   navMain: [
@@ -88,11 +81,11 @@ export const data = {
     },
   ],
   documents: [
-    {
-      name: '市场指数',
-      url: '/market',
-      icon: IconReportAnalytics as Icon,
-    },
+    // {
+    //   name: '市场指数',
+    //   url: '/market',
+    //   icon: IconReportAnalytics as Icon,
+    // },
     {
       name: '市场信息',
       url: '/asset-market-info',
@@ -116,7 +109,11 @@ export const data = {
       url: '/note',
       icon: IconFileWord as Icon,
     },
-
+    {
+      name: '搜索',
+      url: '/search',
+      icon: IconSearch,
+    },
     // {
     //   name: '术语助理',
     //   url: '#',
@@ -141,28 +138,23 @@ export const data = {
     //   ],
     // },
   ],
-  navSecondary: [
+  settings: [
     {
-      title: '搜索',
-      url: '/search',
-      icon: IconSearch,
+      name: '模型设置',
+      url: '/setting/provider',
+      icon: IconServer as Icon,
     },
-    // {
-    //   title: '首选项',
-    //   url: '/setting',
-    //   icon: IconSettings,
-    // },
-    // {
-    //   title: '智能体设置',
-    //   url: '/setting/agent',
-    //   icon: IconRobot,
-    // },
-    // {
-    //   title: '帮助',
-    //   url: '#',
-    //   icon: IconHelp,
-    // },
-  ],
+    {
+      name: '工具设置',
+      url: '/setting/tool',
+      icon: IconSettings,
+    },
+    {
+      name: '智能体设置',
+      url: '/setting/agent',
+      icon: IconRobot,
+    },
+  ]
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -206,7 +198,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <NavMain items={data.navMain} />
         <NavDocuments items={data.documents} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavSettings items={data.settings} />
+        {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={userData} />

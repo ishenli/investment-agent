@@ -12,12 +12,23 @@ export class AIInsightsService {
   private static diversificationGraph: DiversificationGraph;
   private static strategyAdviceGraph: StrategyAdviceGraph;
   private static scenarioAnalyzerGraph: ScenarioAnalyzerGraph;
+  private static initialized = false;
 
-  static initialize() {
-    this.insightsGraph = new AIInsightsGraph();
-    this.diversificationGraph = new DiversificationGraph();
-    this.strategyAdviceGraph = new StrategyAdviceGraph();
-    this.scenarioAnalyzerGraph = new ScenarioAnalyzerGraph();
+  static async ensureInitialized(): Promise<void> {
+    if (this.initialized) return;
+
+    const [insightsGraph, diversificationGraph, strategyAdviceGraph, scenarioAnalyzerGraph] = await Promise.all([
+      AIInsightsGraph.create(),
+      DiversificationGraph.create(),
+      StrategyAdviceGraph.create(),
+      ScenarioAnalyzerGraph.create(),
+    ]);
+
+    this.insightsGraph = insightsGraph;
+    this.diversificationGraph = diversificationGraph;
+    this.strategyAdviceGraph = strategyAdviceGraph;
+    this.scenarioAnalyzerGraph = scenarioAnalyzerGraph;
+    this.initialized = true;
   }
 
   static async generateAIInsights(
@@ -25,9 +36,7 @@ export class AIInsightsService {
     portfolio: Portfolio,
     marketContext?: any,
   ): Promise<AIInsight[]> {
-    if (!this.insightsGraph) {
-      this.initialize();
-    }
+    await this.ensureInitialized();
 
     try {
       // 使用 LangGraph 工作流生成洞察
@@ -54,9 +63,7 @@ export class AIInsightsService {
     positions: PositionAsset[],
     portfolio: Portfolio,
   ): Promise<any[]> {
-    if (!this.diversificationGraph) {
-      this.initialize();
-    }
+    await this.ensureInitialized();
 
     try {
       // 使用 LangGraph 工作流生成分散投资建议
@@ -77,9 +84,7 @@ export class AIInsightsService {
     positions: PositionAsset[],
     portfolio: Portfolio,
   ): Promise<Array<AdviceType>> {
-    if (!this.strategyAdviceGraph) {
-      this.initialize();
-    }
+    await this.ensureInitialized();
 
     try {
       // 使用 LangGraph 工作流生成策略建议
@@ -107,9 +112,7 @@ export class AIInsightsService {
       metric: string;
     }>
   > {
-    if (!this.scenarioAnalyzerGraph) {
-      this.initialize();
-    }
+    await this.ensureInitialized();
 
     try {
       // 使用 LangGraph 工作流分析场景

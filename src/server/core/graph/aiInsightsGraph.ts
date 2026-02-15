@@ -36,12 +36,27 @@ type State = typeof StateAnnotation.State;
 
 // 创建 LangGraph 工作流
 export class AIInsightsGraph {
-  private llm: ChatOpenAI;
+  private llm!: ChatOpenAI;
   graph: CompiledStateGraph<typeof StateAnnotation, unknown, string> | null;
 
-  constructor() {
-    this.llm = chatModelOpenAI(ModelMap['Qwen3-Next-80B-A3B-Instruct']);
+  private constructor() {
     this.graph = null;
+  }
+
+  /**
+   * Factory method to create and initialize AIInsightsGraph asynchronously
+   */
+  static async create(): Promise<AIInsightsGraph> {
+    const instance = new AIInsightsGraph();
+    await instance.initialize();
+    return instance;
+  }
+
+  /**
+   * Async initialization - sets up LLM and graph
+   */
+  private async initialize(): Promise<void> {
+    this.llm = await chatModelOpenAI(ModelMap['Qwen3-Next-80B-A3B-Instruct']);
     this.setupGraph();
   }
 
@@ -60,7 +75,7 @@ export class AIInsightsGraph {
       .addEdge('opportunity_finder', 'insight_generator')
       .addEdge('insight_generator', END);
 
-    // @ts-expect-error
+    // @ts-expect-error - graph compilation
     this.graph = graph.compile();
   }
 
@@ -164,7 +179,7 @@ ${positions.map((pos) => `${pos.symbol}${pos.investmentMemo ? ` (${pos.investmen
         recordPrompt(prompt, 'ai-insights-opportunity-finder.md');
         // const response = await this.llm.invoke([new HumanMessage(prompt)]);
         const agent = createDeepAgent({
-          model: chatModelOpenAI(ModelMap['Qwen3-Next-80B-A3B-Instruct']),
+          model: await chatModelOpenAI(ModelMap['Qwen3-Next-80B-A3B-Instruct']),
           tools: [],
           systemPrompt: `你是一个投资机会发掘专家`,
         });

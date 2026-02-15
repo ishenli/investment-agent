@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import accountService, { AccountService } from '../accountService';
+import { db } from '@server/lib/db';
+import { validateWithFormat } from '@/shared';
 
 // Logger mock is in tests/setup.ts
 vi.mock('@server/lib/db', () => ({
@@ -39,8 +41,6 @@ vi.mock('@/shared', () => ({
   validateWithFormat: vi.fn(),
 }));
 
-import { db } from '@server/lib/db';
-import { validateWithFormat } from '@/shared';
 
 const mockUser = {
   id: 1,

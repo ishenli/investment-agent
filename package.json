@@ -132,6 +132,7 @@
     "path-browserify-esm": "^1.0.6",
     "polished": "^4.3.1",
     "query-string": "^9.3.1",
+    "radix-ui": "^1.4.3",
     "react": "19.2.0",
     "react-day-picker": "^9.13.2",
     "react-dom": "19.2.0",

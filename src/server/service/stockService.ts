@@ -81,7 +81,7 @@ export class StockService {
       `股票数据验证成功:${preparation_result.stock_code} (${preparation_result.market_type}) - ${preparation_result.stock_name}`,
     );
 
-    const graph = new TradingAgentsGraph({
+    const graph = await TradingAgentsGraph.create({
       logger: this.logger,
       selectedAnalysts: validatedOptions.analysts as AnalystType[],
       config: {

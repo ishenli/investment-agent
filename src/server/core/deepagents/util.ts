@@ -68,5 +68,5 @@ export const getToolMessageMeta = (
 };
 
 export const appendLog = (entry: unknown): void => {
-  console.log(entry);
+  // console.log(entry);
 };

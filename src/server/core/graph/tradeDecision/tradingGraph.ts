@@ -25,36 +25,57 @@ export type TradingGraphOptionsType = {
 };
 
 export class TradingAgentsGraph {
-  deepThinkLLM: ChatOpenAI;
-  quickThinkLLM: ChatOpenAI;
+  deepThinkLLM!: ChatOpenAI;
+  quickThinkLLM!: ChatOpenAI;
   conditional_logic: ConditionalLogic;
-  graph_setup: GraphSetup;
+  graph_setup!: GraphSetup;
   bull_memory: FinancialSituationMemory;
   bear_memory: FinancialSituationMemory;
   invest_judge_memory: FinancialSituationMemory;
   trader_memory: FinancialSituationMemory;
   risk_manager_memory: FinancialSituationMemory;
-  propagator: Propagator;
-  reflector: Reflector;
-  graph: CompiledStateGraph<typeof StateAnnotation, unknown, string>;
+  propagator!: Propagator;
+  reflector!: Reflector;
+  graph!: CompiledStateGraph<typeof StateAnnotation, unknown, string>;
   ticker: string = '';
-  signal_processor: SignalProcessor;
+  signal_processor!: SignalProcessor;
   curr_state: object = {};
   config: Partial<DefaultConfigType>;
   logger: Logger;
   toolNodes: any;
-  constructor(options: TradingGraphOptionsType) {
+  selectedAnalysts: AnalystType[];
+
+  private constructor(options: TradingGraphOptionsType) {
     this.config = options.config;
     this.logger = options.logger;
-    this.deepThinkLLM = chatModelOpenAI(this.config.deep_think_llm as unknown as ModelNameType);
-    this.quickThinkLLM = chatModelOpenAI(this.config.quick_think_llm as unknown as ModelNameType);
-    this.toolNodes = this.createToolNodes();
+    this.selectedAnalysts = options.selectedAnalysts;
+
+    // Initialize synchronous properties
     this.conditional_logic = new ConditionalLogic();
     this.bull_memory = new FinancialSituationMemory('bull_memory', this.config);
     this.bear_memory = new FinancialSituationMemory('bear_memory', this.config);
     this.invest_judge_memory = new FinancialSituationMemory('invest_judge_memory', this.config);
     this.trader_memory = new FinancialSituationMemory('trader_memory', this.config);
     this.risk_manager_memory = new FinancialSituationMemory('risk_manager_memory', this.config);
+  }
+
+  /**
+   * Factory method to create and initialize TradingAgentsGraph asynchronously
+   * This handles the async initialization of LLM models that can't be done in constructor
+   */
+  static async create(options: TradingGraphOptionsType): Promise<TradingAgentsGraph> {
+    const instance = new TradingAgentsGraph(options);
+    await instance.initialize();
+    return instance;
+  }
+
+  /**
+   * Async initialization - sets up LLMs and graph components
+   */
+  private async initialize(): Promise<void> {
+    this.deepThinkLLM = await chatModelOpenAI(this.config.deep_think_llm as unknown as ModelNameType);
+    this.quickThinkLLM = await chatModelOpenAI(this.config.quick_think_llm as unknown as ModelNameType);
+    this.toolNodes = this.createToolNodes();
 
     this.graph_setup = new GraphSetup({
       logger: this.logger,
@@ -72,7 +93,7 @@ export class TradingAgentsGraph {
     this.reflector = new Reflector(this.quickThinkLLM);
     this.signal_processor = new SignalProcessor(this.quickThinkLLM, this.logger);
     // @ts-expect-error
-    this.graph = this.graph_setup.setupGraph(options.selectedAnalysts);
+    this.graph = this.graph_setup.setupGraph(this.selectedAnalysts);
   }
   createToolNodes() {
     return {

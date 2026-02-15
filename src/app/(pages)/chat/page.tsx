@@ -2,6 +2,7 @@
 
 import { sessionService } from '@renderer/services/session';
 import { useUserStore } from '@renderer/store/user/store';
+import { useAiInfraStore } from '@renderer/store/aiInfra';
 import { NuqsAdapter } from 'nuqs/adapters/react';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
@@ -19,6 +20,7 @@ export interface LayoutProps {
 
 const Layout = ({}: LayoutProps) => {
   const { initUserState } = useUserStore();
+  const { fetchAvailableModels } = useAiInfraStore();
   // 保护页面，确保用户有账户才能访问
   useAccountGuard();
   // 初始化
@@ -26,10 +28,12 @@ const Layout = ({}: LayoutProps) => {
   useEffect(() => {
     async function initSessionConfig() {
       await sessionService.initSessionConfig();
+      // 加载可用的 AI 模型列表
+      await fetchAvailableModels();
       setIsInitialized(true);
     }
     initSessionConfig();
-  }, [isInitialized]);
+  }, [isInitialized, fetchAvailableModels]);
 
   if (!isInitialized) {
     return (

@@ -28,7 +28,7 @@ class LLMChatController extends BaseController {
       });
 
       // 初始化模型
-      const llm = chatModelOpenAI(model);
+      const llm = await chatModelOpenAI(model);
 
       // 调用模型获取响应
       const response = await llm.invoke(langchainMessages);

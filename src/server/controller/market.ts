@@ -85,12 +85,21 @@ const SummarizeContentRequestSchema = z.object({
 
 export class MarketBizController extends BaseBizController {
   marketFetcherService: MarketFetcherService;
-  marketAIService: MarketAIService;
+  marketAIService: MarketAIService | null = null;
 
   constructor() {
     super();
     this.marketFetcherService = new MarketFetcherService();
-    this.marketAIService = new MarketAIService();
+  }
+
+  /**
+   * Lazy initialization of MarketAIService
+   */
+  private async getMarketAIService(): Promise<MarketAIService> {
+    if (!this.marketAIService) {
+      this.marketAIService = await MarketAIService.create();
+    }
+    return this.marketAIService;
   }
 
   @WithRequestContext()
@@ -200,7 +209,8 @@ export class MarketBizController extends BaseBizController {
 
       const { content, title, language } = validationResult.data;
 
-      const summary = await this.marketAIService.summarizeContent(content, title, language);
+      const marketAIService = await this.getMarketAIService();
+      const summary = await marketAIService.summarizeContent(content, title, language);
 
       return this.success({
         message: '内容总结成功',
@@ -226,7 +236,8 @@ export class MarketBizController extends BaseBizController {
       const { content, title, language } = validationResult.data;
 
       // 模拟 AI 分析内容的逻辑
-      const analysis = await this.marketAIService.analyzeContent(content, title, language);
+      const marketAIService = await this.getMarketAIService();
+      const analysis = await marketAIService.analyzeContent(content, title, language);
 
       // 返回成功响应
       return this.success({
