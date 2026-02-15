@@ -1,7 +1,8 @@
 import { WithRequestContext } from '../base/decorators';
 import logger from '../base/logger';
-import { AuthService } from '../service/authService';
+import authService from '../service/authService';
 import modelProviderService from '../service/modelProviderService';
+import { modelProviderResolver } from '../service/modelProviderResolver';
 import { BaseBizController } from './base';
 import { z } from 'zod';
 
@@ -26,6 +27,8 @@ const ModelProviderSchema = z.object({
   isActive: z.boolean().optional(),
   displayOrder: z.number().int().min(0).optional(),
 });
+
+type ModelProviderType = z.infer<typeof ModelProviderSchema>;
 
 const UpdateModelProviderSchema = z.object({
   id: z.number().int().positive(),
@@ -52,6 +55,8 @@ const UpdateModelProviderSchema = z.object({
   displayOrder: z.number().int().min(0).optional(),
 });
 
+type UpdateModelProviderType = z.infer<typeof UpdateModelProviderSchema>;
+
 const ProviderModelSchema = z.object({
   slug: z.string()
     .min(1, 'Model Slug不能为空')
@@ -65,11 +70,15 @@ const ProviderModelSchema = z.object({
     .min(1)
     .max(1000000)
     .optional(),
+  providerId: z.number().int().positive(),
   supportsVision: z.boolean().optional(),
   supportsFunctionCalling: z.boolean().optional(),
   isActive: z.boolean().optional(),
   displayOrder: z.number().int().min(0).optional(),
 });
+
+type ProviderModelType = z.infer<typeof ProviderModelSchema>;
+
 
 const UpdateProviderModelSchema = z.object({
   id: z.number().int().positive(),
@@ -93,9 +102,7 @@ const UpdateProviderModelSchema = z.object({
   displayOrder: z.number().int().min(0).optional(),
 });
 
-const ProviderIdSchema = z.object({
-  id: z.number().int().positive(),
-});
+type UpdateProviderModelType = z.infer<typeof UpdateProviderModelSchema>;
 
 /**
  * Model Provider Business Controller
@@ -103,18 +110,52 @@ const ProviderIdSchema = z.object({
  */
 export class ModelProviderBizController extends BaseBizController {
   /**
+   * Get all available models for the current user
+   */
+  @WithRequestContext()
+  async getAvailableModels() {
+    try {
+      const userId = await authService.getCurrentUserId();
+      if (!userId) {
+        return this.error('用户未登录', 'unauthorized');
+      }
+
+      const account = await authService.getCurrentUserAccount();
+      if (!account) {
+        return this.error('未找到账户', 'account_not_found');
+      }
+
+      const accountId = parseInt(account.id);
+
+      // Get available models from database
+      const models = await modelProviderResolver.getAvailableModels(accountId);
+
+      // Get the default model
+      const defaultModel = await modelProviderResolver.getDefaultModelSlug(accountId);
+
+      return this.success({
+        models,
+        defaultModel,
+      });
+    } catch (error) {
+      logger.error('[ModelProviderBizController]Error getting available models:', error);
+      return this.error('获取可用模型列表失败', 'get_models_error');
+    }
+  }
+
+  /**
    * Get all providers for the current user's active account
    */
   @WithRequestContext()
   async getProviders() {
     try {
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
 
       // Get current user's active account
-      const account = await AuthService.getCurrentUserAccount();
+      const account = await authService.getCurrentUserAccount();
       if (!account) {
         return this.error('未找到账户', 'account_not_found');
       }
@@ -123,6 +164,7 @@ export class ModelProviderBizController extends BaseBizController {
 
       return this.success(providers);
     } catch (error) {
+      logger.error('[ModelProviderBizController]Error getting providers:', error);
       return this.error('获取服务商列表失败', 'get_providers_error');
     }
   }
@@ -131,14 +173,14 @@ export class ModelProviderBizController extends BaseBizController {
    * Create a new model provider
    */
   @WithRequestContext()
-  async createProvider(body: any) {
+  async createProvider(body: ModelProviderType) {
     try {
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
 
-      const account = await AuthService.getCurrentUserAccount();
+      const account = await authService.getCurrentUserAccount();
       if (!account) {
         return this.error('未找到账户', 'account_not_found');
       }
@@ -150,6 +192,7 @@ export class ModelProviderBizController extends BaseBizController {
 
       return this.success(provider);
     } catch (error: any) {
+      logger.error('[ModelProviderBizController]Error creating provider:', error);
       if (error.message === 'Slug already exists in this account') {
         return this.error('该 Slug 已存在', 'slug_already_exists');
       }
@@ -164,14 +207,14 @@ export class ModelProviderBizController extends BaseBizController {
    * Update an existing provider
    */
   @WithRequestContext()
-  async updateProvider(body: any) {
+  async updateProvider(body: UpdateModelProviderType) {
     try {
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
 
-      const account = await AuthService.getCurrentUserAccount();
+      const account = await authService.getCurrentUserAccount();
       if (!account) {
         return this.error('未找到账户', 'account_not_found');
       }
@@ -203,14 +246,14 @@ export class ModelProviderBizController extends BaseBizController {
    * Delete a provider
    */
   @WithRequestContext()
-  async deleteProvider(body: any) {
+  async deleteProvider(body: { id: string }) {
     try {
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
 
-      const account = await AuthService.getCurrentUserAccount();
+      const account = await authService.getCurrentUserAccount();
       if (!account) {
         return this.error('未找到账户', 'account_not_found');
       }
@@ -232,6 +275,7 @@ export class ModelProviderBizController extends BaseBizController {
 
       return this.success({ message: '删除成功' });
     } catch (error) {
+      logger.error('[ModelProviderBizController]Error deleting provider:', error);
       return this.error('删除服务商失败', 'delete_provider_error');
     }
   }
@@ -240,14 +284,14 @@ export class ModelProviderBizController extends BaseBizController {
    * Set provider active status
    */
   @WithRequestContext()
-  async setProviderActive(body: any) {
+  async setProviderActive(body: { id: string; isActive: boolean }) {
     try {
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
 
-      const account = await AuthService.getCurrentUserAccount();
+      const account = await authService.getCurrentUserAccount();
       if (!account) {
         return this.error('未找到账户', 'account_not_found');
       }
@@ -261,7 +305,7 @@ export class ModelProviderBizController extends BaseBizController {
       }
 
       const providerId = parseInt(body.id);
-      const isActive = body.isActive === true || body.isActive === 1 || body.isActive === 'true';
+      const isActive = String(body.isActive) === 'true';
 
       const success = await modelProviderService.setProviderActive(providerId, parseInt(account.id), isActive);
 
@@ -271,6 +315,7 @@ export class ModelProviderBizController extends BaseBizController {
 
       return this.success({ message: '状态更新成功' });
     } catch (error) {
+      logger.error('[ModelProviderBizController]Error setting provider active status:', error);
       return this.error('更新状态失败', 'set_provider_active_error');
     }
   }
@@ -281,12 +326,12 @@ export class ModelProviderBizController extends BaseBizController {
   @WithRequestContext()
   async getModels(param: any) {
     try {
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
 
-      const account = await AuthService.getCurrentUserAccount();
+      const account = await authService.getCurrentUserAccount();
       if (!account) {
         return this.error('未找到账户', 'account_not_found');
       }
@@ -306,6 +351,7 @@ export class ModelProviderBizController extends BaseBizController {
 
       return this.success(models);
     } catch (error) {
+      logger.error('[ModelProviderBizController]Error getting models:', error);
       return this.error('获取模型列表失败', 'get_models_error');
     }
   }
@@ -314,14 +360,14 @@ export class ModelProviderBizController extends BaseBizController {
    * Create a model for a provider
    */
   @WithRequestContext()
-  async createModel(body: any) {
+  async createModel(body: ProviderModelType) {
     try {
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
 
-      const account = await AuthService.getCurrentUserAccount();
+      const account = await authService.getCurrentUserAccount();
       if (!account) {
         return this.error('未找到账户', 'account_not_found');
       }
@@ -330,7 +376,7 @@ export class ModelProviderBizController extends BaseBizController {
         return this.error('服务商 ID 不能为空', 'validation_error');
       }
 
-      const providerId = parseInt(body.providerId);
+      const providerId = typeof body.providerId === 'string' ? parseInt(body.providerId) : body.providerId;
       const provider = await modelProviderService.getProviderById(providerId);
 
       if (!provider || provider.accountId !== parseInt(account.id)) {
@@ -345,6 +391,7 @@ export class ModelProviderBizController extends BaseBizController {
 
       return this.success(model);
     } catch (error: any) {
+      logger.error('[ModelProviderBizController]Error creating model:', error);
       if (error.message === 'Provider not found') {
         return this.error('服务商不存在', 'provider_not_found');
       }
@@ -361,12 +408,12 @@ export class ModelProviderBizController extends BaseBizController {
   @WithRequestContext()
   async updateModel(body: any) {
     try {
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
 
-      const account = await AuthService.getCurrentUserAccount();
+      const account = await authService.getCurrentUserAccount();
       if (!account) {
         return this.error('未找到账户', 'account_not_found');
       }
@@ -399,12 +446,12 @@ export class ModelProviderBizController extends BaseBizController {
   @WithRequestContext()
   async deleteModel(body: any) {
     try {
-      const userId = await AuthService.getCurrentUserId();
+      const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
 
-      const account = await AuthService.getCurrentUserAccount();
+      const account = await authService.getCurrentUserAccount();
       if (!account) {
         return this.error('未找到账户', 'account_not_found');
       }

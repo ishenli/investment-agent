@@ -1,4 +1,4 @@
-import { AuthService } from '@server/service/authService';
+import authService, { AuthService } from '@server/service/authService';
 import { modelProviderResolver } from '@server/service/modelProviderResolver';
 import { ChatOpenAI } from '@langchain/openai';
 import logger from '@server/base/logger';
@@ -30,7 +30,7 @@ export async function chatModelOpenAI(modelSlug: ModelNameType) {
 
   try {
     // Try to get model configuration from database
-    const account = await AuthService.getCurrentUserAccount();
+    const account = await authService.getCurrentUserAccount();
     if (account) {
       const accountId = parseInt(account.id);
       const config = await modelProviderResolver.getActiveModelConfig(accountId, modelSlug);

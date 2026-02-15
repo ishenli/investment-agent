@@ -8,7 +8,7 @@ import { MarketInformationGraph } from '../../core/graph/marketInformationGraph'
 import { ScenarioAnalyzerGraph } from '../../core/graph/scenarioAnalyzerGraph';
 import { DiversificationGraph } from '../../core/graph/diversificationGraph';
 import { AIInsightsGraph } from '../../core/graph/aiInsightsGraph';
-import { AuthService } from '../authService';
+import authService from '../authService';
 import portfolioAnalysisService from '../portfolioAnalysisService';
 import logger from '../../base/logger';
 import { chatModelOpenAI } from '../../core/provider/chatModel';
@@ -62,9 +62,9 @@ vi.mock('@server/core/graph/aiInsightsGraph', () => ({
 }));
 
 vi.mock('@server/service/authService', () => ({
-  AuthService: {
-    getCurrentUserAccount: vi.fn(),
-  },
+  default: {
+    getCurrentUserAccount: vi.fn()
+  }
 }));
 
 vi.mock('@server/service/portfolioAnalysisService', () => ({
@@ -126,7 +126,7 @@ describe('ChatService', () => {
     vi.clearAllMocks();
     
     // 设置默认 mock 返回值
-    (AuthService.getCurrentUserAccount as jest.Mock).mockResolvedValue(mockAccountInfo);
+    (authService.getCurrentUserAccount as jest.Mock).mockResolvedValue(mockAccountInfo);
     (portfolioAnalysisService.getPortfolioAnalysis as jest.Mock).mockResolvedValue(mockPortfolioAnalysis);
   });
 
@@ -264,7 +264,7 @@ describe('ChatService', () => {
     });
 
     it('应该在账户信息获取失败时报错', async () => {
-      (AuthService.getCurrentUserAccount as jest.Mock).mockResolvedValue(null);
+      (authService.getCurrentUserAccount as jest.Mock).mockResolvedValue(null);
       
       const request: ChatRequest = {
         query: '测试',
