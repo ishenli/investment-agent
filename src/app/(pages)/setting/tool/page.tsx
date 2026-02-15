@@ -3,16 +3,23 @@
 import { Button } from '@renderer/components/ui/button';
 import { Input } from '@renderer/components/ui/input';
 import { useState, useEffect } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 
 // 定义允许的设置键
 const ALLOWED_KEYS = [
-  'MODEL_PROVIDER_URL',
-  'AGENT_PROVIDER_URL',
-  'MODEL_PROVIDER_API_KEY',
   'FINNHUB_API_KEY',
   'LANGSMITH_API_KEY',
   'FINANCIAL_DATASETS_KEY',
   'TAVILY_API_KEY',
+] as const;
+
+// 定义需要隐藏的敏感键
+const SENSITIVE_KEYS = [
+  'FINNHUB_API_KEY',
+  'LANGSMITH_API_KEY',
+  'FINANCIAL_DATASETS_KEY',
+  'TAVILY_API_KEY',
+  'MODEL_PROVIDER_API_KEY',
 ] as const;
 
 type SettingKey = (typeof ALLOWED_KEYS)[number];
@@ -30,9 +37,6 @@ type SettingKey = (typeof ALLOWED_KEYS)[number];
  */
 export default function SettingPage() {
   const [settings, setSettings] = useState<Record<SettingKey, string>>({
-    MODEL_PROVIDER_URL: '',
-    AGENT_PROVIDER_URL: '',
-    MODEL_PROVIDER_API_KEY: '',
     FINNHUB_API_KEY: '',
     LANGSMITH_API_KEY: '',
     FINANCIAL_DATASETS_KEY: '',
@@ -42,6 +46,7 @@ export default function SettingPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [visibleKeys, setVisibleKeys] = useState<Record<string, boolean>>({});
 
   // 获取所有设置
   useEffect(() => {
@@ -68,6 +73,19 @@ export default function SettingPage() {
 
     fetchSettings();
   }, []);
+
+  // 切换密钥可见性
+  const toggleVisibility = (key: SettingKey) => {
+    setVisibleKeys((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+  // 判断是否为敏感字段
+  const isSensitiveKey = (key: SettingKey): boolean => {
+    return SENSITIVE_KEYS.includes(key as (typeof SENSITIVE_KEYS)[number]);
+  };
 
   // 更新单个设置
   const updateSetting = async (key: SettingKey, value: string) => {
@@ -130,9 +148,6 @@ export default function SettingPage() {
   // 获取设置项的描述
   const getSettingDescription = (key: SettingKey): string => {
     const descriptions: Record<SettingKey, string> = {
-      MODEL_PROVIDER_URL: '模型提供商URL',
-      AGENT_PROVIDER_URL: '代理提供商URL',
-      MODEL_PROVIDER_API_KEY: '模型提供商API密钥',
       FINNHUB_API_KEY: 'Finnhub API密钥',
       LANGSMITH_API_KEY: 'LangSmith API密钥',
       FINANCIAL_DATASETS_KEY: 'Financial Datasets密钥',
@@ -174,13 +189,28 @@ export default function SettingPage() {
             </div>
 
             <div className="flex gap-2">
-              <Input
-                type="text"
-                value={settings[key] || ''}
-                onChange={(e) => setSettings((prev) => ({ ...prev, [key]: e.target.value }))}
-                className="flex-1 border rounded px-3 py-2"
-                placeholder={`请输入${key}的值`}
-              />
+              <div className="relative flex-1">
+                <Input
+                  type={visibleKeys[key] ? 'text' : 'password'}
+                  value={settings[key] || ''}
+                  onChange={(e) => setSettings((prev) => ({ ...prev, [key]: e.target.value }))}
+                  className="border rounded px-3 py-2 pr-10"
+                  placeholder={`请输入${key}的值`}
+                />
+                {isSensitiveKey(key) && (
+                  <button
+                    type="button"
+                    onClick={() => toggleVisibility(key)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  >
+                    {visibleKeys[key] ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                )}
+              </div>
               <Button
                 onClick={() => updateSetting(key, settings[key] || '')}
                 disabled={saving}

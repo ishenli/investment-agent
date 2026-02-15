@@ -12,23 +12,30 @@ export type MarketInformationGraphOptionsType = {
 };
 
 export class MarketInformationGraph extends AbstractGraph {
-  llm: ChatOpenAI;
+  llm?: ChatOpenAI;
   logger: Logger;
+  modelCode: ModelNameType;
+  compiledGraph?: any;
 
   constructor(options: MarketInformationGraphOptionsType) {
     super();
     this.logger = options.logger;
-    this.llm = chatModelOpenAI(options.modelCode);
+    this.modelCode = options.modelCode;
   }
 
-  setup(): Promise<void> {
+  async setup(): Promise<void> {
+    // Initialize the LLM with async config resolution
+    this.llm = await chatModelOpenAI(this.modelCode);
     // 创建并返回工作流
-    this.setupMarketInformationGraph();
-    return Promise.resolve();
+    this.compiledGraph = this.setupMarketInformationGraph();
   }
 
   setupMarketInformationGraph() {
     const workflow = new StateGraph(MarketInformationGraphState);
+
+    if (!this.llm) {
+      throw new Error('LLM not initialized');
+    }
 
     // 创建节点
     const marketInfoAnalyzer = createMarketInfoAnalyzer(this.llm, this.logger);
@@ -40,6 +47,13 @@ export class MarketInformationGraph extends AbstractGraph {
       .addEdge('market_analyzer', END);
 
     return workflow.compile();
+  }
+
+  async invoke(state: typeof MarketInformationGraphState.State) {
+    if (!this.compiledGraph) {
+      await this.setup();
+    }
+    return this.compiledGraph.invoke(state);
   }
 
   // 创建初始状态

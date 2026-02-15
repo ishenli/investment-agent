@@ -63,8 +63,7 @@ export class FinnhubAdapter extends PriceSourceAdapter {
           finnhubClient.quote(symbol, (error: unknown, data: { c: number }) => {
             if (error) {
               logger.error(
-                `[FinnhubAdapter] Finnhub API error for ${symbol} (attempt ${i + 1}/${retries}). Code: ${(error as any).code}, Message: ${(error as any).message}`,
-                error,
+                `[FinnhubAdapter] Finnhub API error for ${symbol} (attempt ${i + 1}/${retries}). Code: ${(error as any).code}, Message: ${(error as any).message}`
               );
               resolve(null);
               return;

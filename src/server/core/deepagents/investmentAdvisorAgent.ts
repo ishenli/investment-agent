@@ -23,9 +23,6 @@ import {
   appendLog,
   getToolMessageMeta,
 } from './util';
-import fs from 'fs-extra';
-import path from 'path';
-import { getProjectDir } from '@/shared';
 import { SSEEmitter } from '@/server/base/sseEmitter';
 
 // System prompt for the investment advisor agent
@@ -47,19 +44,6 @@ const SYSTEM_PROMPT = `你是一个投资咨询助手，用户会给你一定的
 + TavilySearchTool 的调用次数不能超过3次
 `;
 
-// Create the DeepAgent instance with all tools
-const investmentDeepAgent = createDeepAgent({
-  model: chatModelOpenAI('Kimi-K2.5'),
-  tools: [
-    stockSearchNewsTool,
-    stockGetPriceTool,
-    stockRecallMarketInfoTool,
-    stockRecallCompanyInfoTool,
-    noteQueryTool,
-    TravilySearchTool,
-  ],
-  systemPrompt: SYSTEM_PROMPT,
-});
 
 /**
  * Helper function to build the context prompt from portfolio data
@@ -126,8 +110,9 @@ export const investmentAdvisorAgent = {
    * @param userQuery - User's question
    * @param accountId - User account ID
    * @param send - SSE send function for streaming responses
+   * @param model - Chat model to use
    */
-  async chat(userQuery: string, accountId: string, emitter: SSEEmitter): Promise<void> {
+  async chat({ userQuery, accountId, emitter, model }: { userQuery: string; accountId: string; emitter: SSEEmitter; model: string }): Promise<void> {
     // 1. Get user's portfolio context
     const portfolioAnalysis = await portfolioAnalysisService.getPortfolioAnalysis(accountId);
     const riskAnalysis = portfolioAnalysisService.calculateRiskScore(
@@ -148,6 +133,19 @@ export const investmentAdvisorAgent = {
 
     const id = '';
     try {
+      // Create the DeepAgent instance with all tools
+      const investmentDeepAgent = createDeepAgent({
+        model: await chatModelOpenAI(model),
+        tools: [
+          stockSearchNewsTool,
+          stockGetPriceTool,
+          stockRecallMarketInfoTool,
+          stockRecallCompanyInfoTool,
+          noteQueryTool,
+          TravilySearchTool,
+        ],
+        systemPrompt: SYSTEM_PROMPT,
+      });
       // 处理流式请求
       const messages = [new HumanMessage(contextPrompt)];
       const response = await investmentDeepAgent.stream(

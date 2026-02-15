@@ -289,7 +289,7 @@ export class ReportService {
 
       recordPrompt(prompt, 'report-generate-prompt.md');
 
-      const llm = chatModelOpenAI(ModelMap['Kimi-K2-Instruct']);
+      const llm = await chatModelOpenAI(ModelMap['Kimi-K2-Instruct']);
 
       // 创建一个 Agent
       const agent = createAgent({

@@ -253,3 +253,37 @@ export const settings = sqliteTable('settings', {
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
 });
+
+// 模型服务商表：存储 AI 模型服务提供商配置
+export const modelProviders = sqliteTable('model_providers', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  accountId: integer('account_id')
+    .notNull()
+    .references(() => accounts.id),
+  slug: text('slug').notNull().unique(),
+  name: text('name').notNull(),
+  baseUrl: text('base_url').notNull(),
+  apiKey: text('api_key'),
+  isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+  displayOrder: integer('display_order').notNull().default(0),
+  description: text('description'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+// 服务商模型表：存储每个服务商支持的模型
+export const providerModels = sqliteTable('provider_models', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  providerId: integer('provider_id')
+    .notNull()
+    .references(() => modelProviders.id, { onDelete: 'cascade' }),
+  slug: text('slug').notNull(),
+  name: text('name').notNull(),
+  contextWindow: integer('context_window'),
+  supportsVision: integer('supports_vision', { mode: 'boolean' }).default(false),
+  supportsFunctionCalling: integer('supports_function_calling', { mode: 'boolean' }).default(false),
+  isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+  displayOrder: integer('display_order').notNull().default(0),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});

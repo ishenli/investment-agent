@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PortfolioService } from '../portfolioService';
 import { Portfolio } from '@renderer/store/position/types';
+import { db } from '@server/lib/db';
+import priceService from '../priceService';
+import positionService from '../positionService';
+import { RiskCalculatorService } from '@server/service/riskCalculatorService';
 
 // Mock @server/lib/db before importing portfolioService
 vi.mock('@server/lib/db', () => ({
@@ -33,11 +37,6 @@ vi.mock('@server/service/riskCalculatorService', () => ({
     calculateConcentrationRisk: vi.fn(),
   },
 }));
-
-import { db } from '@server/lib/db';
-import priceService from '../priceService';
-import positionService from '../positionService';
-import { RiskCalculatorService } from '@server/service/riskCalculatorService';
 
 const mockAccountFund = {
   id: 1,

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AssetMetaService } from '../assetMetaService';
 import { AssetMetaType } from '@/types/assetMeta';
+import { db } from '@server/lib/db';
 
 // Mock @server/lib/db before importing assetMetaService
 vi.mock('@server/lib/db', () => ({
@@ -18,7 +19,6 @@ vi.mock('@server/lib/db', () => ({
   },
 }));
 
-import { db } from '@server/lib/db';
 
 const mockAssetMeta: AssetMetaType = {
   id: 1,

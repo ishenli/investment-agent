@@ -469,7 +469,7 @@ import { getChatDb } from '@/lib/db';
 
 const enhancedServiceAdapter = new LangChainAdapter({
   chainFn: async ({ messages, tools, properties }) => {
-    const model = chatModelOpenAI('Kimi-K2-Instruct-0905');
+    const model = await chatModelOpenAI('Kimi-K2-Instruct-0905');
     const sessionId = properties?.sessionId || crypto.randomUUID();
 
     // SQLite持久化: 保存用户消息

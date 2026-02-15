@@ -26,7 +26,7 @@ export interface ChatRequest {
   messages?: BaseMessage[];
   query: string;
   agentId: GraphType;
-  model?: ModelNameType;
+  model: ModelNameType;
   accountId?: string;
   // 额外参数，根据不同 Graph 类型可能需要不同的参数
   extraParams?: Record<string, any>;
@@ -114,7 +114,7 @@ export class ChatService {
     try {
       // 使用 DeepAgents 处理投资顾问聊天
       this.logger.info('[ChatService] 使用 DeepAgents 处理投资顾问聊天');
-      await investmentAdvisorAgent.chat(request.query, accountId, emitter);
+      await investmentAdvisorAgent.chat({ userQuery: request.query, accountId, emitter, model: request.model });
     } catch (error) {
       this.logger.error('[ChatService] 投资顾问聊天处理失败:', error);
       throw error;
@@ -135,17 +135,14 @@ export class ChatService {
         modelCode: request.model || 'Kimi-K2-Instruct',
       });
 
-      // 设置图
+      // 初始化图（异步初始化 LLM）
       await marketInfoGraph.setup();
 
       // 创建初始状态
       const initialState = marketInfoGraph.createInitialState(request.query);
 
-      // 编译图
-      const graph = marketInfoGraph.setupMarketInformationGraph();
-
       // 执行图
-      const result = await graph.invoke(initialState);
+      const result = await marketInfoGraph.invoke(initialState);
 
       // 发送结果
       await emitter.sendOpenAICompatibleMessage({
@@ -172,7 +169,7 @@ export class ChatService {
       const portfolioAnalysis = await portfolioAnalysisService.getPortfolioAnalysis(accountId);
 
       // 创建场景分析图实例
-      const scenarioGraph = new ScenarioAnalyzerGraph();
+      const scenarioGraph = await ScenarioAnalyzerGraph.create();
 
       // 获取场景参数
       const scenarioParams = request.extraParams?.scenario as ScenarioParams | undefined;
@@ -241,7 +238,7 @@ export class ChatService {
       const portfolioAnalysis = await portfolioAnalysisService.getPortfolioAnalysis(accountId);
 
       // 创建分散投资图实例
-      const diversificationGraph = new DiversificationGraph();
+      const diversificationGraph = await DiversificationGraph.create();
 
       // 转换持仓数据格式
       const positionAssets: PositionAsset[] = portfolioAnalysis.holdingsSummary.map((pos) => ({
@@ -307,7 +304,7 @@ export class ChatService {
       const portfolioAnalysis = await portfolioAnalysisService.getPortfolioAnalysis(accountId);
 
       // 创建AI洞察图实例
-      const aiInsightsGraph = new AIInsightsGraph();
+      const aiInsightsGraph = await AIInsightsGraph.create();
 
       // 转换持仓数据格式
       const positionAssets: PositionAsset[] = portfolioAnalysis.holdingsSummary.map((pos) => ({
@@ -363,8 +360,9 @@ export class ChatService {
   private async handleDefaultChat(request: ChatRequest, emitter: SSEEmitter): Promise<void> {
     logger.info('[ChatService] 处理默认聊天请求: model=%s', request.model);
     try {
-      // 初始化模型
-      const llm = chatModelOpenAI(request.model);
+      // 初始化模型 - 现在支持用户自定义的模型提供商
+      const modelSlug = request.model || 'Qwen3-Next-80B-A3B-Instruct';
+      const llm = await chatModelOpenAI(modelSlug);
 
       // 创建消息
       const messages = request.messages || [new HumanMessage(request.query)];

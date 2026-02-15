@@ -56,12 +56,27 @@ type State = typeof StateAnnotation.State;
 
 // 创建 LangGraph 工作流
 export class DiversificationGraph {
-  private llm: ChatOpenAI;
+  private llm!: ChatOpenAI;
   graph: any;
 
-  constructor() {
-    this.llm = chatModelOpenAI('Qwen3-235B-A22B-Instruct-2507');
+  private constructor() {
     this.graph = null;
+  }
+
+  /**
+   * Factory method to create and initialize DiversificationGraph asynchronously
+   */
+  static async create(): Promise<DiversificationGraph> {
+    const instance = new DiversificationGraph();
+    await instance.initialize();
+    return instance;
+  }
+
+  /**
+   * Async initialization - sets up LLM and graph
+   */
+  private async initialize(): Promise<void> {
+    this.llm = await chatModelOpenAI('Qwen3-235B-A22B-Instruct-2507');
     this.setupGraph();
   }
 

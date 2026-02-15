@@ -34,11 +34,17 @@ export interface IMarketAIService {
  * 市场AI服务实现类
  */
 export class MarketAIService implements IMarketAIService {
-  private chatModel: ChatOpenAI;
+  private chatModel!: ChatOpenAI;
 
-  constructor() {
-    // 初始化LangChain Chat模型
-    this.chatModel = chatModelOpenAI('Qwen3-Next-80B-A3B-Instruct');
+  private constructor() {}
+
+  /**
+   * Factory method to create and initialize MarketAIService asynchronously
+   */
+  static async create(): Promise<MarketAIService> {
+    const instance = new MarketAIService();
+    instance.chatModel = await chatModelOpenAI('Qwen3-Next-80B-A3B-Instruct');
+    return instance;
   }
 
   /**

@@ -36,6 +36,7 @@
 - 用于处理 Nextjs 的 APP Router 中的 HTTP 请求，涉及 HTTP 特定细节
 - 文件地址在 `app/api` 目录下，使用的是 static 方法，如果方法使用装饰器，请使用`WithRequestContextStatic` 
 ```typescript
+import { BaseController } from '@renderer/api/base/baseController';
 class NoteHttpController extends BaseController {
   static async GET(request: Request) {
     const noteController = new NoteController();
@@ -81,6 +82,7 @@ export const DELETE = NoteHttpController.DELETE;
 - 继承的是 BaseBizController 类
 
 ```typescript
+import { BaseBizController } from './base';
 export class BizController extends BaseBizController {
   @WithRequestContext()
   async exampleMethod(param: { id: string }) {
