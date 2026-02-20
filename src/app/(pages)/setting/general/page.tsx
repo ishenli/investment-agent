@@ -3,12 +3,11 @@
 import * as React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@renderer/components/ui/card';
 import { Label } from '@renderer/components/ui/label';
-import { Input } from '@renderer/components/ui/input';
 import { Button } from '@renderer/components/ui/button';
 import { Switch } from '@renderer/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@renderer/components/ui/select';
 import { Separator } from '@renderer/components/ui/separator';
-import { Check, Globe, Bell, Shield, Info } from 'lucide-react';
+import { Check, Globe, Bell, Shield } from 'lucide-react';
 
 type GeneralSettingsProps = object
 
@@ -17,7 +16,6 @@ export default function GeneralSettings({
 }: GeneralSettingsProps) {
   const [language, setLanguage] = React.useState('zh-CN');
   const [notifications, setNotifications] = React.useState(true);
-  const [darkMode, setDarkMode] = React.useState(false);
   const [autoSave, setAutoSave] = React.useState(true);
   const [dataRetention, setDataRetention] = React.useState('30d');
   const [saving, setSaving] = React.useState(false);

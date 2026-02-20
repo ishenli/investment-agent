@@ -136,26 +136,6 @@ export default function AboutPage() {
             感谢所有为本项目做出贡献的开发者和用户。
             我们将继续努力，提供更好的产品和服务。
           </p>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <a href="#" target="_blank" rel="noopener noreferrer">
-                <Code className="mr-2 h-4 w-4" />
-                查看源码
-              </a>
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-              <a href="#" target="_blank" rel="noopener noreferrer">
-                <Users className="mr-2 h-4 w-4" />
-                开发者社区
-              </a>
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-              <a href="#" target="_blank" rel="noopener noreferrer">
-                <Package className="mr-2 h-4 w-4" />
-                使用文档
-              </a>
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </div>
