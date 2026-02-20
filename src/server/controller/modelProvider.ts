@@ -384,8 +384,7 @@ export class ModelProviderBizController extends BaseBizController {
       }
 
       // Validate input (extract providerId from body then validate the rest)
-      const { providerId: _, ...modelData } = body;
-      const validated = await this.validateParams(modelData, ProviderModelSchema);
+      const validated = await this.validateParams(body, ProviderModelSchema);
 
       const model = await modelProviderService.createModel(providerId, validated);
 

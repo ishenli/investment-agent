@@ -10,7 +10,6 @@ import {
 import { Button } from '@renderer/components/ui/button';
 import {
   IconRobot,
-  IconSettings,
   IconCheck,
   IconPlus,
   IconEdit,

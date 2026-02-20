@@ -12,11 +12,9 @@ class ProviderModelsHttpController extends BaseController {
 
   @WithRequestContextStatic()
   static async POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
     const controller = new ModelProviderBizController();
     const body = await super.getBody(request);
     // Add providerId from URL params to body
-    body.providerId = id;
     return Response.json(await controller.createModel(body));
   }
 

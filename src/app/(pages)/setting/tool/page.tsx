@@ -2,8 +2,11 @@
 
 import { Button } from '@renderer/components/ui/button';
 import { Input } from '@renderer/components/ui/input';
+import { Label } from '@renderer/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@renderer/components/ui/card';
 import { useState, useEffect } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Key as KeyIcon } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@renderer/components/ui/tabs';
 
 // 定义允许的设置键
 const ALLOWED_KEYS = [
@@ -24,18 +27,11 @@ const SENSITIVE_KEYS = [
 
 type SettingKey = (typeof ALLOWED_KEYS)[number];
 
-/**
- * Render the API key/settings management UI with per-key fetch, update, and delete actions.
- *
- * Displays a list of allowed setting keys with editable inputs and Save/Delete controls.
- * On mount, it fetches existing settings and merges them into the local state.
- * Saving updates a single setting via PUT and reflects the change in state on success.
- * Deleting removes a setting via DELETE and clears its value on success.
- * Success and error messages are shown briefly after operations.
- *
- * @returns A React element containing the settings management interface.
- */
-export default function SettingPage() {
+type ToolSettingsProps = object
+
+export default function ToolSettings({
+  // Add props if needed
+}: ToolSettingsProps) {
   const [settings, setSettings] = useState<Record<SettingKey, string>>({
     FINNHUB_API_KEY: '',
     LANGSMITH_API_KEY: '',
@@ -47,6 +43,7 @@ export default function SettingPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [visibleKeys, setVisibleKeys] = useState<Record<string, boolean>>({});
+  const [activeTab, setActiveTab] = useState<string>(ALLOWED_KEYS[0]);
 
   // 获取所有设置
   useEffect(() => {
@@ -157,77 +154,120 @@ export default function SettingPage() {
     return descriptions[key] || key;
   };
 
+  // 获取设置项的详细说明
+  const getSettingDetail = (key: SettingKey): string => {
+    const details: Record<SettingKey, string> = {
+      FINNHUB_API_KEY: '用于获取实时股票市场数据和分析报告',
+      LANGSMITH_API_KEY: 'LangSmith 提供的 API 密钥，用于追踪和管理模型调用',
+      FINANCIAL_DATASETS_KEY: '访问金融数据集的身份验证密钥',
+      TAVILY_API_KEY: 'Tavily 搜索引擎的 API 密钥，用于高级搜索功能',
+    };
+
+    return details[key] || '';
+  };
+
   if (loading) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        <div className="text-lg">加载中...</div>
+      <div className="flex flex-col items-center justify-center h-full gap-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="text-lg text-muted-foreground">加载中...</div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
+    <div className="flex flex-1 flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">API KEY 配置</h1>
+        <div>
+          <h1 className="text-2xl font-bold">API KEY 配置</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            管理您的外部服务 API 密钥
+          </p>
+        </div>
       </div>
 
       {message && (
         <div
-          className={`p-4 rounded ${message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+          className={`p-4 rounded ${
+            message.type === 'success'
+              ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+              : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+          }`}
         >
           {message.text}
         </div>
       )}
 
-      <div className="grid gap-6">
-        {ALLOWED_KEYS.map((key) => (
-          <div key={key} className="border rounded-lg p-4">
-            <div className="flex items-center justify-between mb-2">
-              <label className="font-medium">
-                {getSettingDescription(key)}({key})
-              </label>
-            </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
+          {ALLOWED_KEYS.map((key) => (
+            <TabsTrigger key={key} value={key} className="text-sm">
+              {key.replace('_API_KEY', '').replace('_KEY', '')}
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Input
-                  type={visibleKeys[key] ? 'text' : 'password'}
-                  value={settings[key] || ''}
-                  onChange={(e) => setSettings((prev) => ({ ...prev, [key]: e.target.value }))}
-                  className="border rounded px-3 py-2 pr-10"
-                  placeholder={`请输入${key}的值`}
-                />
-                {isSensitiveKey(key) && (
-                  <button
-                    type="button"
-                    onClick={() => toggleVisibility(key)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                  >
-                    {visibleKeys[key] ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
+        {ALLOWED_KEYS.map((key) => (
+          <TabsContent key={key} value={key}>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <KeyIcon className="h-5 w-5" />
+                  {getSettingDescription(key)}
+                </CardTitle>
+                <CardDescription>{getSettingDetail(key)}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor={key}>
+                    {key} <span className="text-muted-foreground text-xs ml-2">(环境变量名)</span>
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id={key}
+                      type={visibleKeys[key] ? 'text' : 'password'}
+                      value={settings[key] || ''}
+                      onChange={(e) => setSettings((prev) => ({ ...prev, [key]: e.target.value }))}
+                      placeholder={`请输入 ${key} 的值`}
+                      className="pr-10"
+                    />
+                    {isSensitiveKey(key) && (
+                      <button
+                        type="button"
+                        onClick={() => toggleVisibility(key)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
+                      >
+                        {visibleKeys[key] ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
                     )}
-                  </button>
-                )}
-              </div>
-              <Button
-                onClick={() => updateSetting(key, settings[key] || '')}
-                disabled={saving}
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:opacity-50"
-              >
-                {saving ? '保存中...' : '保存'}
-              </Button>
-              <Button
-                onClick={() => deleteSetting(key)}
-                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-              >
-                删除
-              </Button>
-            </div>
-          </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    onClick={() => updateSetting(key, settings[key] || '')}
+                    disabled={saving}
+                    className="flex-1"
+                  >
+                    {saving ? '保存中...' : '保存'}
+                  </Button>
+                  <Button
+                    onClick={() => deleteSetting(key)}
+                    variant="outline"
+                    className="hover:bg-destructive hover:text-destructive-foreground"
+                  >
+                    删除
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
         ))}
-      </div>
+      </Tabs>
     </div>
   );
 }
