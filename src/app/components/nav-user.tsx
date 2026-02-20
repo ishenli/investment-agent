@@ -29,7 +29,6 @@ import {
 import Link from 'next/link';
 import { useState } from 'react';
 import { SwitchAccountDialog } from './switch-account-dialog';
-import { ThemeToggleDropdownItem } from './theme-toggle-dropdown-item';
 
 export function NavUser({
   user,
@@ -100,21 +99,7 @@ export function NavUser({
                     账户设置
                   </DropdownMenuItem>
                 </Link>
-                <Link href="/setting">
-                  <DropdownMenuItem>
-                    <IconSettings />
-                    系统设置
-                  </DropdownMenuItem>
-                </Link>
-                <DropdownMenuItem>
-                  <IconNotification />
-                  通知
-                </DropdownMenuItem>
               </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <div className="p-1">
-                <ThemeToggleDropdownItem />
-              </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSwitchAccount}>
                 <IconLogout />

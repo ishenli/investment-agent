@@ -52,7 +52,7 @@ export function NavSettings({
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>设置</SidebarGroupLabel>
+      {/* <SidebarGroupLabel>设置</SidebarGroupLabel> */}
       <SidebarMenu>
         {items.map((item) => {
           const isActive = pathname.startsWith(item.url);

@@ -140,19 +140,9 @@ export const data = {
   ],
   settings: [
     {
-      name: '模型设置',
-      url: '/setting/provider',
-      icon: IconServer as Icon,
-    },
-    {
-      name: '工具设置',
-      url: '/setting/tool',
+      name: '设置',
+      url: '/setting',
       icon: IconSettings,
-    },
-    {
-      name: '智能体设置',
-      url: '/setting/agent',
-      icon: IconRobot,
     },
   ]
 };

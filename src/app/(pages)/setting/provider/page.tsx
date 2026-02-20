@@ -5,18 +5,51 @@ import { Input } from '@renderer/components/ui/input';
 import { Label } from '@renderer/components/ui/label';
 import { Textarea } from '@renderer/components/ui/textarea';
 import { Badge } from '@renderer/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@renderer/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@renderer/components/ui/card';
 import { Toggle } from '@renderer/components/ui/toggle';
 import { Switch } from '@renderer/components/ui/switch';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@renderer/components/ui/dialog';
-import { Item, ItemContent, ItemTitle, ItemDescription, ItemGroup } from '@renderer/components/ui/item';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@renderer/components/ui/dialog';
+import {
+  Item,
+  ItemContent,
+  ItemTitle,
+  ItemDescription,
+  ItemGroup,
+} from '@renderer/components/ui/item';
 import { useState, useEffect } from 'react';
 import { useModelProviderStore } from '@/app/store/modelProvider';
 import { ModelProvider, ProviderModel } from '@/types/modelProvider';
-import { IconPlus, IconEdit, IconTrash, IconArrowRight, IconEye, IconEyeOff, IconCheck } from '@tabler/icons-react';
+import {
+  IconPlus,
+  IconEdit,
+  IconTrash,
+  IconArrowRight,
+  IconEye,
+  IconEyeOff,
+  IconCheck,
+} from '@tabler/icons-react';
 import clsx from 'clsx';
 
-export default function ModelProviderPage() {
+type ProviderSettingsProps = object;
+
+export default function ProviderSettings(
+  {
+    // Add props if needed
+  }: ProviderSettingsProps,
+) {
   const {
     providers,
     models,
@@ -121,7 +154,9 @@ export default function ModelProviderPage() {
     }
 
     if (mode === 'create') {
-      await createProvider(draftProvider as Partial<ModelProvider> & Pick<ModelProvider, 'name' | 'slug' | 'baseUrl'>);
+      await createProvider(
+        draftProvider as Partial<ModelProvider> & Pick<ModelProvider, 'name' | 'slug' | 'baseUrl'>,
+      );
     } else if (mode === 'edit' && activeProviderId) {
       await updateProvider(activeProviderId, draftProvider);
     }
@@ -170,7 +205,9 @@ export default function ModelProviderPage() {
     }
 
     if (mode === 'model-create') {
-      await createModel(draftModel as Partial<ProviderModel> & Pick<ProviderModel, 'slug' | 'name'>);
+      await createModel(
+        draftModel as Partial<ProviderModel> & Pick<ProviderModel, 'slug' | 'name'>,
+      );
     } else if (mode === 'model-edit') {
       const modelId = draftModel.id;
       if (modelId) {
@@ -194,7 +231,7 @@ export default function ModelProviderPage() {
   };
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
+    <div className="flex flex-1 flex-col gap-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">模型服务商管理</h1>
         <Button onClick={handleCreateProvider} className="gap-2">
@@ -209,7 +246,7 @@ export default function ModelProviderPage() {
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row gap-6 h-[calc(100dvh-150px)]">
+      <div className="flex flex-col md:flex-row gap-6 h-[calc(100dvh-200px)]">
         {/* Providers List */}
         <Card className="w-full md:w-80 flex flex-col">
           <CardHeader>
@@ -242,15 +279,19 @@ export default function ModelProviderPage() {
                       'cursor-pointer transition-all duration-200 ease-out',
                       activeProviderId === provider.id
                         ? 'bg-accent/50 border-primary/20'
-                        : 'hover:bg-muted/40 border-transparent'
+                        : 'hover:bg-muted/40 border-transparent',
                     )}
                     variant="outline"
                     size="sm"
                   >
                     <ItemContent>
-                      <ItemTitle className={clsx(
-                        activeProviderId === provider.id ? 'text-foreground' : 'text-muted-foreground'
-                      )}>
+                      <ItemTitle
+                        className={clsx(
+                          activeProviderId === provider.id
+                            ? 'text-foreground'
+                            : 'text-muted-foreground',
+                        )}
+                      >
                         {provider.name}
                       </ItemTitle>
                       <ItemDescription className="flex items-center gap-2 mt-1">
@@ -288,7 +329,9 @@ export default function ModelProviderPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle>{activeProvider.name}</CardTitle>
-                    <CardDescription>{activeProvider.description || activeProvider.slug}</CardDescription>
+                    <CardDescription>
+                      {activeProvider.description || activeProvider.slug}
+                    </CardDescription>
                   </div>
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" onClick={handleEditProvider}>
@@ -299,21 +342,21 @@ export default function ModelProviderPage() {
                     </Button>
                     <Toggle
                       pressed={activeProvider.isActive}
-                      onPressedChange={(pressed) =>
-                        setProviderActive(activeProvider.id, pressed)
-                      }
+                      onPressedChange={(pressed) => setProviderActive(activeProvider.id, pressed)}
                       aria-label={activeProvider.isActive ? '停用' : '激活'}
                       className={clsx(
                         'gap-2 px-3 py-1.5 h-auto text-xs font-medium transition-colors',
                         activeProvider.isActive
                           ? 'bg-primary/10 text-primary hover:bg-primary/20 data-[state=on]:bg-primary/15'
-                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80',
                       )}
                     >
                       <span
                         className={clsx(
                           'w-2 h-2 rounded-full',
-                          activeProvider.isActive ? 'bg-primary animate-pulse' : 'bg-muted-foreground/50'
+                          activeProvider.isActive
+                            ? 'bg-primary animate-pulse'
+                            : 'bg-muted-foreground/50',
                         )}
                       />
                       {activeProvider.isActive ? '已激活' : '未激活'}
@@ -328,7 +371,12 @@ export default function ModelProviderPage() {
               </>
             )}
           </CardHeader>
-          <CardContent className={clsx('flex-1 overflow-y-auto', !activeProvider && 'flex items-center justify-center')}>
+          <CardContent
+            className={clsx(
+              'flex-1 overflow-y-auto',
+              !activeProvider && 'flex items-center justify-center',
+            )}
+          >
             {activeProvider ? (
               <div className="space-y-6">
                 {/* Provider Details */}
@@ -386,7 +434,12 @@ export default function ModelProviderPage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold">模型列表</h3>
-                    <Button variant="outline" size="sm" onClick={handleCreateModel} className="gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCreateModel}
+                      className="gap-2"
+                    >
                       <IconPlus className="h-4 w-4" />
                       添加模型
                     </Button>
@@ -410,7 +463,9 @@ export default function ModelProviderPage() {
                           <ItemContent>
                             <ItemTitle>{model.name}</ItemTitle>
                             <ItemDescription className="flex items-center gap-2 flex-wrap">
-                              <span className="font-mono text-[11px] px-1.5 py-0.5 bg-muted/50 rounded">{model.slug}</span>
+                              <span className="font-mono text-[11px] px-1.5 py-0.5 bg-muted/50 rounded">
+                                {model.slug}
+                              </span>
                               {model.contextWindow && (
                                 <Badge variant="outline" className="text-[10px]">
                                   {model.contextWindow.toLocaleString()} tokens
@@ -484,9 +539,7 @@ export default function ModelProviderPage() {
           <DialogHeader>
             <DialogTitle>{mode === 'create' ? '添加服务商' : '编辑服务商'}</DialogTitle>
             <DialogDescription>
-              {mode === 'create'
-                ? '添加一个新的模型服务商配置'
-                : '编辑服务商配置信息'}
+              {mode === 'create' ? '添加一个新的模型服务商配置' : '编辑服务商配置信息'}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -573,9 +626,7 @@ export default function ModelProviderPage() {
           <DialogHeader>
             <DialogTitle>{mode === 'model-create' ? '添加模型' : '编辑模型'}</DialogTitle>
             <DialogDescription>
-              {mode === 'model-create'
-                ? '为服务商添加一个新的模型'
-                : '编辑模型的配置信息'}
+              {mode === 'model-create' ? '为服务商添加一个新的模型' : '编辑模型的配置信息'}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -597,6 +648,7 @@ export default function ModelProviderPage() {
                 Slug <span className="text-destructive">*</span>
               </Label>
               <Input
+                required
                 id="modelSlug"
                 value={draftModel.slug || ''}
                 onChange={(e) => setDraftModel({ slug: e.target.value })}
@@ -611,6 +663,7 @@ export default function ModelProviderPage() {
             <div className="grid gap-2">
               <Label htmlFor="contextWindow">上下文窗口</Label>
               <Input
+                required
                 id="contextWindow"
                 type="number"
                 value={draftModel.contextWindow ?? ''}
@@ -625,7 +678,7 @@ export default function ModelProviderPage() {
               />
               <p className="text-xs text-muted-foreground">模型支持的上下文窗口大小（tokens）</p>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            {/* <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="supportVision" className="cursor-pointer">
                   支持 Vision
@@ -654,7 +707,7 @@ export default function ModelProviderPage() {
                   <span className="text-sm text-muted-foreground">Function Calling</span>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setModelDialogOpen(false)}>
