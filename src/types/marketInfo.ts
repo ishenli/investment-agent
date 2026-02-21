@@ -1,3 +1,6 @@
+// 内容处理模式：ai_summary（AI摘要）或 original（原文保留）
+export type ContentMode = 'ai_summary' | 'original';
+
 // 定义 AssetMetaDetails 类型，包含资产元数据的详细信息
 export type AssetMetaDetails = {
   id: number;
@@ -19,6 +22,8 @@ export type AssetMarketInfoType = {
   keyDataPoints: string | null;
   sourceUrl: string | null;
   sourceName: string | null;
+  originalContent: string | null; // 原始文章内容（原文保留模式）
+  contentMode: ContentMode; // 内容处理模式
   createdAt: Date;
   updatedAt: Date;
 };
@@ -35,4 +40,6 @@ export type CreateAssetMarketInfoRequest = {
   keyDataPoints?: string;
   sourceUrl?: string;
   sourceName?: string;
+  originalContent?: string; // 原始文章内容（原文保留模式）
+  contentMode: ContentMode; // 内容处理模式
 };

@@ -82,9 +82,22 @@ export function HistoryMarketInfoView({
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap line-clamp-3">
-                {info.summary}
-              </p>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  {info.contentMode === 'original' ? (
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap line-clamp-3">
+                      {info.originalContent?.substring(0, 100) + '...'}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap line-clamp-3">
+                      {info.summary}
+                    </p>
+                  )}
+                </div>
+                <Badge variant="secondary" className="ml-2 self-start">
+                  {info.contentMode === 'original' ? '原文' : 'AI摘要'}
+                </Badge>
+              </div>
               <div className="mt-4 flex justify-end gap-2">
                 <Button variant="outline" size="sm" onClick={() => onViewDetail(info)}>
                   查看详情

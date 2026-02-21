@@ -53,6 +53,8 @@ export class AssetMetaBizController extends BaseBizController {
     source: string;
     market: 'CN' | 'US' | 'HK';
     chineseName: string | null;
+    fullName: string | null;
+    logoUrl: string | null;
     investmentMemo: string | null;
   }) {
     try {
@@ -72,6 +74,8 @@ export class AssetMetaBizController extends BaseBizController {
         source: z.string().min(1, '数据来源不能为空'),
         market: z.enum(['CN', 'US', 'HK']),
         chineseName: z.string().nullable(),
+        fullName: z.string().nullable(),
+        logoUrl: z.string().url('Logo URL 必须是有效的 URL').nullable().or(z.literal('')),
         investmentMemo: z.string().nullable(),
       });
 
@@ -91,6 +95,8 @@ export class AssetMetaBizController extends BaseBizController {
         source: data.source,
         market: data.market,
         chineseName: data.chineseName,
+        fullName: data.fullName,
+        logoUrl: data.logoUrl || null,
         investmentMemo: data.investmentMemo,
         updatedAt: new Date(),
       });
@@ -118,6 +124,8 @@ export class AssetMetaBizController extends BaseBizController {
     source?: string;
     market?: 'CN' | 'US' | 'HK';
     chineseName?: string | null;
+    fullName?: string | null;
+    logoUrl?: string | null;
     investmentMemo?: string | null;
   }) {
     try {
@@ -138,6 +146,8 @@ export class AssetMetaBizController extends BaseBizController {
         source: z.string().min(1, '数据来源不能为空').optional(),
         market: z.enum(['CN', 'US', 'HK']).optional(),
         chineseName: z.string().nullable().optional(),
+        fullName: z.string().nullable().optional(),
+        logoUrl: z.string().url('Logo URL 必须是有效的 URL').nullable().optional().or(z.literal('')),
         investmentMemo: z.string().nullable().optional(),
       });
 
@@ -162,6 +172,8 @@ export class AssetMetaBizController extends BaseBizController {
         source: data.source,
         market: data.market,
         chineseName: data.chineseName,
+        fullName: data.fullName,
+        logoUrl: data.logoUrl || null,
         investmentMemo: data.investmentMemo,
       });
 

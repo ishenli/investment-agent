@@ -44,6 +44,7 @@ export function SiteHeader() {
     if (pathname.startsWith('/account/create')) return '新增交易账户';
     if (pathname.startsWith('/account/setting')) return '账户设置';
     if (pathname.startsWith('/asset-market-info')) return '资产市场信息';
+    if (pathname.startsWith('/asset-meta')) return '资产市场信息';
     if (pathname.startsWith('/note')) return '投资笔记';
     if (pathname.startsWith('/report')) return '投资报告';
     if (pathname.startsWith('/setting')) return '系统设置';

@@ -1,6 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -57,11 +58,6 @@ const getCurrencyByFilter = (filterMarket: string) => {
 // 辅助函数：格式化价格显示
 const formatPrice = (price: number, currencySymbol: string, rate: number) => {
   return `${currencySymbol}${(price * rate).toFixed(2)}`;
-};
-
-// 辅助函数：格式化市值/收益显示
-const formatValue = (value: number, currencySymbol: string, rate: number) => {
-  return `${currencySymbol}${(value * rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
 // 辅助函数：格式化市值/收益整数显示
@@ -412,16 +408,45 @@ export function PositionManagement() {
                 {filteredPositions.map((position) => (
                   <TableRow key={position.id}>
                     <TableCell className="font-medium">
-                      <Link
-                        href={position.detailUrl}
-                        target="_blank"
-                        className="hover:text-blue-500"
-                      >
-                        {position.symbol}
-                        {position.chineseName && (
-                          <span className="ml-2">({position.chineseName})</span>
+                      <div className="flex items-center gap-3 min-w-0">
+                        {position.logoUrl ? (
+                          <div className="shrink-0 w-10 h-10 rounded-lg overflow-hidden border bg-white flex items-center justify-center shadow-sm">
+                            <img
+                              src={position.logoUrl}
+                              alt={`${position.symbol} logo`}
+                              className="w-full h-full object-contain"
+                              onError={(e) => {
+                                // 图片加载失败时显示占位符
+                                (e.target as HTMLImageElement).style.display = 'none';
+                                const parent = (e.target as HTMLImageElement).parentElement;
+                                if (parent) {
+                                  parent.innerHTML = `<div class="w-full h-full bg-muted flex items-center justify-center text-xs font-medium">${position.symbol}</div>`;
+                                }
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <div className="shrink-0 w-10 h-10 rounded-lg border bg-muted flex items-center justify-center shadow-sm">
+                            <span className="text-xs text-muted-foreground font-medium">{position.symbol}</span>
+                          </div>
                         )}
-                      </Link>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-semibold text-foreground truncate">
+                            <Link
+                              href={position.detailUrl}
+                              target="_blank"
+                              className="hover:text-blue-600 transition-colors"
+                            >
+                              {position.symbol}
+                            </Link>
+                          </div>
+                          {position.chineseName && (
+                            <div className="text-sm text-muted-foreground truncate mt-0.5">
+                              {position.chineseName}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant={position.market === 'HK' ? 'secondary' : 'default'}>
@@ -489,7 +514,7 @@ export function PositionManagement() {
                           <PencilIcon className="h-4 w-4" />
                         </Button>
                         {position.assetMetaId && (
-                          <Link href={`/asset-market-info/${position.assetMetaId}`}>
+                          <Link href={`/asset-meta/${position.assetMetaId}`}>
                             <Button variant="outline" size="icon-sm">
                               <InfoIcon className="h-4 w-4" />
                             </Button>

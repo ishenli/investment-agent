@@ -16,7 +16,6 @@ import {
   type Icon,
   IconEye,
   IconAnalyzeFilled,
-  IconRobot,
   IconServer,
 } from '@tabler/icons-react';
 

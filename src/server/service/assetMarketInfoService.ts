@@ -45,6 +45,8 @@ export class AssetMarketInfoService {
           keyDataPoints: request.keyDataPoints,
           sourceUrl: request.sourceUrl,
           sourceName: request.sourceName,
+          originalContent: request.originalContent,
+          contentMode: request.contentMode,
           createdAt: new Date(),
           updatedAt: new Date(),
         })
@@ -83,6 +85,8 @@ export class AssetMarketInfoService {
         keyDataPoints: newAssetMarketInfo.keyDataPoints,
         sourceUrl: newAssetMarketInfo.sourceUrl,
         sourceName: newAssetMarketInfo.sourceName,
+        originalContent: newAssetMarketInfo.originalContent,
+        contentMode: newAssetMarketInfo.contentMode as 'ai_summary' | 'original',
         createdAt: new Date(newAssetMarketInfo.createdAt),
         updatedAt: new Date(newAssetMarketInfo.updatedAt),
       };
@@ -167,6 +171,8 @@ export class AssetMarketInfoService {
               keyDataPoints: latestRecord.keyDataPoints,
               sourceUrl: latestRecord.sourceUrl,
               sourceName: latestRecord.sourceName,
+              originalContent: latestRecord.originalContent,
+              contentMode: latestRecord.contentMode as 'ai_summary' | 'original',
               createdAt: new Date(latestRecord.createdAt),
               updatedAt: new Date(latestRecord.updatedAt),
             };
@@ -236,6 +242,8 @@ export class AssetMarketInfoService {
         keyDataPoints: latestRecord.keyDataPoints,
         sourceUrl: latestRecord.sourceUrl,
         sourceName: latestRecord.sourceName,
+        originalContent: latestRecord.originalContent,
+        contentMode: latestRecord.contentMode as 'ai_summary' | 'original',
         createdAt: new Date(latestRecord.createdAt),
         updatedAt: new Date(latestRecord.updatedAt),
       };
@@ -343,6 +351,8 @@ export class AssetMarketInfoService {
           keyDataPoints: assetMarketInfoRecord.keyDataPoints,
           sourceUrl: assetMarketInfoRecord.sourceUrl,
           sourceName: assetMarketInfoRecord.sourceName,
+          originalContent: assetMarketInfoRecord.originalContent,
+          contentMode: assetMarketInfoRecord.contentMode as 'ai_summary' | 'original',
           createdAt: new Date(assetMarketInfoRecord.createdAt),
           updatedAt: new Date(assetMarketInfoRecord.updatedAt),
         };
@@ -408,6 +418,8 @@ export class AssetMarketInfoService {
         keyDataPoints: assetMarketInfoRecord.keyDataPoints,
         sourceUrl: assetMarketInfoRecord.sourceUrl,
         sourceName: assetMarketInfoRecord.sourceName,
+        originalContent: assetMarketInfoRecord.originalContent,
+        contentMode: assetMarketInfoRecord.contentMode as 'ai_summary' | 'original',
         createdAt: new Date(assetMarketInfoRecord.createdAt),
         updatedAt: new Date(assetMarketInfoRecord.updatedAt),
       };
@@ -525,6 +537,8 @@ export class AssetMarketInfoService {
           keyDataPoints: record.keyDataPoints,
           sourceUrl: record.sourceUrl,
           sourceName: record.sourceName,
+          originalContent: record.originalContent,
+          contentMode: record.contentMode as 'ai_summary' | 'original',
           createdAt: new Date(record.createdAt),
           updatedAt: new Date(record.updatedAt),
         });
@@ -658,6 +672,8 @@ export class AssetMarketInfoService {
           keyDataPoints: record.keyDataPoints,
           sourceUrl: record.sourceUrl,
           sourceName: record.sourceName,
+          originalContent: record.originalContent,
+          contentMode: record.contentMode as 'ai_summary' | 'original',
           createdAt: new Date(record.createdAt),
           updatedAt: new Date(record.updatedAt),
         });
@@ -729,6 +745,8 @@ export class AssetMarketInfoService {
         keyDataPoints: assetMarketInfoRecord.keyDataPoints,
         sourceUrl: assetMarketInfoRecord.sourceUrl,
         sourceName: assetMarketInfoRecord.sourceName,
+        originalContent: assetMarketInfoRecord.originalContent,
+        contentMode: assetMarketInfoRecord.contentMode as 'ai_summary' | 'original',
         createdAt: new Date(assetMarketInfoRecord.createdAt),
         updatedAt: new Date(assetMarketInfoRecord.updatedAt),
       };
@@ -830,6 +848,8 @@ export class AssetMarketInfoService {
           keyDataPoints: record.keyDataPoints,
           sourceUrl: record.sourceUrl,
           sourceName: record.sourceName,
+          originalContent: record.originalContent,
+          contentMode: record.contentMode as 'ai_summary' | 'original',
           createdAt: new Date(record.createdAt),
           updatedAt: new Date(record.updatedAt),
         };

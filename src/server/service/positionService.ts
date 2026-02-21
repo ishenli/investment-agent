@@ -349,12 +349,13 @@ export class PositionService {
           const positionRatio =
             totalAccountValue > 0 ? new Decimal(marketValue).div(totalAccountValue).toNumber() : 0;
 
-          // 获取中文名称、市场信息、投资笔记和 assetMetaId
+          // 获取中文名称、市场信息、投资笔记、assetMetaId和logoUrl
           const assetMeta = assetMetaMap.get(record.symbol);
           const chineseName = assetMeta?.chineseName || null;
           const market = assetMeta?.market || undefined;
           const investmentMemo = assetMeta?.investmentMemo || null;
           const assetMetaId = assetMeta?.id || null;
+          const logoUrl = assetMeta?.logoUrl || null;
 
           return {
             id: record.id.toString(),
@@ -373,6 +374,7 @@ export class PositionService {
             market,
             investmentMemo, // 添加投资笔记
             assetMetaId, // 添加 assetMetaId
+            logoUrl, // 添加 logoUrl
             createdAt: record.createdAt,
             updatedAt: record.updatedAt,
           };

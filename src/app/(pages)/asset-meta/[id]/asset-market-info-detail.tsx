@@ -3,16 +3,30 @@
 import { useState, useEffect } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@renderer/components/ui/alert';
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@renderer/components/ui/dialog';
+import { Button } from '@renderer/components/ui/button';
+import { Input } from '@renderer/components/ui/input';
+import { Label } from '@renderer/components/ui/label';
 import { MarketInfoTabs } from './components/MarketInfoTabs';
 import { TabNavigation } from './components/TabNavigation';
 import { LatestMarketInfoView } from './components/LatestMarketInfoView';
 import { HistoryMarketInfoView } from './components/HistoryMarketInfoView';
 import { CompanyInfoView } from './components/CompanyInfoView';
 import { AddCompanyInfoDialog } from './components/AddCompanyInfoDialog';
+import { AddMarketInfoDialog } from './components/AddMarketInfoDialog';
 import { DeleteConfirmationDialog } from './components/DeleteConfirmationDialog';
 import { InvestmentMemoView } from './components/InvestmentMemoView';
+import { BasicInfoView } from './components/BasicInfoView';
 import { AssetMetaType } from '@/types/assetMeta';
 import { AssetMarketInfoType } from '@/types/marketInfo';
+import { useRouter } from 'next/navigation';
 
 type AssetCompanyInfoType = {
   id: number;
@@ -24,13 +38,14 @@ type AssetCompanyInfoType = {
 };
 
 export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) {
+  const router = useRouter();
   const [marketInfo, setMarketInfo] = useState<AssetMarketInfoType | null>(null);
   const [marketInfos, setMarketInfos] = useState<AssetMarketInfoType[]>([]);
   const [companyInfos, setCompanyInfos] = useState<AssetCompanyInfoType[]>([]);
   const [assetMeta, setAssetMeta] = useState<AssetMetaType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'latest' | 'history' | 'company' | 'investment-memo'>(
+  const [activeTab, setActiveTab] = useState<'latest' | 'history' | 'company' | 'basic-info' | 'investment-memo'>(
     'latest',
   );
   const [pagination, setPagination] = useState<{
@@ -54,8 +69,20 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
   const [savingCompanyInfo, setSavingCompanyInfo] = useState(false);
   const [editingCompanyInfo, setEditingCompanyInfo] = useState<AssetCompanyInfoType | null>(null);
 
+  // 新增状态用于添加市场纪要模态框
+  const [addMarketInfoDialogOpen, setAddMarketInfoDialogOpen] = useState(false);
+
   // 投资笔记编辑弹窗状态
   const [investmentMemoDialogOpen, setInvestmentMemoDialogOpen] = useState(false);
+
+  // 基本信息编辑弹窗状态
+  const [basicInfoDialogOpen, setBasicInfoDialogOpen] = useState(false);
+  const [savingBasicInfo, setSavingBasicInfo] = useState(false);
+  const [basicInfoForm, setBasicInfoForm] = useState({
+    chineseName: '',
+    fullName: '',
+    logoUrl: '',
+  });
 
   const fetchAssetMeta = async () => {
     try {
@@ -167,24 +194,24 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
     switch (sentiment.toLowerCase()) {
       case 'positive':
       case '积极':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800 hover:bg-green-200';
       case 'negative':
       case '消极':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 text-red-800 hover:bg-red-200';
       case 'neutral':
       case '中性':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
     }
   };
 
   // 获取重要性标签的颜色
   const getImportanceColor = (importance: string) => {
     const importanceNum = parseInt(importance);
-    if (importanceNum >= 8) return 'bg-red-100 text-red-800';
-    if (importanceNum >= 5) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-green-100 text-green-800';
+    if (importanceNum >= 8) return 'bg-red-100 text-red-800 hover:bg-red-200';
+    if (importanceNum >= 5) return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
+    return 'bg-green-100 text-green-800 hover:bg-green-200';
   };
 
   // 打开删除确认对话框
@@ -247,6 +274,11 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
     }
   };
 
+  // 打开添加市场纪要对话框
+  const openAddMarketInfoDialog = () => {
+    setAddMarketInfoDialogOpen(true);
+  };
+
   // 打开添加公司信息对话框
   const openAddCompanyInfoDialog = () => {
     setEditingCompanyInfo(null);
@@ -256,6 +288,22 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
   const openEditCompanyInfoDialog = (info: AssetCompanyInfoType) => {
     setEditingCompanyInfo(info);
     setAddCompanyInfoDialogOpen(true);
+  };
+
+  // 关闭添加市场纪要对话框
+  const closeAddMarketInfoDialog = () => {
+    setAddMarketInfoDialogOpen(false);
+  };
+
+  // 保存成功后的回调函数
+  const handleAddMarketInfoSuccess = () => {
+    setAddMarketInfoDialogOpen(false);
+    // 刷新数据以显示新添加的市场纪要
+    if (activeTab === 'latest') {
+      fetchLatestMarketInfo();
+    } else if (activeTab === 'history') {
+      fetchMarketInfoList(pagination.page);
+    }
   };
 
   // 关闭添加公司信息对话框
@@ -332,6 +380,57 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
     }
   };
 
+  // 打开编辑基本信息对话框
+  const openEditBasicInfoDialog = () => {
+    setBasicInfoForm({
+      chineseName: assetMeta?.chineseName || '',
+      fullName: assetMeta?.fullName || '',
+      logoUrl: assetMeta?.logoUrl || '',
+    });
+    setBasicInfoDialogOpen(true);
+  };
+
+  // 关闭编辑基本信息对话框
+  const closeEditBasicInfoDialog = () => {
+    setBasicInfoDialogOpen(false);
+  };
+
+  // 保存基本信息
+  const handleSaveBasicInfo = async () => {
+    try {
+      setSavingBasicInfo(true);
+      setError(null);
+
+      const response = await fetch('/api/asset/meta', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: assetMetaId,
+          chineseName: basicInfoForm.chineseName || null,
+          fullName: basicInfoForm.fullName || null,
+          logoUrl: basicInfoForm.logoUrl || null,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || '保存基本信息失败');
+      }
+
+      // 重新获取资产元数据
+      await fetchAssetMeta();
+
+      // 关闭弹窗
+      closeEditBasicInfoDialog();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '未知错误');
+    } finally {
+      setSavingBasicInfo(false);
+    }
+  };
+
   if (loading && !marketInfo && marketInfos.length === 0 && companyInfos.length === 0) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -368,10 +467,12 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onRefresh={fetchData}
+        onAddMarketInfo={openAddMarketInfoDialog}
         onAddCompanyInfo={openAddCompanyInfoDialog}
         onAddInvestmentMemo={
           !assetMeta?.investmentMemo ? () => setInvestmentMemoDialogOpen(true) : undefined
         }
+        onEditBasicInfo={openEditBasicInfoDialog}
       />
 
       <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -392,8 +493,7 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
           getSentimentColor={getSentimentColor}
           getImportanceColor={getImportanceColor}
           onViewDetail={(info) => {
-            setMarketInfo(info);
-            setActiveTab('latest');
+            router.push(`/asset-market-info/detail/${info.id}`);
           }}
           onDelete={openDeleteDialog}
           pagination={pagination}
@@ -409,6 +509,9 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
           onDelete={openDeleteCompanyInfoDialog}
         />
       )}
+
+      {/* 基本信息视图 */}
+      {activeTab === 'basic-info' && <BasicInfoView assetMeta={assetMeta} />}
 
       {/* 投资笔记视图 */}
       {activeTab === 'investment-memo' && (
@@ -437,6 +540,91 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
         deleting={deleting}
         infoToDelete={infoToDelete}
         companyInfoToDelete={companyInfoToDelete}
+      />
+
+      {/* 编辑基本信息对话框 */}
+      <Dialog open={basicInfoDialogOpen} onOpenChange={setBasicInfoDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>编辑基本信息</DialogTitle>
+            <DialogDescription>编辑资产的基本信息</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="symbol">股票代码</Label>
+              <Input
+                id="symbol"
+                value={assetMeta?.symbol || ''}
+                disabled
+                className="bg-muted"
+              />
+              <p className="text-xs text-muted-foreground">股票代码不可修改</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="chineseName">中文名称</Label>
+              <Input
+                id="chineseName"
+                value={basicInfoForm.chineseName}
+                onChange={(e) =>
+                  setBasicInfoForm((prev) => ({ ...prev, chineseName: e.target.value }))
+                }
+                placeholder="请输入中文名称"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="fullName">英文全称</Label>
+              <Input
+                id="fullName"
+                value={basicInfoForm.fullName}
+                onChange={(e) =>
+                  setBasicInfoForm((prev) => ({ ...prev, fullName: e.target.value }))
+                }
+                placeholder="请输入英文全称"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="logoUrl">Logo URL</Label>
+              <Input
+                id="logoUrl"
+                value={basicInfoForm.logoUrl}
+                onChange={(e) =>
+                  setBasicInfoForm((prev) => ({ ...prev, logoUrl: e.target.value }))
+                }
+                placeholder="https://example.com/logo.png"
+              />
+              {basicInfoForm.logoUrl && (
+                <div className="mt-2 flex items-center gap-4">
+                  <span className="text-sm text-muted-foreground">预览:</span>
+                  <div className="w-16 h-16 rounded border overflow-hidden bg-white flex items-center justify-center">
+                    <img
+                      src={basicInfoForm.logoUrl}
+                      alt="Logo preview"
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeEditBasicInfoDialog} disabled={savingBasicInfo}>
+              取消
+            </Button>
+            <Button onClick={handleSaveBasicInfo} disabled={savingBasicInfo}>
+              {savingBasicInfo ? '保存中...' : '保存'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <AddMarketInfoDialog
+        open={addMarketInfoDialogOpen}
+        onOpenChange={setAddMarketInfoDialogOpen}
+        assetMetaId={assetMetaId}
+        onSuccess={handleAddMarketInfoSuccess}
+        onCancel={closeAddMarketInfoDialog}
       />
     </div>
   );

@@ -17,6 +17,7 @@ export const PositionSchema = z.object({
   market: z.enum(['US', 'CN', 'HK']).optional(),
   investmentMemo: z.string().nullable().optional(),
   assetMetaId: z.number().nullable().optional(), // 添加 assetMetaId 字段
+  logoUrl: z.string().nullable().optional(), // 添加 logoUrl 字段
   createdAt: z.date(),
   updatedAt: z.date(),
 });

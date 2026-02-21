@@ -111,6 +111,8 @@ export class AssetMetaService {
           source: assetMetaData.source,
           market: assetMetaData.market,
           chineseName: assetMetaData.chineseName,
+          fullName: assetMetaData.fullName,
+          logoUrl: assetMetaData.logoUrl,
           investmentMemo: assetMetaData.investmentMemo,
         })
         .returning();
@@ -148,6 +150,8 @@ export class AssetMetaService {
           source: assetMetaData.source,
           market: assetMetaData.market,
           chineseName: assetMetaData.chineseName,
+          fullName: assetMetaData.fullName,
+          logoUrl: assetMetaData.logoUrl,
           investmentMemo: assetMetaData.investmentMemo,
         })
         .where(eq(assetMeta.id, id))
