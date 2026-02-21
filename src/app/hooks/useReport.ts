@@ -18,14 +18,32 @@ export type ReportListItem = {
 
 export type ReportDetail = {
   id: string;
-  projectId: string; // accountId in API is often used as projectId in frontend context or similar
   accountId: string;
   type: ReportType;
   title: string;
   content: string;
   startDate: string | null;
   endDate: string | null;
+  // 报告生成进度
+  generationProgress: number;
+  generationStage: string | null;
+  // 数据来源摘要
+  dataSourceSummary: string | null;
+  // 手动编辑标记
+  isManuallyEdited: boolean;
+  lastEditedAt: string | null;
+  editCount: number;
   createdAt: string;
+  updatedAt: string;
+};
+
+// 报告进度显示名称映射
+export const STAGE_DISPLAY_NAMES: Record<string, string> = {
+  data_aggregation: '数据聚合中',
+  performance_calculation: '业绩计算中',
+  ai_generation: 'AI 内容生成中',
+  formatting: '格式化中',
+  completed: '已完成',
 };
 
 // API Functions

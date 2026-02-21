@@ -1,9 +1,9 @@
 import { StateCreator } from 'zustand';
-import { revenueMetricType } from '@typings/account';
+import { SnapshotRevenueMetrics } from '@typings/account';
 import { AssetStore } from '../../types';
 
 export interface AssetRevenueAction {
-  setMetrics: (metrics: revenueMetricType | null) => void;
+  setMetrics: (metrics: SnapshotRevenueMetrics | null) => void;
   setRevenueLoading: (loading: boolean) => void;
   setRevenueError: (error: string | null) => void;
 }
@@ -14,7 +14,7 @@ export const createAssetrevenueSlice: StateCreator<
   [],
   AssetRevenueAction
 > = (set, get) => ({
-  setMetrics: (metrics: revenueMetricType | null) => {
+  setMetrics: (metrics: SnapshotRevenueMetrics | null) => {
     set((state: AssetStore) => ({ ...state, metrics }));
   },
 

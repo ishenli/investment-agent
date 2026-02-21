@@ -36,7 +36,7 @@
 
 ## 概述
 
-投资助手是一个先进的投资分析平台，使用多代理 AI 系统来分析股票并提供投资建议。它结合了技术分析、新闻情绪、基本面数据和市场趋势，提供全面的投资洞察。平台还支持资产组合管理和市场信息获取功能。
+投资助手是一个先进的投资分析平台，使用多Agent AI 系统来分析股票并提供投资建议。它结合了技术分析、新闻情绪、基本面数据和市场趋势，提供全面的投资洞察。平台还支持资产组合管理和市场信息获取功能。
 
 ### 功能特性
 
@@ -54,7 +54,7 @@
 
 ### 整体功能列表
 
-- **多代理 AI 分析**：利用专门的 AI 代理进行股票分析的不同方面
+- **多Agent AI 分析**：利用专门的 AI Agent进行股票分析的不同方面
   - 市场分析师：技术指标分析
   - 新闻分析师：市场情绪分析
   - 看涨/看跌研究员：多角度观点
@@ -161,9 +161,9 @@ FINANCIAL_DATASETS_KEY=your_financial_datasets_key
 
 ## 架构设计
 
-该系统基于多代理架构构建，每个代理专门负责投资分析的特定方面：
+该系统基于多Agent架构构建，每个Agent专门负责投资分析的特定方面：
 
-### 核心代理架构
+### 核心Agent架构
 
 1. **市场分析师** (Market Analyst)
    - 使用技术指标（移动平均线、RSI、MACD 等）
@@ -196,7 +196,7 @@ FINANCIAL_DATASETS_KEY=your_financial_datasets_key
 ### 技术架构
 
 - **前端层**：Next.js 16 + React 19 + TypeScript
-- **AI 层**：LangChain + LangGraph (多代理编排)
+- **AI 层**：LangChain + LangGraph (多Agent编排)
 - **数据层**：SQLite + Drizzle ORM
 - **服务层**：RESTful API + WebSocket (实时数据)
 - **状态管理**：Zustand + TanStack Query
@@ -344,7 +344,7 @@ investment-agent/
 │   ├── server/                 # 服务端代码
 │   │   ├── core/               # 核心服务
 │   │   ├── service/            # 业务逻辑层
-│   │   └── tradingagents/      # AI 代理实现
+│   │   └── tradingagents/      # AI Agent实现
 │   └── shared/                 # 客户端和服务端共享代码
 ├── tests/                      # 测试文件
 ├── drizzle/                    # Drizzle ORM 配置
@@ -374,11 +374,11 @@ investment-agent/
 ### AI 与 LLM
 
 - **LangChain** 1.2.7 - LLM 应用开发框架
-- **LangGraph** 1.0.14 - 有向图编排和多代理系统
+- **LangGraph** 1.0.14 - 有向图编排和多Agent系统
 - **@langchain/core** 1.1.12 - LangChain 核心模块
 - **@langchain/openai** 1.2.1 - OpenAI 集成
 - **Vercel AI SDK** (ai) 5.0.119 - AI 流式响应
-- **DeepAgents** 1.4.1 - 高级 AI 代理库
+- **DeepAgents** 1.4.1 - 高级 AI Agent库
 - **Tavily** 0.5.14 - 搜索和信息检索
 
 ### 数据库与存储
@@ -589,7 +589,7 @@ SOFTWARE.
 
 | 作者 | 仓库/项目 | 贡献 |
 |------|----------|------|
-| [Tauric Research Team](https://github.com/TauricResearch) | **[TradingAgents](https://github.com/TauricResearch/TradingAgents)** | 提供了多代理交易系统的核心架构思路，论文参考: [arxiv.org/pdf/2412.20138](https://arxiv.org/pdf/2412.20138) |
+| [Tauric Research Team](https://github.com/TauricResearch) | **[TradingAgents](https://github.com/TauricResearch/TradingAgents)** | 提供了多Agent交易系统的核心架构思路，论文参考: [arxiv.org/pdf/2412.20138](https://arxiv.org/pdf/2412.20138) |
 | [@delenzhang](https://github.com/delenzhang) | **[TradingAgents](https://github.com/delenzhang/TradingAgents)** | 中文优化和适配工作 |
 | [@canisminor1990](https://github.com/canisminor1990) | [lobehub-ui](https://ui.lobehub.com/) | 高级 UI 组件和设计系统 |
 

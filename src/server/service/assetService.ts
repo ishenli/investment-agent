@@ -1,7 +1,16 @@
-import { revenueMetricType, revenueHistoryType } from '@/types';
+import {
+  SnapshotRevenuePeriod,
+  SnapshotRevenueMetrics,
+  SnapshotRevenueHistory,
+  RevenueHistoryPoint,
+  PositionPerformance,
+} from '@typings/account';
+import portfolioSnapshotService, {
+  PositionSnapshot,
+} from './portfolioSnapshotService';
 import { db } from '@server/lib/db';
-import { accountFunds, transactions, assetPositions } from '@/drizzle/schema';
-import { eq, and, sql, or, asc } from 'drizzle-orm';
+import { accountFunds } from '@/drizzle/schema';
+import { eq } from 'drizzle-orm';
 import logger from '@server/base/logger';
 import accountService from './accountService';
 import positionService from './positionService';
@@ -12,7 +21,6 @@ import {
   calculateVolatility,
   calculateSharpeRatio,
   calculateMaxDrawdown,
-  calculateDrawdownSeries,
 } from '@server/lib/utils/financialCalculations';
 
 export class AssetService {
@@ -42,356 +50,6 @@ export class AssetService {
     }
   }
 
-  /**
-   * 获取收益指标
-   * @param accountId 账户ID
-   * @param period 时间周期字符串 (7d, 30d, 90d, 1y, all) - 用于筛选交易记录的时间范围
-   * @returns 收益指标
-   */
-  async getRevenueMetrics(
-    accountId: string,
-    period: string = '30d',
-  ): Promise<revenueMetricType | null> {
-    try {
-      // 计算周期日期用于筛选交易记录
-      const now = new Date();
-      let periodStart = new Date();
-
-      switch (period) {
-        case '7d':
-          periodStart.setDate(now.getDate() - 7);
-          break;
-        case '30d':
-          periodStart.setDate(now.getDate() - 30);
-          break;
-        case '90d':
-          periodStart.setDate(now.getDate() - 90);
-          break;
-        case '1y':
-          periodStart.setFullYear(now.getFullYear() - 1);
-          break;
-        case 'all':
-          // 对于全部时间，使用账户创建日期
-          const account = await accountService.getTradingAccount(accountId);
-          if (account) {
-            periodStart = account.createdAt;
-          } else {
-            periodStart.setDate(now.getDate() - 365); // 如果未找到账户，默认为1年
-          }
-          break;
-        default:
-          periodStart.setDate(now.getDate() - 30); // 默认为30天
-      }
-
-      const periodEnd = now;
-
-      // 计算收益指标和交易统计数据
-      const {
-        realizedProfitAmount,
-        realizedProfitRate,
-        unrealizedProfitAmount,
-        unrealizedProfitRate,
-        totalTrades,
-        profitableTrades,
-      } = await this.calculateTotalReturnAndTradeStats(accountId, periodStart, periodEnd);
-
-      // 计算胜率
-      const winRate = totalTrades > 0 ? (profitableTrades / totalTrades) * 100 : 0;
-
-      return {
-        accountId,
-        periodStart,
-        periodEnd,
-        realizedProfitAmount,
-        realizedProfitRate,
-        unrealizedProfitAmount,
-        unrealizedProfitRate,
-        winRate,
-        totalTrades,
-        profitableTrades,
-        createdAt: new Date(),
-      };
-    } catch (error) {
-      // 查询异常时记录详细错误信息，但仍返回 null
-      logger.error(`Failed to get revenue metrics for account ${accountId}: ${error}`);
-      // 可以考虑抛出特定的异常来区分查询异常和数据不存在的情况
-      throw new Error(`Database query failed: ${error}`);
-    }
-  }
-
-  /**
-   * 根据交易记录计算已实现和未实现收益，以及交易统计数据
-   * @param accountId 账户ID
-   * @param periodStart 周期开始日期
-   * @param periodEnd 周期结束日期
-   * @returns 包含已实现和未实现的收益金额和收益率，以及交易统计数据
-   */
-  private async calculateTotalReturnAndTradeStats(
-    accountId: string,
-    periodStart: Date,
-    periodEnd: Date,
-  ): Promise<{
-    realizedProfitAmount: number; // 已实现收益金额
-    realizedProfitRate: number; // 已实现收益率(%)
-    unrealizedProfitAmount: number; // 未实现收益金额
-    unrealizedProfitRate: number; // 未实现收益率(%)
-    totalTrades: number; // 总交易数
-    profitableTrades: number; // 盈利交易数
-  }> {
-    // 获取指定时间段内的所有买卖交易记录
-    const transactionRecords = await db.query.transactions.findMany({
-      where: and(
-        eq(transactions.accountId, parseInt(accountId)),
-        or(eq(transactions.type, 'buy'), eq(transactions.type, 'sell')),
-        sql`created_at >= ${periodStart.toISOString()} AND created_at <= ${periodEnd.toISOString()}`,
-      ),
-      orderBy: [asc(transactions.createdAt)],
-    });
-
-    logger.info(
-      `[AssetService#calculateTotalReturnAndTradeStats] Found ${transactionRecords.length} transactions for account ${accountId} between ${periodStart.toISOString()} and ${periodEnd.toISOString()}`,
-    );
-
-    if (transactionRecords.length === 0) {
-      return {
-        realizedProfitAmount: 0,
-        realizedProfitRate: 0,
-        unrealizedProfitAmount: 0,
-        unrealizedProfitRate: 0,
-        totalTrades: 0,
-        profitableTrades: 0,
-      }; // 没有交易记录，返回0收益和0交易统计
-    }
-
-    // 按股票代码分组处理交易（用于收益计算）
-    const stockTransactionsForReturns: Record<
-      string,
-      {
-        buys: { quantity: number; totalCost: number }[];
-        sells: { quantity: number; totalRevenue: number }[];
-        totalBuyQuantity: number;
-        totalBuyCost: number;
-        totalSellQuantity: number;
-        totalSellRevenue: number;
-      }
-    > = {};
-
-    // 按股票代码分组处理交易（用于交易统计）
-    const stockTransactionsForStats: Record<
-      string,
-      {
-        buys: { quantity: number; totalCost: number; price: number }[];
-        sells: { quantity: number; totalRevenue: number; price: number }[];
-      }
-    > = {};
-
-    // 初始化交易记录
-    for (const transaction of transactionRecords) {
-      const symbol = transaction.symbol || '';
-      if (!symbol) continue;
-
-      // 用于收益计算的分组
-      if (!stockTransactionsForReturns[symbol]) {
-        stockTransactionsForReturns[symbol] = {
-          buys: [],
-          sells: [],
-          totalBuyQuantity: 0,
-          totalBuyCost: 0,
-          totalSellQuantity: 0,
-          totalSellRevenue: 0,
-        };
-      }
-
-      const amount = (transaction.totalAmountCents ?? 0) / 100;
-      const quantity = transaction.quantity || 0;
-
-      if (transaction.type === 'buy') {
-        stockTransactionsForReturns[symbol].buys.push({
-          quantity,
-          totalCost: amount,
-        });
-        stockTransactionsForReturns[symbol].totalBuyQuantity += quantity;
-        stockTransactionsForReturns[symbol].totalBuyCost += amount;
-      } else if (transaction.type === 'sell') {
-        stockTransactionsForReturns[symbol].sells.push({
-          quantity,
-          totalRevenue: amount,
-        });
-        stockTransactionsForReturns[symbol].totalSellQuantity += quantity;
-        stockTransactionsForReturns[symbol].totalSellRevenue += amount;
-      }
-
-      // 用于交易统计的分组
-      if (!stockTransactionsForStats[symbol]) {
-        stockTransactionsForStats[symbol] = {
-          buys: [],
-          sells: [],
-        };
-      }
-
-      const price = quantity > 0 ? amount / quantity : 0;
-
-      if (transaction.type === 'buy') {
-        stockTransactionsForStats[symbol].buys.push({
-          quantity,
-          totalCost: amount,
-          price,
-        });
-      } else if (transaction.type === 'sell') {
-        stockTransactionsForStats[symbol].sells.push({
-          quantity,
-          totalRevenue: amount,
-          price,
-        });
-      }
-    }
-
-    // 计算总投资成本和总收益
-    let totalInvestment = 0;
-    let totalRevenue = 0;
-    let totalRealizedGain = 0;
-    let totalUnrealizedGainLoss = 0;
-    let totalCurrentMarketValue = 0;
-    let totalCostBasis = 0;
-
-    // 获取当前持仓信息，用于计算未实现盈亏
-    const currentPositions = await positionService.getCurrentPositions(accountId);
-
-    // 创建持仓映射，方便查找
-    const positionsMap = new Map();
-    for (const position of currentPositions) {
-      positionsMap.set(position.symbol, position);
-    }
-
-    for (const symbol in stockTransactionsForReturns) {
-      const stock = stockTransactionsForReturns[symbol];
-
-      // 使用 Decimal.js 计算平均买入价，避免精度问题
-      const avgBuyPrice =
-        stock.totalBuyQuantity > 0
-          ? new Decimal(stock.totalBuyCost).div(stock.totalBuyQuantity).toDecimalPlaces(4)
-          : new Decimal(0);
-
-      // 使用 Decimal.js 计算已实现收益（卖出收入 - 卖出股票的成本）
-      const costOfSoldShares = new Decimal(stock.totalSellQuantity).mul(avgBuyPrice);
-      const realizedGain = new Decimal(stock.totalSellRevenue).sub(costOfSoldShares);
-
-      totalInvestment = new Decimal(totalInvestment).add(stock.totalBuyCost).toNumber();
-      totalRevenue = new Decimal(totalRevenue).add(stock.totalSellRevenue).toNumber();
-      totalRealizedGain = new Decimal(totalRealizedGain).add(realizedGain).toNumber();
-
-      // 计算未实现盈亏（浮动盈亏）
-      const remainingShares = new Decimal(stock.totalBuyQuantity).sub(stock.totalSellQuantity);
-      if (remainingShares.gt(0)) {
-        // 获取当前股价
-        const position = positionsMap.get(symbol);
-        if (position) {
-          // 获取最新价格
-          let currentPrice = position.currentPrice; // 使用当前价格
-          if (!currentPrice) {
-            currentPrice = position.averageCost; // 如果没有当前价格，使用平均成本价
-          }
-
-          // 使用 Decimal.js 计算未实现盈亏
-          const costBasis = remainingShares.mul(avgBuyPrice);
-          const currentValue = remainingShares.mul(currentPrice);
-          const unrealizedGain = currentValue.sub(costBasis);
-          totalUnrealizedGainLoss = new Decimal(totalUnrealizedGainLoss)
-            .add(unrealizedGain)
-            .toNumber();
-
-          // 累计当前市值和成本基础用于计算整体未实现盈亏率
-          totalCurrentMarketValue = new Decimal(totalCurrentMarketValue)
-            .add(currentValue)
-            .toNumber();
-          totalCostBasis = new Decimal(totalCostBasis).add(costBasis).toNumber();
-        }
-      }
-    }
-
-    // 计算交易统计数据
-    let totalTrades = 0;
-    let profitableTrades = 0;
-
-    for (const symbol in stockTransactionsForStats) {
-      const stock = stockTransactionsForStats[symbol];
-
-      // 计算交易对数（买入和卖出的最小对数）
-      const buyCount = stock.buys.length;
-      const sellCount = stock.sells.length;
-      const tradePairs = Math.min(buyCount, sellCount);
-
-      totalTrades += tradePairs;
-
-      // 计算盈利交易数
-      // 使用 Decimal.js 精确计算平均买入价和平均卖出价
-      if (tradePairs > 0) {
-        const totalBuyCost = stock.buys.reduce(
-          (sum, buy) => new Decimal(sum).add(buy.totalCost).toNumber(),
-          0,
-        );
-        const totalBuyQuantity = stock.buys.reduce(
-          (sum, buy) => new Decimal(sum).add(buy.quantity).toNumber(),
-          0,
-        );
-        const avgBuyPrice =
-          totalBuyQuantity > 0
-            ? new Decimal(totalBuyCost).div(totalBuyQuantity).toDecimalPlaces(4)
-            : new Decimal(0);
-
-        const totalSellRevenue = stock.sells.reduce(
-          (sum, sell) => new Decimal(sum).add(sell.totalRevenue).toNumber(),
-          0,
-        );
-        const totalSellQuantity = stock.sells.reduce(
-          (sum, sell) => new Decimal(sum).add(sell.quantity).toNumber(),
-          0,
-        );
-        const avgSellPrice =
-          totalSellQuantity > 0
-            ? new Decimal(totalSellRevenue).div(totalSellQuantity).toDecimalPlaces(4)
-            : new Decimal(0);
-
-        // 如果平均卖出价高于平均买入价，则认为是盈利交易
-        if (avgSellPrice.gt(avgBuyPrice)) {
-          profitableTrades += tradePairs;
-        }
-      }
-    }
-
-    // 如果没有投资，返回0
-    if (totalInvestment === 0) {
-      return {
-        realizedProfitAmount: 0,
-        realizedProfitRate: 0,
-        unrealizedProfitAmount: 0,
-        unrealizedProfitRate: 0,
-        totalTrades,
-        profitableTrades,
-      };
-    }
-
-    // 使用 Decimal.js 确保计算精度
-    const realizedProfitAmount = totalRealizedGain;
-    const realizedProfitRate = new Decimal(realizedProfitAmount).div(totalInvestment).toNumber();
-
-    const unrealizedProfitAmount = totalUnrealizedGainLoss;
-    const unrealizedProfitRate = new Decimal(unrealizedProfitAmount)
-      .div(totalInvestment)
-      .toNumber();
-
-    logger.info(
-      `[AssetService#calculateTotalReturnAndTradeStats] unrealizedProfitAmount=${unrealizedProfitAmount}, totalInvestment=${totalInvestment}, totalUnrealizedGainLoss=${totalUnrealizedGainLoss}`,
-    );
-    return {
-      realizedProfitAmount,
-      realizedProfitRate,
-      unrealizedProfitAmount,
-      unrealizedProfitRate,
-      totalTrades,
-      profitableTrades,
-    };
-  }
   /**
    * 获取资产概要信息
    * @param accountId 账户ID
@@ -469,388 +127,382 @@ export class AssetService {
   }
 
   /**
-   * 获取收益历史数据
-   * @param accountId 账户ID
-   * @param period 时间周期 ('7d', '30d', '90d', '365d', 'all')
-   * @param granularity 时间粒度 ('weekly' or 'monthly')
-   * @returns 收益历史数据，包含时间序列和衍生指标
+   * Get revenue history from portfolio snapshots
+   * Provides accurate historical performance timeline using snapshot data
+   * @param accountId Account ID
+   * @param period Time period (1W, 1M, 3M, 6M, YTD, 1Y, ALL)
+   * @returns Snapshot-based revenue history with time series data
    */
-  async getRevenueHistoryData(
+  async getRevenueHistoryFromSnapshots(
     accountId: string,
-    period: string = '30d',
-    granularity: 'weekly' | 'monthly' = 'monthly',
-  ): Promise<revenueHistoryType> {
+    period: SnapshotRevenuePeriod = '1M',
+  ): Promise<SnapshotRevenueHistory> {
     try {
-      // 计算周期日期
-      const now = new Date();
-      let periodStart = new Date();
+      const periodEnd = new Date();
+      let periodStart = this.getPeriodStartDate(period);
 
-      switch (period) {
-        case '7d':
-          periodStart.setDate(now.getDate() - 7);
-          break;
-        case '30d':
-          periodStart.setDate(now.getDate() - 30);
-          break;
-        case '90d':
-          periodStart.setDate(now.getDate() - 90);
-          break;
-        case '365d':
-          periodStart.setFullYear(now.getFullYear() - 1);
-          break;
-        case 'all':
-          // 对于全部时间，使用账户创建日期
-          const account = await accountService.getTradingAccount(accountId);
-          if (account) {
-            periodStart = account.createdAt;
-          } else {
-            periodStart.setDate(now.getDate() - 365);
-          }
-          break;
-        default:
-          periodStart.setDate(now.getDate() - 30);
+      // For ALL period, use account creation date
+      if (period === 'ALL') {
+        const account = await accountService.getTradingAccount(accountId);
+        if (account) {
+          periodStart = account.createdAt;
+        }
       }
 
-      const periodEnd = now;
-
-      // 获取指定时间段内的所有交易记录
-      const transactionRecords = await db.query.transactions.findMany({
-        where: and(
-          eq(transactions.accountId, parseInt(accountId)),
-          or(eq(transactions.type, 'buy'), eq(transactions.type, 'sell')),
-          sql`created_at >= ${periodStart.toISOString()} AND created_at <= ${periodEnd.toISOString()}`,
-        ),
-        orderBy: [asc(transactions.createdAt)],
-      });
-
-      // 计算每日净值
-      const dailyNetValuesMap = await this.calculateDailyNetValues(
-        accountId,
+      // Get all snapshots within the period
+      let snapshots = await portfolioSnapshotService.getSnapshotsByDateRange(
+        parseInt(accountId),
         periodStart,
         periodEnd,
       );
 
-      // 如果没有交易记录且没有净值数据，返回空结果
-      if (transactionRecords.length === 0 && dailyNetValuesMap.size === 0) {
+      // If no snapshots found in the period, try to get all available snapshots
+      // This handles cases where snapshot data doesn't extend back far enough
+      if (snapshots.length === 0) {
+        const allSnapshots = await portfolioSnapshotService.getAllSnapshots(parseInt(accountId));
+        if (allSnapshots.length > 0) {
+          snapshots = allSnapshots.sort(
+            (a, b) => a.snapshotDate.getTime() - b.snapshotDate.getTime()
+          );
+          // Update periodStart to reflect actual data range
+          periodStart = snapshots[0].snapshotDate;
+          logger.info(
+            `[AssetService] No snapshots found in period, using all ${snapshots.length} available snapshots for account ${accountId}`
+          );
+        }
+      }
+
+      // If still no snapshots, return empty result
+      if (snapshots.length === 0) {
         return {
           accountId,
           period,
-          granularity,
+          periodStart,
+          periodEnd,
           data: [],
           derivedMetrics: {
             annualizedReturn: 0,
-            sharpeRatio: 0,
             maxDrawdown: 0,
             volatility: 0,
+            sharpeRatio: 0,
+            totalReturn: 0,
           },
-          periodStart,
-          periodEnd,
           createdAt: new Date(),
         };
       }
 
-      // 根据粒度聚合成周/月数据
-      const aggregatedData = this.aggregateNetValuesByGranularity(dailyNetValuesMap, granularity);
+      // Build history data points
+      const data: RevenueHistoryPoint[] = [];
+      const startValue = snapshots[0].totalValueCents / 100;
+      const totalValues: number[] = [];
 
-      if (aggregatedData.length === 0) {
-        return {
-          accountId,
-          period,
-          granularity,
-          data: [],
-          derivedMetrics: {
-            annualizedReturn: 0,
-            sharpeRatio: 0,
-            maxDrawdown: 0,
-            volatility: 0,
-          },
-          periodStart,
-          periodEnd,
-          createdAt: new Date(),
-        };
+      for (const snapshot of snapshots) {
+        const totalValue = snapshot.totalValueCents / 100;
+        totalValues.push(totalValue);
+
+        // Calculate cumulative profit rate from first snapshot
+        const profitRate =
+          startValue > 0
+            ? new Decimal(totalValue).minus(startValue).div(startValue).mul(100).toDecimalPlaces(2).toNumber()
+            : 0;
+
+        data.push({
+          date: snapshot.snapshotDate,
+          totalValue,
+          profitRate,
+        });
       }
 
-      // 计算衍生指标
-      const netValues = aggregatedData
-        .map((d) => d.netValue)
-        .filter((v) => v !== undefined) as number[];
-      const returnRates = aggregatedData.map((d) => d.returnRate);
-      const drawdowns = calculateDrawdownSeries(netValues);
+      // Calculate daily returns for volatility
+      const dailyReturns: number[] = [];
+      for (let i = 1; i < snapshots.length; i++) {
+        const prevValue = snapshots[i - 1].totalValueCents / 100;
+        const currValue = snapshots[i].totalValueCents / 100;
+        if (prevValue > 0) {
+          dailyReturns.push(new Decimal(currValue).minus(prevValue).div(prevValue).toNumber());
+        }
+      }
 
-      // 计算总收益率
-      const totalReturn =
-        netValues.length >= 2 ? (netValues[netValues.length - 1] - netValues[0]) / netValues[0] : 0;
-
-      // 计算衍生指标
+      // Calculate derived metrics
       const daysInvested = Math.floor(
         (periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24),
       );
-      const annualizedReturn = calculateAnnualizedReturn(totalReturn, daysInvested);
-      const volatility = calculateVolatility(returnRates, daysInvested);
-      const sharpeRatio = calculateSharpeRatio(annualizedReturn, volatility);
-      const maxDrawdown = calculateMaxDrawdown(netValues);
 
-      // 构建返回数据
-      const data = aggregatedData.map((item, index) => ({
-        date: item.date,
-        returnRate: item.returnRate,
-        drawdown: drawdowns[index] || 0,
-        netValue: item.netValue,
-      }));
+      const totalReturn = data.length > 0 ? data[data.length - 1].profitRate : 0;
+      const annualizedReturn = calculateAnnualizedReturn(totalReturn / 100, daysInvested);
+      const maxDrawdown = calculateMaxDrawdown(totalValues);
+      const volatility = calculateVolatility(dailyReturns, daysInvested);
+      const sharpeRatio = calculateSharpeRatio(annualizedReturn, volatility);
 
       return {
         accountId,
         period,
-        granularity,
-        data,
-        derivedMetrics: {
-          annualizedReturn,
-          sharpeRatio,
-          maxDrawdown,
-          volatility,
-        },
         periodStart,
         periodEnd,
+        data,
+        derivedMetrics: {
+          annualizedReturn: annualizedReturn * 100, // Convert to percentage
+          maxDrawdown,
+          volatility,
+          sharpeRatio,
+          totalReturn,
+        },
         createdAt: new Date(),
       };
     } catch (error) {
-      logger.error(`Failed to get revenue history for account ${accountId}: ${error}`);
-      throw new Error(`Failed to get revenue history: ${error}`);
+      logger.error(
+        `[AssetService] Failed to get revenue history for account ${accountId}: ${error}`,
+      );
+      throw new Error(`Database query failed: ${error}`);
     }
   }
 
   /**
-   * 计算每日净值
-   * @param accountId 账户ID
-   * @param periodStart 周期开始日期
-   * @param periodEnd 周期结束日期
-   * @returns 每日净值映射 (date -> netValue)
-   *
-   * 实现说明：
-   * 由于历史价格数据有限，此方法使用简化算法：
-   * 1. 获取当前持仓的总市值（使用当前价格）
-   * 2. 计算每日累积的投资/ withdrawals 以追踪资金进出
-   * 3. 每日净值 = 现金余额 + （市值 * 累积投资比例）或使用更精确的基于成本的计算
-   *
-   * 注意：这是一个简化的实现。在生产环境中，应该：
-   * - 使用历史股价表 (asset_price_history) 重建每日持仓市值
-   * - 或创建账户净值快照表 (account_equity_daily) 来记录历史净值
+   * Calculate period start date based on snapshot revenue period
+   * @param period Snapshot revenue period
+   * @returns Period start date
    */
-  private async calculateDailyNetValues(
+  private getPeriodStartDate(period: SnapshotRevenuePeriod): Date {
+    const now = new Date();
+    const startDate = new Date();
+
+    switch (period) {
+      case '1W':
+        startDate.setDate(now.getDate() - 7);
+        break;
+      case '1M':
+        startDate.setDate(now.getDate() - 30);
+        break;
+      case '3M':
+        startDate.setDate(now.getDate() - 90);
+        break;
+      case '6M':
+        startDate.setDate(now.getDate() - 180);
+        break;
+      case 'YTD':
+        startDate.setMonth(0, 1); // January 1st of current year
+        startDate.setHours(0, 0, 0, 0);
+        break;
+      case '1Y':
+        startDate.setFullYear(now.getFullYear() - 1);
+        break;
+      case 'ALL':
+        // Will be updated with account creation date later
+        startDate.setFullYear(now.getFullYear() - 10); // Default fallback
+        break;
+      default:
+        startDate.setDate(now.getDate() - 30);
+    }
+
+    return startDate;
+  }
+
+  /**
+   * Get revenue metrics from portfolio snapshots
+   * Provides accurate historical performance using snapshot data
+   * @param accountId Account ID
+   * @param period Time period (1W, 1M, 3M, 6M, YTD, 1Y, ALL)
+   * @returns Snapshot-based revenue metrics
+   */
+  async getRevenueMetricsFromSnapshots(
     accountId: string,
-    periodStart: Date,
-    periodEnd: Date,
-  ): Promise<Map<string, number>> {
-    const dailyNetValues = new Map<string, number>();
+    period: SnapshotRevenuePeriod = '1M',
+  ): Promise<SnapshotRevenueMetrics | null> {
+    try {
+      const periodEnd = new Date();
+      let periodStart = this.getPeriodStartDate(period);
 
-    // 获取账户资金信息
-    const accountFund = await db.query.accountFunds.findFirst({
-      where: eq(accountFunds.accountId, parseInt(accountId)),
-    });
-
-    const initialCash = accountFund ? accountFund.amountCents / 100 : 0;
-
-    // 获取当前持仓信息
-    const currentPositions = await positionService.getCurrentPositions(accountId);
-    const currentTotalStockValue = currentPositions.reduce(
-      (sum: number, pos: any) => new Decimal(sum).plus(pos.marketValue || 0).toNumber(),
-      0,
-    );
-
-    // 获取期间内的所有交易记录
-    const allTransactions = await db.query.transactions.findMany({
-      where: and(
-        eq(transactions.accountId, parseInt(accountId)),
-        sql`created_at >= ${periodStart.toISOString()} AND created_at <= ${periodEnd.toISOString()}`,
-      ),
-      orderBy: [asc(transactions.createdAt)],
-    });
-
-    // 计算每日累积的投资/ withdrawals（buy/deposit/withdrawal 都会影响净值）
-    // 使用 Map 存储每日的净现金流量
-    const dailyCashFlow = new Map<string, number>();
-
-    // 初始化所有日期的现金流为0
-    const currentDate = new Date(periodStart);
-    while (currentDate <= periodEnd) {
-      const dateString = currentDate.toISOString().split('T')[0];
-      dailyCashFlow.set(dateString, 0);
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-
-    // 累加当日交易产生的现金流
-    for (const tx of allTransactions) {
-      const txDate = tx.createdAt.toISOString().split('T')[0];
-      const amount = (tx.totalAmountCents ?? 0) / 100;
-
-      // buy 是流出（减少可用现金），deposit 是流入（增加现金），sell 是流入
-      const flowAmount = tx.type === 'buy' ? -amount : amount;
-
-      if (dailyCashFlow.has(txDate)) {
-        dailyCashFlow.set(txDate, (dailyCashFlow.get(txDate) || 0) + flowAmount);
-      }
-    }
-
-    // 计算期末总净值
-    const finalNetValue = initialCash + currentTotalStockValue;
-
-    // 计算期初净值（从期初的可用现金开始，简化处理）
-    const startNetValue = initialCash;
-
-    // 按天遍历时间范围，计算每日净值
-    // 使用线性插值：净值会从期初到期末平滑变化
-    const totalDays = Math.floor(
-      (periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24),
-    );
-    let currentDay = 0;
-    const tempDate = new Date(periodStart);
-
-    while (tempDate <= periodEnd) {
-      const dateString = tempDate.toISOString().split('T')[0];
-
-      // 计算到当前日期为止的总现金流
-      let cumulativeCashFlow = 0;
-      const tempDate2 = new Date(periodStart);
-      while (tempDate2 <= tempDate) {
-        const dString = tempDate2.toISOString().split('T')[0];
-        cumulativeCashFlow += dailyCashFlow.get(dString) || 0;
-        tempDate2.setDate(tempDate2.getDate() + 1);
+      // For ALL period, use account creation date
+      if (period === 'ALL') {
+        const account = await accountService.getTradingAccount(accountId);
+        if (account) {
+          periodStart = account.createdAt;
+        }
       }
 
-      // 计算每日净值：基础净值 + 累积现金流 + 持仓市值变化
-      // 这里使用简化的模型：假设仓位没有太大变化，主要现金流影响净值
-      const progress = currentDay / Math.max(1, totalDays);
-      const baseValue = startNetValue + (finalNetValue - startNetValue) * progress;
+      // Get current (latest) snapshot
+      const currentSnapshot = await portfolioSnapshotService.getLatestSnapshot(
+        parseInt(accountId),
+      );
 
-      // 加上现金流影响
-      let netValue = baseValue + cumulativeCashFlow;
+      if (!currentSnapshot) {
+        logger.warn(`No snapshot found for account ${accountId}`);
+        return null;
+      }
 
-      // 确保净值不为负
-      if (netValue < 0) netValue = 0;
+      // Get comparison snapshot (nearest to period start)
+      let comparisonSnapshot = await portfolioSnapshotService.getNearestSnapshot(
+        parseInt(accountId),
+        periodStart,
+      );
 
-      dailyNetValues.set(dateString, netValue);
+      // If no snapshot found before period start, use the earliest available snapshot
+      // This handles cases where snapshot data doesn't extend back far enough
+      if (!comparisonSnapshot) {
+        const allSnapshots = await portfolioSnapshotService.getAllSnapshots(parseInt(accountId));
+        if (allSnapshots.length > 0) {
+          // Get the earliest snapshot (array is sorted by date descending, so take the last one)
+          const sortedSnapshots = [...allSnapshots].sort(
+            (a, b) => a.snapshotDate.getTime() - b.snapshotDate.getTime()
+          );
+          comparisonSnapshot = sortedSnapshots[0];
+          logger.info(
+            `[AssetService] No snapshot found before ${periodStart.toISOString().split('T')[0]}, using earliest available snapshot from ${comparisonSnapshot.snapshotDate.toISOString().split('T')[0]} for account ${accountId}`
+          );
+        }
+      }
 
-      tempDate.setDate(tempDate.getDate() + 1);
-      currentDay++;
+      if (!comparisonSnapshot) {
+        logger.warn(`No comparison snapshot found for account ${accountId}`);
+        return null;
+      }
+
+      // Calculate days held
+      const daysHeld = Math.floor(
+        (currentSnapshot.snapshotDate.getTime() - comparisonSnapshot.snapshotDate.getTime()) /
+          (1000 * 60 * 60 * 24),
+      );
+
+      // Convert cents to dollars
+      const currentTotalValue = currentSnapshot.totalValueCents / 100;
+      const currentCashBalance = currentSnapshot.cashBalanceCents / 100;
+      const currentPositionsValue = currentSnapshot.positions.totalPositionsValueCents / 100;
+
+      const comparisonTotalValue = comparisonSnapshot.totalValueCents / 100;
+
+      // Calculate performance metrics
+      const profitAmount = new Decimal(currentTotalValue).minus(comparisonTotalValue).toNumber();
+      const profitRate =
+        comparisonTotalValue > 0
+          ? new Decimal(profitAmount).div(comparisonTotalValue).mul(100).toDecimalPlaces(2).toNumber()
+          : 0;
+
+      // Calculate benchmark performance
+      const currentBenchmark = (currentSnapshot.benchmarkValueCents ?? 0) / 100;
+      const comparisonBenchmark = (comparisonSnapshot.benchmarkValueCents ?? 0) / 100;
+      const benchmarkProfitRate =
+        comparisonBenchmark > 0
+          ? new Decimal(currentBenchmark)
+              .minus(comparisonBenchmark)
+              .div(comparisonBenchmark)
+              .mul(100)
+              .toDecimalPlaces(2)
+              .toNumber()
+          : 0;
+
+      // Excess return
+      const excessReturn = new Decimal(profitRate).minus(benchmarkProfitRate).toDecimalPlaces(2).toNumber();
+
+      // Annualized return
+      const annualizedReturn =
+        daysHeld > 0
+          ? new Decimal(profitRate)
+              .mul(365)
+              .div(daysHeld)
+              .toDecimalPlaces(2)
+              .toNumber()
+          : 0;
+
+      // Calculate position-level performance
+      const positionsPerformance = this.calculatePositionsPerformance(
+        comparisonSnapshot.positions.positions,
+        currentSnapshot.positions.positions,
+        profitAmount,
+        currentTotalValue,
+      );
+
+      return {
+        accountId,
+        period,
+        periodStart: comparisonSnapshot.snapshotDate,
+        periodEnd: currentSnapshot.snapshotDate,
+        daysHeld,
+        currentSnapshot: {
+          date: currentSnapshot.snapshotDate,
+          totalValue: currentTotalValue,
+          cashBalance: currentCashBalance,
+          positionsValue: currentPositionsValue,
+        },
+        comparisonSnapshot: {
+          date: comparisonSnapshot.snapshotDate,
+          totalValue: comparisonTotalValue,
+        },
+        performance: {
+          profitAmount,
+          profitRate,
+          benchmarkProfitRate,
+          excessReturn,
+          annualizedReturn,
+        },
+        positions: positionsPerformance,
+        createdAt: new Date(),
+      };
+    } catch (error) {
+      logger.error(
+        `[AssetService] Failed to get snapshot revenue metrics for account ${accountId}: ${error}`,
+      );
+      throw new Error(`Database query failed: ${error}`);
     }
-
-    return dailyNetValues;
   }
 
   /**
-   * 根据粒度聚合成周/月数据
-   * @param dailyNetValuesMap 每日净值映射
-   * @param granularity 时间粒度 ('weekly' or 'monthly')
-   * @returns 聚合后的数据点数组
+   * Calculate position-level performance
+   * @param startPositions Positions at period start
+   * @param endPositions Positions at period end
+   * @param totalProfitAmount Total profit amount
+   * @param currentTotalValue Current total portfolio value
+   * @returns Array of position performance data
    */
-  private aggregateNetValuesByGranularity(
-    dailyNetValuesMap: Map<string, number>,
-    granularity: 'weekly' | 'monthly',
-  ): Array<{ date: string; returnRate: number; netValue?: number }> {
-    const entries = Array.from(dailyNetValuesMap.entries()).sort((a, b) => {
-      return a[0].localeCompare(b[0]);
-    });
-
-    if (entries.length === 0) {
-      return [];
+  private calculatePositionsPerformance(
+    startPositions: PositionSnapshot[],
+    endPositions: PositionSnapshot[],
+    totalProfitAmount: number,
+    currentTotalValue: number,
+  ): PositionPerformance[] {
+    const startPositionMap = new Map<string, PositionSnapshot>();
+    for (const pos of startPositions) {
+      startPositionMap.set(pos.symbol, pos);
     }
 
-    const aggregatedData: Array<{ date: string; returnRate: number; netValue?: number }> = [];
-    let lastNetValue: number | null = null;
+    const result: PositionPerformance[] = [];
 
-    if (granularity === 'monthly') {
-      // 按月聚合
-      const monthlyGroups = new Map<string, number[]>();
+    for (const endPos of endPositions) {
+      const startPos = startPositionMap.get(endPos.symbol);
+      const startValue = startPos ? startPos.marketValueCents / 100 : 0;
+      const endValue = endPos.marketValueCents / 100;
 
-      for (const [date, netValue] of entries) {
-        const monthKey = date.substring(0, 7); // YYYY-MM
-        if (!monthlyGroups.has(monthKey)) {
-          monthlyGroups.set(monthKey, []);
-        }
-        monthlyGroups.get(monthKey)!.push(netValue);
-      }
+      const posProfitAmount = new Decimal(endValue).minus(startValue).toNumber();
+      const posProfitRate =
+        startValue > 0
+          ? new Decimal(posProfitAmount).div(startValue).mul(100).toDecimalPlaces(2).toNumber()
+          : endValue > 0
+            ? 100 // New position, considered 100% gain
+            : 0;
 
-      for (const [monthKey, netValues] of monthlyGroups) {
-        const monthNetValue = netValues[netValues.length - 1]; // 使用每月最后一天的净值
+      const contribution =
+        totalProfitAmount !== 0
+          ? new Decimal(posProfitAmount).div(totalProfitAmount).mul(100).toDecimalPlaces(2).toNumber()
+          : 0;
 
-        let returnRate = 0;
-        if (lastNetValue !== null) {
-          returnRate = new Decimal(monthNetValue).minus(lastNetValue).div(lastNetValue).toNumber();
-        }
+      const currentWeight =
+        currentTotalValue > 0
+          ? new Decimal(endValue).div(currentTotalValue).mul(100).toDecimalPlaces(2).toNumber()
+          : 0;
 
-        aggregatedData.push({
-          date: monthKey,
-          returnRate,
-          netValue: monthNetValue,
-        });
-
-        lastNetValue = monthNetValue;
-      }
-    } else {
-      // 按周聚合
-      const weeklyGroups = new Map<number, number[]>();
-
-      for (const [date, netValue] of entries) {
-        const dateObj = new Date(date);
-        const weekNumber = this.getWeekNumber(dateObj);
-        const weekKey = dateObj.getFullYear() * 100 + weekNumber;
-
-        if (!weeklyGroups.has(weekKey)) {
-          weeklyGroups.set(weekKey, []);
-        }
-        weeklyGroups.get(weekKey)!.push(netValue);
-      }
-
-      for (const [weekKey, netValues] of weeklyGroups) {
-        const year = Math.floor(weekKey / 100);
-        const weekNumber = weekKey % 100;
-        const weekDate = this.getDateOfWeek(year, weekNumber);
-        const dateString = weekDate.toISOString().split('T')[0];
-        const weekNetValue = netValues[netValues.length - 1]; // 使用每周最后一天的净值
-
-        let returnRate = 0;
-        if (lastNetValue !== null) {
-          returnRate = new Decimal(weekNetValue).minus(lastNetValue).div(lastNetValue).toNumber();
-        }
-
-        aggregatedData.push({
-          date: dateString,
-          returnRate,
-          netValue: weekNetValue,
-        });
-
-        lastNetValue = weekNetValue;
-      }
+      result.push({
+        symbol: endPos.symbol,
+        quantity: endPos.quantity,
+        startValue,
+        endValue,
+        profitAmount: posProfitAmount,
+        profitRate: posProfitRate,
+        contribution,
+        currentWeight,
+      });
     }
 
-    return aggregatedData;
-  }
-
-  /**
-   * 获取日期所在的周数（ISO 8601 标准周）
-   * @param date 日期对象
-   * @returns 周数 (1-53)
-   */
-  private getWeekNumber(date: Date): number {
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    const weekNo = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-    return weekNo;
-  }
-
-  /**
-   * 获取指定年份和周数的日期（ISO 8601 标准）
-   * @param year 年份
-   * @param week 周数
-   * @returns 日期对象（该周的周一）
-   */
-  private getDateOfWeek(year: number, week: number): Date {
-    const date = new Date(year, 0, 1 + (week - 1) * 7);
-    const dayOfWeek = date.getDay();
-    const diff = date.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-    return new Date(date.setDate(diff));
+    // Sort by contribution descending
+    return result.sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
   }
 }
 

@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, real, primaryKey } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real, uniqueIndex, index } from 'drizzle-orm/sqlite-core';
 
 // 用户表（登录身份）
 export const users = sqliteTable('users', {
@@ -132,7 +132,19 @@ export const analysisReports = sqliteTable('analysis_reports', {
   content: text('content').notNull(), // Markdown 内容
   startDate: integer('start_date', { mode: 'timestamp' }),
   endDate: integer('end_date', { mode: 'timestamp' }),
+
+  // 报告生成进度追踪
+  generationProgress: integer('generation_progress').default(0), // 0-100
+  generationStage: text('generation_stage'), // 当前阶段描述
+  dataSourceSummary: text('data_source_summary'), // JSON: 数据来源摘要
+
+  // 手动编辑元数据（向后兼容）
+  isManuallyEdited: integer('is_manually_edited', { mode: 'boolean' }).default(false),
+  lastEditedAt: integer('last_edited_at', { mode: 'timestamp' }),
+  editCount: integer('edit_count').default(0),
+
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
 
 // 资产元数据表：保存资产信息和价格历史（允许相同 symbol 不同 timestamp/source）
@@ -293,3 +305,60 @@ export const providerModels = sqliteTable('provider_models', {
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
+
+// 定时任务执行日志表：记录定时任务的执行历史
+export const scheduledTaskLogs = sqliteTable('scheduled_task_logs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  // 任务类型
+  taskType: text('task_type', { enum: ['daily_snapshot', 'price_sync'] }).notNull(),
+  // 执行日期（UTC 零点时间戳，用于幂等性检查）
+  executionDate: integer('execution_date', { mode: 'timestamp' }).notNull(),
+  // 执行状态
+  status: text('status', { enum: ['success', 'failed', 'partial'] }).notNull(),
+  // 执行详情（JSON 格式：如处理的股票数、失败列表等）
+  metadata: text('metadata', { mode: 'json' }),
+  // 开始时间
+  startedAt: integer('started_at', { mode: 'timestamp' }).notNull(),
+  // 完成时间
+  completedAt: integer('completed_at', { mode: 'timestamp' }),
+  // 错误信息
+  errorMessage: text('error_message'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+}, (table) => [
+  // 唯一索引：每个任务类型每天最多一条记录
+  uniqueIndex('idx_task_type_date_unique').on(table.taskType, table.executionDate),
+]);
+
+// 投资组合快照表：记录账户每日的投资组合状态，用于历史业绩计算
+export const portfolioSnapshots = sqliteTable('portfolio_snapshots', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  accountId: integer('account_id')
+    .notNull()
+    .references(() => accounts.id),
+  // 快照日期（仅日期部分，不含时间）
+  snapshotDate: integer('snapshot_date', { mode: 'timestamp' }).notNull(),
+  // 总市值（以分为单位，避免浮点误差）
+  totalValueCents: integer('total_value_cents').notNull(),
+  // 现金余额（以分为单位）
+  cashBalanceCents: integer('cash_balance_cents').notNull(),
+  // 持仓明细快照（JSON 格式）
+  // 结构: { positions: PositionSnapshot[], totalPositionsValueCents: number, positionCount: number }
+  positions: text('positions', { mode: 'json' }).notNull(),
+  // 基准价值（如 SPY 等价对比基准的价值，以分为单位）
+  benchmarkValueCents: integer('benchmark_value_cents'),
+  // 基准代码（默认 SPY）
+  benchmarkSymbol: text('benchmark_symbol').default('SPY'),
+  // 快照创建来源（scheduled: 定时创建, manual: 手动创建, backfill: 回填）
+  source: text('source', { enum: ['scheduled', 'manual', 'backfill'] })
+    .notNull()
+    .default('scheduled'),
+  // 备注（用于记录特殊情况，如重试信息）
+  notes: text('notes'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+}, (table) => [
+  // 唯一索引：每个账户每天最多一条快照
+  uniqueIndex('idx_portfolio_snapshots_account_date_unique').on(table.accountId, table.snapshotDate),
+  // 按日期范围查询快照
+  index('idx_portfolio_snapshots_date').on(table.snapshotDate),
+]);

@@ -1,7 +1,11 @@
 import { get, put } from '@/app/lib/request/index';
-import { TradingAccountType } from '@typings/account';
+import {
+  TradingAccountType,
+  SnapshotRevenueMetrics,
+  SnapshotRevenuePeriod,
+  SnapshotRevenueHistory,
+} from '@typings/account';
 import { PositionType } from '@typings/position';
-import { revenueMetricType, revenueHistoryType } from '@typings/account';
 import { AssetSummaryType } from '@typings/asset';
 
 // 账户相关API
@@ -24,21 +28,22 @@ export const fetchTransactions = async () => {
   return response.data;
 };
 
-// 收益相关API
-export const fetchRevenue = async (period: string = '30d'): Promise<revenueMetricType> => {
-  const response = await get<{ data: { metrics: revenueMetricType } }>(
+// 收益相关API - 基于快照计算
+export const fetchRevenue = async (
+  period: SnapshotRevenuePeriod = '1M',
+): Promise<SnapshotRevenueMetrics> => {
+  const response = await get<{ data: { metrics: SnapshotRevenueMetrics } }>(
     `/api/asset/revenue?period=${period}`,
   );
   return response.data.metrics;
 };
 
-// 收益历史相关API
+// 收益历史相关API - 基于快照计算
 export const fetchRevenueHistory = async (
-  period: string = '30d',
-  granularity: string = 'monthly',
-): Promise<revenueHistoryType> => {
-  const response = await get<{ data: revenueHistoryType }>(
-    `/api/asset/revenue/history?period=${period}&granularity=${granularity}`,
+  period: SnapshotRevenuePeriod = '1M',
+): Promise<SnapshotRevenueHistory> => {
+  const response = await get<{ data: SnapshotRevenueHistory }>(
+    `/api/asset/revenue/history?period=${period}`,
   );
   return response.data;
 };
