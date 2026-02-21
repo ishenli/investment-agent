@@ -9,5 +9,7 @@ export type AssetMetaType = {
   source: string;
   market: 'CN' | 'US' | 'HK';
   chineseName: string | null;
+  fullName: string | null;
+  logoUrl: string | null;
   investmentMemo: string | null;
 };

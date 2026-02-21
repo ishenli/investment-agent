@@ -1,13 +1,12 @@
 'use client';
 
-import { IconDots, IconFolder, IconShare3, IconTrash, type Icon } from '@tabler/icons-react';
+import { IconDots, type Icon } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@renderer/components/ui/dropdown-menu';
 import {

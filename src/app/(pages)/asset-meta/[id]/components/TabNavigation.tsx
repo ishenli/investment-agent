@@ -1,10 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-
 interface TabNavigationProps {
-  activeTab: 'latest' | 'history' | 'company' | 'investment-memo';
-  setActiveTab: (tab: 'latest' | 'history' | 'company' | 'investment-memo') => void;
+  activeTab: 'latest' | 'history' | 'company' | 'basic-info' | 'investment-memo';
+  setActiveTab: (tab: 'latest' | 'history' | 'company' | 'basic-info' | 'investment-memo') => void;
 }
 
 export function TabNavigation({ activeTab, setActiveTab }: TabNavigationProps) {
@@ -40,6 +38,16 @@ export function TabNavigation({ activeTab, setActiveTab }: TabNavigationProps) {
           onClick={() => setActiveTab('company')}
         >
           公司纪要
+        </button>
+        <button
+          className={`py-4 px-1 border-b-2 font-medium text-sm ${
+            activeTab === 'basic-info'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
+          }`}
+          onClick={() => setActiveTab('basic-info')}
+        >
+          基本信息
         </button>
         <button
           className={`py-4 px-1 border-b-2 font-medium text-sm ${

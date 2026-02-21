@@ -127,6 +127,8 @@ export function AssetMetaTable() {
             source: assetMeta.source,
             market: assetMeta.market,
             chineseName: assetMeta.chineseName,
+            fullName: assetMeta.fullName,
+            logoUrl: assetMeta.logoUrl,
             investmentMemo: assetMeta.investmentMemo,
           }),
         });
@@ -199,6 +201,8 @@ export function AssetMetaTable() {
                   source: 'finnhub',
                   market: 'US',
                   chineseName: null,
+                  fullName: null,
+                  logoUrl: null,
                   investmentMemo: null,
                 };
                 setEditingAssetMeta(newAssetMeta);
@@ -259,10 +263,28 @@ export function AssetMetaTable() {
                 }
               >
                 <TableCell className="font-medium">
-                  {assetMeta.symbol}
-                  <span className="ml-2 text-sm text-gray-500">
-                    ({assetMeta.chineseName || '-'})
-                  </span>
+                  <div className="flex items-center">
+                    {assetMeta.logoUrl ? (
+                      <div className="w-6 h-6 rounded overflow-hidden border bg-white flex items-center justify-center">
+                        <img
+                          src={assetMeta.logoUrl}
+                          alt={`${assetMeta.symbol} logo`}
+                          className="w-full h-full object-contain"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-6 h-6 rounded border bg-muted flex items-center justify-center">
+                        <span className="text-xs text-muted-foreground">-</span>
+                      </div>
+                    )}
+                    &nbsp;&nbsp;{assetMeta.symbol}
+                    <span className="ml-2 text-sm text-gray-500">
+                      ({assetMeta.chineseName || '-'})
+                    </span>
+                  </div>
                 </TableCell>
                 <TableCell>${(assetMeta.priceCents / 100).toFixed(2)}</TableCell>
                 <TableCell>{assetMeta.assetType}</TableCell>
@@ -301,7 +323,7 @@ export function AssetMetaTable() {
                       size="sm"
                       onClick={() => {
                         // 导航到资产市场信息页面
-                        router.push(`/asset-market-info/${assetMeta.id}`);
+                        router.push(`/asset-meta/${assetMeta.id}`);
                       }}
                     >
                       <EyeIcon className="h-4 w-4" />
@@ -372,6 +394,21 @@ function AssetMetaEditForm({
           <Input
             value={formData.chineseName || ''}
             onChange={(e) => handleChange('chineseName', e.target.value || null)}
+          />
+        </div>
+        <div>
+          <label className="text-sm font-medium">英文全称</label>
+          <Input
+            value={formData.fullName || ''}
+            onChange={(e) => handleChange('fullName', e.target.value || null)}
+          />
+        </div>
+        <div>
+          <label className="text-sm font-medium">Logo URL</label>
+          <Input
+            value={formData.logoUrl || ''}
+            onChange={(e) => handleChange('logoUrl', e.target.value || null)}
+            placeholder="https://example.com/logo.png"
           />
         </div>
         <div>

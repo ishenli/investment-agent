@@ -50,6 +50,9 @@ const SaveMarketInfoSchema = z.object({
   keyDataPoints: z.string().optional(),
   sourceUrl: z.string().optional(),
   sourceName: z.string().optional(),
+  originalContent: z.string().optional(),
+  contentMode: z.enum(['ai_summary', 'original']).default('ai_summary'),
+  marketInfoId: z.string().optional(), // 用于获取原文内容
 });
 
 const GetAssetMarketInfoSchema = z.object({
@@ -347,7 +350,23 @@ export class MarketBizController extends BaseBizController {
         return this.responseValidateError(validationResult.error);
       }
 
-      const requestData = validationResult.data;
+      let requestData = validationResult.data;
+
+      // 如果是原文模式且提供了 marketInfoId，则从 MarketInformation 获取原文内容
+      if (requestData.contentMode === 'original' && requestData.marketInfoId) {
+        // 从 MarketFetcherService 获取 MarketInformation
+        const marketInfo = await this.marketFetcherService.getMarketInformationById(requestData.marketInfoId);
+        if (!marketInfo) {
+          return this.error('未找到原始市场信息记录', 'market_info_not_found');
+        }
+        
+        // 使用 MarketInformation 的内容作为原文内容
+        requestData = {
+          ...requestData,
+          originalContent: marketInfo.content, // 使用 MarketInformation 的 content 作为原文
+          summary: marketInfo.content.substring(0, 200) + '...' // 用原文前200字符作为摘要预览
+        };
+      }
 
       // 保存资产市场信息
       const assetMarketInfo = await assetMarketInfoService.createAssetMarketInfo(requestData);

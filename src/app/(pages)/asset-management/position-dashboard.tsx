@@ -489,7 +489,7 @@ export function PositionManagement() {
                           <PencilIcon className="h-4 w-4" />
                         </Button>
                         {position.assetMetaId && (
-                          <Link href={`/asset-market-info/${position.assetMetaId}`}>
+                          <Link href={`/asset-meta/${position.assetMetaId}`}>
                             <Button variant="outline" size="icon-sm">
                               <InfoIcon className="h-4 w-4" />
                             </Button>

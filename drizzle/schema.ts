@@ -151,6 +151,8 @@ export const assetMeta = sqliteTable('asset_meta', {
     .notNull()
     .default('US'),
   chineseName: text('chinese_name'), // 中文名称
+  fullName: text('full_name'), // 英文全称
+  logoUrl: text('logo_url'), // Logo 地址
   investmentMemo: text('investment_memo'), // 投资笔记，用于AI分析的上下文信息
   deletedAt: integer('deleted_at', { mode: 'timestamp' }), // 软删除时间戳
 });
@@ -185,6 +187,10 @@ export const assetMarketInfo = sqliteTable('asset_market_info', {
   keyDataPoints: text('key_data_points'), // 重要数据点
   sourceUrl: text('source_url'), // 来源URL
   sourceName: text('source_name'), // 来源名称
+  originalContent: text('original_content'), // 原始文章内容（用于原文保留模式）
+  contentMode: text('content_mode', { enum: ['ai_summary', 'original'] })
+    .notNull()
+    .default('ai_summary'), // 内容处理模式：ai_summary（AI摘要）或 original（原文保留）
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
 });

@@ -13,12 +13,6 @@ import { Button } from '@renderer/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@renderer/components/ui/alert';
 import { AlertCircle, RefreshCw, Calendar, ChevronDown } from 'lucide-react';
 // 导入下拉菜单组件
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@renderer/components/ui/dropdown-menu';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import Link from 'next/link';
@@ -205,7 +199,14 @@ export function AssetMarketInfoList() {
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-xl">{info.title}</CardTitle>
+                      <CardTitle className="text-xl">
+                        <Link
+                          href={`/asset-market-info/detail/${info.id}`}
+                          className="hover:text-primary hover:underline transition-colors"
+                        >
+                          {info.title}
+                        </Link>
+                      </CardTitle>
                       <CardDescription className="mt-2">
                         <span className="text-muted-foreground">
                           {format(new Date(info.createdAt), 'yyyy年MM月dd日 HH:mm', {
@@ -261,7 +262,7 @@ export function AssetMarketInfoList() {
                         };
 
                         return (
-                          <Link key={assetMeta.id} href={`/asset-market-info/${assetMeta.id}`}>
+                          <Link key={assetMeta.id} href={`/asset-meta/${assetMeta.id}`}>
                             <Badge
                               variant="secondary"
                               className={`cursor-pointer hover:underline ${getColorClass(assetMeta.symbol)}`}

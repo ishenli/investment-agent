@@ -40,6 +40,7 @@ export function StepThreeDataSaver({
   >([]);
   const [selectedAssetIds, setSelectedAssetIds] = useState<number[]>([]);
   const [isLoadingAssets, setIsLoadingAssets] = useState(false);
+  const [contentMode, setContentMode] = useState<'ai_summary' | 'original'>('ai_summary'); // 默认为AI摘要模式
 
   // 获取资产列表
   useEffect(() => {
@@ -84,19 +85,34 @@ export function StepThreeDataSaver({
       // 调用API保存市场信息分析结果
       const response = await post('/api/market-fetcher/save', {
         assetMetaIds: selectedAssetIds,
-        title: analysisResult.title || '未提取到标题',
-        symbol: analysisResult.symbol || '未知',
-        sentiment: analysisResult.sentiment || '未知',
-        importance: String(analysisResult.importance || 5),
-        summary: analysisResult.summary || '未生成摘要',
-        keyTopics: analysisResult.keyTopics ? JSON.stringify(analysisResult.keyTopics) : undefined,
-        marketImpact: analysisResult.marketImpact || '未知',
-        keyDataPoints: analysisResult.keyDataPoints
+        title: contentMode === 'ai_summary' && analysisResult?.title 
+          ? analysisResult.title 
+          : marketInfo.metadata.extractedData?.title || '未提取到标题',
+        symbol: contentMode === 'ai_summary' && analysisResult?.symbol 
+          ? analysisResult.symbol 
+          : marketInfo.metadata.extractedData?.symbol || '未知',
+        sentiment: contentMode === 'ai_summary' && analysisResult?.sentiment 
+          ? analysisResult.sentiment 
+          : 'neutral',
+        importance: contentMode === 'ai_summary' && analysisResult?.importance 
+          ? String(analysisResult.importance) 
+          : '5',
+        summary: contentMode === 'ai_summary' && analysisResult?.summary 
+          ? analysisResult.summary 
+          : marketInfo.content.substring(0, 200) + '...',
+        keyTopics: contentMode === 'ai_summary' && analysisResult?.keyTopics 
+          ? JSON.stringify(analysisResult.keyTopics) 
+          : undefined,
+        marketImpact: contentMode === 'ai_summary' && analysisResult?.marketImpact 
+          ? analysisResult.marketImpact 
+          : '未知',
+        keyDataPoints: contentMode === 'ai_summary' && analysisResult?.keyDataPoints
           ? JSON.stringify(analysisResult.keyDataPoints)
           : undefined,
         sourceUrl: marketInfo.metadata.url,
         sourceName: marketInfo.source.name,
         marketInfoId: marketInfo.id,
+        contentMode: contentMode,
       });
 
       if (response.success) {
@@ -156,6 +172,38 @@ export function StepThreeDataSaver({
             </div>
           )}
 
+          {/* 内容模式选择器 */}
+          <div className="space-y-2">
+            <Label>内容处理模式</Label>
+            <div className="flex rounded-md border border-input p-1">
+              <button
+                className={`flex-1 rounded-sm px-3 py-1.5 text-sm font-medium transition-colors ${
+                  contentMode === 'ai_summary'
+                    ? 'bg-primary text-primary-foreground shadow'
+                    : 'hover:bg-accent hover:text-accent-foreground'
+                }`}
+                onClick={() => setContentMode('ai_summary')}
+              >
+                AI摘要模式
+              </button>
+              <button
+                className={`flex-1 rounded-sm px-3 py-1.5 text-sm font-medium transition-colors ${
+                  contentMode === 'original'
+                    ? 'bg-primary text-primary-foreground shadow'
+                    : 'hover:bg-accent hover:text-accent-foreground'
+                }`}
+                onClick={() => setContentMode('original')}
+              >
+                原文保留模式
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {contentMode === 'ai_summary'
+                ? '保存AI分析结果'
+                : '保存原始文章内容，跳过AI分析'}
+            </p>
+          </div>
+
           {/* 资产选择器移到上方 */}
           <div className="space-y-2">
             <Label htmlFor="asset-select">选择关联资产 (可多选)</Label>
@@ -199,42 +247,71 @@ export function StepThreeDataSaver({
             <div className="rounded-md bg-muted p-4">
               <h3 className="font-medium">确认保存以下信息</h3>
               <div className="mt-2 space-y-2 text-sm">
-                <p>
-                  <strong>标题:</strong>{' '}
-                  {analysisResult?.title ||
-                    marketInfo?.metadata?.extractedData?.title ||
-                    '未提取到标题'}
-                </p>
-                <div>
-                  <strong>资产代号:</strong> {analysisResult?.symbol || '未知'}
-                </div>
-                <p>
-                  <strong>来源:</strong> {marketInfo?.source.name}
-                </p>
-                <p>
-                  <strong>投资倾向:</strong> {analysisResult?.sentiment || '未知'}
-                </p>
-                <p>
-                  <strong>重要性:</strong> {analysisResult?.importance || '未知'}/10
-                </p>
-                <div>
-                  <strong>关键词:</strong>
-                  <p className="mt-1">{analysisResult?.keyTopics?.join(', ') || '未生成关键词'}</p>
-                </div>
-                <div>
-                  <strong>重要数据:</strong>
-                  <p className="mt-1">
-                    {analysisResult?.keyDataPoints?.join('\n\n') || '未生成重要数据'}
-                  </p>
-                </div>
-                <div>
-                  <strong>市场影响:</strong>
-                  <p className="mt-1">{analysisResult?.marketImpact || '未知'}</p>
-                </div>
-                <div>
-                  <strong>内容摘要:</strong>
-                  <p className="mt-1">{analysisResult?.summary || '未生成摘要'}</p>
-                </div>
+                {contentMode === 'ai_summary' ? (
+                  // AI摘要模式预览
+                  <>
+                    <p>
+                      <strong>标题:</strong>{' '}
+                      {analysisResult?.title ||
+                        marketInfo?.metadata?.extractedData?.title ||
+                        '未提取到标题'}
+                    </p>
+                    <div>
+                      <strong>资产代号:</strong> {analysisResult?.symbol || '未知'}
+                    </div>
+                    <p>
+                      <strong>来源:</strong> {marketInfo?.source.name}
+                    </p>
+                    <p>
+                      <strong>投资倾向:</strong> {analysisResult?.sentiment || '未知'}
+                    </p>
+                    <p>
+                      <strong>重要性:</strong> {analysisResult?.importance || '未知'}/10
+                    </p>
+                    <div>
+                      <strong>关键词:</strong>
+                      <p className="mt-1">{analysisResult?.keyTopics?.join(', ') || '未生成关键词'}</p>
+                    </div>
+                    <div>
+                      <strong>重要数据:</strong>
+                      <p className="mt-1">
+                        {analysisResult?.keyDataPoints?.join('\n\n') || '未生成重要数据'}
+                      </p>
+                    </div>
+                    <div>
+                      <strong>市场影响:</strong>
+                      <p className="mt-1">{analysisResult?.marketImpact || '未知'}</p>
+                    </div>
+                    <div>
+                      <strong>内容摘要:</strong>
+                      <p className="mt-1">{analysisResult?.summary || '未生成摘要'}</p>
+                    </div>
+                  </>
+                ) : (
+                  // 原文模式预览
+                  <>
+                    <p>
+                      <strong>标题:</strong>{' '}
+                      {marketInfo?.metadata?.extractedData?.title || '未提取到标题'}
+                    </p>
+                    <div>
+                      <strong>资产代号:</strong> {marketInfo?.metadata?.extractedData?.symbol || '未知'}
+                    </div>
+                    <p>
+                      <strong>来源:</strong> {marketInfo?.source.name}
+                    </p>
+                    <div>
+                      <strong>原文内容预览:</strong>
+                      <p className="mt-1 max-h-40 overflow-y-auto">
+                        {marketInfo?.content || '未获取到原文内容'}
+                      </p>
+                    </div>
+                    <div>
+                      <strong>字数统计:</strong>{' '}
+                      <span>{marketInfo?.content?.length || 0} 字符</span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
