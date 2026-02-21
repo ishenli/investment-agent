@@ -11,7 +11,7 @@ import {
 import { Badge } from '@renderer/components/ui/badge';
 import { Button } from '@renderer/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@renderer/components/ui/alert';
-import { AlertCircle, RefreshCw, Calendar, ChevronDown } from 'lucide-react';
+import { AlertCircle, RefreshCw, Calendar } from 'lucide-react';
 // 导入下拉菜单组件
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
