@@ -196,7 +196,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSettings items={data.settings} />
         {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="mb-4">
         <NavUser user={userData} />
       </SidebarFooter>
       <SwitchAccountDialog

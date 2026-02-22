@@ -551,7 +551,7 @@ investment-agent/
 
 ### 部分调试细节
 
-- Electon 的内容：/Users/[UserName]/Library/Application Support/investment-agent
+- Electron Mac 地址：/Users/[UserName]/Library/Application Support/investment-agent
 
 ## 许可证
 
