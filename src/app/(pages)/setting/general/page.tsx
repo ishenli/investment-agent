@@ -137,6 +137,38 @@ export default function GeneralSettings({
         </CardContent>
       </Card>
 
+      {/* Privacy & Security
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Shield className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <CardTitle>隐私与安全</CardTitle>
+              <CardDescription>管理您的隐私设置</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="data-retention">数据保留期限</Label>
+            <Select value={dataRetention} onValueChange={setDataRetention}>
+              <SelectTrigger id="data-retention">
+                <SelectValue placeholder="选择保留期限" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7d">7天</SelectItem>
+                <SelectItem value="30d">30天</SelectItem>
+                <SelectItem value="90d">90天</SelectItem>
+                <SelectItem value="365d">1年</SelectItem>
+                <SelectItem value="forever">永久保留</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card> */}
+
       {/* Save Button */}
       <div className="flex justify-end gap-4">
         <Button variant="outline">取消</Button>

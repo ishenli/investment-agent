@@ -309,7 +309,6 @@ export class AssetService {
     period: SnapshotRevenuePeriod = '1M',
   ): Promise<SnapshotRevenueMetrics | null> {
     try {
-      const periodEnd = new Date();
       let periodStart = this.getPeriodStartDate(period);
 
       // For ALL period, use account creation date

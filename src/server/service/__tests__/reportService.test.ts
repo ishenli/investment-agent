@@ -239,18 +239,25 @@ describe('ReportService', () => {
   describe('getReport', () => {
     it('应该成功获取报告详情', async () => {
       (db.query.analysisReports.findFirst as jest.Mock).mockResolvedValue(mockReport);
-
+  
       const result = await reportService.getReport('1', '1');
-
+  
       expect(result).toEqual({
         id: '1',
         accountId: '1',
         type: 'weekly',
-        title: '投资周报 (1月1日-1月7日)',
+        title: mockReport.title,
         content: '# 投资周报\n\n这是测试报告内容',
         startDate: new Date('2024-01-01'),
         endDate: new Date('2024-01-07'),
+        generationProgress: 0,
+        generationStage: undefined,
+        dataSourceSummary: undefined,
+        isManuallyEdited: false,
+        lastEditedAt: null,
+        editCount: 0,
         createdAt: mockReport.createdAt,
+        updatedAt: mockReport.createdAt,
       });
     });
 
@@ -321,18 +328,25 @@ describe('ReportService', () => {
           }),
         }),
       });
-
+  
       const result = await reportService.updateReportContent('1', '1', '更新的内容');
-
+  
       expect(result).toEqual({
         id: '1',
         accountId: '1',
         type: 'weekly',
-        title: '投资周报 (1月1日-1月7日)',
+        title: mockReport.title,
         content: '# 投资周报\n\n这是测试报告内容',
         startDate: new Date('2024-01-01'),
         endDate: new Date('2024-01-07'),
+        generationProgress: 0,
+        generationStage: undefined,
+        dataSourceSummary: undefined,
+        isManuallyEdited: false,
+        lastEditedAt: null,
+        editCount: 0,
         createdAt: mockReport.createdAt,
+        updatedAt: mockReport.createdAt,
       });
       expect(logger.info).toHaveBeenCalledWith('[ReportService] 更新报告成功', {
         reportId: '1',
