@@ -183,6 +183,13 @@
       "when": 1771255909852,
       "tag": "0025_green_siren",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "6",
+      "when": 1771690553472,
+      "tag": "0026_lumpy_terrax",
+      "breakpoints": true
     }
   ]
 }
