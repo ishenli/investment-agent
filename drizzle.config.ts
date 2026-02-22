@@ -6,7 +6,7 @@ const dbDir =
   path.join(process.env.HOME || '.', '.investment-agent');
 
 
-console.log('[drizzle] dbDir:', dbDir);
+console.log('[drizzle] drizzle.config.ts with dbDir is', dbDir);
 export default {
   schema: './drizzle/schema.ts',
   out: './drizzle/migrations',

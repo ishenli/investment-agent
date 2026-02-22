@@ -4,6 +4,7 @@ import assetService from '@server/service/assetService';
 import transactionService from '@server/service/transactionService';
 import {
   revenueHistoryQuerySchema,
+  snapshotRevenueQuerySchema,
 } from '@typings/account';
 import {
   TransactionRequestSchema,
@@ -65,32 +66,55 @@ export class AssetAccountBizController extends BaseBizController {
   @WithRequestContext()
   async getRevenueMetrics(query: any) {
     try {
-      // 1. 获取当前用户ID
+      // 1. 获取当前用户账户
       const accountInfo = await authService.getCurrentUserAccount();
       if (!accountInfo) {
         return this.error('用户未登录', 'unauthorized');
       }
 
-      // 2. 获取查询参数
-      const period = query.period || '30d';
+      // 2. 验证查询参数
+      const validationResult = snapshotRevenueQuerySchema.safeParse({
+        period: query.period || '1M',
+      });
 
-      // 3. 获取收益指标
-      const metrics = await assetService.getRevenueMetrics(accountInfo.id, period);
+      if (!validationResult.success) {
+        return this.responseValidateError(validationResult.error);
+      }
+
+      const { period } = validationResult.data;
+
+      // 3. 基于快照获取收益指标
+      const metrics = await assetService.getRevenueMetricsFromSnapshots(accountInfo.id, period);
 
       // 4. 返回成功响应
       if (!metrics) {
+        // 没有快照数据时返回空指标
         return this.success({
           metrics: {
-            totalRevenue: 0,
-            totalProfit: 0,
-            totalProfitPercent: 0,
-            totalFee: 0,
-            totalFeePercent: 0,
-            totalCommission: 0,
-            totalCommissionPercent: 0,
-            totalPnl: 0,
-            totalPnlPercent: 0,
-            totalPnlPercentWithoutFee: 0,
+            accountId: accountInfo.id,
+            period,
+            periodStart: null,
+            periodEnd: new Date(),
+            daysHeld: 0,
+            currentSnapshot: {
+              date: new Date(),
+              totalValue: 0,
+              cashBalance: 0,
+              positionsValue: 0,
+            },
+            comparisonSnapshot: {
+              date: new Date(),
+              totalValue: 0,
+            },
+            performance: {
+              profitAmount: 0,
+              profitRate: 0,
+              benchmarkProfitRate: 0,
+              excessReturn: 0,
+              annualizedReturn: 0,
+            },
+            positions: [],
+            createdAt: new Date(),
           },
         });
       }
@@ -103,6 +127,10 @@ export class AssetAccountBizController extends BaseBizController {
         return this.error('系统内部错误', 'database_query_error');
       }
 
+      if (error instanceof z.ZodError) {
+        return this.responseValidateError(error);
+      }
+
       logger.error('[AssetAccountBizController] 获取收益指标失败:', error);
       return this.error('获取收益指标失败', 'get_revenue_error');
     }
@@ -111,7 +139,7 @@ export class AssetAccountBizController extends BaseBizController {
   @WithRequestContext()
   async getRevenueHistory(query: any) {
     try {
-      // 1. 获取当前用户ID
+      // 1. 获取当前用户账户
       const accountInfo = await authService.getCurrentUserAccount();
       if (!accountInfo) {
         return this.error('用户未登录', 'unauthorized');
@@ -119,21 +147,19 @@ export class AssetAccountBizController extends BaseBizController {
 
       // 2. 验证查询参数
       const validationResult = revenueHistoryQuerySchema.safeParse({
-        period: query.period,
-        granularity: query.granularity,
+        period: query.period || '1M',
       });
 
       if (!validationResult.success) {
         return this.responseValidateError(validationResult.error);
       }
 
-      const validatedQuery = validationResult.data;
+      const { period } = validationResult.data;
 
-      // 3. 获取收益历史数据
-      const historyData = await assetService.getRevenueHistoryData(
+      // 3. 基于快照获取收益历史数据
+      const historyData = await assetService.getRevenueHistoryFromSnapshots(
         accountInfo.id,
-        validatedQuery.period,
-        validatedQuery.granularity,
+        period,
       );
 
       // 4. 返回成功响应

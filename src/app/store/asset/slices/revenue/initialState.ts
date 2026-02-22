@@ -1,7 +1,7 @@
-import { revenueMetricType } from '@typings/account';
+import { SnapshotRevenueMetrics } from '@typings/account';
 
 export interface AssetRevenueState {
-  metrics: revenueMetricType | null;
+  metrics: SnapshotRevenueMetrics | null;
   revenueLoading: boolean;
   revenueError: string | null;
 }

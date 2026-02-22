@@ -137,7 +137,7 @@ export default function GeneralSettings({
         </CardContent>
       </Card>
 
-      {/* Privacy & Security */}
+      {/* Privacy & Security
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
@@ -167,7 +167,7 @@ export default function GeneralSettings({
             </Select>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Save Button */}
       <div className="flex justify-end gap-4">

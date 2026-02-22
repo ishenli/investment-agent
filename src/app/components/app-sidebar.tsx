@@ -17,6 +17,7 @@ import {
   IconEye,
   IconAnalyzeFilled,
   IconServer,
+  IconCamera,
 } from '@tabler/icons-react';
 
 import { NavMain } from '@renderer/components/nav-main';
@@ -99,7 +100,7 @@ export const data = {
       ],
     },
     {
-      name: '资产元数据',
+      name: '资产数据',
       url: '/asset-meta',
       icon: IconAnalyze as Icon,
     },
@@ -107,6 +108,11 @@ export const data = {
       name: '投资笔记',
       url: '/note',
       icon: IconFileWord as Icon,
+    },
+    {
+      name: '组合快照',
+      url: '/snapshot',
+      icon: IconCamera as Icon,
     },
     {
       name: '搜索',
@@ -190,7 +196,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSettings items={data.settings} />
         {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="mb-4">
         <NavUser user={userData} />
       </SidebarFooter>
       <SwitchAccountDialog

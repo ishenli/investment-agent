@@ -37,18 +37,29 @@ vi.mock('../positionService', () => ({
   },
 }));
 
+vi.mock('../portfolioSnapshotService', () => ({
+  __esModule: true,
+  default: {
+    getSnapshotsByDateRange: vi.fn(),
+    getAllSnapshots: vi.fn(),
+    getLatestSnapshot: vi.fn(),
+    getNearestSnapshot: vi.fn(),
+  },
+}));
+
 vi.mock('@server/base/logger', () => ({
   default: {
     info: vi.fn(),
     error: vi.fn(),
+    warn: vi.fn(),
   },
 }));
 
 vi.mock('@server/lib/utils/financialCalculations', () => ({
-  calculateAnnualizedReturn: vi.fn(),
-  calculateVolatility: vi.fn(),
-  calculateSharpeRatio: vi.fn(),
-  calculateMaxDrawdown: vi.fn(),
+  calculateAnnualizedReturn: vi.fn().mockReturnValue(0.05),
+  calculateVolatility: vi.fn().mockReturnValue(0.1),
+  calculateSharpeRatio: vi.fn().mockReturnValue(0.5),
+  calculateMaxDrawdown: vi.fn().mockReturnValue(0.15),
   calculateDrawdownSeries: vi.fn(),
 }));
 
@@ -56,13 +67,13 @@ vi.mock('@server/lib/utils/financialCalculations', () => ({
 import { db } from '../../lib/db';
 import accountService from '../accountService';
 import positionService from '../positionService';
+import portfolioSnapshotService from '../portfolioSnapshotService';
 import logger from '../../base/logger';
 import {
   calculateAnnualizedReturn,
   calculateVolatility,
   calculateSharpeRatio,
   calculateMaxDrawdown,
-  calculateDrawdownSeries,
 } from '../../lib/utils/financialCalculations';
 
 // Mock 数据
@@ -106,6 +117,29 @@ const mockPositions = [
   },
 ];
 
+// Mock snapshot data
+const mockSnapshot = {
+  id: 1,
+  accountId: 1,
+  snapshotDate: new Date(),
+  totalValueCents: 2500000, // 25000 USD
+  cashBalanceCents: 1000000, // 10000 USD
+  positionsValueCents: 1500000, // 15000 USD
+  benchmarkValueCents: 2400000, // 24000 USD
+  positions: {
+    totalPositionsValueCents: 1500000,
+    positions: [
+      {
+        symbol: 'AAPL',
+        quantity: 10,
+        marketValueCents: 180000,
+        costBasisCents: 150000,
+      },
+    ],
+  },
+  createdAt: new Date(),
+};
+
 const mockTransactions = [
   {
     id: 1,
@@ -142,6 +176,12 @@ describe('AssetService', () => {
     (positionService.getPositionAmountSummary as jest.Mock).mockResolvedValue(mockPositionSummary);
     (positionService.getCurrentPositions as jest.Mock).mockResolvedValue(mockPositions);
     (db.query.transactions.findMany as jest.Mock).mockResolvedValue(mockTransactions);
+    
+    // Setup portfolio snapshot mocks
+    (portfolioSnapshotService.getSnapshotsByDateRange as jest.Mock).mockResolvedValue([mockSnapshot]);
+    (portfolioSnapshotService.getAllSnapshots as jest.Mock).mockResolvedValue([mockSnapshot]);
+    (portfolioSnapshotService.getLatestSnapshot as jest.Mock).mockResolvedValue(mockSnapshot);
+    (portfolioSnapshotService.getNearestSnapshot as jest.Mock).mockResolvedValue(mockSnapshot);
   });
 
   describe('getAccountBalance', () => {
@@ -175,66 +215,68 @@ describe('AssetService', () => {
     });
   });
 
-  describe('getRevenueMetrics', () => {
+  describe('getRevenueMetricsFromSnapshots', () => {
     it('应该成功获取收益指标', async () => {
-      const result = await assetService.getRevenueMetrics('1', '30d');
+      const result = await assetService.getRevenueMetricsFromSnapshots('1', '1M');
 
       expect(result).toEqual({
         accountId: '1',
+        period: '1M',
         periodStart: expect.any(Date),
         periodEnd: expect.any(Date),
-        realizedProfitAmount: expect.any(Number),
-        realizedProfitRate: expect.any(Number),
-        unrealizedProfitAmount: expect.any(Number),
-        unrealizedProfitRate: expect.any(Number),
-        winRate: expect.any(Number),
-        totalTrades: expect.any(Number),
-        profitableTrades: expect.any(Number),
+        daysHeld: expect.any(Number),
+        currentSnapshot: {
+          date: expect.any(Date),
+          totalValue: 25000,
+          cashBalance: 10000,
+          positionsValue: 15000,
+        },
+        comparisonSnapshot: {
+          date: expect.any(Date),
+          totalValue: 25000,
+        },
+        performance: {
+          profitAmount: expect.any(Number),
+          profitRate: expect.any(Number),
+          benchmarkProfitRate: expect.any(Number),
+          excessReturn: expect.any(Number),
+          annualizedReturn: expect.any(Number),
+        },
+        positions: expect.any(Array),
         createdAt: expect.any(Date),
       });
       
-      expect(db.query.transactions.findMany).toHaveBeenCalledWith({
-        where: expect.any(Object),
-        orderBy: expect.any(Array),
-      });
+      expect(portfolioSnapshotService.getLatestSnapshot).toHaveBeenCalledWith(1);
+      expect(portfolioSnapshotService.getNearestSnapshot).toHaveBeenCalledWith(1, expect.any(Date));
     });
 
     it('应该处理不同时间周期', async () => {
-      await assetService.getRevenueMetrics('1', '7d');
-      await assetService.getRevenueMetrics('1', '90d');
-      await assetService.getRevenueMetrics('1', '1y');
-      await assetService.getRevenueMetrics('1', 'all');
+      await assetService.getRevenueMetricsFromSnapshots('1', '1W');
+      await assetService.getRevenueMetricsFromSnapshots('1', '3M');
+      await assetService.getRevenueMetricsFromSnapshots('1', '6M');
+      await assetService.getRevenueMetricsFromSnapshots('1', 'YTD');
+      await assetService.getRevenueMetricsFromSnapshots('1', '1Y');
+      await assetService.getRevenueMetricsFromSnapshots('1', 'ALL');
 
-      expect(accountService.getTradingAccount).toHaveBeenCalled(); // all 周期需要账户信息
+      expect(accountService.getTradingAccount).toHaveBeenCalled(); // ALL 周期需要账户信息
+    });
+
+    it('应该在没有快照时返回 null', async () => {
+      (portfolioSnapshotService.getLatestSnapshot as jest.Mock).mockResolvedValue(null);
+
+      const result = await assetService.getRevenueMetricsFromSnapshots('1', '1M');
+
+      expect(result).toBeNull();
+      expect(logger.warn).toHaveBeenCalled();
     });
 
     it('应该处理数据库错误', async () => {
-      (db.query.transactions.findMany as jest.Mock).mockRejectedValue(new Error('Database error'));
+      (portfolioSnapshotService.getLatestSnapshot as jest.Mock).mockRejectedValue(new Error('Database error'));
 
-      await expect(assetService.getRevenueMetrics('1', '30d')).rejects.toThrow(
+      await expect(assetService.getRevenueMetricsFromSnapshots('1', '1M')).rejects.toThrow(
         'Database query failed: Error: Database error'
       );
       expect(logger.error).toHaveBeenCalled();
-    });
-
-    it('应该处理没有交易记录的情况', async () => {
-      (db.query.transactions.findMany as jest.Mock).mockResolvedValue([]);
-
-      const result = await assetService.getRevenueMetrics('1', '30d');
-
-      expect(result).toEqual({
-        accountId: '1',
-        periodStart: expect.any(Date),
-        periodEnd: expect.any(Date),
-        realizedProfitAmount: 0,
-        realizedProfitRate: 0,
-        unrealizedProfitAmount: 0,
-        unrealizedProfitRate: 0,
-        winRate: 0,
-        totalTrades: 0,
-        profitableTrades: 0,
-        createdAt: expect.any(Date),
-      });
     });
   });
 
@@ -274,83 +316,98 @@ describe('AssetService', () => {
     });
   });
 
-  describe('getRevenueHistoryData', () => {
-    // TODO: 由于该方法涉及复杂的计算逻辑和多个依赖，需要更详细的 mock 设置
-    // 暂时跳过这些测试
-    
-    /*
+  describe('getRevenueHistoryFromSnapshots', () => {
     it('应该成功获取收益历史数据', async () => {
-      // Mock revenueHistoryType 的返回结构
-      const mockRevenueHistory = {
+      const result = await assetService.getRevenueHistoryFromSnapshots('1', '1M');
+
+      expect(result).toEqual({
         accountId: '1',
-        period: '30d',
-        granularity: 'monthly',
-        periodStart: new Date(),
-        periodEnd: new Date(),
-        history: [],
-        metrics: {},
-        createdAt: new Date(),
-      };
-
-      // 由于这个方法比较复杂，我们主要验证它能正常调用而不抛出错误
-      const result = await assetService.getRevenueHistoryData('1', '30d', 'monthly');
-
-      expect(result.accountId).toBe('1');
-      expect(result.period).toBe('30d');
-      expect(result.granularity).toBe('monthly');
+        period: '1M',
+        periodStart: expect.any(Date),
+        periodEnd: expect.any(Date),
+        data: expect.any(Array),
+        derivedMetrics: {
+          annualizedReturn: expect.any(Number),
+          maxDrawdown: expect.any(Number),
+          volatility: expect.any(Number),
+          sharpeRatio: expect.any(Number),
+          totalReturn: expect.any(Number),
+        },
+        createdAt: expect.any(Date),
+      });
+      
+      expect(portfolioSnapshotService.getSnapshotsByDateRange).toHaveBeenCalledWith(
+        1,
+        expect.any(Date),
+        expect.any(Date)
+      );
     });
 
-    it('应该处理不同时间周期和粒度', async () => {
-      await assetService.getRevenueHistoryData('1', '7d', 'weekly');
-      await assetService.getRevenueHistoryData('1', '90d', 'monthly');
-      await assetService.getRevenueHistoryData('1', '365d', 'monthly');
-      await assetService.getRevenueHistoryData('1', 'all', 'monthly');
+    it('应该处理不同时间周期', async () => {
+      await assetService.getRevenueHistoryFromSnapshots('1', '1W');
+      await assetService.getRevenueHistoryFromSnapshots('1', '3M');
+      await assetService.getRevenueHistoryFromSnapshots('1', '6M');
+      await assetService.getRevenueHistoryFromSnapshots('1', 'YTD');
+      await assetService.getRevenueHistoryFromSnapshots('1', '1Y');
+      await assetService.getRevenueHistoryFromSnapshots('1', 'ALL');
 
-      expect(db.query.transactions.findMany).toHaveBeenCalledTimes(4);
+      expect(accountService.getTradingAccount).toHaveBeenCalled(); // ALL 周期需要账户信息
     });
-    */
+
+    it('应该在没有快照时返回空数据', async () => {
+      (portfolioSnapshotService.getSnapshotsByDateRange as jest.Mock).mockResolvedValue([]);
+      (portfolioSnapshotService.getAllSnapshots as jest.Mock).mockResolvedValue([]);
+
+      const result = await assetService.getRevenueHistoryFromSnapshots('1', '1M');
+
+      expect(result.data).toEqual([]);
+      expect(result.derivedMetrics).toEqual({
+        annualizedReturn: 0,
+        maxDrawdown: 0,
+        volatility: 0,
+        sharpeRatio: 0,
+        totalReturn: 0,
+      });
+    });
 
     it('应该处理数据库错误', async () => {
-      (db.query.transactions.findMany as jest.Mock).mockRejectedValue(new Error('Database error'));
+      (portfolioSnapshotService.getSnapshotsByDateRange as jest.Mock).mockRejectedValue(new Error('Database error'));
 
-      await expect(assetService.getRevenueHistoryData('1', '30d', 'monthly')).rejects.toThrow();
+      await expect(assetService.getRevenueHistoryFromSnapshots('1', '1M')).rejects.toThrow();
       expect(logger.error).toHaveBeenCalled();
     });
   });
 
   describe('私有方法测试', () => {
     // 通过公共方法间接测试私有方法的行为
-    it('calculateTotalReturnAndTradeStats 应该正确计算收益和交易统计', async () => {
-      // 通过 getRevenueMetrics 间接测试
-      const result = await assetService.getRevenueMetrics('1', '30d');
+    it('calculatePositionsPerformance 应该正确计算持仓表现', async () => {
+      // 通过 getRevenueMetricsFromSnapshots 间接测试
+      const result = await assetService.getRevenueMetricsFromSnapshots('1', '1M');
       
       // 验证返回的收益指标不为空
-      expect(result.realizedProfitAmount).toBeDefined();
-      expect(result.totalTrades).toBeDefined();
-      // 验证至少有一次日志调用
-      expect(logger.info).toHaveBeenCalled();
+      expect(result.performance.profitAmount).toBeDefined();
+      expect(result.positions).toBeDefined();
+      expect(Array.isArray(result.positions)).toBe(true);
     });
 
-    it('应该正确处理各种交易类型', async () => {
-      // 测试包含买卖交易的情况
-      const mixedTransactions = [
-        ...mockTransactions,
+    it('应该正确处理各种快照数据', async () => {
+      // 测试包含多个快照的情况
+      const multipleSnapshots = [
+        mockSnapshot,
         {
-          id: 3,
-          accountId: 1,
-          symbol: 'GOOGL',
-          type: 'buy',
-          quantity: 5,
-          totalAmountCents: 75000, // 750 USD
-          createdAt: new Date('2024-01-10'),
-        }
+          ...mockSnapshot,
+          id: 2,
+          snapshotDate: new Date(Date.now() - 86400000), // 1 day ago
+          totalValueCents: 2400000, // 24000 USD
+        },
       ];
       
-      (db.query.transactions.findMany as jest.Mock).mockResolvedValue(mixedTransactions);
+      (portfolioSnapshotService.getSnapshotsByDateRange as jest.Mock).mockResolvedValue(multipleSnapshots);
       
-      const result = await assetService.getRevenueMetrics('1', '30d');
+      const result = await assetService.getRevenueHistoryFromSnapshots('1', '1M');
       
-      expect(result.totalTrades).toBeGreaterThan(0);
+      expect(result.data.length).toBeGreaterThan(0);
+      expect(result.derivedMetrics.totalReturn).toBeDefined();
     });
   });
 });

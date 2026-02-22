@@ -83,9 +83,6 @@ export class TencentAdapter extends PriceSourceAdapter {
       return { succeeded, failed };
     }
 
-    // 提取股票代码
-    const stockCodes = requests.map((r) => r.symbol);
-
     try {
       // 构建批量请求 URL
       const prefixedCodes = requests.map((r) => genStockPrefix(r.symbol, r.market)).join(',');

@@ -5,6 +5,7 @@ import logger from '@server/base/logger';
 import type { MarketType } from '@typings/asset';
 import { finnhubClient } from '@server/dataflows/finnhubUtil';
 import type { CandleData } from '../stockDataService/formatters';
+import { unifiedPriceService } from '../unifiedPriceService';
 
 /**
  * Finnhub 原生 Candle 数据格式
@@ -69,16 +70,10 @@ export class HistoryService {
     from: number,
     to: number,
   ): Promise<FinnhubCandles | null> {
-    const api_key = process.env.FINNHUB_API_KEY;
-    if (!api_key) {
-      logger.warn('[HistoryService] FINNHUB_API_KEY not set, cannot fetch candles');
-      return null;
-    }
-
     return new Promise((resolve) => {
       finnhubClient.stockCandles(symbol, resolution, from, to, (error: unknown, data: any) => {
         if (error) {
-          logger.error(`[HistoryService] Failed to get candles for ${symbol}:`, error);
+          logger.error(`[HistoryService] Failed to get candles for ${symbol} with ${resolution}`);
           resolve(null);
           return;
         }
@@ -178,6 +173,8 @@ export class HistoryService {
   /**
    * 同步历史数据到数据库
    *
+   * 优先使用 Finnhub 蜡烛图数据，如果不可用则回退到实时价格
+   *
    * @param symbol 资产代码
    * @param startDate 开始日期
    * @param endDate 结束日期
@@ -200,22 +197,34 @@ export class HistoryService {
 
       const candles = await this.getCandles(symbol, this.defaultResolution, from, to);
 
-      if (!candles || !candles.c || candles.s !== 'ok') {
-        logger.warn(`[HistoryService] No candles found for ${symbol}`);
-        return;
+      let prices: { date: Date; priceCents: number; openCents?: number; highCents?: number; lowCents?: number }[] = [];
+
+      if (candles && candles.c && candles.s === 'ok') {
+        // 转换 Finnhub 数据格式
+        prices = candles.t.map((timestamp, index) => {
+          const date = new Date(timestamp * 1000);
+          return {
+            date,
+            priceCents: Math.round(candles.c[index] * 100),
+            openCents: Math.round(candles.o[index] * 100),
+            highCents: Math.round(candles.h[index] * 100),
+            lowCents: Math.round(candles.l[index] * 100),
+          };
+        });
+        logger.info(`[HistoryService] Got ${prices.length} candles from Finnhub for ${symbol}`);
+      } else {
+        // 蜡烛图数据不可用，回退到使用实时价格
+        logger.warn(`[HistoryService] No candles found for ${symbol}, falling back to real-time price`);
+        const realtimePrice = await this.getRealtimePriceAsHistory(symbol, market);
+        if (realtimePrice) {
+          prices = [realtimePrice];
+        }
       }
 
-      // 转换 Finnhub 数据格式
-      const prices = candles.t.map((timestamp, index) => {
-        const date = new Date(timestamp * 1000);
-        return {
-          date,
-          priceCents: Math.round(candles.c[index] * 100),
-          openCents: Math.round(candles.o[index] * 100),
-          highCents: Math.round(candles.h[index] * 100),
-          lowCents: Math.round(candles.l[index] * 100),
-        };
-      });
+      if (prices.length === 0) {
+        logger.warn(`[HistoryService] No prices available for ${symbol}`);
+        return;
+      }
 
       // 过滤掉已存在的日期，避免重复
       const existing = await db
@@ -245,6 +254,51 @@ export class HistoryService {
       }
     } catch (error) {
       logger.error(`[HistoryService] Failed to sync historical data for ${symbol}:`, error);
+    }
+  }
+
+  /**
+   * 获取实时价格作为历史数据
+   *
+   * 当蜡烛图数据不可用时，使用当天的实时收盘价作为历史数据
+   *
+   * @param symbol 资产代码
+   * @param market 市场类型
+   * @returns 价格数据或 null
+   */
+  private async getRealtimePriceAsHistory(
+    symbol: string,
+    market: MarketType,
+  ): Promise<{ date: Date; priceCents: number; openCents?: number; highCents?: number; lowCents?: number } | null> {
+    try {
+      const quote = await unifiedPriceService.getQuote(symbol, market, { forceRefresh: true });
+
+      if (!quote) {
+        logger.warn(`[HistoryService] Failed to get real-time quote for ${symbol}`);
+        return null;
+      }
+
+      // 使用当天的日期和实时价格
+      const today = new Date();
+      today.setUTCHours(0, 0, 0, 0);
+
+      const priceCents = Math.round(quote.price * 100);
+
+      logger.info(
+        `[HistoryService] Using real-time price ${quote.price} (${priceCents} cents) for ${symbol} on ${today.toISOString().split('T')[0]}`,
+      );
+
+      return {
+        date: today,
+        priceCents,
+        // 实时价格没有开高低数据，使用收盘价作为所有价格
+        openCents: priceCents,
+        highCents: priceCents,
+        lowCents: priceCents,
+      };
+    } catch (error) {
+      logger.error(`[HistoryService] Error getting real-time price for ${symbol}:`, error);
+      return null;
     }
   }
 
@@ -387,26 +441,5 @@ export class HistoryService {
       change,
       changePercent,
     };
-  }
-
-  /**
-   * 检查 Finnhub API 可用性
-   *
-   * @returns 是否可用
-   */
-  async healthCheck(): Promise<boolean> {
-    try {
-      const api_key = process.env.FINNHUB_API_KEY;
-      if (!api_key) {
-        return false;
-      }
-
-      // 尝试获取一个简单的数据来验证连接
-      const candles = await this.getCandles('AAPL', 'D', 0, Math.floor(Date.now() / 1000));
-      return candles !== null;
-    } catch (error) {
-      logger.error('[HistoryService] Health check failed:', error);
-      return false;
-    }
   }
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query';
-import { revenueMetricType } from '@typings/account';
+import { SnapshotRevenueMetrics, SnapshotRevenuePeriod } from '@typings/account';
 import { fetchRevenue } from '@renderer/services/assetService';
 
 // 定义查询键的枚举，便于维护
@@ -12,25 +12,25 @@ export enum AssetRevenueQueryKey {
 // 定义查询参数类型
 interface UseAssetRevenueParams {
   accountId: string;
-  period?: string;
+  period?: SnapshotRevenuePeriod;
 }
 
 // 定义返回的数据类型
 interface AssetRevenueData {
   data: {
-    metrics: revenueMetricType;
+    metrics: SnapshotRevenueMetrics;
   };
 }
 
 /**
- * 获取资产收益数据的自定义钩子
+ * 获取资产收益数据的自定义钩子（基于快照计算）
  * @param params 查询参数
  * @returns 查询结果
  */
 export const useAssetRevenue = (
   params: UseAssetRevenueParams,
 ): UseQueryResult<AssetRevenueData, Error> => {
-  const { accountId, period = '30d' } = params;
+  const { accountId, period = '1M' } = params;
 
   return useQuery<AssetRevenueData, Error>({
     queryKey: [AssetRevenueQueryKey.Base, accountId, period],
@@ -54,7 +54,7 @@ export const useAssetRevenue = (
 export const useInvalidateAssetRevenue = () => {
   const queryClient = useQueryClient();
 
-  return (accountId: string, period?: string) => {
+  return (accountId: string, period?: SnapshotRevenuePeriod) => {
     if (period) {
       queryClient.invalidateQueries({
         queryKey: [AssetRevenueQueryKey.Base, accountId, period],
@@ -75,7 +75,7 @@ export const useInvalidateAssetRevenue = () => {
 export const useSetAssetRevenueData = () => {
   const queryClient = useQueryClient();
 
-  return (accountId: string, period: string, data: AssetRevenueData) => {
+  return (accountId: string, period: SnapshotRevenuePeriod, data: AssetRevenueData) => {
     queryClient.setQueryData([AssetRevenueQueryKey.Base, accountId, period], data);
   };
 };

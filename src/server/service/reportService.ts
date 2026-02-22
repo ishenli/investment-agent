@@ -1,6 +1,6 @@
 import { db } from '@server/lib/db';
-import { analysisReports, accounts } from '@/drizzle/schema';
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { analysisReports, accounts, transactions } from '@/drizzle/schema';
+import { eq, and, desc, sql, gte, lte } from 'drizzle-orm';
 import logger from '@server/base/logger';
 import transactionService from './transactionService';
 import noteService from './noteService';
@@ -8,10 +8,18 @@ import assetMarketInfoService from './assetMarketInfoService';
 import assetMetaService from './assetMetaService';
 import positionService from './positionService';
 import authService from './authService';
+import portfolioSnapshotService from './portfolioSnapshotService';
+import { unifiedPriceService, type QuoteResponse } from './unifiedPriceService';
 import { AssetMarketInfoType } from '@/types/marketInfo';
 import { NoteType } from './noteService';
 import { PositionType } from '@typings/position';
 import { AssetMetaType } from '@/types/assetMeta';
+import {
+  PerformanceCalculation,
+  EnrichedPosition,
+  DataSourceSummary,
+  DataSource,
+} from '@/types/report';
 import { chatModelOpenAI, ModelMap } from '@server/core/provider/chatModel';
 import { SystemMessage, HumanMessage } from '@langchain/core/messages';
 import { recordPrompt } from '../utils/file';
@@ -56,7 +64,17 @@ export type ReportDetail = {
   content: string;
   startDate: Date | null;
   endDate: Date | null;
+  // 报告生成进度
+  generationProgress: number;
+  generationStage: string | null;
+  // 数据来源摘要
+  dataSourceSummary: string | null;
+  // 手动编辑标记
+  isManuallyEdited: boolean;
+  lastEditedAt: Date | null;
+  editCount: number;
   createdAt: Date;
+  updatedAt: Date;
 };
 
 // 本周业绩数据类型
@@ -83,15 +101,464 @@ export type PositionChange = {
 // 周报数据聚合类型
 export type WeeklyReportData = {
   performance: WeeklyPerformance;
+  enrichedPositions?: EnrichedPosition[];
   transactions: any[]; // 使用 any 以避免循环依赖，实际应为 TransactionRecordType
   marketEvents: AssetMarketInfoType[];
   notes: NoteType[];
   investmentMemos: AssetMetaType[];
+  dataSourceSummary?: DataSourceSummary;
 };
 
 export class ReportService {
   constructor() {
     // 数据库连接已经在 db.ts 中初始化
+  }
+
+  /**
+   * Calculate performance for a specific time period
+   * @param accountId Account ID
+   * @param startDate Period start date
+   * @param endDate Period end date
+   * @param benchmarkSymbol Benchmark symbol for comparison (default: SPY)
+   * @returns Performance calculation result
+   */
+  async calculatePerformance(
+    accountId: string,
+    startDate: Date,
+    endDate: Date,
+    benchmarkSymbol: string = 'SPY',
+  ): Promise<PerformanceCalculation> {
+    try {
+      const accountIdNum = parseInt(accountId);
+
+      // Get start and end snapshots
+      const startSnapshot = await portfolioSnapshotService.getNearestSnapshot(accountIdNum, startDate);
+      const endSnapshot = await portfolioSnapshotService.getNearestSnapshot(accountIdNum, endDate);
+
+      // If no snapshots available, calculate from current positions
+      if (!startSnapshot && !endSnapshot) {
+        logger.warn(`No snapshots found for account ${accountId}, returning zero performance`);
+        return this.getZeroPerformance();
+      }
+
+      // Get cash flows during the period
+      const cashFlows = await this.getCashFlows(accountIdNum, startDate, endDate);
+
+      // Calculate values
+      const startValueCents = startSnapshot?.totalValueCents ?? 0;
+      const endValueCents = endSnapshot?.totalValueCents ?? 0;
+
+      // Calculate simple return
+      const changeAmountCents = endValueCents - startValueCents;
+      const changePercentage = startValueCents > 0
+        ? (changeAmountCents / startValueCents) * 100
+        : 0;
+
+      // Calculate Time-Weighted Return (TWR) if there are cash flows
+      let timeWeightedReturn: number | undefined;
+      if (cashFlows.length > 0 && startSnapshot && endSnapshot) {
+        timeWeightedReturn = await this.calculateTWR(
+          accountIdNum,
+          startDate,
+          endDate,
+          startValueCents,
+          endValueCents,
+          cashFlows,
+        );
+      }
+
+      // Calculate cash flow summary
+      const totalDepositCents = cashFlows
+        .filter(cf => cf.type === 'deposit')
+        .reduce((sum, cf) => sum + cf.amountCents, 0);
+      const totalWithdrawalCents = cashFlows
+        .filter(cf => cf.type === 'withdrawal')
+        .reduce((sum, cf) => sum + cf.amountCents, 0);
+      const netCashFlowCents = totalDepositCents - totalWithdrawalCents;
+
+      // Get benchmark return
+      const benchmarkReturn = await this.getBenchmarkReturn(startDate, endDate, benchmarkSymbol);
+      const excessReturn = benchmarkReturn !== null
+        ? changePercentage - benchmarkReturn
+        : null;
+
+      return {
+        startValueCents,
+        endValueCents,
+        changeAmountCents,
+        changePercentage,
+        benchmarkReturn,
+        excessReturn,
+        timeWeightedReturn,
+        totalDepositCents,
+        totalWithdrawalCents,
+        netCashFlowCents,
+      };
+    } catch (error) {
+      logger.error(`[ReportService] Failed to calculate performance for account ${accountId}: ${error}`);
+      return this.getZeroPerformance();
+    }
+  }
+
+  /**
+   * Get cash flows (deposits and withdrawals) for a period
+   * @param accountId Account ID
+   * @param startDate Start date
+   * @param endDate End date
+   * @returns Array of cash flows
+   */
+  private async getCashFlows(
+    accountId: number,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<Array<{ type: 'deposit' | 'withdrawal'; amountCents: number; date: Date }>> {
+    try {
+      const cashFlowRecords = await db.query.transactions.findMany({
+        where: and(
+          eq(transactions.accountId, accountId),
+          sql`${transactions.type} IN ('deposit', 'withdrawal')`,
+          gte(transactions.createdAt, startDate),
+          lte(transactions.createdAt, endDate),
+        ),
+        orderBy: [transactions.createdAt],
+      });
+
+      return cashFlowRecords.map(record => ({
+        type: record.type as 'deposit' | 'withdrawal',
+        amountCents: record.totalAmountCents ?? 0,
+        date: record.createdAt,
+      }));
+    } catch (error) {
+      logger.error(`[ReportService] Failed to get cash flows: ${error}`);
+      return [];
+    }
+  }
+
+  /**
+   * Calculate Time-Weighted Return (TWR)
+   * @param accountId Account ID
+   * @param startDate Start date
+   * @param endDate End date
+   * @param startValue Starting value
+   * @param endValue Ending value
+   * @param cashFlows Cash flows during the period
+   * @returns TWR percentage
+   */
+  private async calculateTWR(
+    accountId: number,
+    startDate: Date,
+    endDate: Date,
+    startValue: number,
+    endValue: number,
+    cashFlows: Array<{ type: 'deposit' | 'withdrawal'; amountCents: number; date: Date }>,
+  ): Promise<number> {
+    try {
+      if (cashFlows.length === 0) {
+        // Simple return if no cash flows
+        return startValue > 0 ? ((endValue - startValue) / startValue) * 100 : 0;
+      }
+
+      // Sort cash flows by date
+      const sortedCashFlows = [...cashFlows].sort((a, b) => a.date.getTime() - b.date.getTime());
+
+      // Calculate sub-period returns
+      let previousValue = startValue;
+      let twrProduct = 1;
+      let lastDate = startDate;
+
+      for (const cf of sortedCashFlows) {
+        // Get snapshot value before cash flow
+        const snapshotBeforeCF = await portfolioSnapshotService.getNearestSnapshot(accountId, cf.date);
+
+        // Value at cash flow time (approximate)
+        const valueAtCF = snapshotBeforeCF?.totalValueCents ?? previousValue;
+
+        // Calculate sub-period return
+        const subPeriodReturn = previousValue > 0
+          ? (valueAtCF - previousValue) / previousValue
+          : 0;
+
+        twrProduct *= (1 + subPeriodReturn);
+
+        // Adjust for cash flow
+        if (cf.type === 'deposit') {
+          previousValue = valueAtCF + cf.amountCents;
+        } else {
+          previousValue = valueAtCF - cf.amountCents;
+        }
+
+        lastDate = cf.date;
+      }
+
+      // Final sub-period return (from last cash flow to end)
+      const finalReturn = previousValue > 0
+        ? (endValue - previousValue) / previousValue
+        : 0;
+      twrProduct *= (1 + finalReturn);
+
+      // TWR = Product of (1 + R_i) - 1
+      const twr = (twrProduct - 1) * 100;
+
+      return twr;
+    } catch (error) {
+      logger.error(`[ReportService] Failed to calculate TWR: ${error}`);
+      return 0;
+    }
+  }
+
+  /**
+   * Get benchmark return for a period
+   * @param startDate Start date
+   * @param endDate End date
+   * @param symbol Benchmark symbol (default: SPY)
+   * @returns Benchmark return percentage or null if unavailable
+   */
+  private async getBenchmarkReturn(
+    startDate: Date,
+    endDate: Date,
+    symbol: string = 'SPY',
+  ): Promise<number | null> {
+    try {
+      // Use the priceService to get historical prices
+      // For now, we'll use the snapshot data which includes benchmark values
+      // In a full implementation, this would fetch from a market data API
+
+      // Get snapshots for a dummy account to access benchmark data
+      // This is a simplified approach - ideally we'd have a dedicated benchmark service
+      const priceService = (await import('./priceService')).default;
+
+      const startPrice = await priceService.getLatestPrice(symbol);
+      const endPrice = await priceService.getLatestPrice(symbol);
+
+      if (!startPrice || !endPrice) {
+        logger.warn(`[ReportService] Could not get benchmark prices for ${symbol}`);
+        return null;
+      }
+
+      // Since we only have current prices, we can't calculate historical return
+      // In production, this would use historical price data
+      // For now, return null to indicate unavailability
+      return null;
+    } catch (error) {
+      logger.error(`[ReportService] Failed to get benchmark return: ${error}`);
+      return null;
+    }
+  }
+
+  /**
+   * Return zero performance calculation
+   * @returns Zero performance object
+   */
+  private getZeroPerformance(): PerformanceCalculation {
+    return {
+      startValueCents: 0,
+      endValueCents: 0,
+      changeAmountCents: 0,
+      changePercentage: 0,
+      benchmarkReturn: null,
+      excessReturn: null,
+    };
+  }
+
+  /**
+   * Enrich positions with real-time market data
+   * @param positions Array of positions to enrich
+   * @returns Enriched positions with real-time prices
+   */
+  async enrichWithRealtimeData(positions: PositionType[]): Promise<EnrichedPosition[]> {
+    if (positions.length === 0) {
+      return [];
+    }
+
+    try {
+      // Build quote requests from positions
+      const quoteRequests = positions.map((pos) => ({
+        symbol: pos.symbol,
+        market: pos.market || 'US' as const,
+      }));
+
+      // Batch fetch quotes using unifiedPriceService
+      const result = await unifiedPriceService.batchGetQuote(quoteRequests);
+
+      // Create a map for quick lookup
+      const quoteMap = new Map<string, QuoteResponse>();
+      for (const quote of result.succeeded) {
+        quoteMap.set(quote.symbol, quote);
+      }
+
+      // Log any failed quotes
+      for (const failed of result.failed) {
+        logger.warn(`[ReportService] Failed to get quote for ${failed.symbol}: ${failed.error}`);
+      }
+
+      // Enrich positions with real-time data
+      const now = new Date();
+      return positions.map((pos) => {
+        const quote = quoteMap.get(pos.symbol);
+        const realtimePrice = quote?.price ?? pos.currentPrice;
+        const lastQuoteUpdate = quote?.timestamp ?? null;
+        const dataStaleness = this.calculateStaleness(lastQuoteUpdate, now);
+
+        return {
+          symbol: pos.symbol,
+          quantity: pos.quantity,
+          averagePriceCents: Math.round(pos.averageCost * 100),
+          currentPriceCents: Math.round(pos.currentPrice * 100),
+          marketValueCents: Math.round(pos.marketValue * 100),
+          unrealizedGainLossCents: Math.round(pos.unrealizedPnL * 100),
+          realtimePrice: Math.round(realtimePrice * 100),
+          priceChangePercent: 0, // Would need additional quote data
+          lastQuoteUpdate,
+          dataStaleness,
+        };
+      });
+    } catch (error) {
+      logger.error(`[ReportService] Failed to enrich positions with real-time data: ${error}`);
+      // Return positions with stale data indication
+      return positions.map((pos) => ({
+        symbol: pos.symbol,
+        quantity: pos.quantity,
+        averagePriceCents: Math.round(pos.averageCost * 100),
+        currentPriceCents: Math.round(pos.currentPrice * 100),
+        marketValueCents: Math.round(pos.marketValue * 100),
+        unrealizedGainLossCents: Math.round(pos.unrealizedPnL * 100),
+        realtimePrice: Math.round(pos.currentPrice * 100),
+        priceChangePercent: 0,
+        lastQuoteUpdate: null,
+        dataStaleness: Infinity,
+      }));
+    }
+  }
+
+  /**
+   * Calculate data staleness in milliseconds
+   * @param timestamp Data timestamp
+   * @param now Current time (optional, defaults to now)
+   * @returns Staleness in milliseconds
+   */
+  calculateStaleness(timestamp: Date | null, now: Date = new Date()): number {
+    if (!timestamp) {
+      return Infinity;
+    }
+    return now.getTime() - new Date(timestamp).getTime();
+  }
+
+  /**
+   * Validate data freshness and return summary
+   * @param dataSources Array of data sources to validate
+   * @returns Data source summary
+   */
+  validateDataFreshness(dataSources: DataSource[]): DataSourceSummary {
+    const now = new Date();
+    const STALE_THRESHOLD_MS = 60 * 60 * 1000; // 1 hour
+
+    // Mark stale data sources
+    const processedSources = dataSources.map((source) => {
+      const staleness = this.calculateStaleness(source.lastUpdate, now);
+      return {
+        ...source,
+        staleness,
+        isStale: staleness > STALE_THRESHOLD_MS,
+      };
+    });
+
+    // Calculate freshness score (0-1)
+    // Lower average staleness = higher score
+    const validStaleness = processedSources
+      .filter((s) => s.staleness !== Infinity)
+      .map((s) => s.staleness);
+
+    let freshnessScore = 1;
+    if (validStaleness.length > 0) {
+      const avgStaleness = validStaleness.reduce((a, b) => a + b, 0) / validStaleness.length;
+      // Normalize: 0 staleness = 1, 1 hour staleness = 0.5, 2+ hours = 0
+      freshnessScore = Math.max(0, 1 - avgStaleness / (2 * STALE_THRESHOLD_MS));
+    }
+
+    return {
+      sources: processedSources,
+      freshnessScore,
+      generatedAt: now,
+    };
+  }
+
+  /**
+   * Build data source summary for report
+   * @param positions Enriched positions
+   * @param transactions Transaction data
+   * @param notes Note data
+   * @param marketEvents Market events
+   * @returns Data source summary
+   */
+  private buildDataSourceSummary(
+    positions: EnrichedPosition[],
+    transactions: any[],
+    notes: NoteType[],
+    marketEvents: AssetMarketInfoType[],
+  ): DataSourceSummary {
+    const now = new Date();
+    const dataSources: DataSource[] = [];
+
+    // Position data source
+    const positionTimestamps = positions
+      .map((p) => p.lastQuoteUpdate)
+      .filter((t): t is Date => t !== null);
+
+    const latestPositionUpdate = positionTimestamps.length > 0
+      ? new Date(Math.max(...positionTimestamps.map((t) => new Date(t).getTime())))
+      : null;
+
+    dataSources.push({
+      type: 'position',
+      source: 'unifiedPriceService',
+      lastUpdate: latestPositionUpdate,
+      staleness: this.calculateStaleness(latestPositionUpdate, now),
+      isStale: this.calculateStaleness(latestPositionUpdate, now) > 60 * 60 * 1000,
+    });
+
+    // Transaction data source
+    const transactionTimestamps = transactions.map((t) => t.createdAt).filter(Boolean);
+    const latestTransactionUpdate = transactionTimestamps.length > 0
+      ? new Date(Math.max(...transactionTimestamps.map((t) => new Date(t).getTime())))
+      : null;
+
+    dataSources.push({
+      type: 'transaction',
+      source: 'database',
+      lastUpdate: latestTransactionUpdate,
+      staleness: this.calculateStaleness(latestTransactionUpdate, now),
+      isStale: this.calculateStaleness(latestTransactionUpdate, now) > 60 * 60 * 1000,
+    });
+
+    // Notes data source
+    const noteTimestamps = notes.map((n) => n.createdAt);
+    const latestNoteUpdate = noteTimestamps.length > 0
+      ? new Date(Math.max(...noteTimestamps.map((t) => new Date(t).getTime())))
+      : null;
+
+    dataSources.push({
+      type: 'note',
+      source: 'database',
+      lastUpdate: latestNoteUpdate,
+      staleness: this.calculateStaleness(latestNoteUpdate, now),
+      isStale: this.calculateStaleness(latestNoteUpdate, now) > 60 * 60 * 1000,
+    });
+
+    // Market events data source
+    const eventTimestamps = marketEvents.map((e) => e.createdAt).filter(Boolean);
+    const latestEventUpdate = eventTimestamps.length > 0
+      ? new Date(Math.max(...eventTimestamps.map((t) => new Date(t).getTime())))
+      : null;
+
+    dataSources.push({
+      type: 'search',
+      source: 'assetMarketInfo',
+      lastUpdate: latestEventUpdate,
+      staleness: this.calculateStaleness(latestEventUpdate, now),
+      isStale: this.calculateStaleness(latestEventUpdate, now) > 60 * 60 * 1000,
+    });
+
+    return this.validateDataFreshness(dataSources);
   }
 
   /**
@@ -128,6 +595,7 @@ export class ReportService {
       const title = this.generateReportTitle(request.type, startDate, endDate);
 
       // 创建报告记录（初始状态）
+      const now = new Date();
       const [reportRecord] = await db
         .insert(analysisReports)
         .values({
@@ -137,7 +605,8 @@ export class ReportService {
           content: '报告生成中...',
           startDate,
           endDate,
-          createdAt: new Date(),
+          createdAt: now,
+          updatedAt: now,
         })
         .returning();
 
@@ -147,10 +616,18 @@ export class ReportService {
         request.accountId,
         startDate,
         endDate,
-      ).catch((error) => {
+      ).catch(async (error) => {
         logger.error('[ReportService] 报告生成失败', { reportId: reportRecord.id, error });
         // 更新报告状态为失败
-        this.updateReportContent(reportRecord.id.toString(), request.accountId, `报告生成失败: ${error.message}`);
+        await db
+          .update(analysisReports)
+          .set({
+            content: `报告生成失败: ${error.message}`,
+            generationProgress: 0,
+            generationStage: '生成失败',
+            updatedAt: new Date(),
+          })
+          .where(eq(analysisReports.id, reportRecord.id));
       });
 
       logger.info('[ReportService] 报告生成请求已接受', { reportId: reportRecord.id });
@@ -180,19 +657,44 @@ export class ReportService {
   ): Promise<void> {
     try {
       // 更新报告状态为处理中
-      await this.updateReportContent(reportId, accountId, '正在收集数据...');
+      await db
+        .update(analysisReports)
+        .set({
+          content: '正在收集数据...',
+          generationProgress: 10,
+          generationStage: '数据收集',
+          updatedAt: new Date(),
+        })
+        .where(eq(analysisReports.id, parseInt(reportId)));
 
       // 聚合本周数据
       const reportData = await this.aggregateWeeklyData(accountId, startDate, endDate);
 
       // 更新报告状态为生成AI内容中
-      await this.updateReportContent(reportId, accountId, '正在生成AI分析...');
+      await db
+        .update(analysisReports)
+        .set({
+          content: '正在生成AI分析...',
+          generationProgress: 50,
+          generationStage: 'AI分析生成',
+          updatedAt: new Date(),
+        })
+        .where(eq(analysisReports.id, parseInt(reportId)));
 
       // 生成AI报告内容
       const reportContent = await this.generateAIReportContent(reportData);
 
-      // 更新报告内容
-      await this.updateReportContent(reportId, accountId, reportContent);
+      // 更新报告内容和状态（标记为完成）
+      await db
+        .update(analysisReports)
+        .set({
+          content: reportContent,
+          generationProgress: 100,
+          generationStage: '已完成',
+          dataSourceSummary: JSON.stringify(reportData.dataSourceSummary),
+          updatedAt: new Date(),
+        })
+        .where(eq(analysisReports.id, parseInt(reportId)));
 
       logger.info('[ReportService] 报告生成完成', { reportId });
     } catch (error) {
@@ -228,8 +730,6 @@ export class ReportService {
       );
 
       // 获取本周用户笔记
-      // 注意：noteService.searchNotes 按用户ID搜索，但这里需要按账户ID搜索
-      // 我们假设账户ID与用户ID相同，或者需要修改 noteService 以支持账户ID搜索
       const userId = await authService.getCurrentUserId();
       const notes = userId
         ? await noteService.getUserNotes(userId, 50, 0, 'createdAt', 'desc')
@@ -251,23 +751,37 @@ export class ReportService {
         investmentMemos.push(...assetMetaNotEmpty);
       }
 
-      // 计算本周业绩（简化实现）
+      // 计算本周业绩（使用增强的业绩计算方法）
+      const performanceCalculation = await this.calculatePerformance(accountId, startDate, endDate);
+
+      // 转换为 WeeklyPerformance 格式
       const performance: WeeklyPerformance = {
-        totalValue: currentPositions.reduce(
-          (sum: number, pos: PositionType) => sum + pos.marketValue,
-          0,
-        ),
-        previousValue: 0, // 简化实现
-        changeAmount: 0, // 简化实现
-        changePercentage: 0, // 简化实现
+        totalValue: performanceCalculation.endValueCents / 100, // Convert cents to dollars
+        previousValue: performanceCalculation.startValueCents / 100,
+        changeAmount: performanceCalculation.changeAmountCents / 100,
+        changePercentage: performanceCalculation.changePercentage,
+        benchmarkPerformance: performanceCalculation.benchmarkReturn ?? undefined,
       };
+
+      // 注入实时行情数据
+      const enrichedPositions = await this.enrichWithRealtimeData(currentPositions);
+
+      // 构建数据来源摘要
+      const dataSourceSummary = this.buildDataSourceSummary(
+        enrichedPositions,
+        weeklyTransactions,
+        weeklyNotes,
+        marketEvents,
+      );
 
       return {
         performance,
+        enrichedPositions,
         transactions: weeklyTransactions,
         marketEvents,
         notes: weeklyNotes,
         investmentMemos,
+        dataSourceSummary,
       };
     } catch (error) {
       logger.error('[ReportService] 聚合本周数据失败', { error });
@@ -289,7 +803,7 @@ export class ReportService {
 
       recordPrompt(prompt, 'report-generate-prompt.md');
 
-      const llm = await chatModelOpenAI(ModelMap['Kimi-K2-Instruct']);
+      const llm = await chatModelOpenAI(ModelMap['Kimi-K2.5']);
 
       // 创建一个 Agent
       const agent = createAgent({
@@ -328,23 +842,148 @@ export class ReportService {
    * @returns AI提示词
    */
   private buildAIPrompt(reportData: WeeklyReportData): string {
+    // 构建业绩数据部分
+    const performanceSection = this.buildPerformanceSection(reportData.performance);
+
+    // 构建持仓详情部分
+    const positionsSection = reportData.enrichedPositions
+      ? this.buildPositionsSection(reportData.enrichedPositions)
+      : '';
+
+    // 构建数据来源信息
+    const dataSourceSection = reportData.dataSourceSummary
+      ? this.buildDataSourceSection(reportData.dataSourceSummary)
+      : '';
+
     return `
 Task: 生成本周投资周报
-Context:
-2. 市场关键信息: ${JSON.stringify(reportData.marketEvents)}
-3. 用户笔记: ${JSON.stringify(reportData.notes)}
-4. 长期逻辑: ${JSON.stringify(reportData.investmentMemos)}
-5. 交易记录: ${JSON.stringify(reportData.transactions)}
 
-Output Requirement:
-- 语气专业、客观。
-- 重点分析：为何涨/跌？（关联 Market Info）
+## 账户业绩数据
+${performanceSection}
+
+## 持仓详情
+${positionsSection}
+
+## 其他上下文
+
+### 1. 市场关键信息
+${JSON.stringify(reportData.marketEvents, null, 2)}
+
+### 2. 用户笔记
+${JSON.stringify(reportData.notes, null, 2)}
+
+### 3. 长期投资逻辑
+${JSON.stringify(reportData.investmentMemos, null, 2)}
+
+### 4. 交易记录
+${JSON.stringify(reportData.transactions, null, 2)}
+
+${dataSourceSection}
+
+## 输出要求
+
+- 语气专业、客观，数据驱动
+- 重点分析：为何涨/跌？（关联市场信息和持仓变化）
 - 风险提示：基于本周信息，哪些持仓面临新的风险？
 - 格式：Markdown，包含以下章节：
-  1. 市场与账户概览
-  2. 持仓异动分析
+  1. 市场与账户概览（包含本周收益率、与基准对比）
+  2. 持仓异动分析（包含各持仓盈亏情况）
   3. 信息与笔记回顾
   4. 下周展望与建议
+
+注意：如果数据时效性分数低于 0.5，请在报告中提示数据可能不是最新的。
+`;
+  }
+
+  /**
+   * 构建业绩数据部分
+   */
+  private buildPerformanceSection(performance: WeeklyPerformance): string {
+    const formatCurrency = (cents: number) => `$${(cents / 100).toFixed(2)}`;
+    const formatPercent = (pct: number) => `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`;
+
+    return `
+| 指标 | 数值 |
+|------|------|
+| 期初净值 | ${formatCurrency((performance.previousValue || 0) * 100)} |
+| 期末净值 | ${formatCurrency((performance.totalValue || 0) * 100)} |
+| 收益金额 | ${formatCurrency((performance.changeAmount || 0) * 100)} |
+| 收益率 | ${formatPercent(performance.changePercentage || 0)} |
+| 基准表现 | ${performance.benchmarkPerformance !== undefined ? formatPercent(performance.benchmarkPerformance) : '数据不可用'} |
+| 超额收益 | ${performance.benchmarkPerformance !== undefined ? formatPercent((performance.changePercentage || 0) - performance.benchmarkPerformance) : '数据不可用'} |
+`.trim();
+  }
+
+  /**
+   * 构建持仓详情部分
+   */
+  private buildPositionsSection(positions: EnrichedPosition[]): string {
+    if (positions.length === 0) {
+      return '当前无持仓';
+    }
+
+    const formatCents = (cents: number) => `$${(cents / 100).toFixed(2)}`;
+    const formatStaleness = (ms: number) => {
+      if (ms === Infinity) return '未知';
+      const mins = Math.floor(ms / 60000);
+      if (mins < 60) return `${mins}分钟前`;
+      const hours = Math.floor(mins / 60);
+      return `${hours}小时前`;
+    };
+
+    const header = '| 股票 | 数量 | 成本价 | 现价 | 市值 | 盈亏 | 盈亏% | 更新时间 |';
+    const separator = '|------|------|--------|------|------|------|-------|----------|';
+
+    const rows = positions.map(pos => {
+      const costPrice = formatCents(pos.averagePriceCents);
+      const currentPrice = formatCents(pos.currentPriceCents);
+      const marketValue = formatCents(pos.marketValueCents);
+      const unrealizedPnL = formatCents(pos.unrealizedGainLossCents);
+      const pnlPercent = pos.averagePriceCents > 0
+        ? (((pos.currentPriceCents - pos.averagePriceCents) / pos.averagePriceCents) * 100).toFixed(2)
+        : '0.00';
+      const updateTime = formatStaleness(pos.dataStaleness);
+      const isStale = pos.dataStaleness > 60 * 60 * 1000;
+
+      return `| ${pos.symbol} | ${pos.quantity} | ${costPrice} | ${currentPrice} | ${marketValue} | ${unrealizedPnL} | ${pnlPercent}% | ${updateTime}${isStale ? ' ⚠️' : ''} |`;
+    });
+
+    return [header, separator, ...rows].join('\n');
+  }
+
+  /**
+   * 构建数据来源信息部分
+   */
+  private buildDataSourceSection(summary: DataSourceSummary): string {
+    const formatStaleness = (ms: number) => {
+      if (ms === Infinity) return '未知';
+      const mins = Math.floor(ms / 60000);
+      if (mins < 60) return `${mins}分钟`;
+      const hours = Math.floor(mins / 60);
+      return `${hours}小时`;
+    };
+
+    const header = '| 数据类型 | 数据源 | 更新时间 | 陈旧度 | 状态 |';
+    const separator = '|----------|--------|----------|--------|------|';
+
+    const rows = summary.sources.map(source => {
+      const lastUpdate = source.lastUpdate
+        ? new Date(source.lastUpdate).toLocaleString('zh-CN')
+        : '未知';
+      const staleness = formatStaleness(source.staleness);
+      const status = source.isStale ? '⚠️ 陈旧' : '✅ 新鲜';
+
+      return `| ${source.type} | ${source.source} | ${lastUpdate} | ${staleness} | ${status} |`;
+    });
+
+    return `
+## 数据来源信息
+
+数据时效性分数: ${(summary.freshnessScore * 100).toFixed(0)}%
+
+${header}
+${separator}
+${rows.join('\n')}
 `;
   }
 
@@ -506,7 +1145,14 @@ Output Requirement:
         content: report.content,
         startDate: report.startDate ? new Date(report.startDate) : null,
         endDate: report.endDate ? new Date(report.endDate) : null,
+        generationProgress: report.generationProgress ?? 0,
+        generationStage: report.generationStage,
+        dataSourceSummary: report.dataSourceSummary,
+        isManuallyEdited: report.isManuallyEdited ?? false,
+        lastEditedAt: report.lastEditedAt ? new Date(report.lastEditedAt) : null,
+        editCount: report.editCount ?? 0,
         createdAt: new Date(report.createdAt),
+        updatedAt: report.updatedAt ? new Date(report.updatedAt) : new Date(report.createdAt),
       };
     } catch (error) {
       logger.error('[ReportService] 获取报告详情失败', { reportId, error });
@@ -574,7 +1220,10 @@ Output Requirement:
       // 更新报告内容
       const [updatedReport] = await db
         .update(analysisReports)
-        .set({ content })
+        .set({ 
+          content,
+          updatedAt: new Date(),
+        })
         .where(eq(analysisReports.id, parseInt(reportId)))
         .returning();
 
@@ -588,7 +1237,14 @@ Output Requirement:
         content: updatedReport.content,
         startDate: updatedReport.startDate ? new Date(updatedReport.startDate) : null,
         endDate: updatedReport.endDate ? new Date(updatedReport.endDate) : null,
+        generationProgress: updatedReport.generationProgress ?? 0,
+        generationStage: updatedReport.generationStage,
+        dataSourceSummary: updatedReport.dataSourceSummary,
+        isManuallyEdited: updatedReport.isManuallyEdited ?? false,
+        lastEditedAt: updatedReport.lastEditedAt ? new Date(updatedReport.lastEditedAt) : null,
+        editCount: updatedReport.editCount ?? 0,
         createdAt: new Date(updatedReport.createdAt),
+        updatedAt: updatedReport.updatedAt ? new Date(updatedReport.updatedAt) : new Date(updatedReport.createdAt),
       };
     } catch (error) {
       logger.error('[ReportService] 更新报告失败', { reportId, accountId, error });

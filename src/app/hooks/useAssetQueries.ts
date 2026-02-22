@@ -8,6 +8,7 @@ import {
   fetchSummary,
   updateAccountBalance,
 } from '@renderer/services/assetService';
+import { SnapshotRevenuePeriod } from '@typings/account';
 
 // 账户信息查询
 export const useAccountQuery = () => {
@@ -54,8 +55,8 @@ export const useUpdateAccountBalanceMutation = () => {
   });
 };
 
-// 收益信息查询
-export const useRevenueQuery = (period: string = '30d') => {
+// 收益信息查询 - 基于快照计算
+export const useRevenueQuery = (period: SnapshotRevenuePeriod = '1M') => {
   return useQuery({
     queryKey: ['revenue', period],
     queryFn: () => fetchRevenue(period),
@@ -64,11 +65,11 @@ export const useRevenueQuery = (period: string = '30d') => {
   });
 };
 
-// 收益历史数据查询
-export const useRevenueHistoryQuery = (period: string = '30d', granularity: string = 'monthly') => {
+// 收益历史数据查询 - 基于快照计算
+export const useRevenueHistoryQuery = (period: SnapshotRevenuePeriod = '1M') => {
   return useQuery({
-    queryKey: ['revenue-history', period, granularity],
-    queryFn: () => fetchRevenueHistory(period, granularity),
+    queryKey: ['revenue-history', period],
+    queryFn: () => fetchRevenueHistory(period),
     staleTime: 1000 * 60 * 5, // 5分钟内数据视为新鲜
     retry: 1,
   });
