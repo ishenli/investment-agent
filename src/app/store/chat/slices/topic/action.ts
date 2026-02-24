@@ -56,6 +56,7 @@ export const chatTopic: StateCreator<
 > = (set, get) => ({
   // create
   openNewTopicOrSaveTopic: async () => {
+    debugger;
     const { switchTopic, saveToTopic, refreshMessages, activeTopicId } = get();
     const hasTopic = !!activeTopicId;
 
@@ -85,7 +86,11 @@ export const chatTopic: StateCreator<
   saveToTopic: async () => {
     // if there is no message, stop
     const messages = chatSelectors.activeBaseChats(get());
-    if (messages.length === 0) return;
+    if (messages.length === 0) {
+      console.info('[saveToTopic]messages', messages);
+      return;
+    }
+
 
     const { activeId, summaryTopicTitle, internal_createTopic } = get();
 
@@ -100,6 +105,8 @@ export const chatTopic: StateCreator<
     // 2. auto summary topic Title
     // we don't need to wait for summary, just let it run async
     summaryTopicTitle(topicId, messages);
+
+    console.info('[saveToTopic]messages', messages);
 
     return topicId;
   },

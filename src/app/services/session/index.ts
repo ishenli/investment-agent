@@ -1,3 +1,3 @@
-import { ClientService } from './client';
+import { ServerService } from './serverClient';
 
-export const sessionService = new ClientService();
+export const sessionService = new ServerService();

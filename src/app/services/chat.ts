@@ -343,6 +343,7 @@ class ChatService {
     onFinish,
     ...options
   }: CreateAssistantMessageStream) => {
+    console.log('createAssistantMessageStream', params);
     const { plugins: enabledPlugins, messages, ...restParams } = params;
     const { isWelcomeQuestion, trace, historySummary } = options;
     const payload = merge(
@@ -382,7 +383,6 @@ class ChatService {
       };
 
       // 判断使用哪个助手
-      const assistantType = this.determineAssistantType(params);
       const textController = createSmoothMessage({
         onTextUpdate: (delta, text) => {
           onMessageHandle?.({ text: delta, type: 'text' });

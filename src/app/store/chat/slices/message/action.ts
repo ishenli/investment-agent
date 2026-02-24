@@ -359,7 +359,7 @@ export const chatMessage: StateCreator<
         messageService.getMessages(sessionId, topicId),
       {
         onSuccess: (messages, key) => {
-          // console.warn('useFetchMessages', messages, sessionId, activeTopicId);
+          console.warn('useFetchMessages', messages, sessionId, activeTopicId);
           const nextMap = {
             ...get().messagesMap,
             [messageMapKey(sessionId, activeTopicId)]: messages,

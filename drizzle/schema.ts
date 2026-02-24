@@ -362,3 +362,34 @@ export const portfolioSnapshots = sqliteTable('portfolio_snapshots', {
   // 按日期范围查询快照
   index('idx_portfolio_snapshots_date').on(table.snapshotDate),
 ]);
+
+// ============== Chat Storage Tables ==============
+// 聊天存储相关表，从 drizzle/schema/chat.ts 导入
+export {
+  chatSessionGroups,
+  chatSessions,
+  chatTopics,
+  chatMessages,
+  chatThreads,
+  chatFiles,
+  chatPlugins,
+  type AgentConfig,
+  type SessionMeta,
+  type ToolCall,
+  type PluginInfo,
+  type TranslateInfo,
+  type ChatSession,
+  type NewChatSession,
+  type ChatTopic,
+  type NewChatTopic,
+  type ChatMessage,
+  type NewChatMessage,
+  type ChatThread,
+  type NewChatThread,
+  type ChatFile,
+  type NewChatFile,
+  type ChatSessionGroup,
+  type NewChatSessionGroup,
+  type ChatPlugin,
+  type NewChatPlugin,
+} from './schema/chat';
