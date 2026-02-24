@@ -1,0 +1,58 @@
+{
+  "actions": {
+    "add": "Add",
+    "back": "Back to Notes List",
+    "cancel": "Cancel",
+    "create": "New Note",
+    "createFirst": "Create First Note",
+    "delete": "Delete",
+    "edit": "Edit",
+    "save": "Save",
+    "saving": "Saving..."
+  },
+  "detail": {
+    "createTime": "Created Time",
+    "updateTime": "Updated Time"
+  },
+  "editor": {
+    "contentLabel": "Enter note content (supports Markdown syntax)",
+    "editTitle": "Edit Note",
+    "newTitle": "New Note",
+    "tagPlaceholder": "Add tag",
+    "titleLabel": "Enter note title"
+  },
+  "filter": {
+    "clear": "Clear Filter",
+    "label": "Tag Filter:"
+  },
+  "list": {
+    "empty": "No notes yet",
+    "loading": "Loading...",
+    "noNotes": "No notes"
+  },
+  "messages": {
+    "deleteConfirm": "Are you sure you want to delete this note?",
+    "deleteSuccess": "Note deleted successfully",
+    "loadDetailError": "Failed to load note details",
+    "loadError": "Failed to load notes list",
+    "saveError": "Failed to save note",
+    "saveSuccess": "Note saved successfully",
+    "tagExists": "Tag already exists"
+  },
+  "pagination": {
+    "next": "Next",
+    "page": "{{current}} / {{total}}",
+    "prev": "Prev"
+  },
+  "searchPlaceholder": "Search note title or content...",
+  "sortBy": {
+    "createdAt": "Created Time",
+    "title": "Title",
+    "updatedAt": "Updated Time"
+  },
+  "sortOrder": {
+    "asc": "Ascending",
+    "desc": "Descending"
+  },
+  "title": "Notes"
+}

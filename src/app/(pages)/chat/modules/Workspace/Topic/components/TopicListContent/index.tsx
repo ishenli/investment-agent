@@ -12,13 +12,14 @@ import { useUserStore } from '@renderer/store/user';
 import { preferenceSelectors } from '@renderer/store/user/selectors';
 import { TopicDisplayMode } from '@typings/topic';
 
-import TopicConfig from '@renderer/const/text/topicConfig';
 import { SkeletonList } from '../SkeletonList';
 import ByTimeMode from './ByTimeMode';
 import FlatMode from './FlatMode';
 import SearchResult from './SearchResult';
+import { useTranslation } from 'react-i18next';
 
 const TopicListContent = memo(() => {
+  const { t } = useTranslation('topic');
   const { isDarkMode } = useThemeMode();
   const [topicsInit, topicLength] = useChatStore((s) => [
     s.topicsInit,
@@ -47,18 +48,18 @@ const TopicListContent = memo(() => {
       {topicLength === 0 && visible && (
         <Flexbox paddingInline={8}>
           <GuideCard
-            alt={TopicConfig.guide.desc}
+            alt={t('guide.alt')}
             cover="https://lobechat.com/images/empty_topic_light.webp"
             coverProps={{
               priority: true,
             }}
-            desc={TopicConfig.guide.desc}
+            desc={t('guide.desc')}
             height={120}
             onClose={() => {
               updateGuideState({ topic: false });
             }}
             style={{ flex: 'none', marginBottom: 12, fontSize: 14 }}
-            title={TopicConfig.guide.title}
+            title={t('guide.title')}
             visible={visible}
             width={200}
           />

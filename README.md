@@ -1,566 +1,573 @@
-# 投资助手 Investment Agent
-![投资 Agent](https://mdn.alipayobjects.com/huamei_ptvnul/afts/img/A*75cHQpMc8-4AAAAAcFAAAAgAeg-GAQ/original)
+# Investment Agent
+![Investment Agent](https://mdn.alipayobjects.com/huamei_ptvnul/afts/img/A*75cHQpMc8-4AAAAAcFAAAAgAeg-GAQ/original)
 
-这是一个使用 AI Coding 打造的本地化投资分析工具，利用 AI 提供全面的股票市场分析、资产管理和投资建议。
+This is a localized investment analysis tool built with AI Coding, utilizing AI to provide comprehensive stock market analysis, asset management, and investment recommendations.
+
+English Version | [中文版本](./doc//zh/README.md)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/ishenli/investment-agent)](https://github.com/ishenli/investment-agent/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/ishenli/investment-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/ishenli/investment-agent/actions/workflows/ci.yml)
 [![Dependabot Updates](https://github.com/ishenli/investment-agent/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/ishenli/investment-agent/actions/workflows/dependabot/dependabot-updates)
 
 
-## 目录
+## Table of Contents
 
-- [概述](#概述)
-- [安装与使用](#安装与使用)
-  - [全局安装](#全局安装)
-  - [本地开发](#本地开发)
-  - [环境变量](#环境变量)
-- [功能特性](#功能特性)
-- [架构设计](#架构设计)
-- [可用的脚本命令](#可用的脚本命令)
-- [数据库操作](#数据库操作)
-- [使用方法](#使用方法)
-- [项目结构](#项目结构)
-- [技术栈](#技术栈)
-  - [前端框架与工具](#前端框架与工具)
-  - [AI 与 LLM](#ai--llm)
-  - [数据库与存储](#数据库与存储)
-  - [数据可视化与图表](#数据可视化与图表)
-  - [UI 组件库](#ui-组件库)
-  - [开发工具与测试](#开发工具与测试)
-- [CI/CD 自动化](#cicd-自动化)
-- [部署](#部署)
-- [贡献指南](#贡献指南)
-- [许可证](#许可证)
-- [致谢](#致谢)
+- [Overview](#overview)
+- [Installation and Usage](#installation-and-usage)
+  - [Global Installation](#global-installation)
+  - [Local Development](#local-development)
+  - [Environment Variables](#environment-variables)
+- [Features](#features)
+- [Architecture Design](#architecture-design)
+- [Available Scripts](#available-scripts)
+- [Database Operations](#database-operations)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
+- [Technology Stack](#technology-stack)
+  - [Frontend Frameworks and Tools](#frontend-frameworks-and-tools)
+  - [AI and LLM](#ai-and-llm)
+  - [Database and Storage](#database-and-storage)
+  - [Data Visualization and Charts](#data-visualization-and-charts)
+  - [UI Component Libraries](#ui-component-libraries)
+  - [Development Tools and Testing](#development-tools-and-testing)
+- [CI/CD Automation](#cicd-automation)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
 
-## 概述
+## Overview
 
-投资助手是一个先进的投资分析平台，使用多Agent AI 系统来分析股票并提供投资建议。它结合了技术分析、新闻情绪、基本面数据和市场趋势，提供全面的投资洞察。平台还支持资产组合管理和市场信息获取功能。
+Investment Agent is an advanced investment analysis platform that uses a multi-agent AI system to analyze stocks and provide investment recommendations. It combines technical analysis, news sentiment, fundamental data, and market trends to provide comprehensive investment insights. The platform also supports portfolio management and market information retrieval functions.
 
-### 功能特性
+### Features
 
-![投顾智能体对话](https://mdn.alipayobjects.com/huamei_ptvnul/afts/img/A*rBlqR5EDXF4AAAAAXYAAAAgAeg-GAQ/original)
+![AI Agent Conversation](https://mdn.alipayobjects.com/huamei_ptvnul/afts/img/A*rBlqR5EDXF4AAAAAXYAAAAgAeg-GAQ/original)
 
-<center>智能体对话</center>
+<center>Agent Conversation</center>
 
 ![](https://mdn.alipayobjects.com/huamei_ptvnul/afts/img/A*xb4HTbkfOcoAAAAAWhAAAAgAeg-GAQ/original)
 
-<center>仓位管理</center>
+<center>Position Management</center>
 
-![市场信息获取](https://mdn.alipayobjects.com/huamei_ptvnul/afts/img/A*K5SeQbplfAQAAAAAYbAAAAgAeg-GAQ/original)
+![Market Information Retrieval](https://mdn.alipayobjects.com/huamei_ptvnul/afts/img/A*K5SeQbplfAQAAAAAYbAAAAgAeg-GAQ/original)
 
-<center>市场信息获取</center>
+<center>Market Information Retrieval</center>
 
-### 整体功能列表
+### Complete Feature List
 
-- **多Agent AI 分析**：利用专门的 AI Agent进行股票分析的不同方面
-  - 市场分析师：技术指标分析
-  - 新闻分析师：市场情绪分析
-  - 看涨/看跌研究员：多角度观点
-  - 风险经理：投资风险评估
-  - 交易员：最终决策制定
+- **Multi-Agent AI Analysis**: Utilize specialized AI agents for different aspects of stock analysis
+  - Market Analyst: Technical indicator analysis
+  - News Analyst: Market sentiment analysis
+  - Bull/Bear Researchers: Multi-perspective viewpoints
+  - Risk Manager: Investment risk assessment
+  - Trader: Final decision making
 
-- **实时数据获取**：与金融数据提供商集成，获取最新的市场信息
+- **Real-time Data Retrieval**: Integration with financial data providers for latest market information
 
-- **全面技术分析**：
-  - 移动平均线（MA）
-  - 相对强弱指数（RSI）
-  - 移动指数平均线（MACD）
-  - 其他专业指标
+- **Comprehensive Technical Analysis**:
+  - Moving Averages (MA)
+  - Relative Strength Index (RSI)
+  - Moving Average Convergence Divergence (MACD)
+  - Other professional indicators
 
-- **智能新闻情绪分析**：评估新闻来源的市场情绪及其对股价的潜在影响
+- **Intelligent News Sentiment Analysis**: Evaluate market sentiment from news sources and potential impact on stock prices
 
-- **多层风险评估系统**：
-  - 技术风险评估
-  - 市场风险评估
-  - 投资组合风险分析
+- **Multi-layer Risk Assessment System**:
+  - Technical risk assessment
+  - Market risk assessment
+  - Portfolio risk analysis
 
-- **交互式仪表板**：用户友好的界面，具有实时数据可视化功能
+- **Interactive Dashboard**: User-friendly interface with real-time data visualization
 
-- **资产组合管理**：跟踪和分析投资组合的收益和风险
+- **Portfolio Management**: Track and analyze portfolio returns and risks
 
-- **市场信息自动获取**：自动获取、分析和存储市场信息
+- **Automatic Market Information Retrieval**: Automatically fetch, analyze, and store market information
 
-- **持久化数据存储**：使用 SQLite 和 Drizzle ORM 进行可靠的数据持久化
+- **Persistent Data Storage**: Reliable data persistence using SQLite and Drizzle ORM
 
-## 安装与使用
+## Installation and Usage
 
-### 全局安装
+### Global Installation
 
-本项目可以作为 CLI 工具全局安装，使用以下命令：
+This project can be installed globally as a CLI tool using the following commands:
 
 ```bash
-# 使用 npm 全局安装
+# Global installation with npm
 npm install -g investment-agent
 
-# 收集支持的命令
-# investment-agent: 主命令
-# ig: 简写命令
+# Available commands
+# investment-agent: main command
+# ig: shorthand command
 ```
 
-### 本地开发
+### Local Development
 
-1. 克隆仓库：
+1. Clone the repository:
 
    ```bash
    git clone https://github.com/ishenli/investment-agent.git
    cd investment-agent
    ```
 
-2. 安装依赖：
+2. Install dependencies:
 
    ```bash
    pnpm install
-   # 或
+   # or
    npm install
    ```
 
-3. 创建环境变量配置：
+3. Create environment variable configuration:
 
-   在根目录下创建 `.env.local` 文件（参考下方环境变量章节）
+   Create a `.env.local` file in the root directory (refer to the Environment Variables section below)
 
-4. 运行开发服务器：
+4. Run the development server:
 
    ```bash
    pnpm dev
-   # 访问 http://localhost:3000
+   # Visit http://localhost:3000
    ```
 
-### 本地项目环境变量
+### Local Project Environment Variables
 
-在 `.env.local` 文件中配置以下环境变量：
+Configure the following environment variables in the `.env.local` file:
 
 ```env
-# =================== LLM 配置 ===================
-# OpenAI 兼容的 API 地址
+# =================== LLM Configuration ===================
+# OpenAI compatible API URL
 MODEL_PROVIDER_URL=your_openai_compatible_api_url
 
-# API 密钥
+# API Key
 MODEL_PROVIDER_API_KEY=your_api_key
 
-# 会话用户 ID
+# Session User ID
 SESSION_USER_ID=your_user_id
 
-# =================== 数据提供商 ===================
-# Finnhub API 密钥（股票市场数据）
+# =================== Data Providers ===================
+# Finnhub API Key (stock market data)
 FINNHUB_API_KEY=your_finnhub_api_key
 
-# =================== LangSmith (可选) ===================
-# 用于 LangChain 追踪和调试
+# =================== LangSmith (Optional) ===================
+# For LangChain tracking and debugging
 LANGSMITH_API_KEY=your_langsmith_api_key
 
-# =================== 其他 API (可选) ===================
-# 金融数据集密钥
+# =================== Other APIs (Optional) ===================
+# Financial datasets key
 FINANCIAL_DATASETS_KEY=your_financial_datasets_key
 ```
 
-## 全局环境变量
+## Global Environment Variables
 
-使用 Electron 时，环境变量需要配置在全局环境变量中，而不是 `.env.local` 文件中。
+When using Electron, environment variables need to be configured in global environment variables rather than the `.env.local` file.
 
-## 架构设计
+## Architecture Design
 
-该系统基于多Agent架构构建，每个Agent专门负责投资分析的特定方面：
+The system is built on a multi-agent architecture, with each agent specializing in a specific aspect of investment analysis:
 
-### 核心Agent架构
+### Core Agent Architecture
 
-1. **市场分析师** (Market Analyst)
-   - 使用技术指标（移动平均线、RSI、MACD 等）
-   - 生成技术分析报告
+1. **Market Analyst**
+   - Uses technical indicators (moving averages, RSI, MACD, etc.)
+   - Generates technical analysis reports
 
-2. **新闻分析师** (News Analyst)
-   - 分析新闻情绪
-   - 评估新闻对股价的潜在影响
+2. **News Analyst**
+   - Analyzes news sentiment
+   - Evaluates potential impact of news on stock prices
 
-3. **看涨研究员** (Bull Researcher)
-   - 寻找支持看涨投资头寸的证据
-   - 生成多头观点报告
+3. **Bull Researcher**
+   - Seeks evidence supporting bullish positions
+   - Generates long-position viewpoint reports
 
-4. **看跌研究员** (Bear Researcher)
-   - 寻找支持看跌投资头寸的证据
-   - 生成空头观点报告
+4. **Bear Researcher**
+   - Seeks evidence supporting bearish positions
+   - Generates short-position viewpoint reports
 
-5. **研究经理** (Research Manager)
-   - 调解看涨和看跌分析师之间的辩论
-   - 综合多方观点
+5. **Research Manager**
+   - Mediates debates between bullish and bearish analysts
+   - Synthesizes multiple perspectives
 
-6. **风险经理** (Risk Manager)
-   - 基于所有分析评估投资风险
-   - 确保适当的风险管理
+6. **Risk Manager**
+   - Assesses investment risks based on all analyses
+   - Ensures appropriate risk management
 
-7. **交易员** (Trader)
-   - 基于所有分析做出最终投资决策
-   - 生成可执行的投资建议
+7. **Trader**
+   - Makes final investment decisions based on all analyses
+   - Generates actionable investment recommendations
 
-### 技术架构
+### Technical Architecture
 
-- **前端层**：Next.js 16 + React 19 + TypeScript
-- **AI 层**：LangChain + LangGraph (多Agent编排)
-- **数据层**：SQLite + Drizzle ORM
-- **服务层**：RESTful API + WebSocket (实时数据)
-- **状态管理**：Zustand + TanStack Query
+- **Frontend Layer**: Next.js 16 + React 19 + TypeScript
+- **AI Layer**: LangChain + LangGraph (multi-agent orchestration)
+- **Data Layer**: SQLite + Drizzle ORM
+- **Service Layer**: RESTful API + WebSocket (real-time data)
+- **State Management**: Zustand + TanStack Query
 
-## 可用的脚本命令
+## Available Scripts
 
-### 开发与构建
+### Development and Build
 
 ```bash
-# 开发服务器 (Next.js)
+# Development server (Next.js)
 pnpm dev
 
-# 生产构建
+# Production build
 pnpm build
 
-# 启动生产服务器
+# Start production server
 pnpm start
 
-# 构建 Electron 应用
+# Build Electron application
 pnpm electron:build
 ```
 
-### LangGraph 开发
+### LangGraph Development
 
-> 只需要用于调试 langgraph，非必需
+> Only needed for debugging langgraph, not required
 
 ```bash
-# LangGraph 开发服务器 (端口 54367)
+# LangGraph development server (port 54367)
 pnpm langgraph:dev
 
-# 启动 LangGraph 服务
+# Start LangGraph service
 pnpm langgraph:start
 ```
 
-### 代码质量
+### Code Quality
 
 ```bash
-# TypeScript 类型检查
+# TypeScript type checking
 pnpm types:check
 
-# ESLint 检查
+# ESLint checking
 pnpm lint
 
-# ESLint 自动修复
+# ESLint auto-fix
 pnpm lint:fix
 
-# Prettier 格式化
+# Prettier formatting
 pnpm format
 
-# 检查格式化
+# Check formatting
 pnpm format:check
 ```
 
-### 数据库操作
+### Database Operations
 
 ```bash
-# 生成数据库迁移文件
+# Generate database migration files
 pnpm db:generate
 
-# 执行数据库迁移
+# Execute database migrations
 pnpm db:migrate
 
-# 打开 Drizzle Studio (数据库可视化管理)
+# Open Drizzle Studio (database visual management)
 pnpm db:studio
 ```
 
-### 测试
+### Testing
 
 ```bash
-# 测试资产服务
+# Test asset service
 pnpm test
 ```
 
-## 数据库操作
+## Database Operations
 
-本项目集成了 SQLite 数据库和 Drizzle ORM，用于数据持久化。
+This project integrates SQLite database and Drizzle ORM for data persistence.
 
-### Drizzle ORM 关键特性
+### Drizzle ORM Key Features
 
-- 类型安全的数据库操作
-- 自动化迁移管理
-- 可视化数据库管理工具（Drizzle Studio）
+- Type-safe database operations
+- Automated migration management
+- Visual database management tool (Drizzle Studio)
 
-### 数据库操作流程
+### Database Operation Workflow
 
-1. **修改数据库 Schema**：编辑 `drizzle/config.ts` 或相关 schema 文件
-2. **生成迁移文件**：`pnpm db:generate`
-3. **执行迁移**：`pnpm db:migrate`
-4. **可视化管理**：`pnpm db:studio`（可选）
+1. **Modify Database Schema**: Edit `drizzle/config.ts` or related schema files
+2. **Generate Migration Files**: `pnpm db:generate`
+3. **Execute Migrations**: `pnpm db:migrate`
+4. **Visual Management**: `pnpm db:studio` (optional)
 
-## 使用方法
+## Usage
 
-### Web 应用
+### Web Application
 
-1. 启动开发服务器：
+1. Start the development server:
 
    ```bash
    pnpm dev
    ```
 
-2. 打开浏览器访问 [http://localhost:3000](http://localhost:3000)
+2. Open your browser and visit [http://localhost:3000](http://localhost:3000)
 
-### Electron 应用
+### Electron Application
 
-1. 构建应用：
+1. Build the application:
 
    ```bash
    pnpm electron:build
    ```
 
-2. 构建完成后，可以在 `release` 目录下找到对应平台的安装包。
+2. After building, you can find the installation package for the corresponding platform in the `release` directory.
 
-### CLI 工具
+### CLI Tool
 
-如果已全局安装，可以使用：
+If installed globally, you can use:
 
 ```bash
-# 使用完整命令
+# Using full command
 investment-agent [command] [options]
 
-# 或使用简写
+# Or using shorthand
 ig [command] [options]
 ```
 
-## 项目结构
+## Project Structure
 
 ```
 investment-agent/
-├── bin/                          # 可执行文件 (CLI)
-│   ├── investment-agent.js       # 主命令入口
-│   └── ig.js                     # 简写命令入口
-├── src/                          # 源代码目录
-│   ├── app/                      # Next.js 应用目录
-│   │   ├── (pages)/              # 页面组件（路由组）
-│   │   │   ├── asset-management/           # 资产管理页面
-│   │   │   ├── asset-market-info-fetcher/  # 市场信息获取页面
-│   │   │   ├── stock/                    # 股票分析页面
-│   │   │   └── ...                       # 其他页面
-│   │   ├── api/                # API 路由
-│   │   ├── components/         # React 组件
-│   │   ├── hooks/              # 自定义 React Hooks
-│   │   ├── lib/                # 工具函数库
-│   │   ├── store/              # 状态管理 (Zustand stores)
-│   │   └── types/              # TypeScript 类型定义
-│   ├── server/                 # 服务端代码
-│   │   ├── core/               # 核心服务
-│   │   ├── service/            # 业务逻辑层
-│   │   └── tradingagents/      # AI Agent实现
-│   └── shared/                 # 客户端和服务端共享代码
-├── tests/                      # 测试文件
-├── drizzle/                    # Drizzle ORM 配置
-│   ├── config.ts               # 数据库配置
-│   └── schema/                 # 数据库 schema 定义
-├── public/                     # 静态资源
-├── .next/                      # Next.js 构建输出（生成后）
-├── .env.local                  # 环境变量（本地）
-├── package.json                # 项目配置
-├── tsconfig.json               # TypeScript 配置
-├── tailwind.config.ts          # Tailwind CSS 配置
-└── README.md                   # 项目文档
+├── bin/                          # Executable files (CLI)
+│   ├── investment-agent.js       # Main command entry
+│   └── ig.js                     # Shorthand command entry
+├── src/                          # Source code directory
+│   ├── app/                      # Next.js application directory
+│   │   ├── (pages)/              # Page components (route groups)
+│   │   │   ├── asset-management/           # Asset management pages
+│   │   │   ├── asset-market-info-fetcher/  # Market information retrieval pages
+│   │   │   ├── stock/                    # Stock analysis pages
+│   │   │   └── ...                       # Other pages
+│   │   ├── api/                # API routes
+│   │   ├── components/         # React components
+│   │   ├── hooks/              # Custom React Hooks
+│   │   ├── lib/                # Utility function library
+│   │   ├── store/              # State management (Zustand stores)
+│   │   └── types/              # TypeScript type definitions
+│   ├── locales/                # locales i18n
+│   ├── server/                 # Server-side code
+│   │   ├── core/               # Core services
+│   │   ├── service/            # Business logic layer
+│   │   └── tradingagents/      # AI Agent implementations
+│   └── shared/                 # Client and server shared code
+├── tests/                      # Test files
+├── drizzle/                    # Drizzle ORM configuration
+│   ├── config.ts               # Database configuration
+│   └── schema/                 # Database schema definitions
+├── public/                     # Static resources
+├── .next/                      # Next.js build output (generated)
+├── .env.local                  # Environment variables (local)
+├── package.json                # Project configuration
+├── tsconfig.json               # TypeScript configuration
+├── tailwind.config.ts          # Tailwind CSS configuration
+└── README.md                   # Project documentation
 ```
 
-## 技术栈
+## Technology Stack
 
-### 前端框架与工具
+### Core Framework & Infrastructure
 
-- **Next.js** 16.0.0 - 全栈 React 框架
-- **React** 19.2.0 - UI 库
-- **TypeScript** 5.9.3 - 类型安全的 JavaScript
-- **Tailwind CSS** 4.1.18 - 实用优先的 CSS 框架
-- **PostCSS** - CSS 转换工具
-- **Electron** 40.0.0 - 跨平台桌面应用开发框架
-- **Electron Builder** 26.7.0 - Electron 应用打包工具
+- **Next.js** - React-based full-stack framework with App Router
+- **React** - Modern UI library with Concurrent features
+- **TypeScript** - Type-safe JavaScript development
+- **Electron** - Cross-platform desktop application framework
+- **Electron Builder** - Professional Electron app packaging and distribution
 
-### AI 与 LLM
+### AI & LLM Integration
 
-- **LangChain** 1.2.7 - LLM 应用开发框架
-- **LangGraph** 1.0.14 - 有向图编排和多Agent系统
-- **@langchain/core** 1.1.12 - LangChain 核心模块
-- **@langchain/openai** 1.2.1 - OpenAI 集成
-- **Vercel AI SDK** (ai) 5.0.119 - AI 流式响应
-- **DeepAgents** 1.4.1 - 高级 AI Agent库
-- **Tavily** 0.5.14 - 搜索和信息检索
+- **LangChain** - Advanced LLM application development framework
+- **LangGraph** - Graph-based orchestration for multi-agent systems
+- **@langchain/core** - Core LangChain modules and utilities
+- **@langchain/openai** - OpenAI API integration
+- **Vercel AI SDK** - Streaming AI responses and edge functions
+- **DeepAgents** - Advanced AI agent orchestration platform
+- **Tavily** - AI-powered web search and information retrieval
 
-### 数据库与存储
+### Database & Data Management
 
-- **Better SQLite3** 12.6.2 - 嵌入式数据库
-- **Drizzle ORM** 0.44.7 - 类型安全的 ORM
-- **Drizzle Kit** 0.31.9 - 数据库迁移工具
-- **Dexie** 4.3.0 - IndexedDB 封装（客户端存储）
-- **@libsql/client** 0.17.0 - LibSQL 客户端 (用于 Electron 环境)
+- **Drizzle ORM** - Type-safe SQL ORM with excellent TypeScript support
+- **Drizzle Kit** - Database schema management and migrations
+- **Better SQLite3** - High-performance embedded database
+- **@libsql/client** - LibSQL client for edge-compatible database operations
+- **Dexie** - IndexedDB wrapper for client-side data persistence
 
-### 数据可视化与图表
+### UI Components & Design System
 
-- **Recharts** 2.15.4 - React 图表库
-- **@xyflow/react** 12.10.0 - 交互式流程图和节点图
-- **React Syntax Highlighter** 16.1.0 - 代码高亮显示
+- **Ant Design** - Enterprise-grade React component library
+- **@ant-design/x** - Extended Ant Design components
+- **LobeHub UI** - Modern AI-focused UI components
+- **Radix UI** - Unstyled accessible UI primitives
+- **Tailwind CSS** - Utility-first CSS framework
+- **Framer Motion** - Production-ready motion library
+- **Lucide React** - Beautiful SVG icon library
 
-### UI 组件库
+### State Management & Data Fetching
 
-- **Ant Design** 5.29.3 - 企业级 UI 设计语言
-- **@ant-design/x** 1.6.1 - Ant Design 扩展组件
-- **Radix UI** - 无样式基础组件库，Dialog, Avatar, Select, Tabs, Tooltip 等
-- **LobeHub UI** 2.24.3 - 高级 UI 组件
-- **Framer Motion** 12.25.0 - 动画库
-- **Tailwind Animate CSS** 1.4.0 - Tailwind 动画扩展
+- **Zustand** - Lightweight, scalable state management
+- **Zustand Utils** - Enhanced Zustand utilities
+- **TanStack Query** - Server state management and caching
+- **SWR** - React Hooks for data fetching
+- **Ahooks** - Comprehensive React Hooks library
 
-### 状态管理与数据获取
+### Data Visualization & Charts
 
-- **Zustand** 5.0.9 - 轻量级状态管理
-- **Zustand Utils** 2.1.1 - Zustand 扩展工具
-- **TanStack Query** 5.90.16 - 服务端状态管理
-- **SWR** 2.3.8 - 数据获取库
-- **Ahooks** 3.9.6 - React Hooks 工具库
+- **Recharts** - Declarative charting library for React
+- **@xyflow/react** - Interactive node-based diagrams and flowcharts
+- **React Syntax Highlighter** - Code syntax highlighting component
 
-### 金融数据处理
+### Financial Data & Processing
 
-- **Finnhub** 1.2.19 - 股票市场数据 API
-- **Decimal.js** 10.6.0 - 精确的十进制数学运算
+- **Finnhub** - Real-time financial market data API
+- **Decimal.js** - High-precision decimal arithmetic
+- **Numeral** - Number formatting and manipulation
 
-### 实用工具库
+### Internationalization & Localization
 
-- **Lodash** 4.17.21 - JavaScript 实用工具库
-- **Date-fns** 4.1.0 - 日期处理库
-- **Dayjs** 1.11.19 - 轻量级日期处理
-- **Axios** 1.13.2 - HTTP 客户端
-- **Zod** 4.3.5 - 运行时类型验证和 schema 定义
-- **UUID** 13.0.0 - UUID 生成器
-- **Nanoid** 5.1.6 - 唯一 ID 生成器
-- **Fast Deep Equal** 3.1.3 - 深度比较
+- **i18next** - Internationalization framework
+- **react-i18next** - React integration for i18next
 
-### 文本与 Markdown 处理
+### Development & Build Tools
 
-- **Cheerio** 1.0.0-rc.10 - 服务端 jQuery 实现
-- **Remark-parse** 11.0.0 - Markdown 解析器
-- **Shiki** 3.21.0 - 语法高亮
-- **Unified** 11.0.5 - 文本处理框架
+- **ESLint** - Code quality and linting
+- **Prettier** - Code formatting
+- **Husky** - Git hooks management
+- **Vitest** - Vite-native testing framework
+- **TypeScript ESLint** - TypeScript-specific linting rules
 
-### 日志与调试
+### Utility Libraries & Helpers
 
-- **Winston** 3.19.0 - 多传输日志库
-- **Winston Daily Rotate File** 5.0.0 - 日志文件轮转
-- **Debug** 4.4.3 - 调试工具
+- **Lodash** - JavaScript utility functions
+- **Date-fns** - Modern date utility library
+- **Dayjs** - Lightweight date and time library
+- **Axios** - Promise-based HTTP client
+- **Zod** - TypeScript-first schema validation
+- **UUID** - UUID generation
+- **Nanoid** - Compact unique ID generator
+- **Fast Deep Equal** - High-performance deep comparison
 
-### 开发工具与测试
+### Text Processing & Markdown
 
-- **ESLint** 9.39.2 - 代码检查
-- **ESLint Config Next** 16.0.0 - Next.js ESLint 配置
-- **Prettier** 3.7.4 - 代码格式化
-- **Husky** 9.1.7 - Git Hooks 管理工具
-- **Lint-staged** - 暂存文件 lint 检查
-- **Vitest** 3.2.4 - 单元测试框架
+- **Cheerio** - Server-side jQuery implementation
+- **Remark-parse** - Markdown parsing engine
+- **Shiki** - Beautiful syntax highlighting
+- **Unified** - Text processing ecosystem
 
-### 其他重要库
+### Logging & Monitoring
 
-- **Recharts** - 图表可视化
-- **Codesandbox Sandpack** - 在线代码编辑器
-- **Dnd Kit** - 拖放功能
-- **Embla Carousel** - 轮播组件
-- **React Virtuoso** - 高性能列表渲染
-- **Nuqs** - URL 查询参数管理
+- **Winston** - Multi-transport logging solution
+- **Winston Daily Rotate File** - Log rotation management
+- **Debug** - Selective debugging utility
 
-## CI/CD 自动化
+### Modern Web Features
 
-本项目配置了完整的 CI/CD 流程，确保代码质量和稳定性。
+- **Next Themes** - Theme switching for Next.js applications
+- **React Virtuoso** - Virtualized list rendering
+- **Embla Carousel** - Lightweight carousel component
+- **Dnd Kit** - Drag and drop primitives
+- **Nuqs** - URL query parameter management
+- **Sonner** - Toast notification library
 
-### 工作流概述
+## CI/CD Automation
 
-#### 1. **CI 工作流** (`ci.yml`)
+This project is configured with a complete CI/CD pipeline to ensure code quality and stability.
 
-**触发条件**：
-- 推送到 `main` 或 `develop` 分支
-- Pull Request 合并到 `main`
+### Workflow Overview
 
-**执行流程**：
-```yaml
-✓ 环境设置 (Node.js 18.x, 20.x)
-✓ 依赖安装
-✓ 类型检查 (typescript)
-✓ 代码质量检查 (eslint)
-✓ 格式化检查 (prettier)
-✓ 运行所有测试 (vitest)
-✓ 项目构建 (next build)
-✓ 安全审计
+#### 1. **CI Workflow** (`ci.yml`)
+
+**Trigger Conditions**:
+- Push to `main` or `develop` branches
+- Pull Request merge to `main`
+
+**Execution Flow**:
+```
+✓ Environment setup (Node.js 18.x, 20.x)
+✓ Dependency installation
+✓ Type checking (typescript)
+✓ Code quality checking (eslint)
+✓ Formatting checking (prettier)
+✓ Run all tests (vitest)
+✓ Project build (next build)
+✓ Security audit
 ```
 
 ### Git Hooks
 
-使用 Husky 管理 Git Hooks，在提交前自动运行代码检查：
+Using Husky to manage Git Hooks, automatically running code checks before commits:
 
 ```bash
-# 提交前自动执行
-✓ lint-staged (检查暂存文件)
-  ├─ ESLint 检查 JS/TS/TSX 文件
-  └─ Prettier 检查 JSON/MD/CSS 文件
+# Automatically executed before commit
+✓ lint-staged (check staged files)
+  ├─ ESLint check JS/TS/TSX files
+  └─ Prettier check JSON/MD/CSS files
 ```
 
-## 部署
+## Deployment
 
-直接本地部署即可
+Direct local deployment is sufficient.
 
-## 贡献指南
+## Contributing
 
-欢迎贡献！请遵循以下步骤：
+Contributions are welcome! Please follow these steps:
 
-1. **Fork 项目**
+1. **Fork the Project**
    
    ```bash
-   # 在 GitHub 上点击 Fork 按钮
+   # Click the Fork button on GitHub
    ```
-   
-2. **克隆您的 Fork**
+
+2. **Clone Your Fork**
    ```bash
    git clone https://github.com/YOUR_USERNAME/investment-agent.git
    cd investment-agent
    ```
 
-3. **创建功能分支**
+3. **Create Feature Branch**
    ```bash
    git checkout -b feature/amazing-feature
-   # 或
+   # or
    git checkout -b bugfix/fix-bug
    ```
 
-4. **进行修改**
-   - 遵循现有代码风格
-   - 添加必要的测试
-   - 更新文档（如需要）
+4. **Make Changes**
+   - Follow existing code style
+   - Add necessary tests
+   - Update documentation (if needed)
 
-5. **提交更改**
+5. **Commit Changes**
    ```bash
    git commit -m 'feat: add amazing feature'
-   # 使用 conventional commit 格式
+   # Use conventional commit format
    ```
 
-6. **推送到分支**
+6. **Push to Branch**
    ```bash
    git push origin feature/amazing-feature
    ```
 
-7. **发起 Pull Request**
-   - 在 GitHub 上创建 PR
-   - 填写 PR 模板
-   - 等待代码审查
+7. **Create Pull Request**
+   - Create PR on GitHub
+   - Fill out PR template
+   - Wait for code review
 
-### 代码规范
+### Code Standards
 
-- 使用 **Conventional Commits** 规范
-- 遵循 **ESLint** 和 **Prettier** 配置
-- 编写 **TypeScript** 类型定义
-- 添加必要的 **单元测试**
+- Use **Conventional Commits** specification
+- Follow **ESLint** and **Prettier** configurations
+- Write **TypeScript** type definitions
+- Add necessary **unit tests**
 
-### 部分调试细节
+### Debugging Details
 
-- Electron Mac 地址：/Users/[UserName]/Library/Application Support/investment-agent
+- Electron Mac address: /Users/[UserName]/Library/Application Support/investment-agent
 
-## 许可证
+## License
 
-本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件。
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ```text
 MIT License
 
-Copyright (c) 2025 ishenli
+Copyright (c) 2026 ishenli
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -581,30 +588,30 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## 致谢
+## Acknowledgments
 
-### 核心灵感来源
+### Core Inspiration Sources
 
-本项目基于以下优秀项目的研究和代码：
+This project is based on research and code from the following excellent projects:
 
-| 作者 | 仓库/项目 | 贡献 |
+| Author | Repository/Project | Contribution |
 |------|----------|------|
-| [Tauric Research Team](https://github.com/TauricResearch) | **[TradingAgents](https://github.com/TauricResearch/TradingAgents)** | 提供了多Agent交易系统的核心架构思路，论文参考: [arxiv.org/pdf/2412.20138](https://arxiv.org/pdf/2412.20138) |
-| [@delenzhang](https://github.com/delenzhang) | **[TradingAgents](https://github.com/delenzhang/TradingAgents)** | 中文优化和适配工作 |
-| [@canisminor1990](https://github.com/canisminor1990) | [lobehub-ui](https://ui.lobehub.com/) | 高级 UI 组件和设计系统 |
+| [Tauric Research Team](https://github.com/TauricResearch) | **[TradingAgents](https://github.com/TauricResearch/TradingAgents)** | Provided core architecture ideas for multi-agent trading systems, paper reference: [arxiv.org/pdf/2412.20138](https://arxiv.org/pdf/2412.20138) |
+| [@delenzhang](https://github.com/delenzhang) | **[TradingAgents](https://github.com/delenzhang/TradingAgents)** | Chinese optimization and adaptation work |
+| [@canisminor1990](https://github.com/canisminor1990) | [lobehub-ui](https://ui.lobehub.com/) | Advanced UI components and design system |
 
-### 技术支持
+### Technical Support
 
-感谢开源社区的以下项目和工具：
+Thanks to the open-source community for the following projects and tools:
 
-- **Next.js** - React 框架
-- **LangChain** - AI 应用开发
-- **Ant Design** - UI 组件库
-- **Radix UI** - 无样式组件
-- 以及所有开源依赖的维护者们
+- **Next.js** - React framework
+- **LangChain** - AI application development
+- **Ant Design** - UI component library
+- **Radix UI** - Unstyled components
+- And all maintainers of open-source dependencies
 
 ---
 
 **Made with ❤️ by ishenli**
 
-如有问题或建议，欢迎提交 [Issue](https://github.com/ishenli/investment-agent/issues) 或联系作者。
+If you have questions or suggestions, feel free to submit an [Issue](https://github.com/ishenli/investment-agent/issues) or contact the author.

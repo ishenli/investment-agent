@@ -22,9 +22,11 @@ import { Spinner } from '@renderer/components/ui/spinner';
 import { RecommendationType } from '@typings/insight';
 import { RefreshCw } from 'lucide-react';
 import { cn } from '@renderer/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 // 分散建议组件
 export function DiversificationRecommendation() {
+  const { t } = useTranslation('insight');
   const {
     data: recommendations,
     isLoading: isDiversificationLoading,
@@ -35,8 +37,8 @@ export function DiversificationRecommendation() {
   const header = (
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
       <div className="flex flex-col space-y-1.5">
-        <CardTitle className="text-lg font-semibold">分散投资建议</CardTitle>
-        <CardDescription>基于风险分析的投资组合优化建议</CardDescription>
+        <CardTitle className="text-lg font-semibold">{t('diversification.title')}</CardTitle>
+        <CardDescription>{t('diversification.description')}</CardDescription>
       </div>
       <Button
         variant="ghost"
@@ -59,7 +61,7 @@ export function DiversificationRecommendation() {
         <CardContent>
           <div className="flex items-center justify-center py-8 text-muted-foreground">
             <Spinner />
-            <p>正在分析中...</p>
+            <p>{t('loading.analyzing')}</p>
           </div>
         </CardContent>
       </Card>
@@ -71,7 +73,7 @@ export function DiversificationRecommendation() {
       <Card>
         {header}
         <CardContent>
-          <div className="text-center py-8 text-muted-foreground">暂无分散投资建议</div>
+          <div className="text-center py-8 text-muted-foreground">{t('diversification.noData')}</div>
         </CardContent>
       </Card>
     );
@@ -84,11 +86,11 @@ export function DiversificationRecommendation() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>资产</TableHead>
-              <TableHead>建议金额</TableHead>
-              <TableHead>相关性</TableHead>
-              <TableHead>流动性</TableHead>
-              <TableHead>理由</TableHead>
+              <TableHead>{t('table.asset')}</TableHead>
+              <TableHead>{t('table.suggestedAmount')}</TableHead>
+              <TableHead>{t('table.correlation')}</TableHead>
+              <TableHead>{t('table.liquidity')}</TableHead>
+              <TableHead>{t('table.reason')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

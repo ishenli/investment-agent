@@ -3,7 +3,6 @@
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@renderer/components/ui/card';
@@ -12,6 +11,7 @@ import { Button } from '@renderer/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@renderer/components/ui/alert';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 
 type AssetMarketInfoType = {
   id: number;
@@ -43,11 +43,13 @@ export function LatestMarketInfoView({
   getSentimentColor,
   getImportanceColor,
 }: LatestMarketInfoViewProps) {
+  const { t } = useTranslation('asset-meta');
+  
   if (!marketInfo) {
     return (
       <Alert>
-        <AlertTitle>未找到数据</AlertTitle>
-        <AlertDescription>未找到该资产的市场信息。</AlertDescription>
+        <AlertTitle>{t('detail.latest.noData.title')}</AlertTitle>
+        <AlertDescription>{t('detail.latest.noData.description')}</AlertDescription>
       </Alert>
     );
   }
@@ -59,11 +61,11 @@ export function LatestMarketInfoView({
           <div className="flex items-center gap-2">
             <h2 className="text-2xl font-bold">{marketInfo.title}</h2>
             <Badge variant={marketInfo.contentMode === 'original' ? 'secondary' : 'default'}>
-              {marketInfo.contentMode === 'original' ? '原文' : 'AI摘要'}
+              {marketInfo.contentMode === 'original' ? t('detail.latest.contentMode.original') : t('detail.latest.contentMode.aiSummary')}
             </Badge>
           </div>
           <p className="text-muted-foreground mt-2">
-            资产代码: {marketInfo.symbol} | 更新时间:{' '}
+            {t('detail.latest.assetCode')}: {marketInfo.symbol} | {t('detail.latest.updateTime')}:{' '}
             {format(new Date(marketInfo.updatedAt), 'yyyy年MM月dd日 HH:mm', {
               locale: zhCN,
             })}
@@ -78,7 +80,7 @@ export function LatestMarketInfoView({
             <Card>
               <CardHeader className="">
                 <CardTitle className="text-sm font-medium">
-                  投资倾向：
+                  {t('detail.latest.sentiment')}：
                   <Badge className={getSentimentColor(marketInfo.sentiment)}>
                     {marketInfo.sentiment}
                   </Badge>
@@ -89,7 +91,7 @@ export function LatestMarketInfoView({
             <Card>
               <CardHeader className="">
                 <CardTitle className="text-sm font-medium">
-                  重要性评分{' '}
+                  {t('detail.latest.importanceScore')}{' '}
                   <Badge className={getImportanceColor(marketInfo.importance)}>
                     {marketInfo.importance}/10
                   </Badge>
@@ -99,7 +101,7 @@ export function LatestMarketInfoView({
           </div>
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle>市场影响</CardTitle>
+              <CardTitle>{t('detail.latest.marketImpact')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm">{marketInfo.marketImpact}</p>
@@ -107,7 +109,7 @@ export function LatestMarketInfoView({
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>内容摘要</CardTitle>
+              <CardTitle>{t('detail.latest.contentSummary')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm whitespace-pre-wrap">{marketInfo.summary}</p>
@@ -117,7 +119,7 @@ export function LatestMarketInfoView({
           {marketInfo.keyTopics && (
             <Card>
               <CardHeader>
-                <CardTitle>关键主题</CardTitle>
+                <CardTitle>{t('detail.latest.keyTopics')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm whitespace-pre-wrap">{marketInfo.keyTopics}</p>
@@ -128,7 +130,7 @@ export function LatestMarketInfoView({
           {marketInfo.keyDataPoints && (
             <Card>
               <CardHeader>
-                <CardTitle>重要数据点</CardTitle>
+                <CardTitle>{t('detail.latest.keyDataPoints')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm whitespace-pre-wrap">{marketInfo.keyDataPoints}</p>
@@ -140,7 +142,7 @@ export function LatestMarketInfoView({
         // 原文模式显示
         <Card>
           <CardHeader>
-            <CardTitle>原文内容</CardTitle>
+            <CardTitle>{t('detail.latest.originalContent')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="max-h-96 overflow-y-auto">
@@ -153,17 +155,17 @@ export function LatestMarketInfoView({
       {(marketInfo.sourceName || marketInfo.sourceUrl) && (
         <Card>
           <CardHeader>
-            <CardTitle>来源信息</CardTitle>
+            <CardTitle>{t('detail.latest.sourceInfo')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
               <div>
-                {marketInfo.sourceName && <p className="text-sm">来源: {marketInfo.sourceName}</p>}
+                {marketInfo.sourceName && <p className="text-sm">{t('detail.latest.sourceInfo')}: {marketInfo.sourceName}</p>}
               </div>
               {marketInfo.sourceUrl && (
                 <Button variant="outline" size="sm" asChild>
                   <a href={marketInfo.sourceUrl} target="_blank" rel="noopener noreferrer">
-                    查看原文
+                    {t('detail.latest.viewOriginal')}
                   </a>
                 </Button>
               )}

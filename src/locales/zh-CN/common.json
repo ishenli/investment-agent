@@ -1,0 +1,111 @@
+{
+  "Ok": "[to be translated]:Ok",
+  "add": "添加",
+  "back": "返回",
+  "cancel": "取消",
+  "close": "关闭",
+  "common": {
+    "appName": "投资助手"
+  },
+  "confirm": "确认",
+  "copied": "已复制",
+  "copy": "复制",
+  "delete": "删除",
+  "deleteConfirm": "确定要删除吗？",
+  "documents": {
+    "knowledgeBase": "知识库"
+  },
+  "download": "下载",
+  "edit": "编辑",
+  "error": "操作失败",
+  "greeting": {
+    "afternoon": "下午好",
+    "morning": "早上好",
+    "night": "晚上好",
+    "noon": "中午好"
+  },
+  "guide": {
+    "defaultMessage": "我是您的AI助手。今天能为您做些什么？<br />点击 <plus /> 开始一个新会话 {{appName}}"
+  },
+  "header": {
+    "accountAnalysis": "账户分析",
+    "accountSetting": "账户设置",
+    "assetMarketInfo": "资产市场信息",
+    "createTradingAccount": "新增交易账户",
+    "documents": "文档",
+    "investmentNotes": "投资笔记",
+    "investmentReport": "投资报告",
+    "systemSetting": "系统设置"
+  },
+  "language": "语言",
+  "loading": "加载中...",
+  "mainTitle": "您的投资AI助手",
+  "next": "下一步",
+  "noData": "暂无数据",
+  "previous": "上一步",
+  "refresh": {
+    "error": {
+      "format": "价格更新失败，数据格式异常",
+      "network": "价格刷新失败，请检查网络连接"
+    },
+    "partialSuccess": "价格更新完成：成功 {{updated}} 个，失败 {{failed}} 个",
+    "refreshBalance": "刷新余额",
+    "refreshing": "刷新中...",
+    "success": "价格更新完成：成功更新 {{count}} 个持仓价格",
+    "title": "刷新持仓价格"
+  },
+  "reset": "重置",
+  "retry": "重试",
+  "save": "保存",
+  "saveFailed": "保存失败",
+  "saveSuccess": "保存成功",
+  "search": "搜索",
+  "settings": "设置",
+  "share": "分享",
+  "submit": "提交",
+  "success": "操作成功",
+  "timezone": "时区",
+  "topic": {
+    "actions": {
+      "autoRename": "智能重命名",
+      "confirmRemoveAll": "即将删除全部话题，删除后将不可恢复，请谨慎操作。",
+      "confirmRemoveTopic": "即将删除该话题，删除后将不可恢复，请谨慎操作。",
+      "confirmRemoveUnstarred": "即将删除未收藏话题，删除后将不可恢复，请谨慎操作。",
+      "duplicate": "创建副本",
+      "export": "导出话题",
+      "removeAll": "删除全部话题",
+      "removeUnstarred": "删除未收藏话题"
+    },
+    "defaultTitle": "默认话题",
+    "duplicateLoading": "话题复制中...",
+    "duplicateSuccess": "话题复制成功",
+    "favorite": "收藏",
+    "groupMode": {
+      "ascMessages": "按消息总数顺序",
+      "byTime": "按时间分组",
+      "descMessages": "按消息总数倒序",
+      "flat": "不分组"
+    },
+    "groupTitle": {
+      "byTime": {
+        "month": "本月",
+        "today": "今天",
+        "week": "本周",
+        "yesterday": "昨天"
+      }
+    },
+    "guide": {
+      "desc": "点击发送左侧按钮可将当前会话保存为历史话题，并开启新一轮会话",
+      "title": "话题列表"
+    },
+    "searchPlaceholder": "搜索话题...",
+    "searchResultEmpty": "暂无搜索结果",
+    "temp": "临时",
+    "title": "话题"
+  },
+  "user": {
+    "accountSettings": "账户设置",
+    "addAccount": "新增账户",
+    "switchAccount": "切换账号"
+  }
+}

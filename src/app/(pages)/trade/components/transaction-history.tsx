@@ -32,8 +32,10 @@ import dayjs from 'dayjs';
 import { AddTransactionDialog } from '../../../components/add-transaction-dialog';
 import { EditTransactionDialog } from '../../../components/edit-transaction-dialog';
 import { TransactionRecordType } from '@/types';
+import { useTranslation } from 'react-i18next';
 
 export function TransactionHistory() {
+  const { t } = useTranslation('transaction');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
@@ -64,8 +66,8 @@ export function TransactionHistory() {
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">交易历史</CardTitle>
-            <CardDescription>正在加载交易记录...</CardDescription>
+            <CardTitle className="text-lg">{t('history.title')}</CardTitle>
+            <CardDescription>{t('history.loading')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex justify-center items-center h-32">
@@ -83,13 +85,13 @@ export function TransactionHistory() {
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">交易历史</CardTitle>
-            <CardDescription>加载交易记录时出错</CardDescription>
+            <CardTitle className="text-lg">{t('history.title')}</CardTitle>
+            <CardDescription>{t('history.error')}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-red-500 text-center py-4">错误: {transactionsError}</div>
+            <div className="text-red-500 text-center py-4">{t('error', { ns: 'common' })}: {transactionsError}</div>
             <div className="text-center">
-              <Button onClick={() => fetchTransactions()}>重新加载</Button>
+              <Button onClick={() => fetchTransactions()}>{t('history.reload')}</Button>
             </div>
           </CardContent>
         </Card>
@@ -107,7 +109,7 @@ export function TransactionHistory() {
                 <div className="relative">
                   <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="搜索交易..."
+                    placeholder={t('history.searchPlaceholder')}
                     className="pl-8 w-full sm:w-64"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -116,20 +118,20 @@ export function TransactionHistory() {
                 <Select value={filterType} onValueChange={setFilterType}>
                   <SelectTrigger className="w-full sm:w-40">
                     <FilterIcon className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="类型" />
+                    <SelectValue placeholder={t('history.filter.all')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">全部类型</SelectItem>
-                    <SelectItem value="deposit">入金</SelectItem>
-                    <SelectItem value="withdrawal">出金</SelectItem>
-                    <SelectItem value="buy">买入</SelectItem>
-                    <SelectItem value="sell">卖出</SelectItem>
+                    <SelectItem value="all">{t('history.filter.all')}</SelectItem>
+                    <SelectItem value="deposit">{t('history.filter.deposit')}</SelectItem>
+                    <SelectItem value="withdrawal">{t('history.filter.withdrawal')}</SelectItem>
+                    <SelectItem value="buy">{t('history.filter.buy')}</SelectItem>
+                    <SelectItem value="sell">{t('history.filter.sell')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <div className="relative">
                   <Button size="sm" onClick={() => setIsAddTransactionOpen(true)}>
                     <PlusIcon className="h-4 w-4 mr-1" />
-                    添加
+                    {t('history.addButton')}
                   </Button>
                 </div>
               </div>
@@ -137,20 +139,20 @@ export function TransactionHistory() {
           </CardHeader>
           <CardContent>
             {filteredTransactions.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">暂无交易记录</div>
+              <div className="text-center py-8 text-muted-foreground">{t('history.noRecords')}</div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>时间</TableHead>
-                    <TableHead>类型</TableHead>
-                    <TableHead>市场</TableHead>
-                    <TableHead>标的</TableHead>
-                    <TableHead>数量</TableHead>
-                    <TableHead>价格</TableHead>
-                    <TableHead>交易金额</TableHead>
-                    <TableHead>描述</TableHead>
-                    <TableHead>操作</TableHead>
+                    <TableHead>{t('history.table.time')}</TableHead>
+                    <TableHead>{t('history.table.type')}</TableHead>
+                    <TableHead>{t('history.table.market')}</TableHead>
+                    <TableHead>{t('history.table.symbol')}</TableHead>
+                    <TableHead>{t('history.table.quantity')}</TableHead>
+                    <TableHead>{t('history.table.price')}</TableHead>
+                    <TableHead>{t('history.table.amount')}</TableHead>
+                    <TableHead>{t('history.table.description')}</TableHead>
+                    <TableHead>{t('history.table.action')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -175,10 +177,10 @@ export function TransactionHistory() {
                                     : ''
                           }
                         >
-                          {transaction.type === 'deposit' && '入金'}
-                          {transaction.type === 'withdrawal' && '出金'}
-                          {transaction.type === 'buy' && '买入'}
-                          {transaction.type === 'sell' && '卖出'}
+                          {transaction.type === 'deposit' && t('history.filter.deposit')}
+                          {transaction.type === 'withdrawal' && t('history.filter.withdrawal')}
+                          {transaction.type === 'buy' && t('history.filter.buy')}
+                          {transaction.type === 'sell' && t('history.filter.sell')}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -193,9 +195,9 @@ export function TransactionHistory() {
                                   : 'bg-gray-100 text-gray-800 hover:bg-gray-100'
                           }
                         >
-                          {transaction.market === 'US' && '美股'}
-                          {transaction.market === 'HK' && '港股'}
-                          {transaction.market === 'CN' && 'A股'}
+                          {transaction.market === 'US' && t('history.market.US')}
+                          {transaction.market === 'HK' && t('history.market.HK')}
+                          {transaction.market === 'CN' && t('history.market.CN')}
                           {!transaction.market && '-'}
                         </Badge>
                       </TableCell>

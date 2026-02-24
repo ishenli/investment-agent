@@ -62,6 +62,10 @@ export class UserService implements IUserService {
     await this.preferenceStorage.saveToLocalStorage(preference);
   }
 
+  async getUserPreference(): Promise<UserPreference> {
+    return this.preferenceStorage.getFromLocalStorage();
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars,unused-imports/no-unused-vars
   async updateGuide(guide: Partial<UserGuide>) {
     throw new Error('Method not implemented.');

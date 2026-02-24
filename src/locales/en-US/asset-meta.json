@@ -1,0 +1,204 @@
+{
+  "actions": {
+    "add": "Add New Asset",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "refresh": "Refresh",
+    "save": "Save",
+    "view": "View"
+  },
+  "basicInfo": {
+    "buttons": {
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving..."
+    },
+    "description": "View and edit asset basic information",
+    "fields": {
+      "chineseName": "Chinese Name",
+      "fullName": "Full Name",
+      "logoPreview": "Preview",
+      "market": "Market",
+      "symbol": "Stock Symbol"
+    },
+    "messages": {
+      "symbolReadOnly": "Stock symbol cannot be modified"
+    },
+    "placeholders": {
+      "chineseName": "Please enter Chinese name",
+      "fullName": "Please enter full name",
+      "logoUrl": "https://example.com/logo.png"
+    },
+    "title": "Asset Basic Information"
+  },
+  "delete": {
+    "confirm": "Are you sure you want to delete this record?",
+    "failed": "Delete failed",
+    "success": "Delete successful"
+  },
+  "detail": {
+    "actions": {
+      "addCompanyInfo": "Add Company Info",
+      "addInvestmentMemo": "Add Investment Memo",
+      "addMarketInfo": "Add Market Info",
+      "editBasicInfo": "Edit Basic Info"
+    },
+    "company": {
+      "actions": {
+        "delete": "Delete",
+        "edit": "Edit",
+        "viewDetail": "View Details"
+      },
+      "noData": {
+        "description": "There is currently no available company information.",
+        "title": "No data"
+      }
+    },
+    "delete": {
+      "confirm": "Are you sure you want to delete this record?",
+      "dialog": {
+        "cancel": "Cancel",
+        "confirm": "Confirm Delete",
+        "deleting": "Deleting...",
+        "description": "Are you sure you want to delete this information? This operation cannot be undone.",
+        "title": "Confirm Delete"
+      },
+      "failed": "Delete failed",
+      "success": "Delete successful"
+    },
+    "history": {
+      "actions": {
+        "deleteDetail": "Delete Details",
+        "viewDetail": "View Details"
+      },
+      "contentMode": {
+        "aiSummary": "AI Summary",
+        "original": "Original"
+      },
+      "noData": {
+        "description": "There is currently no available asset market information history records.",
+        "title": "No data"
+      },
+      "pagination": {
+        "next": "Next",
+        "pageInfo": "Page {{page}} of {{totalPages}}",
+        "previous": "Previous"
+      }
+    },
+    "latest": {
+      "assetCode": "Asset Code",
+      "contentMode": {
+        "aiSummary": "AI Summary",
+        "original": "Original"
+      },
+      "contentSummary": "Content Summary",
+      "importanceScore": "Importance Score",
+      "keyDataPoints": "Key Data Points",
+      "keyTopics": "Key Topics",
+      "marketImpact": "Market Impact",
+      "noData": {
+        "description": "Market information for this asset was not found.",
+        "title": "Data not found"
+      },
+      "originalContent": "Original Content",
+      "sentiment": "Investment Sentiment",
+      "sourceInfo": "Source Information",
+      "updateTime": "Update Time",
+      "viewOriginal": "View Original"
+    },
+    "tabs": {
+      "basicInfo": "Basic Info",
+      "company": "Company Info",
+      "history": "Market Info History",
+      "investmentMemo": "Investment Memo",
+      "latest": "Latest Market Info"
+    },
+    "title": "{{name}} Asset Information Details"
+  },
+  "error": {
+    "reload": "Reload",
+    "title": "Error",
+    "unknown": "Unknown error"
+  },
+  "errors": {
+    "fetchCompanyInfoFailed": "Failed to fetch company info",
+    "fetchDataFailed": "Failed to fetch data",
+    "fetchPriceFailed": "Error fetching price",
+    "unknown": "Unknown error"
+  },
+  "form": {
+    "addTitle": "Add Asset Metadata",
+    "assetTypes": {
+      "crypto": "Cryptocurrency",
+      "etf": "ETF",
+      "fund": "Fund",
+      "stock": "Stock"
+    },
+    "buttons": {
+      "refreshPrice": "Refresh Price"
+    },
+    "editTitle": "Edit Asset Metadata",
+    "fields": {
+      "assetType": "Asset Type *",
+      "chineseName": "Chinese Name",
+      "currency": "Currency *",
+      "fullName": "Full Name",
+      "investmentMemo": "Investment Memo",
+      "logoUrl": "Logo URL",
+      "market": "Market *",
+      "priceCents": "Price (Cents) *",
+      "source": "Data Source *",
+      "symbol": "Stock Symbol *"
+    },
+    "markets": {
+      "CN": "A Share",
+      "HK": "HK Stock",
+      "US": "US Stock"
+    },
+    "placeholders": {
+      "investmentMemo": "Please enter investment memo content...",
+      "logoUrl": "https://example.com/logo.png"
+    }
+  },
+  "investmentMemo": {
+    "buttons": {
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving..."
+    },
+    "description": "Investment analysis and notes about this asset",
+    "editDescription": "Please enter investment analysis and notes about this asset",
+    "editTitle": "Edit Investment Memo",
+    "emptyDescription": "There is currently no investment memo information.",
+    "emptyTitle": "No data",
+    "placeholder": "Please enter investment memo...",
+    "title": "Investment Memo"
+  },
+  "loading": "Loading...",
+  "save": {
+    "failed": "Save failed",
+    "success": "Save successful"
+  },
+  "search": {
+    "placeholder": "Search stock symbol, Chinese name or investment notes..."
+  },
+  "sentiment": {
+    "negative": "Negative",
+    "neutral": "Neutral",
+    "positive": "Positive"
+  },
+  "table": {
+    "headers": {
+      "actions": "Actions",
+      "assetType": "Asset Type",
+      "currency": "Currency",
+      "market": "Market",
+      "price": "Price (USD)",
+      "source": "Data Source",
+      "symbol": "Stock Symbol",
+      "updatedAt": "Updated At"
+    }
+  },
+  "title": "Asset Metadata Management"
+}

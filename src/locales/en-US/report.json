@@ -1,0 +1,31 @@
+{
+  "detail": {
+    "generateFailed": "Generation failed",
+    "generateSuccess": "Report generation task submitted",
+    "title": "Report Detail",
+    "unknownError": "Unknown error"
+  },
+  "list": {
+    "empty": "No Reports",
+    "emptyDescription": "You haven't generated any investment reports yet. Click the button above to start generating.",
+    "generateButton": "Generate Report",
+    "status": {
+      "completed": "Completed",
+      "failed": "Failed",
+      "pending": "Pending",
+      "processing": "Processing"
+    },
+    "title": "Report List",
+    "type": {
+      "emergency": "Emergency Report",
+      "monthly": "Monthly",
+      "placeholder": "Type",
+      "weekly": "Weekly"
+    }
+  },
+  "messages": {
+    "loadError": "Unable to load report list: {{error}}",
+    "noDateRange": "No date range"
+  },
+  "title": "Report"
+}

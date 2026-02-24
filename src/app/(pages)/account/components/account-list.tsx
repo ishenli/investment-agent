@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react';
 import { useAccountStore } from '@renderer/store/account/store';
 import { TradingAccountType } from '@typings/account';
+import { useTranslation } from 'react-i18next';
 
 export default function AccountList() {
   const [items, setItems] = useState<TradingAccountType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation('account');
 
   const setAccount = useAccountStore((s) => s.setAccount);
 
@@ -37,13 +39,13 @@ export default function AccountList() {
   }, []);
 
   if (loading) {
-    return <div className="p-4">加载中...</div>;
+    return <div className="p-4">{t('loading')}</div>;
   }
 
   if (error) {
     return (
       <div className="p-4">
-        <h2 className="text-xl font-bold mb-4">账户列表</h2>
+        <h2 className="text-xl font-bold mb-4">{t('list.title')}</h2>
         <p className="text-red-500">{error}</p>
       </div>
     );
@@ -51,27 +53,27 @@ export default function AccountList() {
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">账户列表</h2>
+      <h2 className="text-xl font-bold mb-4">{t('list.title')}</h2>
       {items.length === 0 ? (
-        <p>暂无账户数据</p>
+        <p>{t('list.noData')}</p>
       ) : (
         <div className="space-y-2">
           {items.map((account) => (
             <div key={account.id} className="border p-3 rounded flex justify-between items-center">
               <div>
                 <p>
-                  <strong>账户名:</strong> {account.accountName}
+                  <strong>{t('list.accountName')}:</strong> {account.accountName}
                 </p>
                 <p>
-                  <strong>余额:</strong> {account.balance?.toFixed(2)} {account.currency}
+                  <strong>{t('list.balance')}:</strong> {account.balance?.toFixed(2)} {account.currency}
                 </p>
                 <p>
-                  <strong>市场:</strong> {account.market}
+                  <strong>{t('dashboard.market')}:</strong> {account.market}
                 </p>
               </div>
               <div>
                 <button className="btn btn-primary" onClick={() => setAccount(account)}>
-                  选择
+                  {t('list.select')}
                 </button>
               </div>
             </div>

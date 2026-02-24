@@ -3,8 +3,10 @@ import { AllocationChart } from './AllocationChart';
 import { Skeleton } from '@renderer/components/ui/skeleton';
 import { useRiskDataQuery } from '@renderer/hooks/usePositionQueries';
 import { Card, CardContent } from '@renderer/components/ui/card';
+import { useTranslation } from 'react-i18next';
 
 export function AssetStructure() {
+  const { t } = useTranslation('asset');
   // 使用React Query获取数据
   const {
     data: riskData,
@@ -28,8 +30,8 @@ export function AssetStructure() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">风险洞察</h1>
-          <p className="text-muted-foreground">实时风险洞察和投资组合分析</p>
+          <h1 className="text-3xl font-bold">{t('structure.riskInsights')}</h1>
+          <p className="text-muted-foreground">{t('structure.riskInsightsDesc')}</p>
         </div>
         <Card>
           <CardContent>
@@ -37,8 +39,8 @@ export function AssetStructure() {
               <div className="h-12 w-12 mx-auto mb-4 bg-red-200 dark:bg-red-800 rounded-full flex items-center justify-center">
                 <span className="text-2xl">⚠️</span>
               </div>
-              <p className="text-lg font-medium">加载风险数据时出错</p>
-              <p className="mt-2">请稍后重试</p>
+              <p className="text-lg font-medium">{t('structure.loadRiskError')}</p>
+              <p className="mt-2">{t('structure.retryLater')}</p>
             </div>
           </CardContent>
         </Card>

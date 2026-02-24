@@ -1,0 +1,126 @@
+{
+  "dataTypes": {
+    "futuNews": "Futu News",
+    "markdown": "Markdown",
+    "text": "Plain Text",
+    "web": "Regular Web Page",
+    "wechatMp": "WeChat Official Account"
+  },
+  "error": {
+    "analyzeFailed": "Analysis failed",
+    "crawlFailed": "Crawling failed",
+    "fetchFailed": "Failed to fetch data",
+    "saveFailed": "Save failed",
+    "title": "Error",
+    "unknown": "Unknown error"
+  },
+  "loading": "Loading...",
+  "steps": {
+    "step1": {
+      "actions": {
+        "back": "Back",
+        "crawl": "Start Crawling",
+        "crawling": "Crawling...",
+        "reselect": "Reselect",
+        "save": "Save Information",
+        "saving": "Saving..."
+      },
+      "crawlSuccess": {
+        "contentLength": "Content Length",
+        "source": "Source",
+        "title": "Crawling Successful",
+        "titleLabel": "Title"
+      },
+      "description": "Choose input method and get content",
+      "form": {
+        "content": {
+          "label": "Content",
+          "placeholder": "Enter market information content..."
+        },
+        "dataSourceType": {
+          "label": "Data Source Type",
+          "placeholder": "Select data source type"
+        },
+        "format": {
+          "label": "Content Format",
+          "placeholder": "Select content format"
+        },
+        "saveSuccess": {
+          "contentLength": "Content Length",
+          "format": "Format",
+          "title": "Input Successful",
+          "titleLabel": "Title"
+        },
+        "url": {
+          "description": "Enter the web address to crawl",
+          "label": "Web URL",
+          "placeholder": "https://example.com/market-news"
+        }
+      },
+      "manualMode": {
+        "description": "Manually enter market information content",
+        "title": "Manual Input"
+      },
+      "title": "Get Content",
+      "urlMode": {
+        "description": "Enter web address to automatically fetch content",
+        "title": "Fetch via URL"
+      }
+    },
+    "step2": {
+      "actions": {
+        "analyze": "Start AI Analysis",
+        "analyzing": "AI Analyzing...",
+        "back": "Previous Step",
+        "next": "Next: Save Data",
+        "reanalyze": "Reanalyze",
+        "reanalyzing": "Reanalyzing..."
+      },
+      "analyzeSuccess": {
+        "importance": "Importance Score",
+        "keyData": "Key Data",
+        "keywords": "Keywords",
+        "marketImpact": "Market Impact",
+        "sentiment": "Investment Sentiment",
+        "summary": "Content Summary",
+        "symbol": "Asset Symbol",
+        "title": "AI Analysis Complete",
+        "titleLabel": "Title"
+      },
+      "contentPreview": "Content Preview",
+      "description": "Let AI summarize and categorize content",
+      "title": "AI Analysis"
+    },
+    "step3": {
+      "actions": {
+        "back": "Previous Step",
+        "restart": "Start Over",
+        "save": "Confirm Save",
+        "saving": "Saving..."
+      },
+      "assetSelect": {
+        "label": "Select Associated Assets (Multiple Selection)",
+        "loading": "Loading...",
+        "noSelection": "Please select at least one asset to associate",
+        "placeholder": "Add Associated Assets"
+      },
+      "confirmInfo": "Confirm to save the following information",
+      "contentMode": {
+        "aiSummary": "AI Summary Mode",
+        "aiSummaryDesc": "Save AI analysis results",
+        "label": "Content Processing Mode",
+        "original": "Original Content Mode",
+        "originalDesc": "Save original article content, skip AI analysis"
+      },
+      "description": "Confirm and save to database",
+      "saveSuccess": {
+        "createdAt": "Created At",
+        "infoId": "Information ID",
+        "source": "Source",
+        "title": "Save Successful"
+      },
+      "title": "Save Data"
+    }
+  },
+  "title": "Market Information Fetcher"
+}

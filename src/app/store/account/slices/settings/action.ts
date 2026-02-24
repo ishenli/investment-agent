@@ -1,7 +1,6 @@
 import { StateCreator } from 'zustand';
 import { TradingAccountType, UpdateAccountRequestType } from '@typings/account';
 import { AccountStore } from '../../types';
-import { message } from 'antd';
 
 export interface AccountSettingsAction {
   fetchAccountSettings: (accountId: string) => Promise<void>;
@@ -25,44 +24,7 @@ export const createAccountSettingsSlice: StateCreator<
   AccountSettingsAction
 > = (set, get) => ({
   initializeAccount: async () => {
-    // 先调用 /api/init 更新后端持仓价格
-    try {
-      const response = await fetch('/api/init');
-      const result = await response.json();
-
-      // 后端返回结构: { success: true, data: { stats: ... } }
-      if (result.success && result.data && result.data.stats) {
-        // 获取更新统计信息
-        const stats = result.data.stats;
-        console.log('价格更新完成:', {
-          total: stats.total,
-          succeeded: stats.succeeded,
-          failed: stats.failed.length,
-          markets: stats.byMarket
-        });
-
-        // 显示更新成功消息
-        if (stats.failed.length === 0) {
-          message.success(`价格更新完成：成功更新 ${result.data.updatedCount} 个持仓价格`);
-        } else {
-          message.info(`价格更新完成：成功 ${result.data.updatedCount} 个，失败 ${stats.failed.length} 个`);
-        }
-
-        // 可以在这里添加更详细的错误提示
-        if (stats.failed.length > 0) {
-          console.warn('部分价格更新失败:', stats.failed);
-        }
-
-        // 这里可以额外触发刷新操作，如果我们需要更复杂的刷新逻辑
-        // 例如：await usePriceRefresh.refreshPrices();
-      }
-    } catch (error) {
-      console.error('初始化持仓价格失败:', error);
-      message.error('价格初始化失败，请稍后重试');
-      // 即使初始化失败，继续获取账户数据
-    }
-
-    // 更新持仓价格后，再获取账户数据
+    // 获取账户数据
     await get().fetchAccounts();
     await get().fetchSelectedAccount();
     const accounts = get().accounts;

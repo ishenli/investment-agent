@@ -17,6 +17,7 @@ import {
   SidebarMenuItem,
 } from '@renderer/components/ui/sidebar';
 import { usePathname } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 
 export type SettingsCategory = 'provider' | 'tool' | 'agent' | 'theme' | 'general' | 'about';
 
@@ -81,6 +82,7 @@ export function SettingsSidebar({
   activeCategory = 'provider',
   onCategoryChange,
 }: SettingsSidebarProps) {
+  const { t } = useTranslation('setting');
   const pathname = usePathname();
 
   return (
@@ -94,13 +96,13 @@ export function SettingsSidebar({
               <SidebarMenuButton
                 className='cursor-pointer'
                 asChild
-                tooltip={item.title}
+                tooltip={t(`sidebar.${item.id}`, item.title)}
                 isActive={isActive}
                 onClick={() => onCategoryChange?.(item.id)}
               >
                 <div>
                   <item.icon />
-                  <span>{item.title}</span>
+                  <span>{t(`sidebar.${item.id}`, item.title)}</span>
                 </div>
               </SidebarMenuButton>
             </SidebarMenuItem>

@@ -6,7 +6,8 @@ import type { ItemType } from 'antd/es/menu/interface';
 import { LucideCheck, MoreHorizontal, Search, Trash } from 'lucide-react';
 import { memo, useMemo, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
-import TopicConfig from '../../../../../../const/text/topicConfig';
+import { useTranslation } from 'react-i18next';
+import { useTopicTranslation } from '@renderer/hooks/useTopicTranslation';
 
 import SidebarHeader from '@renderer/(pages)/chat/components/SidebarHeader';
 import { useChatStore } from '@renderer/store/chat';
@@ -19,6 +20,8 @@ import React from 'react';
 import TopicSearchBar from './TopicSearchBar';
 
 const Header = memo(() => {
+  const { t } = useTranslation('common');
+  const topicTranslation = useTopicTranslation();
   const [topicLength, removeUnstarredTopic, removeAllTopic] = useChatStore((s) => [
     topicSelectors.currentTopicLength(s),
     s.removeUnstarredTopic,
@@ -36,7 +39,7 @@ const Header = memo(() => {
       ...(Object.values(TopicDisplayMode).map((mode) => ({
         icon: topicDisplayMode === mode ? <Icon icon={LucideCheck} /> : <div />,
         key: mode,
-        label: TopicConfig.groupMode[mode],
+        label: topicTranslation.groupMode[mode as keyof typeof topicTranslation.groupMode],
         onClick: () => {
           updatePreference({ topicDisplayMode: mode });
         },
@@ -47,15 +50,15 @@ const Header = memo(() => {
       {
         icon: <Icon icon={Trash} />,
         key: 'deleteUnstarred',
-        label: TopicConfig.actions.removeUnstarred,
+        label: topicTranslation.removeUnstarred,
         onClick: () => {
           modal.confirm({
-            cancelText: '取消',
+            cancelText: t('cancel'),
             centered: true,
             okButtonProps: { danger: true },
-            okText: '确定',
+            okText: t('confirm'),
             onOk: removeUnstarredTopic,
-            title: '即将删除未收藏话题，删除后将不可恢复，请谨慎操作。',
+            title: topicTranslation.confirmRemoveUnstarred,
           });
         },
       },
@@ -63,20 +66,20 @@ const Header = memo(() => {
         danger: true,
         icon: <Icon icon={Trash} />,
         key: 'deleteAll',
-        label: TopicConfig.actions.removeAll,
+        label: topicTranslation.removeAll,
         onClick: () => {
           modal.confirm({
-            cancelText: '取消',
+            cancelText: t('cancel'),
             centered: true,
             okButtonProps: { danger: true },
-            okText: '确定',
+            okText: t('confirm'),
             onOk: removeAllTopic,
-            title: TopicConfig.actions.confirmRemoveAll,
+            title: topicTranslation.confirmRemoveAll,
           });
         },
       },
     ],
-    [topicDisplayMode],
+    [topicDisplayMode, topicTranslation, updatePreference, removeUnstarredTopic, removeAllTopic, modal, t],
   );
 
   return showSearch ? (
@@ -102,7 +105,7 @@ const Header = memo(() => {
           </Dropdown>
         </>
       }
-      title={`${TopicConfig.title} ${topicLength > 1 ? topicLength + 1 : ''}`}
+      title={`${topicTranslation.title} ${topicLength > 1 ? topicLength + 1 : ''}`}
     />
   );
 });

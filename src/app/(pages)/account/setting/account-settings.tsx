@@ -20,10 +20,12 @@ import { IconSettings, IconCheck, IconShield } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { useAccountStore } from '@renderer/store/account/store';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@renderer/components/ui/tabs';
+import { useTranslation } from 'react-i18next';
 
 export function AccountSettings() {
   const { account, loading, saving, error, updateAccountSettings, updateAccountRiskMode } =
     useAccountStore();
+  const { t } = useTranslation('account');
 
   // 账户设置状态
   const [market, setMarket] = useState<'HK' | 'US' | 'CN'>(account?.market || 'US');
@@ -86,12 +88,12 @@ export function AccountSettings() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <IconSettings className="h-5 w-5" />
-            账户设置
+            {t('settings.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center p-8">
-            <div className="text-muted-foreground">加载中...</div>
+            <div className="text-muted-foreground">{t('loading')}</div>
           </div>
         </CardContent>
       </Card>
@@ -105,11 +107,11 @@ export function AccountSettings() {
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="account" className="flex items-center gap-2">
               <IconShield className="h-4 w-4" />
-              账户设置
+              {t('settings.tabs.account')}
             </TabsTrigger>
             <TabsTrigger value="risk" className="flex items-center gap-2">
               <IconShield className="h-4 w-4" />
-              风险模式
+              {t('settings.tabs.risk')}
             </TabsTrigger>
           </TabsList>
 
@@ -122,13 +124,13 @@ export function AccountSettings() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="market">交易市场</Label>
+              <Label htmlFor="market">{t('settings.market.label')}</Label>
               <Select
                 value={market}
                 onValueChange={(value: 'HK' | 'US' | 'CN') => setMarket(value)}
               >
                 <SelectTrigger id="market">
-                  <SelectValue placeholder="选择市场" />
+                  <SelectValue placeholder={t('settings.market.placeholder')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="US">美股</SelectItem>
@@ -137,15 +139,15 @@ export function AccountSettings() {
                 </SelectContent>
               </Select>
               <p className="text-sm text-muted-foreground">
-                选择您希望交易的市场。不同市场有不同的交易规则和可用股票。
+                {t('settings.market.description')}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="leverage">杠杆设置</Label>
+              <Label htmlFor="leverage">{t('settings.leverage.label')}</Label>
               <Select value={leverage} onValueChange={setLeverage}>
                 <SelectTrigger id="leverage">
-                  <SelectValue placeholder="选择杠杆" />
+                  <SelectValue placeholder={t('settings.leverage.placeholder')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="1">1x (无杠杆)</SelectItem>
@@ -158,18 +160,18 @@ export function AccountSettings() {
                 </SelectContent>
               </Select>
               <p className="text-sm text-muted-foreground">
-                杠杆可以放大收益，但也会放大风险。建议新手从低杠杆开始。
+                {t('settings.leverage.description')}
               </p>
             </div>
 
             <div className="flex items-center gap-2 pt-4">
               <Button onClick={handleSaveAccountSettings} disabled={saving}>
-                {saving ? '保存中...' : '保存设置'}
+                {saving ? t('settings.saving') : t('settings.save')}
               </Button>
               {saved && activeTab === 'account' && (
                 <div className="flex items-center gap-1 text-sm text-green-600">
                   <IconCheck className="h-4 w-4" />
-                  设置已保存
+                  {t('settings.saved')}
                 </div>
               )}
             </div>
@@ -181,18 +183,18 @@ export function AccountSettings() {
               <CardHeader>
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div>
-                    <CardTitle>风险模式</CardTitle>
-                    <CardDescription>选择适合您的风险评估标准</CardDescription>
+                    <CardTitle>{t('settings.riskMode.title')}</CardTitle>
+                    <CardDescription>{t('settings.riskMode.description')}</CardDescription>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">风险模式:</span>
+                    <span className="text-sm text-muted-foreground">{t('settings.riskMode.label')}:</span>
                     <Select value={selectedRiskMode} onValueChange={handleRiskModeChange}>
                       <SelectTrigger className="w-32">
-                        <SelectValue placeholder="风险模式" />
+                        <SelectValue placeholder={t('settings.riskMode.placeholder')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="retail">散户模式</SelectItem>
-                        <SelectItem value="advanced">进阶模式</SelectItem>
+                        <SelectItem value="retail">{t('settings.riskMode.retail')}</SelectItem>
+                        <SelectItem value="advanced">{t('settings.riskMode.advanced')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

@@ -1,0 +1,111 @@
+{
+  "Ok": "Ok",
+  "add": "Add",
+  "back": "Back",
+  "cancel": "Cancel",
+  "close": "Close",
+  "common": {
+    "appName": "Investment Agent"
+  },
+  "confirm": "Confirm",
+  "copied": "Copied",
+  "copy": "Copy",
+  "delete": "Delete",
+  "deleteConfirm": "Are you sure you want to delete?",
+  "documents": {
+    "knowledgeBase": "Knowledge Base"
+  },
+  "download": "Download",
+  "edit": "Edit",
+  "error": "Operation failed",
+  "greeting": {
+    "afternoon": "Good afternoon",
+    "morning": "Good morning",
+    "night": "Good evening",
+    "noon": "Good noon"
+  },
+  "guide": {
+    "defaultMessage": "I am your AI assistant. How can I help you today? <br /> Click <plus /> to start a new session with {{appName}}"
+  },
+  "header": {
+    "accountAnalysis": "Account Analysis",
+    "accountSetting": "Account Setting",
+    "assetMarketInfo": "Asset Market Info",
+    "createTradingAccount": "Create Trading Account",
+    "documents": "Documents",
+    "investmentNotes": "Investment Notes",
+    "investmentReport": "Investment Report",
+    "systemSetting": "Settings"
+  },
+  "language": "Language",
+  "loading": "Loading...",
+  "mainTitle": "Your Investment AI Assistant",
+  "next": "Next",
+  "noData": "No data",
+  "previous": "Previous",
+  "refresh": {
+    "error": {
+      "format": "Price update failed, data format error",
+      "network": "Price refresh failed, please check network connection"
+    },
+    "partialSuccess": "Price update completed: {{updated}} successful, {{failed}} failed",
+    "refreshBalance": "Refresh Balance",
+    "refreshing": "Refreshing...",
+    "success": "Price update completed: Successfully updated {{count}} position prices",
+    "title": "Refresh Position Prices"
+  },
+  "reset": "Reset",
+  "retry": "Retry",
+  "save": "Save",
+  "saveFailed": "Save Failed",
+  "saveSuccess": "Save Success",
+  "search": "Search",
+  "settings": "Settings",
+  "share": "Share",
+  "submit": "Submit",
+  "success": "Success",
+  "timezone": "Timezone",
+  "topic": {
+    "actions": {
+      "autoRename": "Smart Rename",
+      "confirmRemoveAll": "You are about to delete all topics. This action cannot be undone. Please proceed with caution.",
+      "confirmRemoveTopic": "You are about to delete this topic. This action cannot be undone. Please proceed with caution.",
+      "confirmRemoveUnstarred": "You are about to delete unstarred topics. This action cannot be undone. Please proceed with caution.",
+      "duplicate": "Create Copy",
+      "export": "Export Topics",
+      "removeAll": "Delete All Topics",
+      "removeUnstarred": "Delete Unstarred Topics"
+    },
+    "defaultTitle": "Default Topic",
+    "duplicateLoading": "Copying topic...",
+    "duplicateSuccess": "Topic copied successfully",
+    "favorite": "Favorite",
+    "groupMode": {
+      "ascMessages": "Sort by Message Count Ascending",
+      "byTime": "Group by Time",
+      "descMessages": "Sort by Message Count Descending",
+      "flat": "No Grouping"
+    },
+    "groupTitle": {
+      "byTime": {
+        "month": "This Month",
+        "today": "Today",
+        "week": "This Week",
+        "yesterday": "Yesterday"
+      }
+    },
+    "guide": {
+      "desc": "Click the send button on the left to save the current conversation as a historical topic and start a new session",
+      "title": "Topic List"
+    },
+    "searchPlaceholder": "Search topics...",
+    "searchResultEmpty": "No search results",
+    "temp": "Temp",
+    "title": "Topics"
+  },
+  "user": {
+    "accountSettings": "Account Settings",
+    "addAccount": "Add Account",
+    "switchAccount": "Switch Account"
+  }
+}

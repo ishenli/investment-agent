@@ -1,0 +1,73 @@
+{
+  "asset": {
+    "allocationChart": {
+      "noData": "[to be translated]:"
+    }
+  },
+  "dialog": {
+    "addButton": "Add Transaction",
+    "amount": "Amount",
+    "assetType": "Asset Type",
+    "cancel": "Cancel",
+    "crypto": "Crypto",
+    "currencyType": "Currency Type",
+    "description": "Description",
+    "descriptionPlaceholder": "Please enter transaction description",
+    "etf": "ETF",
+    "fund": "Fund",
+    "marketType": "Market Type",
+    "price": "Price",
+    "pricePlaceholder": "Please enter price ({{symbol}})",
+    "quantity": "Quantity",
+    "quantityPlaceholder": "Please enter quantity",
+    "stock": "Stock",
+    "submitting": "Adding...",
+    "symbol": "Symbol",
+    "symbolPlaceholder": "Please enter symbol, e.g. AAPL",
+    "time": "Trade Time",
+    "timePlaceholder": "Please select trade time",
+    "title": "Add Transaction Record",
+    "tradeType": "Type",
+    "tradeTypePlaceholder": "Select type",
+    "type": {
+      "buy": "Buy",
+      "deposit": "Deposit",
+      "sell": "Sell",
+      "withdrawal": "Withdrawal"
+    }
+  },
+  "history": {
+    "addButton": "Add",
+    "editButton": "Edit",
+    "error": "Error loading transaction records",
+    "filter": {
+      "all": "All Types",
+      "buy": "Buy",
+      "deposit": "Deposit",
+      "sell": "Sell",
+      "withdrawal": "Withdrawal"
+    },
+    "loading": "Loading transaction records...",
+    "market": {
+      "CN": "A Share",
+      "HK": "HK Stock",
+      "US": "US Stock"
+    },
+    "noRecords": "No transaction records",
+    "reload": "Reload",
+    "searchPlaceholder": "Search transactions...",
+    "table": {
+      "action": "Action",
+      "amount": "Amount",
+      "description": "Description",
+      "market": "Market",
+      "price": "Price",
+      "quantity": "Quantity",
+      "symbol": "Symbol",
+      "time": "Time",
+      "type": "Type"
+    },
+    "title": "Transaction History"
+  },
+  "title": "Transaction"
+}

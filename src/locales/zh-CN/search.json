@@ -1,0 +1,44 @@
+{
+  "condition": {
+    "keyword": "关键词",
+    "label": "搜索条件:",
+    "type": "类型"
+  },
+  "description": "搜索本地数据和网络信息",
+  "empty": {
+    "noLocalData": "未找到相关本地数据",
+    "noResults": "未找到相关结果",
+    "noWebData": "未找到相关网络信息",
+    "suggestion": "请尝试使用不同的关键词进行搜索"
+  },
+  "error": {
+    "localSearchError": "搜索本地数据时发生错误",
+    "searchFailed": "搜索失败，请稍后重试",
+    "webSearchError": "搜索网络数据时发生错误"
+  },
+  "pagination": {
+    "next": "下一页",
+    "pageInfo": "第 {{current}} 页，共 {{total}} 页",
+    "previous": "上一页",
+    "total": "共 {{count}} 条结果"
+  },
+  "placeholder": "输入搜索关键词...",
+  "result": {
+    "description": "描述",
+    "link": "链接",
+    "source": "来源",
+    "visitLink": "访问链接"
+  },
+  "resultType": {
+    "local": "本地",
+    "web": "网络"
+  },
+  "searchButton": "搜索",
+  "searchType": {
+    "all": "全部数据",
+    "local": "本地数据",
+    "web": "网络信息"
+  },
+  "searching": "搜索中...",
+  "title": "信息搜索"
+}

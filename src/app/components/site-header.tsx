@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
 // Import the navigation data
 import { data } from '@renderer/components/app-sidebar';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Renders the site header and displays a title derived from the current route.
@@ -15,13 +16,14 @@ import { data } from '@renderer/components/app-sidebar';
  * @returns A header element containing navigation controls and the route-specific title, or `null` when the current route is `/chat`.
  */
 export function SiteHeader() {
+  const { t } = useTranslation(['components', 'common']);
   const pathname = usePathname();
 
   const getTitle = useMemo(() => {
     // Check main navigation items
     const mainNavItem = data.navMain.find((item) => item.url === pathname);
     if (mainNavItem) {
-      return mainNavItem.title;
+      return t(mainNavItem.title as any);
     }
 
     // Check secondary navigation items
@@ -29,29 +31,29 @@ export function SiteHeader() {
       (item) => item.url === pathname || pathname === '/',
     );
     if (secondaryNavItem) {
-      return secondaryNavItem.name === '设置' && pathname === '/'
-        ? '账户分析'
-        : secondaryNavItem.name;
+      return secondaryNavItem.name === t('components:sidebar.settings.settings') && pathname === '/'
+        ? t('common:header.accountAnalysis')
+        : t(secondaryNavItem.name as any);
     }
 
     // Check documents navigation items
     const documentItem = data.documents.find((item) => item.url === pathname);
     if (documentItem) {
-      return documentItem.name;
+      return t(documentItem.name as any);
     }
 
     // Special case for create-account page
-    if (pathname.startsWith('/account/create')) return '新增交易账户';
-    if (pathname.startsWith('/account/setting')) return '账户设置';
-    if (pathname.startsWith('/asset-market-info')) return '资产市场信息';
-    if (pathname.startsWith('/asset-meta')) return '资产市场信息';
-    if (pathname.startsWith('/note')) return '投资笔记';
-    if (pathname.startsWith('/report')) return '投资报告';
-    if (pathname.startsWith('/setting')) return '系统设置';
+    if (pathname.startsWith('/account/create')) return t('common:header.createTradingAccount');
+    if (pathname.startsWith('/account/setting')) return t('common:header.accountSetting');
+    if (pathname.startsWith('/asset-market-info')) return t('common:header.assetMarketInfo');
+    if (pathname.startsWith('/asset-meta')) return t('common:header.assetMarketInfo');
+    if (pathname.startsWith('/note')) return t('common:header.investmentNotes');
+    if (pathname.startsWith('/report')) return t('common:header.investmentReport');
+    if (pathname.startsWith('/setting')) return t('common:header.systemSetting');
 
     // Default fallback
-    return 'Documents';
-  }, [pathname]);
+    return t('common:header.documents');
+  }, [pathname, t]);
 
   if (pathname === '/chat') {
     return null;

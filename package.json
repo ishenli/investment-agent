@@ -28,6 +28,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "INVESTMENT_AGENT_DATA_DIR=./ drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
+    "i18n:check": "tsx scripts/check-i18n.ts",
+    "i18n:sync": "tsx scripts/sync-i18n.ts",
     "test": "vitest run",
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage"
@@ -186,6 +188,7 @@
     "baseline-browser-mapping": "latest",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
+    "dotenv": "^17.3.1",
     "electron": "^40.4.1",
     "electron-builder": "^26.7.0",
     "electron-rebuild": "^3.2.9",

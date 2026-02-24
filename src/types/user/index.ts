@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { TopicDisplayMode } from '../topic';
 import { UserSettings } from '../user/settings';
 
+export type SupportedLanguage = 'zh-CN' | 'en-US';
+
 export interface LobeUser {
   avatar?: string;
   email?: string | null;
@@ -15,8 +17,11 @@ export interface LobeUser {
 }
 
 export interface UserPreference {
+  autoSave?: boolean;
+  enableNotifications?: boolean;
   guide?: UserGuide;
   hideSyncAlert?: boolean;
+  language?: SupportedLanguage;
   telemetry: boolean | null;
   topicDisplayMode?: TopicDisplayMode;
   /**

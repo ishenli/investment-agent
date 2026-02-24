@@ -27,6 +27,7 @@ import { BasicInfoView } from './components/BasicInfoView';
 import { AssetMetaType } from '@/types/assetMeta';
 import { AssetMarketInfoType } from '@/types/marketInfo';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 
 type AssetCompanyInfoType = {
   id: number;
@@ -38,6 +39,7 @@ type AssetCompanyInfoType = {
 };
 
 export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) {
+  const { t } = useTranslation('asset-meta');
   const router = useRouter();
   const [marketInfo, setMarketInfo] = useState<AssetMarketInfoType | null>(null);
   const [marketInfos, setMarketInfos] = useState<AssetMarketInfoType[]>([]);
@@ -93,13 +95,13 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || '获取资产信息失败');
+        throw new Error(errorData.message || t('error.unknown'));
       }
 
       const result = await response.json();
       setAssetMeta(result.data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '未知错误');
+      setError(err instanceof Error ? err.message : t('error.unknown'));
     } finally {
       setLoading(false);
     }
@@ -114,14 +116,14 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || '获取数据失败');
+        throw new Error(errorData.message || t('errors.fetchDataFailed'));
       }
 
       const result = await response.json();
       const assetMarketInfo = result.data.assetMarketInfo;
       setMarketInfo(assetMarketInfo);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '未知错误');
+      setError(err instanceof Error ? err.message : t('error.unknown'));
     } finally {
       setLoading(false);
     }
@@ -138,14 +140,14 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || '获取数据失败');
+        throw new Error(errorData.message || t('errors.fetchDataFailed'));
       }
 
       const result = await response.json();
       setMarketInfos(result.data.data);
       setPagination(result.data.pagination);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '未知错误');
+      setError(err instanceof Error ? err.message : t('error.unknown'));
     } finally {
       setLoading(false);
     }
@@ -162,13 +164,13 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || '获取公司纪要失败');
+        throw new Error(errorData.message || t('errors.fetchCompanyInfoFailed'));
       }
 
       const result = await response.json();
       setCompanyInfos(result.data.data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '未知错误');
+      setError(err instanceof Error ? err.message : t('error.unknown'));
     } finally {
       setLoading(false);
     }
@@ -193,13 +195,13 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment.toLowerCase()) {
       case 'positive':
-      case '积极':
+      case t('sentiment.positive'):
         return 'bg-green-100 text-green-800 hover:bg-green-200';
       case 'negative':
-      case '消极':
+      case t('sentiment.negative'):
         return 'bg-red-100 text-red-800 hover:bg-red-200';
       case 'neutral':
-      case '中性':
+      case t('sentiment.neutral'):
         return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
       default:
         return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
@@ -254,7 +256,7 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || '删除失败');
+        throw new Error(errorData.message || t('delete.failed'));
       }
 
       // 如果删除的是当前显示的详情信息，则清空
@@ -268,7 +270,7 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
       // 关闭对话框
       closeDeleteDialog();
     } catch (err) {
-      setError(err instanceof Error ? err.message : '未知错误');
+      setError(err instanceof Error ? err.message : t('errors.unknown'));
     } finally {
       setDeleting(false);
     }
@@ -333,7 +335,7 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || '保存公司信息失败');
+        throw new Error(errorData.message || t('save.failed'));
       }
 
       // 重新获取公司信息列表
@@ -342,7 +344,7 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
       // 关闭对话框
       closeAddCompanyInfoDialog();
     } catch (err) {
-      setError(err instanceof Error ? err.message : '未知错误');
+      setError(err instanceof Error ? err.message : t('errors.unknown'));
       throw err; // 重新抛出错误以便在对话框中处理
     } finally {
       setSavingCompanyInfo(false);
@@ -367,7 +369,7 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || '保存投资笔记失败');
+        throw new Error(errorData.message || t('save.failed'));
       }
 
       // 重新获取资产元数据
@@ -375,7 +377,7 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
       // 关闭弹窗
       setInvestmentMemoDialogOpen(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '未知错误');
+      setError(err instanceof Error ? err.message : t('error.unknown'));
       throw err;
     }
   };
@@ -416,7 +418,7 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || '保存基本信息失败');
+        throw new Error(errorData.message || t('save.failed'));
       }
 
       // 重新获取资产元数据
@@ -425,7 +427,7 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
       // 关闭弹窗
       closeEditBasicInfoDialog();
     } catch (err) {
-      setError(err instanceof Error ? err.message : '未知错误');
+      setError(err instanceof Error ? err.message : t('errors.unknown'));
     } finally {
       setSavingBasicInfo(false);
     }
@@ -443,7 +445,7 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
     return (
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
-        <AlertTitle>错误</AlertTitle>
+        <AlertTitle>{t('error.title')}</AlertTitle>
         <AlertDescription>
           {error}
           <div className="mt-4">
@@ -452,7 +454,7 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
               className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-xs hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
             >
               <RefreshCw className="mr-2 h-4 w-4" />
-              重新加载
+              {t('error.reload')}
             </button>
           </div>
         </AlertDescription>
@@ -546,55 +548,55 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
       <Dialog open={basicInfoDialogOpen} onOpenChange={setBasicInfoDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>编辑基本信息</DialogTitle>
-            <DialogDescription>编辑资产的基本信息</DialogDescription>
+            <DialogTitle>{t('basicInfo.title')}</DialogTitle>
+            <DialogDescription>{t('basicInfo.description')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="symbol">股票代码</Label>
+              <Label htmlFor="symbol">{t('basicInfo.fields.symbol')}</Label>
               <Input
                 id="symbol"
                 value={assetMeta?.symbol || ''}
                 disabled
                 className="bg-muted"
               />
-              <p className="text-xs text-muted-foreground">股票代码不可修改</p>
+              <p className="text-xs text-muted-foreground">{t('basicInfo.messages.symbolReadOnly')}</p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="chineseName">中文名称</Label>
+              <Label htmlFor="chineseName">{t('basicInfo.fields.chineseName')}</Label>
               <Input
                 id="chineseName"
                 value={basicInfoForm.chineseName}
                 onChange={(e) =>
                   setBasicInfoForm((prev) => ({ ...prev, chineseName: e.target.value }))
                 }
-                placeholder="请输入中文名称"
+                placeholder={t('basicInfo.placeholders.chineseName')}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="fullName">英文全称</Label>
+              <Label htmlFor="fullName">{t('basicInfo.fields.fullName')}</Label>
               <Input
                 id="fullName"
                 value={basicInfoForm.fullName}
                 onChange={(e) =>
                   setBasicInfoForm((prev) => ({ ...prev, fullName: e.target.value }))
                 }
-                placeholder="请输入英文全称"
+                placeholder={t('basicInfo.placeholders.fullName')}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="logoUrl">Logo URL</Label>
+              <Label htmlFor="logoUrl">{t('basicInfo.fields.logoPreview')}</Label>
               <Input
                 id="logoUrl"
                 value={basicInfoForm.logoUrl}
                 onChange={(e) =>
                   setBasicInfoForm((prev) => ({ ...prev, logoUrl: e.target.value }))
                 }
-                placeholder="https://example.com/logo.png"
+                placeholder={t('basicInfo.placeholders.logoUrl')}
               />
               {basicInfoForm.logoUrl && (
                 <div className="mt-2 flex items-center gap-4">
-                  <span className="text-sm text-muted-foreground">预览:</span>
+                  <span className="text-sm text-muted-foreground">{t('basicInfo.fields.logoPreview')}:</span>
                   <div className="w-16 h-16 rounded border overflow-hidden bg-white flex items-center justify-center">
                     <img
                       src={basicInfoForm.logoUrl}
@@ -611,10 +613,10 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={closeEditBasicInfoDialog} disabled={savingBasicInfo}>
-              取消
+              {t('basicInfo.buttons.cancel')}
             </Button>
             <Button onClick={handleSaveBasicInfo} disabled={savingBasicInfo}>
-              {savingBasicInfo ? '保存中...' : '保存'}
+              {savingBasicInfo ? t('basicInfo.buttons.saving') : t('basicInfo.buttons.save')}
             </Button>
           </DialogFooter>
         </DialogContent>

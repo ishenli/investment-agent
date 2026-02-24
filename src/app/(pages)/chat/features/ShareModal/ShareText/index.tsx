@@ -33,7 +33,7 @@ const ShareText = memo(() => {
   const settings: FormItemProps[] = [
     {
       children: <Switch />,
-      label: '包含助手角色设定',
+      label: t('withSystemRole'),
       layout: 'horizontal',
       minWidth: undefined,
       name: 'withSystemRole',
@@ -41,7 +41,7 @@ const ShareText = memo(() => {
     },
     {
       children: <Switch />,
-      label: '包含消息角色',
+      label: t('withRole'),
       layout: 'horizontal',
       minWidth: undefined,
       name: 'withRole',
@@ -49,7 +49,7 @@ const ShareText = memo(() => {
     },
     {
       children: <Switch />,
-      label: '包含用户消息',
+      label: t('includeUser'),
       layout: 'horizontal',
       minWidth: undefined,
       name: 'includeUser',
@@ -57,7 +57,7 @@ const ShareText = memo(() => {
     },
     {
       children: <Switch />,
-      label: '包含插件消息',
+      label: t('includeTool'),
       layout: 'horizontal',
       minWidth: undefined,
       name: 'includeTool',
@@ -91,7 +91,7 @@ const ShareText = memo(() => {
         size={isMobile ? undefined : 'large'}
         type={'primary'}
       >
-        复制
+        {t('copy')}
       </Button>
     </>
   );

@@ -16,6 +16,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAccountStore } from '@renderer/store/account/store';
 import { CreateTradingAccountRequestType } from '@typings/account';
+import { useTranslation } from 'react-i18next';
 
 export function AccountCreate() {
   const {
@@ -28,6 +29,7 @@ export function AccountCreate() {
     fetchAccounts,
   } = useAccountStore();
   const router = useRouter();
+  const { t } = useTranslation('account');
 
   const [username, setUsername] = useState('');
   const [initialDeposit, setInitialDeposit] = useState('');
@@ -81,15 +83,15 @@ export function AccountCreate() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <IconCheck className="h-5 w-5 text-green-500" />
-            账户创建成功
+            {t('create.success.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <p>您的账户已成功创建！正在跳转到资产页面...</p>
+            <p>{t('create.success.message')}</p>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
-              正在设置账户并跳转...
+              {t('create.success.redirecting')}
             </div>
 
             {/* 如果自动跳转失败,提供手动跳转按钮 */}
@@ -100,7 +102,7 @@ export function AccountCreate() {
               className="w-full mt-4"
               variant="outline"
             >
-              手动跳转到资产页面
+              {t('create.success.manualRedirect')}
             </Button>
           </div>
         </CardContent>
@@ -117,26 +119,26 @@ export function AccountCreate() {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="username">账户名</Label>
+            <Label htmlFor="username">{t('create.form.accountName.label')}</Label>
             <Input
               id="username"
               type="text"
-              placeholder="输入账户名"
+              placeholder={t('create.form.accountName.placeholder')}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
               minLength={3}
               maxLength={30}
             />
-            <p className="text-sm text-muted-foreground">用户名长度应在3-30个字符之间</p>
+            <p className="text-sm text-muted-foreground">{t('create.form.accountName.description')}</p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="initialDeposit">初始资金</Label>
+            <Label htmlFor="initialDeposit">{t('create.form.initialDeposit.label')}</Label>
             <Input
               id="initialDeposit"
               type="number"
-              placeholder="输入初始资金金额"
+              placeholder={t('create.form.initialDeposit.placeholder')}
               value={initialDeposit}
               onChange={(e) => setInitialDeposit(e.target.value)}
               min="0"
@@ -145,10 +147,10 @@ export function AccountCreate() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="market">交易市场</Label>
+            <Label htmlFor="market">{t('create.form.market.label')}</Label>
             <Select value={market} onValueChange={(value: 'US' | 'CN' | 'HK') => setMarket(value)}>
               <SelectTrigger id="market">
-                <SelectValue placeholder="选择市场" />
+                <SelectValue placeholder={t('create.form.market.placeholder')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="US">美股</SelectItem>
@@ -156,11 +158,11 @@ export function AccountCreate() {
                 <SelectItem value="HK">港股</SelectItem>
               </SelectContent>
             </Select>
-            <p className="text-sm text-muted-foreground">选择您希望交易的市场</p>
+            <p className="text-sm text-muted-foreground">{t('create.form.market.description')}</p>
           </div>
 
           <Button type="submit" disabled={creating} className="w-full">
-            {creating ? '创建中...' : '创建交易账户'}
+            {creating ? t('create.form.creating') : t('create.form.submit')}
           </Button>
         </form>
       </CardContent>

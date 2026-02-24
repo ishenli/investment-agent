@@ -11,6 +11,7 @@ import {
 import { Button } from '@renderer/components/ui/button';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 
 type AssetMarketInfoType = {
   id: number;
@@ -55,6 +56,7 @@ export function DeleteConfirmationDialog({
   infoToDelete,
   companyInfoToDelete,
 }: DeleteConfirmationDialogProps) {
+  const { t } = useTranslation('asset-meta');
   const handleClose = () => {
     onOpenChange(false);
   };
@@ -63,9 +65,9 @@ export function DeleteConfirmationDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>确认删除</DialogTitle>
+          <DialogTitle>{t('detail.delete.dialog.title')}</DialogTitle>
           <DialogDescription>
-            确定要删除这条信息吗？此操作无法撤销。
+            {t('detail.delete.dialog.description')}
             {infoToDelete && (
               <div className="mt-2 p-2 bg-muted rounded">
                 <p className="font-medium">{infoToDelete.title}</p>
@@ -90,10 +92,10 @@ export function DeleteConfirmationDialog({
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={handleClose} disabled={deleting}>
-            取消
+            {t('detail.delete.dialog.cancel')}
           </Button>
           <Button variant="destructive" onClick={onConfirm} disabled={deleting}>
-            {deleting ? '删除中...' : '确认删除'}
+            {deleting ? t('detail.delete.dialog.deleting') : t('detail.delete.dialog.confirm')}
           </Button>
         </DialogFooter>
       </DialogContent>

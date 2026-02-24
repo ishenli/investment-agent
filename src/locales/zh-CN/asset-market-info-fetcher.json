@@ -1,0 +1,126 @@
+{
+  "dataTypes": {
+    "futuNews": "富途新闻",
+    "markdown": "Markdown",
+    "text": "纯文本",
+    "web": "普通网页",
+    "wechatMp": "微信公众号"
+  },
+  "error": {
+    "analyzeFailed": "分析失败",
+    "crawlFailed": "抓取失败",
+    "fetchFailed": "获取数据失败",
+    "saveFailed": "保存失败",
+    "title": "错误",
+    "unknown": "未知错误"
+  },
+  "loading": "加载中...",
+  "steps": {
+    "step1": {
+      "actions": {
+        "back": "返回",
+        "crawl": "开始抓取",
+        "crawling": "抓取中...",
+        "reselect": "重新选择",
+        "save": "保存信息",
+        "saving": "保存中..."
+      },
+      "crawlSuccess": {
+        "contentLength": "内容长度",
+        "source": "来源",
+        "title": "抓取成功",
+        "titleLabel": "标题"
+      },
+      "description": "选择输入方式并获取内容",
+      "form": {
+        "content": {
+          "label": "内容",
+          "placeholder": "输入市场信息内容..."
+        },
+        "dataSourceType": {
+          "label": "数据源类型",
+          "placeholder": "选择数据源类型"
+        },
+        "format": {
+          "label": "内容格式",
+          "placeholder": "选择内容格式"
+        },
+        "saveSuccess": {
+          "contentLength": "内容长度",
+          "format": "格式",
+          "title": "录入成功",
+          "titleLabel": "标题"
+        },
+        "url": {
+          "description": "输入要抓取的网页地址",
+          "label": "网页URL",
+          "placeholder": "https://example.com/market-news"
+        }
+      },
+      "manualMode": {
+        "description": "手动输入市场信息内容",
+        "title": "手动录入"
+      },
+      "title": "获取内容",
+      "urlMode": {
+        "description": "输入网页地址自动抓取内容",
+        "title": "通过URL抓取"
+      }
+    },
+    "step2": {
+      "actions": {
+        "analyze": "开始AI分析",
+        "analyzing": "AI分析中...",
+        "back": "上一步",
+        "next": "下一步: 保存数据",
+        "reanalyze": "重新分析",
+        "reanalyzing": "重新分析中..."
+      },
+      "analyzeSuccess": {
+        "importance": "重要性评分",
+        "keyData": "重要数据",
+        "keywords": "关键词",
+        "marketImpact": "市场影响",
+        "sentiment": "投资倾向",
+        "summary": "内容摘要",
+        "symbol": "资产代号",
+        "title": "AI分析完成",
+        "titleLabel": "标题"
+      },
+      "contentPreview": "内容预览",
+      "description": "让AI总结和归纳内容",
+      "title": "AI分析"
+    },
+    "step3": {
+      "actions": {
+        "back": "上一步",
+        "restart": "重新开始",
+        "save": "确认保存",
+        "saving": "保存中..."
+      },
+      "assetSelect": {
+        "label": "选择关联资产 (可多选)",
+        "loading": "加载中...",
+        "noSelection": "请选择至少一个要关联的资产",
+        "placeholder": "添加关联资产"
+      },
+      "confirmInfo": "确认保存以下信息",
+      "contentMode": {
+        "aiSummary": "AI摘要模式",
+        "aiSummaryDesc": "保存AI分析结果",
+        "label": "内容处理模式",
+        "original": "原文保留模式",
+        "originalDesc": "保存原始文章内容，跳过AI分析"
+      },
+      "description": "确认并保存到数据库",
+      "saveSuccess": {
+        "createdAt": "创建时间",
+        "infoId": "信息ID",
+        "source": "来源",
+        "title": "保存成功"
+      },
+      "title": "保存数据"
+    }
+  },
+  "title": "市场信息抓取工具"
+}

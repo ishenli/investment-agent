@@ -1,20 +1,20 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { parseGreetingTime } from './greetingTime';
 
-const greetingMap = {
-  afternoon: '下午好',
-  morning: '早上好',
-  night: '晚上好',
-  noon: '中午好',
-};
-
 export const useGreeting = () => {
+  const { t } = useTranslation('common');
   const [greeting, setGreeting] = useState<'morning' | 'noon' | 'afternoon' | 'night'>();
 
   useEffect(() => {
-    setGreeting(parseGreetingTime());
+    // 初始化问候语，只在组件挂载时执行一次
+    const timer = setTimeout(() => {
+      setGreeting(parseGreetingTime());
+    }, 0);
+    
+    return () => clearTimeout(timer);
   }, []);
 
-  return greeting && greetingMap[greeting];
+  return greeting && t(`greeting.${greeting}`);
 };

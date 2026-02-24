@@ -18,8 +18,10 @@ import {
 } from '@renderer/components/ui/select';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 export function ReportList() {
+  const { t } = useTranslation('report');
   const router = useRouter();
   const [reportType, setReportType] = useState<ReportType>('weekly');
   const { data, isLoading, error } = useReports(undefined, 20, 0);
@@ -30,12 +32,13 @@ export function ReportList() {
       { type: reportType },
       {
         onSuccess: (data) => {
-          toast.success('报告生成任务已提交');
+          toast.success(t('detail.generateSuccess'));
           // 立即跳转到详情页
           router.push(`/report/${data.id}`);
         },
         onError: (err) => {
-          toast.error(`生成失败: ${err instanceof Error ? err.message : '未知错误'}`);
+          const errorMessage = err instanceof Error ? err.message : t('detail.unknownError');
+          toast.error(`${t('detail.generateFailed')}: ${errorMessage}`);
         },
       },
     );
@@ -53,13 +56,13 @@ export function ReportList() {
   const getTypeLabel = (type: string) => {
     switch (type) {
       case 'weekly':
-        return '周报';
+        return t('list.type.weekly');
       case 'monthly':
-        return '月报';
+        return t('list.type.monthly');
       case 'emergency':
-        return '紧急报告';
+        return t('list.type.emergency');
       default:
-        return '报告';
+        return t('title');
     }
   };
 
@@ -75,9 +78,9 @@ export function ReportList() {
     return (
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
-        <AlertTitle>错误</AlertTitle>
+        <AlertTitle>{t('error', { ns: 'common' })}</AlertTitle>
         <AlertDescription>
-          无法加载报告列表: {error instanceof Error ? error.message : '未知错误'}
+          {t('messages.loadError', { error: error instanceof Error ? error.message : t('detail.unknownError') })}
         </AlertDescription>
       </Alert>
     );
@@ -88,16 +91,16 @@ export function ReportList() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold tracking-tight">报告列表</h2>
+        <h2 className="text-2xl font-bold tracking-tight">{t('list.title')}</h2>
 
         <div className="flex items-center gap-2">
           <Select value={reportType} onValueChange={(v) => setReportType(v as ReportType)}>
             <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="类型" />
+              <SelectValue placeholder={t('list.type.placeholder')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="weekly">周报</SelectItem>
-              <SelectItem value="monthly">月报</SelectItem>
+              <SelectItem value="weekly">{t('list.type.weekly')}</SelectItem>
+              <SelectItem value="monthly">{t('list.type.monthly')}</SelectItem>
             </SelectContent>
           </Select>
 
@@ -107,15 +110,15 @@ export function ReportList() {
             ) : (
               <Plus className="mr-2 h-4 w-4" />
             )}
-            生成报告
+            {t('list.generateButton')}
           </Button>
         </div>
       </div>
 
       {reports.length === 0 ? (
         <Alert>
-          <AlertTitle>暂无报告</AlertTitle>
-          <AlertDescription>您还没有生成过任何投资报告。点击上方按钮开始生成。</AlertDescription>
+          <AlertTitle>{t('list.empty')}</AlertTitle>
+          <AlertDescription>{t('list.emptyDescription')}</AlertDescription>
         </Alert>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -143,7 +146,7 @@ export function ReportList() {
                           {format(new Date(report.endDate), 'MM.dd')}
                         </>
                       ) : (
-                        '无时间范围'
+                        t('messages.noDateRange')
                       )}
                     </span>
                   </div>

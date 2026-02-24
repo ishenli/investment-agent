@@ -1,0 +1,56 @@
+{
+  "aiInsights": {
+    "description": "基于数据分析的智能洞察",
+    "noData": "暂无AI洞察",
+    "title": "AI洞察"
+  },
+  "alert": {
+    "dismiss": "忽略",
+    "title": "风险提醒"
+  },
+  "badge": {
+    "confidence": "置信度"
+  },
+  "common": {
+    "refresh": "刷新"
+  },
+  "dashboard": {
+    "riskAlert": "风险提醒",
+    "title": "洞察仪表板"
+  },
+  "diversification": {
+    "description": "基于风险分析的投资组合优化建议",
+    "noData": "暂无分散投资建议",
+    "title": "分散投资建议"
+  },
+  "loading": {
+    "analyzing": "正在分析中...",
+    "refreshing": "刷新中..."
+  },
+  "metadata": {
+    "confidenceBasis": "置信依据",
+    "dataTime": "数据时间",
+    "relatedAssets": "相关标的"
+  },
+  "opportunityFinder": {
+    "loadingTitle": "机会识别",
+    "loadingDescription": "基于数据分析的智能洞察"
+  },
+  "strategy": {
+    "description": "基于您投资组合的个性化策略建议",
+    "noData": "暂无策略建议",
+    "title": "策略建议"
+  },
+  "strategyAdvice": {
+    "cardTitle": "策略建议",
+    "cardDescription": "基于您投资组合的个性化策略建议"
+  },
+  "table": {
+    "asset": "资产",
+    "correlation": "相关性",
+    "liquidity": "流动性",
+    "reason": "理由",
+    "suggestedAmount": "建议金额"
+  },
+  "title": "洞察"
+}

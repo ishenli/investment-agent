@@ -6,6 +6,8 @@ import { useChatStore } from '@renderer/store/chat';
 
 import React from 'react';
 import Action from '../components/Action';
+import { T } from 'vitest/dist/chunks/reporters.d.BFLkQcL6.js';
+import { useTranslation } from 'react-i18next';
 
 export const useClearCurrentMessages = () => {
   const clearMessage = useChatStore((s) => s.clearMessage);
@@ -22,8 +24,8 @@ export const useClearCurrentMessages = () => {
 const Clear = memo(() => {
   const clearCurrentMessages = useClearCurrentMessages();
   const [confirmOpened, updateConfirmOpened] = useState(false);
-
-  const actionTitle: any = confirmOpened ? void 0 : '清空当前会话消息';
+  const { t } = useTranslation('chat');
+  const actionTitle = confirmOpened ? void 0 : t('clearChatMessages');
 
   const popconfirmPlacement = 'topRight';
 

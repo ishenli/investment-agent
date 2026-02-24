@@ -8,10 +8,11 @@ import { useChatStore } from '@renderer/store/chat';
 import { topicSelectors } from '@renderer/store/chat/selectors';
 import { ChatTopic } from '@typings/topic';
 
-import TopicConfig from '@renderer/const/text/topicConfig';
 import TopicItem from '../TopicItem';
+import { useTranslation } from 'react-i18next';
 
 const FlatMode = memo(() => {
+  const { t } = useTranslation('topic');
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const [activeTopicId] = useChatStore((s) => [s.activeTopicId]);
   const activeTopicList = useChatStore(topicSelectors.displayTopics, isEqual);
@@ -21,11 +22,11 @@ const FlatMode = memo(() => {
       {
         favorite: false,
         id: 'default',
-        title: TopicConfig.defaultTitle,
+        title: t('defaultTitle'),
       } as ChatTopic,
       ...(activeTopicList || []),
     ],
-    [activeTopicList],
+    [activeTopicList, t],
   );
 
   const itemContent = useCallback(

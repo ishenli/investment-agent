@@ -24,8 +24,10 @@ import { MarketInformation } from '@typings/market';
 import { StepOneContentFetcher } from './StepOneContentFetcher';
 import { StepTwoAIAnalyzer } from './StepTwoAIAnalyzer';
 import { StepThreeDataSaver } from './StepThreeDataSaver';
+import { useTranslation } from 'react-i18next';
 
 export function CombinedStepperMarketFetcher() {
+  const { t } = useTranslation('asset-market-info-fetcher');
   const [activeStep, setActiveStep] = useState(1);
   const [inputMode, setInputMode] = useState<'url' | 'manual' | null>(null);
 
@@ -100,7 +102,7 @@ export function CombinedStepperMarketFetcher() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl">市场信息抓取工具</CardTitle>
+          <CardTitle className="text-xl">{t('title')}</CardTitle>
         </CardHeader>
         <CardContent>
           <Stepper value={activeStep} onValueChange={handleStepChange} className="w-full">
@@ -121,8 +123,8 @@ export function CombinedStepperMarketFetcher() {
                     )}
                   </StepperIndicator>
                   <div className="flex flex-col items-start">
-                    <StepperTitle>获取内容</StepperTitle>
-                    <StepperDescription>选择输入方式并获取内容</StepperDescription>
+                    <StepperTitle>{t('steps.step1.title')}</StepperTitle>
+                    <StepperDescription>{t('steps.step1.description')}</StepperDescription>
                   </div>
                 </StepperTrigger>
                 <StepperSeparator />
@@ -140,8 +142,8 @@ export function CombinedStepperMarketFetcher() {
                     )}
                   </StepperIndicator>
                   <div className="flex flex-col items-start">
-                    <StepperTitle>AI分析</StepperTitle>
-                    <StepperDescription>让AI总结和归纳内容</StepperDescription>
+                    <StepperTitle>{t('steps.step2.title')}</StepperTitle>
+                    <StepperDescription>{t('steps.step2.description')}</StepperDescription>
                   </div>
                 </StepperTrigger>
                 <StepperSeparator />
@@ -159,8 +161,8 @@ export function CombinedStepperMarketFetcher() {
                     )}
                   </StepperIndicator>
                   <div className="flex flex-col items-start">
-                    <StepperTitle>保存数据</StepperTitle>
-                    <StepperDescription>确认并保存到数据库</StepperDescription>
+                    <StepperTitle>{t('steps.step3.title')}</StepperTitle>
+                    <StepperDescription>{t('steps.step3.description')}</StepperDescription>
                   </div>
                 </StepperTrigger>
               </StepperItem>

@@ -30,6 +30,7 @@ import { AssetMetaType } from '@/types/assetMeta';
 import dayjs from 'dayjs';
 import { fetchLatestPrice } from '@renderer/services/assetService';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Render the asset metadata management interface.
@@ -41,6 +42,7 @@ import { useRouter } from 'next/navigation';
  * @returns The React element that contains the full asset metadata table and associated dialogs, controls, and action handlers.
  */
 export function AssetMetaTable() {
+  const { t } = useTranslation('asset-meta');
   const [assetMetas, setAssetMetas] = useState<AssetMetaType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,12 +58,12 @@ export function AssetMetaTable() {
         setLoading(true);
         const response = await fetch('/api/asset/meta');
         if (!response.ok) {
-          throw new Error('获取数据失败');
+          throw new Error(t('error.unknown'));
         }
         const data = await response.json();
         setAssetMetas(data.data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : '未知错误');
+        setError(err instanceof Error ? err.message : t('error.unknown'));
       } finally {
         setLoading(false);
       }
@@ -78,7 +80,7 @@ export function AssetMetaTable() {
 
   // 处理删除
   const handleDelete = async (id: number) => {
-    if (!confirm('确定要删除这条记录吗？')) {
+    if (!confirm(t('delete.confirm'))) {
       return;
     }
 
@@ -88,13 +90,13 @@ export function AssetMetaTable() {
       });
 
       if (!response.ok) {
-        throw new Error('删除失败');
+        throw new Error(t('delete.failed'));
       }
 
       // 从列表中移除已删除的记录
       setAssetMetas(assetMetas.filter((item) => item.id !== id));
     } catch (err) {
-      alert(err instanceof Error ? err.message : '删除失败');
+      alert(err instanceof Error ? err.message : t('delete.failed'));
     }
   };
 
@@ -136,7 +138,7 @@ export function AssetMetaTable() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || '保存失败');
+        throw new Error(errorData.message || t('save.failed'));
       }
 
       const result = await response.json();
@@ -152,7 +154,7 @@ export function AssetMetaTable() {
       setIsEditDialogOpen(false);
       setEditingAssetMeta(null);
     } catch (err) {
-      alert(err instanceof Error ? err.message : '保存失败');
+      alert(err instanceof Error ? err.message : t('save.failed'));
     }
   };
 
@@ -167,11 +169,11 @@ export function AssetMetaTable() {
   );
 
   if (loading) {
-    return <div>加载中...</div>;
+    return <div>{t('loading')}</div>;
   }
 
   if (error) {
-    return <div className="text-red-500">错误: {error}</div>;
+    return <div className="text-red-500">{t('error.title')}: {error}</div>;
   }
 
   return (
@@ -179,7 +181,7 @@ export function AssetMetaTable() {
       <div className="flex justify-between items-center mb-4">
         <div className="flex gap-2">
           <Input
-            placeholder="搜索股票代码、中文名称或投资笔记..."
+            placeholder={t('search.placeholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-64"
@@ -210,13 +212,13 @@ export function AssetMetaTable() {
               }}
             >
               <PlusIcon className="mr-2 h-4 w-4" />
-              添加新资产
+              {t('actions.add')}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>
-                {editingAssetMeta?.id ? '编辑资产元数据' : '添加资产元数据'}
+                {editingAssetMeta?.id ? t('form.editTitle') : t('form.addTitle')}
               </DialogTitle>
             </DialogHeader>
             {editingAssetMeta && (
@@ -238,14 +240,14 @@ export function AssetMetaTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>股票代码</TableHead>
-              <TableHead>价格 (USD)</TableHead>
-              <TableHead>资产类型</TableHead>
-              <TableHead>货币</TableHead>
-              <TableHead>市场</TableHead>
-              <TableHead>数据来源</TableHead>
-              <TableHead>更新时间</TableHead>
-              <TableHead className="text-center">操作</TableHead>
+              <TableHead>{t('table.headers.symbol')}</TableHead>
+              <TableHead>{t('table.headers.price')}</TableHead>
+              <TableHead>{t('table.headers.assetType')}</TableHead>
+              <TableHead>{t('table.headers.currency')}</TableHead>
+              <TableHead>{t('table.headers.market')}</TableHead>
+              <TableHead>{t('table.headers.source')}</TableHead>
+              <TableHead>{t('table.headers.updatedAt')}</TableHead>
+              <TableHead className="text-center">{t('table.headers.actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -302,11 +304,11 @@ export function AssetMetaTable() {
                     }`}
                   >
                     {assetMeta.market === 'US'
-                      ? '美股'
+                      ? t('form.markets.US')
                       : assetMeta.market === 'HK'
-                        ? '港股'
+                        ? t('form.markets.HK')
                         : assetMeta.market === 'CN'
-                          ? 'A股'
+                          ? t('form.markets.CN')
                           : assetMeta.market}
                   </span>
                 </TableCell>
@@ -365,6 +367,7 @@ function AssetMetaEditForm({
   onSave: (assetMeta: Partial<AssetMetaType> & { id?: number }) => void;
   onCancel: () => void;
 }) {
+  const { t } = useTranslation('asset-meta');
   const [formData, setFormData] = useState<Partial<AssetMetaType> & { id?: number }>(
     assetMeta || {},
   );
@@ -382,7 +385,7 @@ function AssetMetaEditForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium">股票代码 *</label>
+          <label className="text-sm font-medium">{t('form.fields.symbol')}</label>
           <Input
             value={formData.symbol || ''}
             onChange={(e) => handleChange('symbol', e.target.value)}
@@ -390,29 +393,29 @@ function AssetMetaEditForm({
           />
         </div>
         <div>
-          <label className="text-sm font-medium">中文名称</label>
+          <label className="text-sm font-medium">{t('form.fields.chineseName')}</label>
           <Input
             value={formData.chineseName || ''}
             onChange={(e) => handleChange('chineseName', e.target.value || null)}
           />
         </div>
         <div>
-          <label className="text-sm font-medium">英文全称</label>
+          <label className="text-sm font-medium">{t('form.fields.fullName')}</label>
           <Input
             value={formData.fullName || ''}
             onChange={(e) => handleChange('fullName', e.target.value || null)}
           />
         </div>
         <div>
-          <label className="text-sm font-medium">Logo URL</label>
+          <label className="text-sm font-medium">{t('form.fields.logoUrl')}</label>
           <Input
             value={formData.logoUrl || ''}
             onChange={(e) => handleChange('logoUrl', e.target.value || null)}
-            placeholder="https://example.com/logo.png"
+            placeholder={t('form.placeholders.logoUrl')}
           />
         </div>
         <div>
-          <label className="text-sm font-medium">价格 (美分) *</label>
+          <label className="text-sm font-medium">{t('form.fields.priceCents')}</label>
           <div className="flex gap-2">
             <Input
               type="number"
@@ -426,7 +429,7 @@ function AssetMetaEditForm({
               size="icon"
               onClick={async () => {
                 if (!formData.symbol) {
-                  alert('请先输入股票代码');
+                  alert(t('error.unknown'));
                   return;
                 }
 
@@ -438,20 +441,21 @@ function AssetMetaEditForm({
                   if (priceInCents !== null) {
                     handleChange('priceCents', priceInCents);
                   } else {
-                    alert('无法获取价格，请检查股票代码和市场');
+                    alert(t('error.unknown'));
                   }
                 } catch (error) {
                   console.error('获取价格时出错:', error);
-                  alert('获取价格时出错');
+                  alert(t('error.unknown'));
                 }
               }}
             >
               <RefreshCwIcon className="h-4 w-4" />
+              <span className="sr-only">{t('form.buttons.refreshPrice')}</span>
             </Button>
           </div>
         </div>
         <div>
-          <label className="text-sm font-medium">资产类型 *</label>
+          <label className="text-sm font-medium">{t('form.fields.assetType')}</label>
           <Select
             value={formData.assetType || 'stock'}
             onValueChange={(value) => handleChange('assetType', value as any)}
@@ -460,15 +464,15 @@ function AssetMetaEditForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="stock">股票</SelectItem>
-              <SelectItem value="etf">ETF</SelectItem>
-              <SelectItem value="fund">基金</SelectItem>
-              <SelectItem value="crypto">加密货币</SelectItem>
+              <SelectItem value="stock">{t('form.assetTypes.stock')}</SelectItem>
+              <SelectItem value="etf">{t('form.assetTypes.etf')}</SelectItem>
+              <SelectItem value="fund">{t('form.assetTypes.fund')}</SelectItem>
+              <SelectItem value="crypto">{t('form.assetTypes.crypto')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div>
-          <label className="text-sm font-medium">货币 *</label>
+          <label className="text-sm font-medium">{t('form.fields.currency')}</label>
           <Input
             value={formData.currency || 'USD'}
             onChange={(e) => handleChange('currency', e.target.value)}
@@ -476,7 +480,7 @@ function AssetMetaEditForm({
           />
         </div>
         <div>
-          <label className="text-sm font-medium">市场 *</label>
+          <label className="text-sm font-medium">{t('form.fields.market')}</label>
           <Select
             value={formData.market || 'US'}
             onValueChange={(value) => handleChange('market', value as any)}
@@ -485,14 +489,14 @@ function AssetMetaEditForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="US">美股</SelectItem>
-              <SelectItem value="CN">A股</SelectItem>
-              <SelectItem value="HK">港股</SelectItem>
+              <SelectItem value="US">{t('form.markets.US')}</SelectItem>
+              <SelectItem value="CN">{t('form.markets.CN')}</SelectItem>
+              <SelectItem value="HK">{t('form.markets.HK')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div>
-          <label className="text-sm font-medium">数据来源 *</label>
+          <label className="text-sm font-medium">{t('form.fields.source')}</label>
           <Input
             value={formData.source || 'finnhub'}
             onChange={(e) => handleChange('source', e.target.value)}
@@ -500,20 +504,21 @@ function AssetMetaEditForm({
           />
         </div>
         <div className="col-span-2">
-          <label className="text-sm font-medium">投资笔记</label>
+          <label className="text-sm font-medium">{t('form.fields.investmentMemo')}</label>
           <textarea
             className="w-full p-2 border rounded-md"
             rows={3}
             value={formData.investmentMemo || ''}
             onChange={(e) => handleChange('investmentMemo', e.target.value || null)}
+            placeholder={t('form.placeholders.investmentMemo')}
           />
         </div>
       </div>
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>
-          取消
+          {t('actions.cancel')}
         </Button>
-        <Button type="submit">保存</Button>
+        <Button type="submit">{t('actions.save')}</Button>
       </div>
     </form>
   );

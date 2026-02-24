@@ -4,10 +4,11 @@ import { createStyles } from 'antd-style';
 import { LucideLoader2, MoreVertical, PencilLine, Star, Trash, Wand2 } from 'lucide-react';
 import { memo, useMemo } from 'react';
 import { Flexbox } from 'react-layout-kit';
+import { useTranslation } from 'react-i18next';
 
 import BubblesLoading from '@renderer/(pages)/chat/components/BubblesLoading';
 import { LOADING_FLAT } from '@renderer/const/message';
-import TopicConfig from '@renderer/const/text/topicConfig';
+import { useTopicTranslation } from '@renderer/hooks/useTopicTranslation';
 import { useChatStore } from '@renderer/store/chat';
 import React from 'react';
 
@@ -33,6 +34,9 @@ interface TopicContentProps {
 }
 
 const TopicContent = memo<TopicContentProps>(({ id, title, fav, showMore }) => {
+  const { t } = useTranslation('topic');
+  const { t: tCommon } = useTranslation('common');
+  const topicTranslation = useTopicTranslation();
   const mobile = false;
 
   const [
@@ -65,7 +69,7 @@ const TopicContent = memo<TopicContentProps>(({ id, title, fav, showMore }) => {
       {
         icon: <Icon icon={Wand2} />,
         key: 'autoRename',
-        label: TopicConfig.actions.autoRename,
+        label: topicTranslation.autoRename,
         onClick: () => {
           autoRenameTopicTitle(id);
         },
@@ -73,7 +77,7 @@ const TopicContent = memo<TopicContentProps>(({ id, title, fav, showMore }) => {
       {
         icon: <Icon icon={PencilLine} />,
         key: 'rename',
-        label: '重命名',
+        label: t('rename'),
         onClick: () => {
           toggleEditing(true);
         },
@@ -109,22 +113,24 @@ const TopicContent = memo<TopicContentProps>(({ id, title, fav, showMore }) => {
         danger: true,
         icon: <Icon icon={Trash} />,
         key: 'delete',
-        label: '删除',
+        label: t('delete'),
         onClick: () => {
           if (!id) return;
 
           modal.confirm({
+            cancelText: tCommon('cancel'),
             centered: true,
             okButtonProps: { danger: true },
+            okText: tCommon('confirm'),
             onOk: async () => {
               await removeTopic(id);
             },
-            title: TopicConfig.actions.confirmRemoveTopic,
+            title: topicTranslation.confirmRemoveTopic,
           });
         },
       },
     ],
-    [],
+    [topicTranslation, autoRenameTopicTitle, id, toggleEditing, removeTopic, modal, t, tCommon],
   );
 
   return (

@@ -1,0 +1,34 @@
+{
+  "actions": {
+    "addWidget": "Add Widget",
+    "customize": "Customize Dashboard",
+    "refresh": "Refresh Data"
+  },
+  "artifacts": {
+    "svg": {
+      "copyAsImage": "Copy as Image",
+      "copyFail": "Failed to copy: {{error}}",
+      "copySuccess": "Copied to clipboard",
+      "download": {
+        "png": "Download PNG",
+        "svg": "Download SVG"
+      }
+    }
+  },
+  "dashboard": {
+    "holdings": "Holdings",
+    "performance": "Performance",
+    "summary": "Summary",
+    "title": "Dashboard",
+    "transactions": "Transactions"
+  },
+  "messageDetail": "Message Detail",
+  "title": "Portal",
+  "widgets": {
+    "marketOverview": "Market Overview",
+    "portfolioValue": "Portfolio Value",
+    "recentActivity": "Recent Activity",
+    "topGainers": "Top Gainers",
+    "topLosers": "Top Losers"
+  }
+}

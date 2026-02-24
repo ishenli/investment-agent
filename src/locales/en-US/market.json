@@ -1,0 +1,20 @@
+{
+  "sectors": {
+    "china": "China",
+    "financial": "Financial",
+    "services": "Services",
+    "technology": "Technology"
+  },
+  "title": "Market",
+  "widgets": {
+    "heatmap": {
+      "title": "Stock Heatmap"
+    },
+    "marketOverview": {
+      "title": "Market Overview"
+    },
+    "marketQuotes": {
+      "title": "Market Quotes"
+    }
+  }
+}

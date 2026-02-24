@@ -43,6 +43,7 @@ import { PositionType } from '@typings/position';
 import { Skeleton } from '@renderer/components/ui/skeleton';
 import Link from 'next/link';
 import { marketToChinese, USD_TO_HKD, USD_TO_CNY } from '@/shared';
+import { useTranslation } from 'react-i18next';
 
 // 辅助函数：根据市场筛选条件获取货币信息
 const getCurrencyByFilter = (filterMarket: string) => {
@@ -82,6 +83,7 @@ type SortConfig = {
  * @returns The JSX element for the positions management interface.
  */
 export function PositionManagement() {
+  const { t } = useTranslation('asset-management');
   const [isEditPositionOpen, setIsEditPositionOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<PositionType | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -269,8 +271,8 @@ export function PositionManagement() {
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-red-500">加载失败</CardTitle>
-            <CardDescription>无法获取持仓数据，请稍后重试</CardDescription>
+            <CardTitle className="text-red-500">{t('error.title')}</CardTitle>
+            <CardDescription>{t('error.description')}</CardDescription>
           </CardHeader>
         </Card>
       </div>
@@ -286,12 +288,12 @@ export function PositionManagement() {
             <div>
               {/* 新增一个股票总金额的展示 */}
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-muted-foreground">股票总金额:</span>
+                <span className="text-sm font-medium text-muted-foreground">{t('totalValue')}:</span>
                 <span className="text-lg font-bold">{formatValueWhole(totalMarketValue, currency.symbol, currency.rate)}</span>
               </div>
               {/* 新增一个股票总收益的展示 */}
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-muted-foreground">持仓总收益:</span>
+                <span className="text-sm font-medium text-muted-foreground">{t('totalGain')}:</span>
                 <span className="text-lg font-bold">{formatValueWhole(stockGain, currency.symbol, currency.rate)}</span>
               </div>
             </div>
@@ -299,7 +301,7 @@ export function PositionManagement() {
               <div className="relative">
                 <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="搜索股票代码..."
+                  placeholder={t('search.placeholder')}
                   className="pl-8 w-full md:w-64"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -309,13 +311,13 @@ export function PositionManagement() {
                 <Select value={filterMarket} onValueChange={setFilterMarket}>
                   <SelectTrigger className="w-full md:w-36">
                     <FilterIcon className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="市场" />
+                    <SelectValue placeholder={t('filter.market')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">全部市场</SelectItem>
-                    <SelectItem value="美股">美股</SelectItem>
-                    <SelectItem value="港股">港股</SelectItem>
-                    <SelectItem value="A股">A股</SelectItem>
+                    <SelectItem value="all">{t('filter.all')}</SelectItem>
+                    <SelectItem value="美股">{t('filter.us')}</SelectItem>
+                    <SelectItem value="港股">{t('filter.hk')}</SelectItem>
+                    <SelectItem value="A股">{t('filter.cn')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -324,7 +326,7 @@ export function PositionManagement() {
         </CardHeader>
         <CardContent>
           {positions.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">暂无持仓数据</div>
+            <div className="text-center py-8 text-muted-foreground">{t('noData')}</div>
           ) : (
             <Table>
               <TableHeader>
@@ -334,7 +336,7 @@ export function PositionManagement() {
                     onClick={() => handleSort('symbol')}
                   >
                     <div className="flex items-center">
-                      股票代码
+                      {t('table.symbol')}
                       {getSortIcon('symbol')}
                     </div>
                   </TableHead>
@@ -343,7 +345,7 @@ export function PositionManagement() {
                     onClick={() => handleSort('market')}
                   >
                     <div className="flex items-center">
-                      市场
+                      {t('table.market')}
                       {getSortIcon('market')}
                     </div>
                   </TableHead>
@@ -352,7 +354,7 @@ export function PositionManagement() {
                     onClick={() => handleSort('quantity')}
                   >
                     <div className="flex items-center">
-                      数量
+                      {t('table.quantity')}
                       {getSortIcon('quantity')}
                     </div>
                   </TableHead>
@@ -361,7 +363,7 @@ export function PositionManagement() {
                     onClick={() => handleSort('averageCost')}
                   >
                     <div className="flex items-center">
-                      均价
+                      {t('table.averageCost')}
                       {getSortIcon('averageCost')}
                     </div>
                   </TableHead>
@@ -370,7 +372,7 @@ export function PositionManagement() {
                     onClick={() => handleSort('currentPrice')}
                   >
                     <div className="flex items-center">
-                      当前价
+                      {t('table.currentPrice')}
                       {getSortIcon('currentPrice')}
                     </div>
                   </TableHead>
@@ -379,7 +381,7 @@ export function PositionManagement() {
                     onClick={() => handleSort('marketValue')}
                   >
                     <div className="flex items-center">
-                      市值
+                      {t('table.marketValue')}
                       {getSortIcon('marketValue')}
                     </div>
                   </TableHead>
@@ -388,7 +390,7 @@ export function PositionManagement() {
                     onClick={() => handleSort('unrealizedPnL')}
                   >
                     <div className="flex items-center">
-                      持仓盈亏
+                      {t('table.unrealizedPnL')}
                       {getSortIcon('unrealizedPnL')}
                     </div>
                   </TableHead>
@@ -397,11 +399,11 @@ export function PositionManagement() {
                     onClick={() => handleSort('positionRatio')}
                   >
                     <div className="flex items-center">
-                      持仓占比
+                      {t('table.positionRatio')}
                       {getSortIcon('positionRatio')}
                     </div>
                   </TableHead>
-                  <TableHead>操作</TableHead>
+                  <TableHead>{t('table.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -534,8 +536,8 @@ export function PositionManagement() {
       {alerts && alerts.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>风险提醒</CardTitle>
-            <CardDescription>需要关注的风险事项</CardDescription>
+            <CardTitle>{t('alerts.title')}</CardTitle>
+            <CardDescription>{t('alerts.description')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -564,7 +566,7 @@ export function PositionManagement() {
                           : 'default'
                     }
                   >
-                    {alert.severity === 'high' ? '高' : alert.severity === 'medium' ? '中' : '低'}
+                    {alert.severity === 'high' ? t('alerts.high') : alert.severity === 'medium' ? t('alerts.medium') : t('alerts.low')}
                   </Badge>
                 </div>
               ))}

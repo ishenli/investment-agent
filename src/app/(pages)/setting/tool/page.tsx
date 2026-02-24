@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@rend
 import { useState, useEffect } from 'react';
 import { Eye, EyeOff, Key as KeyIcon } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@renderer/components/ui/tabs';
+import { useTranslation } from 'react-i18next';
 
 // 定义允许的设置键
 const ALLOWED_KEYS = [
@@ -32,6 +33,7 @@ type ToolSettingsProps = object
 export default function ToolSettings({
   // Add props if needed
 }: ToolSettingsProps) {
+  const { t } = useTranslation('setting');
   const [settings, setSettings] = useState<Record<SettingKey, string>>({
     FINNHUB_API_KEY: '',
     LANGSMITH_API_KEY: '',
@@ -59,10 +61,10 @@ export default function ToolSettings({
             ...result.data,
           }));
         } else {
-          setMessage({ type: 'error', text: '获取设置失败' });
+          setMessage({ type: 'error', text: t('tool.messages.getSettingsFailed', '获取设置失败') });
         }
       } catch (error) {
-        setMessage({ type: 'error', text: '网络错误' });
+        setMessage({ type: 'error', text: t('tool.messages.networkError', '网络错误') });
       } finally {
         setLoading(false);
       }
@@ -103,12 +105,12 @@ export default function ToolSettings({
           ...prev,
           [key]: value,
         }));
-        setMessage({ type: 'success', text: '设置已保存' });
+        setMessage({ type: 'success', text: t('tool.messages.settingsSaved', '设置已保存') });
       } else {
-        setMessage({ type: 'error', text: '保存设置失败' });
+        setMessage({ type: 'error', text: t('tool.messages.saveSettingsFailed', '保存设置失败') });
       }
     } catch (error) {
-      setMessage({ type: 'error', text: '网络错误' });
+      setMessage({ type: 'error', text: t('tool.messages.networkError', '网络错误') });
     } finally {
       setSaving(false);
       // 3秒后清除消息
@@ -130,12 +132,12 @@ export default function ToolSettings({
           ...prev,
           [key]: '',
         }));
-        setMessage({ type: 'success', text: '设置已删除' });
+        setMessage({ type: 'success', text: t('tool.messages.settingsDeleted', '设置已删除') });
       } else {
-        setMessage({ type: 'error', text: '删除设置失败' });
+        setMessage({ type: 'error', text: t('tool.messages.deleteSettingsFailed', '删除设置失败') });
       }
     } catch (error) {
-      setMessage({ type: 'error', text: '网络错误' });
+      setMessage({ type: 'error', text: t('tool.messages.networkError', '网络错误') });
     } finally {
       // 3秒后清除消息
       setTimeout(() => setMessage(null), 3000);
@@ -145,10 +147,10 @@ export default function ToolSettings({
   // 获取设置项的描述
   const getSettingDescription = (key: SettingKey): string => {
     const descriptions: Record<SettingKey, string> = {
-      FINNHUB_API_KEY: 'Finnhub API密钥',
-      LANGSMITH_API_KEY: 'LangSmith API密钥',
-      FINANCIAL_DATASETS_KEY: 'Financial Datasets密钥',
-      TAVILY_API_KEY: 'Tavily API密钥',
+      FINNHUB_API_KEY: t('tool.descriptions.FINNHUB_API_KEY', 'Finnhub API密钥'),
+      LANGSMITH_API_KEY: t('tool.descriptions.LANGSMITH_API_KEY', 'LangSmith API密钥'),
+      FINANCIAL_DATASETS_KEY: t('tool.descriptions.FINANCIAL_DATASETS_KEY', 'Financial Datasets密钥'),
+      TAVILY_API_KEY: t('tool.descriptions.TAVILY_API_KEY', 'Tavily API密钥'),
     };
 
     return descriptions[key] || key;
@@ -157,10 +159,10 @@ export default function ToolSettings({
   // 获取设置项的详细说明
   const getSettingDetail = (key: SettingKey): string => {
     const details: Record<SettingKey, string> = {
-      FINNHUB_API_KEY: '用于获取实时股票市场数据和分析报告',
-      LANGSMITH_API_KEY: 'LangSmith 提供的 API 密钥，用于追踪和管理模型调用',
-      FINANCIAL_DATASETS_KEY: '访问金融数据集的身份验证密钥',
-      TAVILY_API_KEY: 'Tavily 搜索引擎的 API 密钥，用于高级搜索功能',
+      FINNHUB_API_KEY: t('tool.details.FINNHUB_API_KEY', '用于获取实时股票市场数据和分析报告'),
+      LANGSMITH_API_KEY: t('tool.details.LANGSMITH_API_KEY', 'LangSmith 提供的 API 密钥，用于追踪和管理模型调用'),
+      FINANCIAL_DATASETS_KEY: t('tool.details.FINANCIAL_DATASETS_KEY', '访问金融数据集的身份验证密钥'),
+      TAVILY_API_KEY: t('tool.details.TAVILY_API_KEY', 'Tavily 搜索引擎的 API 密钥，用于高级搜索功能'),
     };
 
     return details[key] || '';
@@ -170,7 +172,7 @@ export default function ToolSettings({
     return (
       <div className="flex flex-col items-center justify-center h-full gap-4">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        <div className="text-lg text-muted-foreground">加载中...</div>
+        <div className="text-lg text-muted-foreground">{t('tool.loading', '加载中...')}</div>
       </div>
     );
   }
@@ -179,9 +181,9 @@ export default function ToolSettings({
     <div className="flex flex-1 flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">API KEY 配置</h1>
+          <h1 className="text-2xl font-bold">{t('tool.title', 'API KEY 配置')}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            管理您的外部服务 API 密钥
+            {t('tool.description', '管理您的外部服务 API 密钥')}
           </p>
         </div>
       </div>
@@ -202,7 +204,7 @@ export default function ToolSettings({
         <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
           {ALLOWED_KEYS.map((key) => (
             <TabsTrigger key={key} value={key} className="text-sm">
-              {key.replace('_API_KEY', '').replace('_KEY', '')}
+              {t(`tool.tabs.${key.toLowerCase().replace('_api_key', '').replace('_key', '')}`, key.replace('_API_KEY', '').replace('_KEY', ''))}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -213,14 +215,14 @@ export default function ToolSettings({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <KeyIcon className="h-5 w-5" />
-                  {getSettingDescription(key)}
+                  {t(`tool.descriptions.${key}`, getSettingDescription(key))}
                 </CardTitle>
-                <CardDescription>{getSettingDetail(key)}</CardDescription>
+                <CardDescription>{t(`tool.details.${key}`, getSettingDetail(key))}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor={key}>
-                    {key} <span className="text-muted-foreground text-xs ml-2">(环境变量名)</span>
+                    {key} <span className="text-muted-foreground text-xs ml-2">({t('tool.fields.envVarName', '环境变量名')})</span>
                   </Label>
                   <div className="relative">
                     <Input
@@ -228,7 +230,7 @@ export default function ToolSettings({
                       type={visibleKeys[key] ? 'text' : 'password'}
                       value={settings[key] || ''}
                       onChange={(e) => setSettings((prev) => ({ ...prev, [key]: e.target.value }))}
-                      placeholder={`请输入 ${key} 的值`}
+                      placeholder={t('tool.fields.inputPlaceholder', '请输入 %s 的值').replace('%s', key)}
                       className="pr-10"
                     />
                     {isSensitiveKey(key) && (
@@ -253,14 +255,14 @@ export default function ToolSettings({
                     disabled={saving}
                     className="flex-1"
                   >
-                    {saving ? '保存中...' : '保存'}
+                    {saving ? t('tool.actions.saving', '保存中...') : t('tool.actions.save', '保存')}
                   </Button>
                   <Button
                     onClick={() => deleteSetting(key)}
                     variant="outline"
                     className="hover:bg-destructive hover:text-destructive-foreground"
                   >
-                    删除
+                    {t('tool.actions.delete', '删除')}
                   </Button>
                 </div>
               </CardContent>

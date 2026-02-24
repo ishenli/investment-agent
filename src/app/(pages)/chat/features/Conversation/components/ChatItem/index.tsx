@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/static-components */
+/* eslint-disable react-hooks/preserve-manual-memoization */
 'use client';
 
 import { createStyles } from 'antd-style';
@@ -225,13 +227,13 @@ const Item = memo<ChatListItemProps>(
           });
         }
       },
-      [item, disableEditing],
+      [item, disableEditing, toggleMessageEditing, id, virtuosoRef, index],
     );
 
     const text = useMemo(
       () => ({
         cancel: t('cancel'),
-        confirm: t('ok'),
+        confirm: t('confirm'),
         edit: t('edit'),
       }),
       [t],
@@ -239,7 +241,7 @@ const Item = memo<ChatListItemProps>(
 
     const onEditingChange = useCallback((edit: boolean) => {
       toggleMessageEditing(id, edit);
-    }, []);
+    }, [toggleMessageEditing, id]);
 
     const belowMessage = useMemo(() => item && <BelowMessage data={item} />, [item]);
 

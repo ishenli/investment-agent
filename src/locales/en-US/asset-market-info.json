@@ -1,0 +1,34 @@
+{
+  "actions": {
+    "addInfo": "Add Info",
+    "reload": "Reload"
+  },
+  "dateRange": {
+    "label": "Date Range:",
+    "to": "to"
+  },
+  "error": {
+    "fetchFailed": "Failed to fetch data",
+    "reload": "Reload",
+    "title": "Error",
+    "unknown": "Unknown error"
+  },
+  "importance": "Importance",
+  "list": {
+    "noData": {
+      "description": "No asset market information available.",
+      "title": "No Data"
+    }
+  },
+  "loading": "Loading...",
+  "sentiment": {
+    "negative": "Negative",
+    "neutral": "Neutral",
+    "positive": "Positive"
+  },
+  "tabs": {
+    "dateRange": "Date Range",
+    "latest": "Latest News"
+  },
+  "title": "Asset Market Info"
+}

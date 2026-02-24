@@ -1,0 +1,44 @@
+{
+  "actions": {
+    "close": "关闭",
+    "configure": "配置",
+    "useTool": "使用工具"
+  },
+  "browser": {
+    "description": "访问网页内容并浏览互联网",
+    "title": "浏览器"
+  },
+  "calculator": {
+    "description": "执行数学计算",
+    "title": "计算器"
+  },
+  "investment": {
+    "portfolioAnalyzer": {
+      "description": "分析和优化您的投资组合",
+      "title": "投资组合分析器"
+    },
+    "riskCalculator": {
+      "description": "计算和评估投资风险",
+      "title": "风险计算器"
+    },
+    "stockQuote": {
+      "description": "获取实时股票报价和市场数据",
+      "title": "股票报价"
+    },
+    "title": "投资工具"
+  },
+  "localFiles": {
+    "openFile": "打开文件",
+    "openFolder": "打开文件夹"
+  },
+  "search": {
+    "description": "使用网络搜索来查找信息",
+    "searchBar": {
+      "button": "搜索",
+      "placeholder": "输入关键词搜索..."
+    },
+    "searchResult": "搜索结果",
+    "title": "搜索工具"
+  },
+  "title": "工具"
+}

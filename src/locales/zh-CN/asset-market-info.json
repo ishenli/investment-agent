@@ -1,0 +1,34 @@
+{
+  "actions": {
+    "addInfo": "添加信息",
+    "reload": "重新加载"
+  },
+  "dateRange": {
+    "label": "时间范围:",
+    "to": "至"
+  },
+  "error": {
+    "fetchFailed": "获取数据失败",
+    "reload": "重新加载",
+    "title": "错误",
+    "unknown": "未知错误"
+  },
+  "importance": "重要性",
+  "list": {
+    "noData": {
+      "description": "当前没有可用的资产市场信息。",
+      "title": "暂无数据"
+    }
+  },
+  "loading": "加载中...",
+  "sentiment": {
+    "negative": "消极",
+    "neutral": "中性",
+    "positive": "积极"
+  },
+  "tabs": {
+    "dateRange": "时间范围",
+    "latest": "最新消息"
+  },
+  "title": "资产市场信息"
+}

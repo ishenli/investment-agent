@@ -1,0 +1,96 @@
+{
+  "addAiMessage": "添加AI消息",
+  "addUserMessage": "添加用户消息",
+  "artifact": {
+    "generating": "生成中...",
+    "unknownTitle": "未命名的工件"
+  },
+  "backToBottom": "[to be translated]:Back to Bottom",
+  "beforeUnloadWarning": "你有正在生成中的请求，确定要离开吗？",
+  "cancelPin": "[to be translated]:Cancel Pin",
+  "clearChatMessages": "[to be translated]:Clear Chat Messages",
+  "clearHistory": "清空历史",
+  "continue": "继续生成",
+  "conversation": {
+    "delete": "删除对话",
+    "export": "导出",
+    "new": "新建对话",
+    "rename": "重命名",
+    "share": "分享",
+    "title": "对话"
+  },
+  "copy": "复制",
+  "copySuccess": "复制成功",
+  "defaultAgent": "默认助手",
+  "delete": "删除",
+  "edit": "编辑",
+  "errorOccurred": "发生错误",
+  "exportChat": "导出对话",
+  "historySummary": "历史记录",
+  "imageFormat": "图片格式化",
+  "importChat": "导入对话",
+  "includeTool": "包含工具",
+  "includeUser": "包含用户",
+  "input": {
+    "send": "发送",
+    "warp": "回车"
+  },
+  "inputPlaceholder": "输入消息...",
+  "json": "JSON",
+  "like": "点赞",
+  "likeCancelSuccess": "取消点赞成功",
+  "likeMessage": "点赞消息",
+  "likeSuccess": "点赞成功",
+  "maxTokens": "最大令牌数",
+  "message": {
+    "assistant": "助手",
+    "copied": "已复制",
+    "copy": "复制",
+    "delete": "删除",
+    "edit": "编辑",
+    "regenerate": "重新生成",
+    "system": "系统",
+    "user": "用户"
+  },
+  "model": "模型",
+  "newChat": "新对话",
+  "noMessages": "暂无消息",
+  "notLike": "点踩",
+  "notLikeMessage": "点踩消息",
+  "pin": "置顶",
+  "pinnedSessions": "置顶",
+  "professionalAssistantList": "专业助手列表",
+  "rag": {
+    "userQuery": {
+      "actions": {
+        "delete": "删除查询",
+        "regenerate": "重新生成查询"
+      }
+    }
+  },
+  "regenerate": "重新生成",
+  "retry": "重试",
+  "screenshot": "截图",
+  "send": "发送",
+  "sendWithCmdEnter": "使用 Cmd + Enter 发送",
+  "sendWithEnter": "使用 Enter 发送",
+  "shareTitle": "分享",
+  "stop": "停止生成",
+  "systemPrompt": "系统提示词",
+  "temperature": "温度",
+  "text": "[to be translated]:Text",
+  "title": "对话",
+  "toggleAssistantPanel": "显示/隐藏助手面板",
+  "toggleTopicPanel": "显示/隐藏话题面板",
+  "tools": {
+    "plugins": {
+      "groupName": "内置插件"
+    }
+  },
+  "typing": "正在输入...",
+  "withBackground": "带背景",
+  "withFooter": "带页脚",
+  "withRole": "带角色",
+  "withSystemRole": "带系统角色",
+  "zenMode": "禅模式"
+}

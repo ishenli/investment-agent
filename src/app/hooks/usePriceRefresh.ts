@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { message } from 'antd';
-
+import { useTranslation } from 'react-i18next';
 interface PriceUpdateResult {
   success: boolean;
   message: string;
@@ -24,17 +24,22 @@ interface PriceUpdateResult {
 export function usePriceRefresh() {
   const queryClient = useQueryClient();
 
+  const { t } = useTranslation('asset');
+
   const refreshPrices = async () => {
     try {
-      const response = await fetch('/api/init');
+      const response = await fetch('/api/asset/init');
       const result: PriceUpdateResult = await response.json();
 
       if (result.success && result.stats) {
         // 显示成功消息
         if (result.stats.failed.length === 0) {
-          message.success(`价格更新完成：成功更新 ${result.stats.succeeded} 个持仓价格`);
+          message.success(t('priceRefresh.success', { count: result.stats.succeeded }));
         } else {
-          message.info(`价格更新完成：成功 ${result.stats.succeeded} 个，失败 ${result.stats.failed.length} 个`);
+          message.info(t('priceRefresh.partialSuccess', {
+            succeeded: result.stats.succeeded,
+            failed: result.stats.failed.length
+          }));
         }
 
         // 刷新相关查询缓存
@@ -48,13 +53,13 @@ export function usePriceRefresh() {
 
         console.log('价格更新和缓存刷新完成:', result.stats);
       } else {
-        message.error('价格更新失败，请稍后重试');
+        message.error(t('priceRefresh.failed'));
       }
 
       return result;
     } catch (error) {
       console.error('价格刷新失败:', error);
-      message.error('价格刷新失败，请检查网络连接');
+      message.error(t('priceRefresh.networkError'));
       throw error;
     }
   };
@@ -63,22 +68,3 @@ export function usePriceRefresh() {
     refreshPrices,
   };
 }
-
-// // 使用示例：
-// function MyComponent() {
-//   const { refreshPrices } = usePriceRefresh();
-
-//   const handleRefreshClick = async () => {
-//     try {
-//       await refreshPrices();
-//     } catch (error) {
-//       console.error('刷新失败:', error);
-//     }
-//   };
-
-//   return (
-//     <Button onClick={handleRefreshClick}>
-//       刷新价格
-//     </Button>
-//   );
-// }

@@ -1,0 +1,56 @@
+{
+  "aiInsights": {
+    "description": "Intelligent insights based on data analysis",
+    "noData": "No AI insights",
+    "title": "AI Insights"
+  },
+  "alert": {
+    "dismiss": "Dismiss",
+    "title": "Risk Alert"
+  },
+  "badge": {
+    "confidence": "Confidence"
+  },
+  "common": {
+    "refresh": "Refresh"
+  },
+  "dashboard": {
+    "riskAlert": "Risk Alert",
+    "title": "Insight Dashboard"
+  },
+  "diversification": {
+    "description": "Portfolio optimization recommendations based on risk analysis",
+    "noData": "No diversification recommendation",
+    "title": "Diversification Recommendation"
+  },
+  "loading": {
+    "analyzing": "Analyzing...",
+    "refreshing": "Refreshing..."
+  },
+  "metadata": {
+    "confidenceBasis": "Confidence Basis",
+    "dataTime": "Data Time",
+    "relatedAssets": "Related Assets"
+  },
+  "opportunityFinder": {
+    "loadingTitle": "Opportunity Finder",
+    "loadingDescription": "Intelligent insights based on data analysis"
+  },
+  "strategy": {
+    "description": "Personalized strategy advice based on your portfolio",
+    "noData": "No strategy advice",
+    "title": "Strategy Advice"
+  },
+  "strategyAdvice": {
+    "cardTitle": "Strategy Advice",
+    "cardDescription": "Personalized strategy advice based on your portfolio"
+  },
+  "table": {
+    "asset": "Asset",
+    "correlation": "Correlation",
+    "liquidity": "Liquidity",
+    "reason": "Reason",
+    "suggestedAmount": "Suggested Amount"
+  },
+  "title": "Insight"
+}

@@ -1,0 +1,96 @@
+{
+  "addAiMessage": "Add AI Message",
+  "addUserMessage": "Add User Message",
+  "artifact": {
+    "generating": "Generating...",
+    "unknownTitle": "Untitled Artifact"
+  },
+  "backToBottom": "Back to Bottom",
+  "beforeUnloadWarning": "You have requests being generated, are you sure you want to leave?",
+  "cancelPin": "Cancel Pin",
+  "clearChatMessages": "Clear Chat Messages",
+  "clearHistory": "Clear History",
+  "continue": "Continue",
+  "conversation": {
+    "delete": "Delete Conversation",
+    "export": "Export",
+    "new": "New Conversation",
+    "rename": "Rename",
+    "share": "Share",
+    "title": "Conversation"
+  },
+  "copy": "Copy",
+  "copySuccess": "Copy Success",
+  "defaultAgent": "Default Agent",
+  "delete": "Delete",
+  "edit": "Edit",
+  "errorOccurred": "Error Occurred",
+  "exportChat": "Export Chat",
+  "historySummary": "History Summary",
+  "imageFormat": "Image Format",
+  "importChat": "Import Chat",
+  "includeTool": "Include Tool",
+  "includeUser": "Include User",
+  "input": {
+    "send": "Send",
+    "warp": "Return"
+  },
+  "inputPlaceholder": "Input Message",
+  "json": "JSON",
+  "like": "Like",
+  "likeCancelSuccess": "Like Cancel Success",
+  "likeMessage": "Like Message",
+  "likeSuccess": "Like Success",
+  "maxTokens": "Max Tokens",
+  "message": {
+    "assistant": "Assistant",
+    "copied": "Copied",
+    "copy": "Copy",
+    "delete": "Delete",
+    "edit": "Edit",
+    "regenerate": "Regenerate",
+    "system": "System",
+    "user": "You"
+  },
+  "model": "Model",
+  "newChat": "New Chat",
+  "noMessages": "No Messages",
+  "notLike": "Dislike",
+  "notLikeMessage": "Dislike Message",
+  "pin": "Pin",
+  "pinnedSessions": "Pin",
+  "professionalAssistantList": "Professional Assistant List",
+  "rag": {
+    "userQuery": {
+      "actions": {
+        "delete": "Delete Query",
+        "regenerate": "Regenerate Query"
+      }
+    }
+  },
+  "regenerate": "Regenerate",
+  "retry": "Retry",
+  "screenshot": "Screenshot",
+  "send": "Send",
+  "sendWithCmdEnter": "Send with Cmd + Enter",
+  "sendWithEnter": "Send with Enter",
+  "shareTitle": "Share",
+  "stop": "Stop",
+  "systemPrompt": "System Prompt",
+  "temperature": "Temperature",
+  "text": "Text",
+  "title": "Title",
+  "toggleAssistantPanel": "Show/Hide Assistant Panel",
+  "toggleTopicPanel": "Show/Hide Topic Panel",
+  "tools": {
+    "plugins": {
+      "groupName": "Built-in Plugins"
+    }
+  },
+  "typing": "Typing...",
+  "withBackground": "With Background",
+  "withFooter": "With Footer",
+  "withRole": "With Role",
+  "withSystemRole": "With System Role",
+  "zenMode": "Zen Mode"
+}

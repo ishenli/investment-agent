@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -14,6 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from '@renderer/components/ui/ale
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { AssetMarketInfoType } from '@/types/marketInfo';
+import { useTranslation } from 'react-i18next';
 
 interface HistoryMarketInfoViewProps {
   marketInfos: AssetMarketInfoType[];
@@ -46,11 +46,13 @@ export function HistoryMarketInfoView({
   pagination,
   setPagination,
 }: HistoryMarketInfoViewProps) {
+  const { t } = useTranslation('asset-meta');
+  
   if (marketInfos.length === 0) {
     return (
       <Alert>
-        <AlertTitle>暂无数据</AlertTitle>
-        <AlertDescription>当前没有可用的资产市场信息历史记录。</AlertDescription>
+        <AlertTitle>{t('detail.history.noData.title')}</AlertTitle>
+        <AlertDescription>{t('detail.history.noData.description')}</AlertDescription>
       </Alert>
     );
   }
@@ -95,15 +97,17 @@ export function HistoryMarketInfoView({
                   )}
                 </div>
                 <Badge variant="secondary" className="ml-2 self-start">
-                  {info.contentMode === 'original' ? '原文' : 'AI摘要'}
+                  {info.contentMode === 'original' 
+                    ? t('detail.history.contentMode.original') 
+                    : t('detail.history.contentMode.aiSummary')}
                 </Badge>
               </div>
               <div className="mt-4 flex justify-end gap-2">
                 <Button variant="outline" size="sm" onClick={() => onViewDetail(info)}>
-                  查看详情
+                  {t('detail.history.actions.viewDetail')}
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => onDelete(info)}>
-                  删除详情
+                  {t('detail.history.actions.deleteDetail')}
                 </Button>
               </div>
             </CardContent>
@@ -115,7 +119,10 @@ export function HistoryMarketInfoView({
       {pagination.totalPages > 1 && (
         <div className="flex justify-between items-center">
           <div className="text-sm text-muted-foreground">
-            第 {pagination.page} 页，共 {pagination.totalPages} 页
+            {t('detail.history.pagination.pageInfo', { 
+              page: pagination.page, 
+              totalPages: pagination.totalPages 
+            })}
           </div>
           <div className="flex gap-2">
             <Button
@@ -126,7 +133,7 @@ export function HistoryMarketInfoView({
               }
               disabled={pagination.page === 1}
             >
-              上一页
+              {t('detail.history.pagination.previous')}
             </Button>
             <Button
               variant="outline"
@@ -139,7 +146,7 @@ export function HistoryMarketInfoView({
               }
               disabled={pagination.page === pagination.totalPages}
             >
-              下一页
+              {t('detail.history.pagination.next')}
             </Button>
           </div>
         </div>

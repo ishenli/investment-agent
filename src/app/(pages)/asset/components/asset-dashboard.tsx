@@ -25,6 +25,7 @@ import { formatCurrency, formatPercentage } from '@renderer/lib/utils';
 import { Skeleton } from '@renderer/components/ui/skeleton';
 import { useState } from 'react';
 import { EditCashBalanceDialog } from './edit-cash-balance-dialog';
+import { useTranslation } from 'react-i18next';
 
 // 定义摘要卡片组件
 interface SummaryCardProps {
@@ -52,6 +53,7 @@ export function AssetDashboard({ accountId }: { accountId: string }) {
   const { data: positions, isLoading: isPositionsLoading } = usePositionsQuery();
   const { data: metrics, isLoading: isRevenueLoading } = useRevenueQuery();
   const { data: summary, isLoading: isSummaryLoading } = useSummaryQuery();
+  const { t } = useTranslation('asset');
 
   // 现金余额编辑状态
   const [isEditCashBalanceOpen, setIsEditCashBalanceOpen] = useState(false);
@@ -101,29 +103,29 @@ export function AssetDashboard({ accountId }: { accountId: string }) {
       <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <SummaryCard
-            title="总余额"
+            title={t('dashboard.totalBalance')}
             icon={<WalletIcon className="h-4 w-4 text-muted-foreground" />}
           >
-            <div className="text-2xl font-bold text-red-500">加载失败</div>
-            <p className="text-xs text-muted-foreground">无法获取账户信息</p>
+            <div className="text-2xl font-bold text-red-500">{t('dashboard.noData')}</div>
+            <p className="text-xs text-muted-foreground">{t('dashboard.noDataDesc')}</p>
           </SummaryCard>
-
-          <SummaryCard title="股票市值" icon={<TrendingUpIcon className="h-4 w-4 text-blue-500" />}>
-            <div className="text-2xl font-bold text-red-500">加载失败</div>
-            <p className="text-xs text-muted-foreground">无法获取持仓数据</p>
+        
+          <SummaryCard title={t('dashboard.stockMarketValue')} icon={<TrendingUpIcon className="h-4 w-4 text-blue-500" />}>
+            <div className="text-2xl font-bold text-red-500">{t('dashboard.noData')}</div>
+            <p className="text-xs text-muted-foreground">{t('dashboard.noPositionDataDesc')}</p>
           </SummaryCard>
-
-          <SummaryCard title="现金余额" icon={<WalletIcon className="h-4 w-4 text-green-500" />}>
-            <div className="text-2xl font-bold text-red-500">加载失败</div>
-            <p className="text-xs text-muted-foreground">无法获取现金数据</p>
+        
+          <SummaryCard title={t('dashboard.cashBalance')} icon={<WalletIcon className="h-4 w-4 text-green-500" />}>
+            <div className="text-2xl font-bold text-red-500">{t('dashboard.noData')}</div>
+            <p className="text-xs text-muted-foreground">{t('dashboard.noCashDataDesc')}</p>
           </SummaryCard>
-
+        
           <SummaryCard
-            title="持仓股票收益"
+            title={t('dashboard.stockGain')}
             icon={<BarChartIcon className="h-4 w-4 text-muted-foreground" />}
           >
-            <div className="text-2xl font-bold text-red-500">加载失败</div>
-            <p className="text-xs text-muted-foreground">无法获取收益数据</p>
+            <div className="text-2xl font-bold text-red-500">{t('dashboard.noData')}</div>
+            <p className="text-xs text-muted-foreground">{t('dashboard.noGainDataDesc')}</p>
           </SummaryCard>
         </div>
       </div>
@@ -136,29 +138,29 @@ export function AssetDashboard({ accountId }: { accountId: string }) {
       <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <SummaryCard
-            title="总余额"
+            title={t('dashboard.totalBalance')}
             icon={<WalletIcon className="h-4 w-4 text-muted-foreground" />}
           >
             <div className="text-2xl font-bold">-</div>
-            <p className="text-xs text-muted-foreground">无账户信息</p>
+            <p className="text-xs text-muted-foreground">{t('dashboard.noAccountDataDesc')}</p>
           </SummaryCard>
 
-          <SummaryCard title="股票市值" icon={<TrendingUpIcon className="h-4 w-4 text-blue-500" />}>
+          <SummaryCard title={t('dashboard.stockMarketValue')} icon={<TrendingUpIcon className="h-4 w-4 text-blue-500" />}>
             <div className="text-2xl font-bold">-</div>
-            <p className="text-xs text-muted-foreground">无持仓数据</p>
+            <p className="text-xs text-muted-foreground">{t('dashboard.noPositionDataDesc')}</p>
           </SummaryCard>
 
-          <SummaryCard title="现金余额" icon={<WalletIcon className="h-4 w-4 text-green-500" />}>
+          <SummaryCard title={t('dashboard.cashBalance')} icon={<WalletIcon className="h-4 w-4 text-green-500" />}>
             <div className="text-2xl font-bold">-</div>
-            <p className="text-xs text-muted-foreground">无现金数据</p>
+            <p className="text-xs text-muted-foreground">{t('dashboard.noCashDataDesc')}</p>
           </SummaryCard>
 
           <SummaryCard
-            title="持仓股票收益"
+            title={t('dashboard.stockGain')}
             icon={<BarChartIcon className="h-4 w-4 text-muted-foreground" />}
           >
             <div className="text-2xl font-bold">-</div>
-            <p className="text-xs text-muted-foreground">无收益数据</p>
+            <p className="text-xs text-muted-foreground">{t('dashboard.noGainDataDesc')}</p>
           </SummaryCard>
         </div>
 
@@ -220,20 +222,20 @@ export function AssetDashboard({ accountId }: { accountId: string }) {
     <div className="space-y-6">
       {/* Asset Overview - New Detailed Breakdown */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <SummaryCard title="总余额" icon={<WalletIcon className="h-4 w-4 text-muted-foreground" />}>
+        <SummaryCard title={t('dashboard.totalBalance')} icon={<WalletIcon className="h-4 w-4 text-muted-foreground" />}>
           <div className="text-2xl font-bold">{formatCurrency(totalBalance || 0)}</div>
         </SummaryCard>
 
         <SummaryCard
-          title="现金余额"
+          title={t('dashboard.cashBalance')}
           icon={
             <div className="relative">
-              <WalletIcon className="h-4 w-4 text-green-500" />
+              <WalletIcon className="h-4 w-4 " />
             </div>
           }
           onIconClick={() => setIsEditCashBalanceOpen(true)}
         >
-          <div className="flex text-2xl font-bold text-green-600 items-center justify-between">
+          <div className="flex text-2xl font-bold items-center justify-between">
             {formatCurrency(cashBalance || 0)}
             <span className="relative">
               <PencilIcon
@@ -244,17 +246,19 @@ export function AssetDashboard({ accountId }: { accountId: string }) {
           </div>
         </SummaryCard>
 
-        <SummaryCard title="股票市值" icon={<TrendingUpIcon className="h-4 w-4 text-blue-500" />}>
+        <SummaryCard title={t('dashboard.stockMarketValue')} icon={<TrendingUpIcon className="h-4 w-4 text-blue-500" />}>
           <div className="text-2xl font-bold text-blue-600">
             {formatCurrency(stockAccountValue || 0)}
           </div>
         </SummaryCard>
 
         <SummaryCard
-          title="持仓股票收益"
+          title={t('dashboard.stockGain')}
           icon={<BarChartIcon className="h-4 w-4 text-muted-foreground" />}
         >
-          <div className="text-2xl font-bold">{metrics ? formatCurrency(stockGain) : '-'}</div>
+          <div className={`text-2xl font-bold ${stockGain > 0 ? 'text-green-600' : stockGain < 0 ? 'text-red-600' : ''}`}>
+            {metrics ? formatCurrency(stockGain) : '-'}
+          </div>
         </SummaryCard>
       </div>
 
@@ -264,37 +268,37 @@ export function AssetDashboard({ accountId }: { accountId: string }) {
       {/* Asset Allocation Breakdown */}
       <Card>
         <CardHeader>
-          <CardTitle>资产结构分析</CardTitle>
-          <CardDescription>详细资产分布和占比情况</CardDescription>
+          <CardTitle>{t('dashboard.assetAllocation')}</CardTitle>
+          <CardDescription>{t('dashboard.assetAllocationDesc')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-6 md:grid-cols-2">
             {/* Asset Breakdown */}
             <div className="space-y-4">
-              <h4 className="font-medium text-sm">资产明细</h4>
+              <h4 className="font-medium text-sm">{t('dashboard.assetBreakdown')}</h4>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">股票市值</span>
+                  <span className="text-sm text-muted-foreground">{t('dashboard.stockMarketValueLabel')}</span>
                   <span className="font-medium">{formatCurrency(stockAccountValue || 0)}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">现金余额</span>
+                  <span className="text-sm text-muted-foreground">{t('dashboard.cashBalanceLabel')}</span>
                   <span className="font-medium text-green-600">
                     {formatCurrency(cashBalance || 0)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center border-t pt-2">
-                  <span className="text-sm font-medium">总资产</span>
+                  <span className="text-sm font-medium">{t('dashboard.totalAssets')}</span>
                   <span className="font-bold">{formatCurrency(totalBalance || 0)}</span>
                 </div>
               </div>
 
               {/* Asset Allocation Pie */}
               <div className="mt-4">
-                <div className="text-sm text-muted-foreground mb-2">资产配置比例</div>
+                <div className="text-sm text-muted-foreground mb-2">{t('dashboard.allocationRatio')}</div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">股票占比</span>
+                    <span className="text-sm">{t('dashboard.stockRatio')}</span>
                     <div className="flex items-center">
                       <div className="w-20 h-2 bg-gray-200 rounded mr-2">
                         <div
@@ -310,7 +314,7 @@ export function AssetDashboard({ accountId }: { accountId: string }) {
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">现金占比</span>
+                    <span className="text-sm">{t('dashboard.cashRatio')}</span>
                     <div className="flex items-center">
                       <div className="w-20 h-2 bg-gray-200 rounded mr-2">
                         <div
@@ -331,10 +335,10 @@ export function AssetDashboard({ accountId }: { accountId: string }) {
 
             {/* Performance Summary */}
             <div className="space-y-4">
-              <h4 className="font-medium text-sm">收益表现</h4>
+              <h4 className="font-medium text-sm">{t('dashboard.performanceSummary')}</h4>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">持仓股票收益</span>
+                  <span className="text-sm text-muted-foreground">{t('dashboard.stockGainLabel')}</span>
                   <span
                     className={`font-medium ${stockGain >= 0 ? 'text-green-600' : 'text-red-600'}`}
                   >
@@ -342,23 +346,15 @@ export function AssetDashboard({ accountId }: { accountId: string }) {
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">股票收益率</span>
+                  <span className="text-sm text-muted-foreground">{t('dashboard.stockReturnRate')}</span>
                   <span
                     className={`font-medium ${stockReturnRate >= 0 ? 'text-green-600' : 'text-red-600'}`}
                   >
                     {formatPercentage(stockReturnRate / 100)}
                   </span>
                 </div>
-                {/* <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">总收益率</span>
-                  <span
-                    className={`font-medium ${totalReturnRate >= 0 ? 'text-green-600' : 'text-red-600'}`}
-                  >
-                    {formatPercentage(totalReturnRate / 100)}
-                  </span>
-                </div> */}
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">投资本金</span>
+                  <span className="text-sm text-muted-foreground">{t('dashboard.totalInvestment')}</span>
                   <span className="font-medium">{formatCurrency(summaryTotalInvestment || 0)}</span>
                 </div>
               </div>

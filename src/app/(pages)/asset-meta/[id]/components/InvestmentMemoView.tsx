@@ -20,6 +20,7 @@ import {
   DialogTitle,
 } from '@renderer/components/ui/dialog';
 import { Textarea } from '@renderer/components/ui/textarea';
+import { useTranslation } from 'react-i18next';
 
 interface InvestmentMemoViewProps {
   memo: string | null | undefined;
@@ -34,6 +35,7 @@ export function InvestmentMemoView({
   isEditing = false,
   onEditChange,
 }: InvestmentMemoViewProps) {
+  const { t } = useTranslation('asset-meta');
   const [editContent, setEditContent] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -68,8 +70,8 @@ export function InvestmentMemoView({
     return (
       <div className="space-y-4">
         <Alert>
-          <AlertTitle>暂无数据</AlertTitle>
-          <AlertDescription>当前没有投资笔记信息。</AlertDescription>
+          <AlertTitle>{t('investmentMemo.emptyTitle')}</AlertTitle>
+          <AlertDescription>{t('investmentMemo.emptyDescription')}</AlertDescription>
         </Alert>
 
         <Dialog open={isEditing} onOpenChange={onEditChange}>
@@ -82,16 +84,16 @@ export function InvestmentMemoView({
               <Textarea
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
-                placeholder="请输入投资笔记..."
+                placeholder={t('investmentMemo.placeholder')}
                 className="min-h-[300px]"
               />
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={handleClose} disabled={saving}>
-                取消
+                {t('investmentMemo.buttons.cancel')}
               </Button>
               <Button onClick={handleSave} disabled={saving}>
-                {saving ? '保存中...' : '保存'}
+                {saving ? t('investmentMemo.buttons.saving') : t('investmentMemo.buttons.save')}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -105,8 +107,8 @@ export function InvestmentMemoView({
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <div className="space-y-1">
-            <CardTitle>投资笔记</CardTitle>
-            <CardDescription>关于该资产的投资分析和笔记</CardDescription>
+            <CardTitle>{t('investmentMemo.title')}</CardTitle>
+            <CardDescription>{t('investmentMemo.description')}</CardDescription>
           </div>
           <Button variant="ghost" size="icon" onClick={handleEdit}>
             <Pencil className="h-4 w-4" />
@@ -120,23 +122,23 @@ export function InvestmentMemoView({
       <Dialog open={isEditing} onOpenChange={onEditChange}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>编辑投资笔记</DialogTitle>
-            <DialogDescription>请输入关于该资产的投资分析和笔记</DialogDescription>
+            <DialogTitle>{t('investmentMemo.editTitle')}</DialogTitle>
+            <DialogDescription>{t('investmentMemo.editDescription')}</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Textarea
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
-              placeholder="请输入投资笔记..."
+              placeholder={t('investmentMemo.placeholder')}
               className="min-h-[300px]"
             />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={handleClose} disabled={saving}>
-              取消
+              {t('investmentMemo.buttons.cancel')}
             </Button>
             <Button onClick={handleSave} disabled={saving}>
-              {saving ? '保存中...' : '保存'}
+              {saving ? t('investmentMemo.buttons.saving') : t('investmentMemo.buttons.save')}
             </Button>
           </DialogFooter>
         </DialogContent>

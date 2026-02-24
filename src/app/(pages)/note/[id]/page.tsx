@@ -11,6 +11,7 @@ import { Textarea } from '@renderer/components/ui/textarea';
 import dayjs from 'dayjs';
 import { getNoteById, updateNote } from '@/app/services/note';
 import { Markdown } from '@lobehub/ui';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Displays a single note (identified by the route `id`) and provides a view and edit interface.
@@ -22,6 +23,7 @@ import { Markdown } from '@lobehub/ui';
  * @returns A React element rendering the note detail or edit page.
  */
 export default function NoteDetailPage() {
+  const { t } = useTranslation('note');
   const router = useRouter();
   const params = useParams();
   const { id } = params;
@@ -63,7 +65,7 @@ export default function NoteDetailPage() {
       if (response.success && response.data) {
         setNote(response.data);
       } else {
-        handleError(response.error || '获取笔记详情失败');
+        handleError(response.error || t('messages.loadDetailError'));
       }
     } catch (error) {
       handleError(error);
@@ -127,7 +129,7 @@ export default function NoteDetailPage() {
         // 最后关闭编辑模式
         setIsEditing(false);
       } else {
-        handleError(response.error || '保存笔记失败');
+        handleError(response.error || t('messages.saveError'));
       }
     } catch (error) {
       handleError(error);
@@ -144,17 +146,17 @@ export default function NoteDetailPage() {
       <div className="py-8 px-4">
         <div className="mb-6 flex justify-between items-center">
           <Button onClick={handleBack} variant="outline">
-            ← 返回笔记列表
+            ← {t('actions.back')}
           </Button>
-          <Button onClick={handleEdit}>编辑笔记</Button>
+          <Button onClick={handleEdit}>{t('actions.edit')}</Button>
         </div>
 
         <Card className="">
           <CardHeader>
             <CardTitle className="text-2xl">{note.title}</CardTitle>
             <div className="flex justify-between text-sm text-gray-500">
-              <div>创建时间: {dayjs(note.createdAt).format('YYYY-MM-DD HH:mm:ss')}</div>
-              <div>更新时间: {dayjs(note.updatedAt).format('YYYY-MM-DD HH:mm:ss')}</div>
+              <div>{t('detail.createTime')}: {dayjs(note.createdAt).format('YYYY-MM-DD HH:mm:ss')}</div>
+              <div>{t('detail.updateTime')}: {dayjs(note.updatedAt).format('YYYY-MM-DD HH:mm:ss')}</div>
             </div>
           </CardHeader>
 
@@ -165,7 +167,7 @@ export default function NoteDetailPage() {
 
             {note.tags && note.tags.length > 0 && (
               <div className="mt-6">
-                <h3 className="text-lg font-semibold mb-2">标签</h3>
+                <h3 className="text-lg font-semibold mb-2">{t('filter.label')}</h3>
                 <div className="flex flex-wrap gap-2">
                   {note.tags.map((tag) => (
                     <span
@@ -192,14 +194,14 @@ export default function NoteDetailPage() {
       <div className="container mx-auto py-8 px-4">
         <div className="mb-6 flex justify-between items-center">
           <Button onClick={handleBack} variant="outline">
-            ← 返回笔记列表
+            ← {t('actions.back')}
           </Button>
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleCancelEdit}>
-              取消
+              {t('actions.cancel')}
             </Button>
             <Button onClick={handleSaveNote} disabled={isSaveLoading}>
-              {isSaveLoading ? '保存中...' : '保存'}
+              {isSaveLoading ? t('actions.saving') : t('actions.save')}
             </Button>
           </div>
         </div>
@@ -216,7 +218,7 @@ export default function NoteDetailPage() {
 
         <Card className="max-w-4xl mx-auto">
           <CardHeader>
-            <CardTitle className="text-2xl">编辑笔记</CardTitle>
+            <CardTitle className="text-2xl">{t('editor.editTitle')}</CardTitle>
           </CardHeader>
 
           <CardContent>
@@ -224,7 +226,7 @@ export default function NoteDetailPage() {
             <div className="mb-6">
               <Input
                 type="text"
-                placeholder="请输入笔记标题"
+                placeholder={t('editor.titleLabel')}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="text-2xl font-bold h-12"
@@ -254,19 +256,19 @@ export default function NoteDetailPage() {
                 <Input
                   className="h-9"
                   type="text"
-                  placeholder="添加标签"
+                  placeholder={t('editor.tagPlaceholder')}
                   value={newTag}
                   onChange={(e) => setNewTag(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
                 />
-                <Button onClick={handleAddTag}>添加</Button>
+                <Button onClick={handleAddTag}>{t('actions.add')}</Button>
               </div>
             </div>
 
             {/* 内容编辑器 */}
             <div className="mb-6">
               <Textarea
-                placeholder="请输入笔记内容（支持 Markdown 语法）"
+                placeholder={t('editor.contentLabel')}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 className="h-96"
@@ -281,7 +283,7 @@ export default function NoteDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="text-lg">加载中...</div>
+        <div className="text-lg">{t('list.loading')}</div>
       </div>
     );
   }
@@ -290,7 +292,7 @@ export default function NoteDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
         <div className="text-red-500 mb-4">{error}</div>
-        <Button onClick={handleBack}>返回笔记列表</Button>
+        <Button onClick={handleBack}>{t('actions.back')}</Button>
       </div>
     );
   }
@@ -298,8 +300,8 @@ export default function NoteDetailPage() {
   if (!note) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
-        <div className="text-gray-500 mb-4">笔记不存在</div>
-        <Button onClick={handleBack}>返回笔记列表</Button>
+        <div className="text-gray-500 mb-4">{t('list.noNotes')}</div>
+        <Button onClick={handleBack}>{t('actions.back')}</Button>
       </div>
     );
   }

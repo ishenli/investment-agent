@@ -14,6 +14,7 @@ import { Input } from '@renderer/components/ui/input';
 import { Label } from '@renderer/components/ui/label';
 import { PositionType } from '@typings/position';
 import { usePositionStore } from '@renderer/store/position/store';
+import { useTranslation } from 'react-i18next';
 
 interface EditPositionDialogProps {
   open: boolean;
@@ -28,6 +29,7 @@ export function EditPositionDialog({
   position,
   onUpdate,
 }: EditPositionDialogProps) {
+  const { t } = useTranslation('asset-management');
   const [quantity, setQuantity] = useState('');
   const [averageCost, setAverageCost] = useState('');
   const [loading, setLoading] = useState(false);
@@ -71,13 +73,13 @@ export function EditPositionDialog({
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>编辑持仓</DialogTitle>
-            <DialogDescription>修改持仓信息，点击保存以应用更改。</DialogDescription>
+            <DialogTitle>{t('editDialog.title')}</DialogTitle>
+            <DialogDescription>{t('editDialog.description')}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="symbol" className="text-right">
-                股票代码
+                {t('editDialog.fields.symbol')}
               </Label>
               <div className="col-span-3">
                 <Input id="symbol" value={position?.symbol || ''} disabled />
@@ -85,7 +87,7 @@ export function EditPositionDialog({
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="quantity" className="text-right">
-                持仓数量
+                {t('editDialog.fields.quantity')}
               </Label>
               <div className="col-span-3">
                 <Input
@@ -99,7 +101,7 @@ export function EditPositionDialog({
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="averageCost" className="text-right">
-                平均成本
+                {t('editDialog.fields.averageCost')}
               </Label>
               <div className="col-span-3">
                 <Input
@@ -115,10 +117,10 @@ export function EditPositionDialog({
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              取消
+              {t('editDialog.actions.cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? '保存中...' : '保存'}
+              {loading ? t('editDialog.actions.saving') : t('editDialog.actions.save')}
             </Button>
           </DialogFooter>
         </form>

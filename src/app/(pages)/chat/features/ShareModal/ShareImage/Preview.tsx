@@ -11,6 +11,7 @@ import { sessionMetaSelectors, sessionSelectors } from '@renderer/store/session/
 
 import { SESSION_CONFIG_TITLE } from '@renderer/const/text/sessionConfig';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useContainerStyles } from '../style';
 import ChatList from './ChatList';
 import { useStyles } from './style';
@@ -18,6 +19,7 @@ import { FieldType } from './type';
 
 const Preview = memo<FieldType & { title?: string }>(
   ({ title, withSystemRole, withBackground, withFooter }) => {
+    const { t } = useTranslation('common');
     const [model, plugins, systemRole] = useAgentStore((s) => [
       agentSelectors.currentAgentModel(s),
       agentSelectors.currentAgentPlugins(s),
@@ -64,7 +66,7 @@ const Preview = memo<FieldType & { title?: string }>(
             <ChatList />
             {withFooter ? (
               <Flexbox align={'center'} className={styles.footer} gap={4}>
-                <div className={styles.mainTitle}>你的投资 AI 助手</div>
+                <div className={styles.mainTitle}>{t('mainTitle')}</div>
               </Flexbox>
             ) : (
               <div />

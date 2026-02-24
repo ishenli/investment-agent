@@ -1,0 +1,44 @@
+{
+  "condition": {
+    "keyword": "Keyword",
+    "label": "Search Conditions:",
+    "type": "Type"
+  },
+  "description": "Search local data and web information",
+  "empty": {
+    "noLocalData": "No relevant local data found",
+    "noResults": "No relevant results found",
+    "noWebData": "No relevant web information found",
+    "suggestion": "Please try using different keywords to search"
+  },
+  "error": {
+    "localSearchError": "Error occurred while searching local data",
+    "searchFailed": "Search failed, please try again later",
+    "webSearchError": "Error occurred while searching web data"
+  },
+  "pagination": {
+    "next": "Next",
+    "pageInfo": "Page {{current}} of {{total}}",
+    "previous": "Previous",
+    "total": "Total {{count}} results"
+  },
+  "placeholder": "Enter search keywords...",
+  "result": {
+    "description": "Description",
+    "link": "Link",
+    "source": "Source",
+    "visitLink": "Visit Link"
+  },
+  "resultType": {
+    "local": "Local",
+    "web": "Web"
+  },
+  "searchButton": "Search",
+  "searchType": {
+    "all": "All Data",
+    "local": "Local Data",
+    "web": "Web Information"
+  },
+  "searching": "Searching...",
+  "title": "Information Search"
+}

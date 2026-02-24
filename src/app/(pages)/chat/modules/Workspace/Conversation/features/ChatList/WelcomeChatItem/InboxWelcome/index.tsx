@@ -4,7 +4,7 @@ import { BRANDING_NAME } from '@renderer/const/branding';
 import { FluentEmoji, Markdown } from '@lobehub/ui';
 import { createStyles } from 'antd-style';
 import { memo } from 'react';
-import { Trans } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { Center, Flexbox } from 'react-layout-kit';
 
 import { useGreeting } from '@renderer/hooks/useGreeting';
@@ -41,6 +41,7 @@ const useStyles = createStyles(({ css, responsive }) => ({
 const InboxWelcome = memo(() => {
   const { styles } = useStyles();
   const greeting = useGreeting();
+  const { t } = useTranslation('common');
   const { showWelcomeSuggest, showCreateSession } = {
     showWelcomeSuggest: false,
     showCreateSession: false,
@@ -64,7 +65,7 @@ const InboxWelcome = memo(() => {
                     plus: <AddButton />,
                   }}
                   i18nKey="guide.defaultMessage"
-                  ns=""
+                  ns="common"
                   values={{ appName: BRANDING_NAME }}
                 />
               );
@@ -73,7 +74,7 @@ const InboxWelcome = memo(() => {
           }}
           variant={'chat'}
         >
-          我是你的 AI 助手，请问现在能帮您做什么？
+          {t('guide.defaultMessage', { ns: 'common', appName: BRANDING_NAME })}
         </Markdown>
         {showWelcomeSuggest && (
           <>

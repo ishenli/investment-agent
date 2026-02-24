@@ -51,6 +51,7 @@ run
 !.gitkeep
 .turbo
 .qoder
+.vscode/
 
 # electron
 /dist-electron/

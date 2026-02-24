@@ -14,6 +14,7 @@ import {
 } from '@renderer/components/ui/select';
 import { Label } from '@renderer/components/ui/label';
 import { Badge } from '@renderer/components/ui/badge';
+import { useTranslation } from 'react-i18next';
 
 interface StepThreeDataSaverProps {
   marketInfo: MarketInformation;
@@ -30,6 +31,7 @@ export function StepThreeDataSaver({
   onComplete,
   finalSaveResult,
 }: StepThreeDataSaverProps) {
+  const { t } = useTranslation('asset-market-info-fetcher');
   const [isFinalSaving, setIsFinalSaving] = useState(false);
   const [finalSaveError, setFinalSaveError] = useState<string | null>(null);
   const [localFinalSaveResult, setLocalFinalSaveResult] = useState<MarketInformation | null>(
@@ -74,7 +76,7 @@ export function StepThreeDataSaver({
 
     // 检查是否选择了资产
     if (selectedAssetIds.length === 0) {
-      setFinalSaveError('请选择要关联的资产');
+      setFinalSaveError(t('steps.step3.assetSelect.noSelection'));
       return;
     }
 
@@ -87,7 +89,7 @@ export function StepThreeDataSaver({
         assetMetaIds: selectedAssetIds,
         title: contentMode === 'ai_summary' && analysisResult?.title 
           ? analysisResult.title 
-          : marketInfo.metadata.extractedData?.title || '未提取到标题',
+          : marketInfo.metadata.extractedData?.title || t('error.unknown'),
         symbol: contentMode === 'ai_summary' && analysisResult?.symbol 
           ? analysisResult.symbol 
           : marketInfo.metadata.extractedData?.symbol || '未知',
@@ -119,10 +121,10 @@ export function StepThreeDataSaver({
         setLocalFinalSaveResult(marketInfo);
         onComplete();
       } else {
-        setFinalSaveError(response.message || '保存失败');
+        setFinalSaveError(response.message || t('error.saveFailed'));
       }
     } catch (error) {
-      setFinalSaveError(error instanceof Error ? error.message : '保存失败');
+      setFinalSaveError(error instanceof Error ? error.message : t('error.unknown'));
     } finally {
       setIsFinalSaving(false);
     }
@@ -146,13 +148,13 @@ export function StepThreeDataSaver({
           <div className="rounded-md bg-green-50 p-4 dark:bg-green-900/20">
             <div className="flex items-center gap-2">
               <IconCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
-              <h3 className="text-lg font-medium text-green-800 dark:text-green-200">保存成功</h3>
+              <h3 className="text-lg font-medium text-green-800 dark:text-green-200">{t('steps.step3.saveSuccess.title')}</h3>
             </div>
             <div className="mt-2 text-sm text-green-700 dark:text-green-300">
-              <p>信息ID: {localFinalSaveResult.id}</p>
-              <p>来源: {localFinalSaveResult.source.name}</p>
+              <p>{t('steps.step3.saveSuccess.infoId')}: {localFinalSaveResult.id}</p>
+              <p>{t('steps.step3.saveSuccess.source')}: {localFinalSaveResult.source.name}</p>
               <p>
-                创建时间:{' '}
+                {t('steps.step3.saveSuccess.createdAt')}:{' '}
                 {localFinalSaveResult.createdAt instanceof Date
                   ? localFinalSaveResult.createdAt.toString()
                   : localFinalSaveResult.createdAt}
@@ -161,7 +163,7 @@ export function StepThreeDataSaver({
           </div>
 
           <div className="flex justify-end">
-            <Button onClick={onComplete}>重新开始</Button>
+            <Button onClick={onComplete}>{t('steps.step3.actions.restart')}</Button>
           </div>
         </div>
       ) : (
@@ -174,7 +176,7 @@ export function StepThreeDataSaver({
 
           {/* 内容模式选择器 */}
           <div className="space-y-2">
-            <Label>内容处理模式</Label>
+            <Label>{t('steps.step3.contentMode.label')}</Label>
             <div className="flex rounded-md border border-input p-1">
               <button
                 className={`flex-1 rounded-sm px-3 py-1.5 text-sm font-medium transition-colors ${
@@ -184,7 +186,7 @@ export function StepThreeDataSaver({
                 }`}
                 onClick={() => setContentMode('ai_summary')}
               >
-                AI摘要模式
+                {t('steps.step3.contentMode.aiSummary')}
               </button>
               <button
                 className={`flex-1 rounded-sm px-3 py-1.5 text-sm font-medium transition-colors ${
@@ -194,22 +196,22 @@ export function StepThreeDataSaver({
                 }`}
                 onClick={() => setContentMode('original')}
               >
-                原文保留模式
+                {t('steps.step3.contentMode.original')}
               </button>
             </div>
             <p className="text-xs text-muted-foreground">
               {contentMode === 'ai_summary'
-                ? '保存AI分析结果'
-                : '保存原始文章内容，跳过AI分析'}
+                ? t('steps.step3.contentMode.aiSummaryDesc')
+                : t('steps.step3.contentMode.originalDesc')}
             </p>
           </div>
 
           {/* 资产选择器移到上方 */}
           <div className="space-y-2">
-            <Label htmlFor="asset-select">选择关联资产 (可多选)</Label>
+            <Label htmlFor="asset-select">{t('steps.step3.assetSelect.label')}</Label>
             <Select onValueChange={handleAssetSelect} disabled={isLoadingAssets}>
               <SelectTrigger id="asset-select">
-                <SelectValue placeholder={isLoadingAssets ? '加载中...' : '添加关联资产'} />
+                <SelectValue placeholder={isLoadingAssets ? t('steps.step3.assetSelect.loading') : t('steps.step3.assetSelect.placeholder')} />
               </SelectTrigger>
               <SelectContent>
                 {assets.map((asset) => (
@@ -239,76 +241,76 @@ export function StepThreeDataSaver({
             </div>
 
             {selectedAssetIds.length === 0 && (
-              <p className="text-sm text-muted-foreground">请选择至少一个要关联的资产</p>
+              <p className="text-sm text-muted-foreground">{t('steps.step3.assetSelect.noSelection')}</p>
             )}
           </div>
 
           <div className="space-y-4">
             <div className="rounded-md bg-muted p-4">
-              <h3 className="font-medium">确认保存以下信息</h3>
+              <h3 className="font-medium">{t('steps.step3.confirmInfo')}</h3>
               <div className="mt-2 space-y-2 text-sm">
                 {contentMode === 'ai_summary' ? (
                   // AI摘要模式预览
                   <>
                     <p>
-                      <strong>标题:</strong>{' '}
+                      <strong>{t('steps.step2.analyzeSuccess.titleLabel')}:</strong>{' '}
                       {analysisResult?.title ||
                         marketInfo?.metadata?.extractedData?.title ||
-                        '未提取到标题'}
+                        t('error.unknown')}
                     </p>
                     <div>
-                      <strong>资产代号:</strong> {analysisResult?.symbol || '未知'}
+                      <strong>{t('steps.step2.analyzeSuccess.symbol')}: </strong> {analysisResult?.symbol || '未知'}
                     </div>
                     <p>
-                      <strong>来源:</strong> {marketInfo?.source.name}
+                      <strong>{t('steps.step3.saveSuccess.source')}:</strong> {marketInfo?.source.name}
                     </p>
                     <p>
-                      <strong>投资倾向:</strong> {analysisResult?.sentiment || '未知'}
+                      <strong>{t('steps.step2.analyzeSuccess.sentiment')}:</strong> {analysisResult?.sentiment || '未知'}
                     </p>
                     <p>
-                      <strong>重要性:</strong> {analysisResult?.importance || '未知'}/10
+                      <strong>{t('steps.step2.analyzeSuccess.importance')}:</strong> {analysisResult?.importance || '未知'}/10
                     </p>
                     <div>
-                      <strong>关键词:</strong>
-                      <p className="mt-1">{analysisResult?.keyTopics?.join(', ') || '未生成关键词'}</p>
+                      <strong>{t('steps.step2.analyzeSuccess.keywords')}:</strong>
+                      <p className="mt-1">{analysisResult?.keyTopics?.join(', ') || t('error.unknown')}</p>
                     </div>
                     <div>
-                      <strong>重要数据:</strong>
+                      <strong>{t('steps.step2.analyzeSuccess.keyData')}:</strong>
                       <p className="mt-1">
-                        {analysisResult?.keyDataPoints?.join('\n\n') || '未生成重要数据'}
+                        {analysisResult?.keyDataPoints?.join('\n\n') || t('error.unknown')}
                       </p>
                     </div>
                     <div>
-                      <strong>市场影响:</strong>
+                      <strong>{t('steps.step2.analyzeSuccess.marketImpact')}:</strong>
                       <p className="mt-1">{analysisResult?.marketImpact || '未知'}</p>
                     </div>
                     <div>
-                      <strong>内容摘要:</strong>
-                      <p className="mt-1">{analysisResult?.summary || '未生成摘要'}</p>
+                      <strong>{t('steps.step2.analyzeSuccess.summary')}:</strong>
+                      <p className="mt-1">{analysisResult?.summary || t('error.unknown')}</p>
                     </div>
                   </>
                 ) : (
                   // 原文模式预览
                   <>
                     <p>
-                      <strong>标题:</strong>{' '}
-                      {marketInfo?.metadata?.extractedData?.title || '未提取到标题'}
+                      <strong>{t('steps.step2.analyzeSuccess.titleLabel')}:</strong>{' '}
+                      {marketInfo?.metadata?.extractedData?.title || t('error.unknown')}
                     </p>
                     <div>
-                      <strong>资产代号:</strong> {marketInfo?.metadata?.extractedData?.symbol || '未知'}
+                      <strong>{t('steps.step2.analyzeSuccess.symbol')}: </strong> {marketInfo?.metadata?.extractedData?.symbol || '未知'}
                     </div>
                     <p>
-                      <strong>来源:</strong> {marketInfo?.source.name}
+                      <strong>{t('steps.step3.saveSuccess.source')}:</strong> {marketInfo?.source.name}
                     </p>
                     <div>
-                      <strong>原文内容预览:</strong>
+                      <strong>{t('steps.step2.contentPreview')}:</strong>
                       <p className="mt-1 max-h-40 overflow-y-auto">
-                        {marketInfo?.content || '未获取到原文内容'}
+                        {marketInfo?.content || t('error.unknown')}
                       </p>
                     </div>
                     <div>
-                      <strong>字数统计:</strong>{' '}
-                      <span>{marketInfo?.content?.length || 0} 字符</span>
+                      <strong>{t('steps.step1.crawlSuccess.contentLength')}:</strong>{' '}
+                      <span>{marketInfo?.content?.length || 0} {t('steps.step1.crawlSuccess.contentLength')}</span>
                     </div>
                   </>
                 )}
@@ -318,7 +320,7 @@ export function StepThreeDataSaver({
 
           <div className="flex justify-between">
             <Button variant="outline" onClick={onBack}>
-              上一步
+              {t('steps.step3.actions.back')}
             </Button>
             <Button
               onClick={handleFinalSave}
@@ -327,10 +329,10 @@ export function StepThreeDataSaver({
               {isFinalSaving ? (
                 <>
                   <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
-                  保存中...
+                  {t('steps.step3.actions.saving')}
                 </>
               ) : (
-                '确认保存'
+                t('steps.step3.actions.save')
               )}
             </Button>
           </div>

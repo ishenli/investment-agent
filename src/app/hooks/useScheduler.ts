@@ -15,7 +15,7 @@ interface TaskStatus {
 /**
  * 任务检查结果
  */
-interface TaskCheckResult {
+export interface TaskCheckResult {
   snapshot?: {
     executed: boolean;
     status: string;

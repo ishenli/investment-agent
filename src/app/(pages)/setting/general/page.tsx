@@ -7,24 +7,47 @@ import { Button } from '@renderer/components/ui/button';
 import { Switch } from '@renderer/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@renderer/components/ui/select';
 import { Separator } from '@renderer/components/ui/separator';
-import { Check, Globe, Bell, Shield } from 'lucide-react';
+import { Check, Globe, Bell } from 'lucide-react';
+import { useUserStore } from '@renderer/store/user';
+import { SupportedLanguage } from '@typings/user';
+import { useTranslation } from 'react-i18next';
+import i18nInstance, { defaultLanguage } from '@renderer/lib/i18n';
 
 type GeneralSettingsProps = object
 
 export default function GeneralSettings({
   // Add props if needed
 }: GeneralSettingsProps) {
-  const [language, setLanguage] = React.useState('zh-CN');
-  const [notifications, setNotifications] = React.useState(true);
-  const [autoSave, setAutoSave] = React.useState(true);
+  const { t } = useTranslation('setting');
   const [dataRetention, setDataRetention] = React.useState('30d');
   const [saving, setSaving] = React.useState(false);
   const [saved, setSaved] = React.useState(false);
+  
+  // 从store获取和更新所有设置，优先使用 i18n 当前语言避免闪烁
+  const storeLanguage = useUserStore(state => state.preference.language);
+  const currentLanguage = storeLanguage || (i18nInstance.language as SupportedLanguage) || defaultLanguage;
+  const currentNotifications = useUserStore(state => state.preference.enableNotifications ?? false);
+  const currentAutoSave = useUserStore(state => state.preference.autoSave ?? true);
+  const updatePreference = useUserStore(state => state.updatePreference);
+
+  const handleLanguageChange = async (value: string) => {
+    const newLanguage = value as SupportedLanguage;
+    await updatePreference({ language: newLanguage });
+  };
+
+  const handleNotificationsChange = async (checked: boolean) => {
+    await updatePreference({ enableNotifications: checked });
+  };
+
+  const handleAutoSaveChange = async (checked: boolean) => {
+    await updatePreference({ autoSave: checked });
+  };
 
   const handleSave = async () => {
     setSaving(true);
-    // Simulate save operation
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // 实际保存操作已经在各个变更处理函数中完成
+    // 这里可以执行额外的保存逻辑
+    await new Promise(resolve => setTimeout(resolve, 500));
     setSaved(true);
     setSaving(false);
     setTimeout(() => setSaved(false), 2000);
@@ -34,15 +57,15 @@ export default function GeneralSettings({
     <div className="flex-1 flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">通用设置</h1>
+          <h1 className="text-2xl font-bold">{t('general.title')}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            管理您的通用偏好设置
+            {t('general.description')}
           </p>
         </div>
         {saved && (
           <div className="flex items-center gap-2 text-sm text-green-600">
             <Check className="h-4 w-4" />
-            设置已保存
+            {t('actions.save')}
           </div>
         )}
       </div>
@@ -55,39 +78,38 @@ export default function GeneralSettings({
               <Globe className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <CardTitle>语言和地区</CardTitle>
-              <CardDescription>设置界面语言和地区偏好</CardDescription>
+              <CardTitle>{t('general.language')}</CardTitle>
+              <CardDescription>{t('general.regionDescription')}</CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-2">
- <div className="space-y-2">
-            <Label htmlFor="language">语言</Label>
-            <Select value={language} onValueChange={setLanguage}>
+            <div className="space-y-2">
+            <Label htmlFor="language">{t('general.language')}</Label>
+            <Select value={currentLanguage} onValueChange={handleLanguageChange}>
               <SelectTrigger id="language">
-                <SelectValue placeholder="选择语言" />
+                <SelectValue placeholder={t('general.selectLanguage')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="zh-CN">简体中文</SelectItem>
-                <SelectItem value="zh-TW">繁體中文</SelectItem>
-                <SelectItem value="en-US">English</SelectItem>
-                <SelectItem value="ja-JP">日本語</SelectItem>
+                <SelectItem value="zh-CN">{t('language.zh-CN')}</SelectItem>
+                <SelectItem value="en-US">{t('language.en-US')}</SelectItem>
+                
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="timezone">时区</Label>
+            <Label htmlFor="timezone">{t('general.timezone')}</Label>
             <Select defaultValue="Asia/Shanghai">
               <SelectTrigger id="timezone">
-                <SelectValue placeholder="选择时区" />
+                <SelectValue placeholder={t('general.selectTimezone')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Asia/Shanghai">亚洲/上海 (GMT+8)</SelectItem>
-                <SelectItem value="Asia/Tokyo">亚洲/东京 (GMT+9)</SelectItem>
-                <SelectItem value="America/New_York">美洲/纽约 (GMT-5)</SelectItem>
-                <SelectItem value="Europe/London">欧洲/伦敦 (GMT+0)</SelectItem>
+                <SelectItem value="Asia/Shanghai">{t('general.asiaShanghai')}</SelectItem>
+                <SelectItem value="Asia/Tokyo">{t('general.asiaTokyo')}</SelectItem>
+                <SelectItem value="America/New_York">{t('general.americaNewYork')}</SelectItem>
+                <SelectItem value="Europe/London">{t('general.europeLondon')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -103,21 +125,21 @@ export default function GeneralSettings({
               <Bell className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <CardTitle>通知设置</CardTitle>
-              <CardDescription>管理通知偏好</CardDescription>
+              <CardTitle>{t('general.notifications')}</CardTitle>
+              <CardDescription>{t('general.notificationDescription')}</CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="notifications">启用通知</Label>
-              <p className="text-sm text-muted-foreground">接收重要更新和提醒</p>
+              <Label htmlFor="notifications">{t('general.enableNotification')}</Label>
+              <p className="text-sm text-muted-foreground">{t('general.receiveUpdates')}</p>
             </div>
             <Switch
               id="notifications"
-              checked={notifications}
-              onCheckedChange={setNotifications}
+              checked={currentNotifications}
+              onCheckedChange={handleNotificationsChange}
             />
           </div>
 
@@ -125,13 +147,13 @@ export default function GeneralSettings({
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="autoSave">自动保存</Label>
-              <p className="text-sm text-muted-foreground">自动保存您的更改</p>
+              <Label htmlFor="autoSave">{t('general.autoSave')}</Label>
+              <p className="text-sm text-muted-foreground">{t('general.autoSaveDescription')}</p>
             </div>
             <Switch
               id="autoSave"
-              checked={autoSave}
-              onCheckedChange={setAutoSave}
+              checked={currentAutoSave}
+              onCheckedChange={handleAutoSaveChange}
             />
           </div>
         </CardContent>
@@ -171,9 +193,9 @@ export default function GeneralSettings({
 
       {/* Save Button */}
       <div className="flex justify-end gap-4">
-        <Button variant="outline">取消</Button>
+        <Button variant="outline">{t('actions.cancel')}</Button>
         <Button onClick={handleSave} disabled={saving}>
-          {saving ? '保存中...' : '保存设置'}
+          {saving ? t('actions.saving') : t('actions.saveSettings')}
         </Button>
       </div>
     </div>

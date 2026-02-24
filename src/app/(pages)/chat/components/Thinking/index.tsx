@@ -87,12 +87,11 @@ const Thinking = memo<ThinkingProps>((props) => {
   const { t } = useTranslation(['components', 'common']);
   const { styles, cx, theme } = useStyles();
 
-  const [showDetail, setShowDetail] = useState(false);
   const contentRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    setShowDetail(!!thinking);
-  }, [thinking]);
+  const [userExpanded, setUserExpanded] = useState(false);
+    
+  // showDetail 逻辑：当正在思考时自动展开，或用户手动展开时保持展开
+  const showDetail = !!thinking || userExpanded;
 
   // 当内容变更且正在思考时，如果用户接近底部则自动滚动到底部
   useEffect(() => {
@@ -134,7 +133,7 @@ const Thinking = memo<ThinkingProps>((props) => {
         gap={8}
         horizontal
         onClick={() => {
-          setShowDetail(!showDetail);
+          setUserExpanded(!showDetail);
         }}
         style={{ cursor: 'pointer' }}
         width={'100%'}
@@ -143,7 +142,7 @@ const Thinking = memo<ThinkingProps>((props) => {
           <Flexbox align={'center'} gap={8} horizontal width={'100%'}>
             <Icon color={theme.purple} icon={AtomIcon} />
             <Flexbox className={styles.shinyText} horizontal>
-              深度思考中...
+              {t('thinking.inProgress', { ns: 'components' })}
             </Flexbox>
           </Flexbox>
         ) : (
@@ -151,8 +150,8 @@ const Thinking = memo<ThinkingProps>((props) => {
             <Icon color={showDetail ? theme.purple : undefined} icon={AtomIcon} />
             <Flexbox>
               {!duration
-                ? t('已深度思考')
-                : `已深度思考（用时 ${((duration || 0) / 1000).toFixed(1)} 秒）`}
+                ? t('thinking.completed', { ns: 'components' })
+                : t('thinking.completedWithDuration', { ns: 'components', duration: ((duration || 0) / 1000).toFixed(1) })}
             </Flexbox>
           </Flexbox>
         )}

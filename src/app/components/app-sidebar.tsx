@@ -16,9 +16,9 @@ import {
   type Icon,
   IconEye,
   IconAnalyzeFilled,
-  IconServer,
   IconCamera,
 } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 
 import { NavMain } from '@renderer/components/nav-main';
 import { NavUser } from '@renderer/components/nav-user';
@@ -40,32 +40,32 @@ import { NavSettings } from './nav-setting';
 export const data = {
   navMain: [
     {
-      title: '账户信息',
+      title: 'sidebar.navMain.accountInfo',
       url: '/asset',
       icon: IconWallet,
     },
     {
-      title: '持仓管理',
+      title: 'sidebar.navMain.positionManagement',
       url: '/asset-management',
       icon: IconAsset,
     },
     {
-      title: '交易记录',
+      title: 'sidebar.navMain.tradeRecords',
       url: '/trade',
       icon: IconTrademark,
     },
     {
-      title: 'AI洞察',
+      title: 'sidebar.navMain.aiInsights',
       url: '/insight',
       icon: IconEye,
     },
     {
-      title: 'AI投顾',
+      title: 'sidebar.navMain.aiAdvisor',
       url: '/chat',
       icon: IconMessage,
     },
     {
-      title: 'AI报告',
+      title: 'sidebar.navMain.aiReports',
       url: '/report',
       icon: IconReport,
     },
@@ -75,7 +75,7 @@ export const data = {
     //   icon: IconMessage,
     // },
     {
-      title: '深度分析',
+      title: 'sidebar.navMain.deepAnalysis',
       url: '/research',
       icon: IconAnalyzeFilled,
     },
@@ -87,12 +87,12 @@ export const data = {
     //   icon: IconReportAnalytics as Icon,
     // },
     {
-      name: '市场信息',
+      name: 'sidebar.documents.marketInfo',
       url: '/asset-market-info',
       icon: IconDatabase as Icon,
       dropdownItems: [
         {
-          label: '添加市场信息',
+          label: 'sidebar.documents.addMarketInfo',
           icon: IconCirclePlusFilled as Icon,
           actionType: 'link' as const,
           url: '/asset-market-info-fetcher',
@@ -100,22 +100,22 @@ export const data = {
       ],
     },
     {
-      name: '资产数据',
+      name: 'sidebar.documents.assetData',
       url: '/asset-meta',
       icon: IconAnalyze as Icon,
     },
     {
-      name: '投资笔记',
+      name: 'sidebar.documents.investmentNotes',
       url: '/note',
       icon: IconFileWord as Icon,
     },
     {
-      name: '组合快照',
+      name: 'sidebar.documents.portfolioSnapshot',
       url: '/snapshot',
       icon: IconCamera as Icon,
     },
     {
-      name: '搜索',
+      name: 'sidebar.documents.search',
       url: '/search',
       icon: IconSearch,
     },
@@ -145,7 +145,7 @@ export const data = {
   ],
   settings: [
     {
-      name: '设置',
+      name: 'sidebar.settings.settings',
       url: '/setting',
       icon: IconSettings,
     },
@@ -153,6 +153,7 @@ export const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { t } = useTranslation(['components', 'common']);
   const account = useAccountStore((state) => state.account);
   const showSwitchAccountDialog = useAccountStore((state) => state.showSwitchAccountDialog);
   const initializeAccount = useAccountStore((state) => state.initializeAccount);
@@ -166,6 +167,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   useEffect(() => {
     initializeAccount();
   }, [initializeAccount]);
+
+  // 使用翻译函数转换菜单项
+  const translatedNavMain = data.navMain.map(item => ({
+    ...item,
+    title: t(item.title as any)
+  }));
+
+  const translatedDocuments = data.documents.map(item => ({
+    ...item,
+    name: t(item.name as any),
+    dropdownItems: item.dropdownItems?.map(dropdownItem => ({
+      ...dropdownItem,
+      label: t(dropdownItem.label as any)
+    }))
+  }));
+
+  const translatedSettings = data.settings.map(item => ({
+    ...item,
+    name: t(item.name as any)
+  }));
 
   return (
     <Sidebar collapsible="icon" {...props} className="text-dark mt-4">
@@ -183,7 +204,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-medium">Investment</span>
+                  <span className="font-medium">{'Investment'}</span>
                 </div>
               </div>
             </SidebarMenuButton>
@@ -191,9 +212,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
-        <NavSettings items={data.settings} />
+        <NavMain items={translatedNavMain} />
+        <NavDocuments items={translatedDocuments} />
+        <NavSettings items={translatedSettings} />
         {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>
       <SidebarFooter className="mb-4">

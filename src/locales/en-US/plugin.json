@@ -1,0 +1,35 @@
+{
+  "actions": {
+    "disable": "Disable",
+    "enable": "Enable",
+    "settings": "Settings"
+  },
+  "detail": {
+    "author": "Author",
+    "description": "Description",
+    "disabled": "Disabled",
+    "enabled": "Enabled",
+    "install": "Install",
+    "permissions": "Permissions",
+    "uninstall": "Uninstall",
+    "update": "Update",
+    "version": "Version"
+  },
+  "installed": {
+    "manage": "Manage Installed Plugins",
+    "title": "Installed Plugins"
+  },
+  "marketplace": {
+    "categories": "Categories",
+    "featured": "Featured",
+    "new": "New",
+    "popular": "Popular",
+    "search": "Search plugins...",
+    "title": "Plugin Marketplace"
+  },
+  "store": {
+    "communityPlugin": "Community Plugin",
+    "customPlugin": "Custom Plugin"
+  },
+  "title": "Plugins"
+}

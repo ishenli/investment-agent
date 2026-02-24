@@ -17,6 +17,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { useTranslation } from 'react-i18next';
 
 // 资产配置图表组件
 export function AllocationChart({
@@ -24,17 +25,18 @@ export function AllocationChart({
 }: {
   data: Array<{ category: string; allocation: number; benchmark?: number }>;
 }) {
+  const { t } = useTranslation('asset');
   // 如果没有数据，显示空状态
   if (!data || data.length === 0) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">资产配置</CardTitle>
-          <CardDescription>您的投资组合资产类别分布</CardDescription>
+          <CardTitle className="text-lg font-semibold">{t('allocationChart.title')}</CardTitle>
+          <CardDescription>{t('allocationChart.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="h-80 flex items-center justify-center text-muted-foreground">
-            暂无数据
+            {t('allocationChart.noData')}
           </div>
         </CardContent>
       </Card>
@@ -44,8 +46,8 @@ export function AllocationChart({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg font-semibold">资产配置</CardTitle>
-        <CardDescription>您的投资组合资产类别分布</CardDescription>
+        <CardTitle className="text-lg font-semibold">{t('allocationChart.title')}</CardTitle>
+        <CardDescription>{t('allocationChart.description')}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="h-80">
@@ -63,13 +65,12 @@ export function AllocationChart({
               <XAxis dataKey="category" />
               <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
               <Tooltip
-                formatter={(value) => [`${value}%`, '配置比例']}
-                labelFormatter={(label) => `类别: ${label}`}
+                formatter={(value) => [`${value}%`, t('allocationChart.allocationRatio')]}
               />
               <Legend />
-              <Bar dataKey="allocation" name="当前配置" fill="#8884d8" />
+              <Bar dataKey="allocation" name={t('allocationChart.currentAllocation')} fill="#8884d8" />
               {data.some((item) => item.benchmark !== undefined) && (
-                <Bar dataKey="benchmark" name="基准配置" fill="#82ca9d" />
+                <Bar dataKey="benchmark" name={t('allocationChart.benchmarkAllocation')} fill="#82ca9d" />
               )}
             </BarChart>
           </ResponsiveContainer>

@@ -1,0 +1,204 @@
+{
+  "actions": {
+    "add": "添加新资产",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "refresh": "刷新",
+    "save": "保存",
+    "view": "查看"
+  },
+  "basicInfo": {
+    "buttons": {
+      "cancel": "取消",
+      "save": "保存",
+      "saving": "保存中..."
+    },
+    "description": "查看和编辑资产的基本信息",
+    "fields": {
+      "chineseName": "中文名称",
+      "fullName": "英文全称",
+      "logoPreview": "预览",
+      "market": "市场",
+      "symbol": "股票代码"
+    },
+    "messages": {
+      "symbolReadOnly": "股票代码不可修改"
+    },
+    "placeholders": {
+      "chineseName": "请输入中文名称",
+      "fullName": "请输入英文全称",
+      "logoUrl": "https://example.com/logo.png"
+    },
+    "title": "资产基本信息"
+  },
+  "delete": {
+    "confirm": "确定要删除这条记录吗？",
+    "failed": "删除失败",
+    "success": "删除成功"
+  },
+  "detail": {
+    "actions": {
+      "addCompanyInfo": "添加公司纪要",
+      "addInvestmentMemo": "添加投资笔记",
+      "addMarketInfo": "添加市场纪要",
+      "editBasicInfo": "编辑基本信息"
+    },
+    "company": {
+      "actions": {
+        "delete": "删除",
+        "edit": "编辑",
+        "viewDetail": "查看详情"
+      },
+      "noData": {
+        "description": "当前没有可用的公司信息。",
+        "title": "暂无数据"
+      }
+    },
+    "delete": {
+      "confirm": "确定要删除这条记录吗？",
+      "dialog": {
+        "cancel": "取消",
+        "confirm": "确认删除",
+        "deleting": "删除中...",
+        "description": "确定要删除这条信息吗？此操作无法撤销。",
+        "title": "确认删除"
+      },
+      "failed": "删除失败",
+      "success": "删除成功"
+    },
+    "history": {
+      "actions": {
+        "deleteDetail": "删除详情",
+        "viewDetail": "查看详情"
+      },
+      "contentMode": {
+        "aiSummary": "AI摘要",
+        "original": "原文"
+      },
+      "noData": {
+        "description": "当前没有可用的资产市场信息历史记录。",
+        "title": "暂无数据"
+      },
+      "pagination": {
+        "next": "下一页",
+        "pageInfo": "第 {{page}} 页，共 {{totalPages}} 页",
+        "previous": "上一页"
+      }
+    },
+    "latest": {
+      "assetCode": "资产代码",
+      "contentMode": {
+        "aiSummary": "AI摘要",
+        "original": "原文"
+      },
+      "contentSummary": "内容摘要",
+      "importanceScore": "重要性评分",
+      "keyDataPoints": "重要数据点",
+      "keyTopics": "关键主题",
+      "marketImpact": "市场影响",
+      "noData": {
+        "description": "未找到该资产的市场信息。",
+        "title": "未找到数据"
+      },
+      "originalContent": "原文内容",
+      "sentiment": "投资倾向",
+      "sourceInfo": "来源信息",
+      "updateTime": "更新时间",
+      "viewOriginal": "查看原文"
+    },
+    "tabs": {
+      "basicInfo": "基本信息",
+      "company": "公司纪要",
+      "history": "历史市场纪要",
+      "investmentMemo": "投资笔记",
+      "latest": "最新市场纪要"
+    },
+    "title": "{{name}}资产信息详情"
+  },
+  "error": {
+    "reload": "重新加载",
+    "title": "错误",
+    "unknown": "未知错误"
+  },
+  "errors": {
+    "fetchCompanyInfoFailed": "获取公司纪要失败",
+    "fetchDataFailed": "获取数据失败",
+    "fetchPriceFailed": "获取价格时出错",
+    "unknown": "未知错误"
+  },
+  "form": {
+    "addTitle": "添加资产元数据",
+    "assetTypes": {
+      "crypto": "加密货币",
+      "etf": "ETF",
+      "fund": "基金",
+      "stock": "股票"
+    },
+    "buttons": {
+      "refreshPrice": "刷新价格"
+    },
+    "editTitle": "编辑资产元数据",
+    "fields": {
+      "assetType": "资产类型 *",
+      "chineseName": "中文名称",
+      "currency": "货币 *",
+      "fullName": "英文全称",
+      "investmentMemo": "投资笔记",
+      "logoUrl": "Logo URL",
+      "market": "市场 *",
+      "priceCents": "价格 (美分) *",
+      "source": "数据来源 *",
+      "symbol": "股票代码 *"
+    },
+    "markets": {
+      "CN": "A股",
+      "HK": "港股",
+      "US": "美股"
+    },
+    "placeholders": {
+      "investmentMemo": "请输入投资笔记内容...",
+      "logoUrl": "https://example.com/logo.png"
+    }
+  },
+  "investmentMemo": {
+    "buttons": {
+      "cancel": "取消",
+      "save": "保存",
+      "saving": "保存中..."
+    },
+    "description": "关于该资产的投资分析和笔记",
+    "editDescription": "请输入关于该资产的投资分析和笔记",
+    "editTitle": "编辑投资笔记",
+    "emptyDescription": "当前没有投资笔记信息。",
+    "emptyTitle": "暂无数据",
+    "placeholder": "请输入投资笔记...",
+    "title": "投资笔记"
+  },
+  "loading": "加载中...",
+  "save": {
+    "failed": "保存失败",
+    "success": "保存成功"
+  },
+  "search": {
+    "placeholder": "搜索股票代码、中文名称或投资笔记..."
+  },
+  "sentiment": {
+    "negative": "消极",
+    "neutral": "中性",
+    "positive": "积极"
+  },
+  "table": {
+    "headers": {
+      "actions": "操作",
+      "assetType": "资产类型",
+      "currency": "货币",
+      "market": "市场",
+      "price": "价格 (USD)",
+      "source": "数据来源",
+      "symbol": "股票代码",
+      "updatedAt": "更新时间"
+    }
+  },
+  "title": "资产元数据管理"
+}

@@ -17,8 +17,10 @@ import {
 } from '@renderer/components/ui/select';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 
 export default function NotePage() {
+  const { t } = useTranslation('note');
   const router = useRouter();
   // 保护页面，确保用户有账户才能访问
   useAccountGuard();
@@ -214,7 +216,7 @@ export default function NotePage() {
 
   // 处理删除笔记
   const handleDeleteNote = async (noteId: string) => {
-    if (!confirm('确定要删除这个笔记吗？')) {
+    if (!confirm(t('messages.deleteConfirm'))) {
       return;
     }
 
@@ -285,7 +287,7 @@ export default function NotePage() {
           <div className="flex-1">
             <Input
               type="text"
-              placeholder="搜索笔记标题或内容..."
+              placeholder={t('searchPlaceholder')}
               value={searchParams.search || ''}
               onChange={(e) => handleSearchParamChange({ search: e.target.value })}
             />
@@ -298,12 +300,12 @@ export default function NotePage() {
               onValueChange={(value) => handleSearchParamChange({ sortBy: value })}
             >
               <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="排序字段" />
+                <SelectValue placeholder={t('sortBy.title')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="createdAt">创建时间</SelectItem>
-                <SelectItem value="updatedAt">更新时间</SelectItem>
-                <SelectItem value="title">标题</SelectItem>
+                <SelectItem value="createdAt">{t('sortBy.createdAt')}</SelectItem>
+                <SelectItem value="updatedAt">{t('sortBy.updatedAt')}</SelectItem>
+                <SelectItem value="title">{t('sortBy.title')}</SelectItem>
               </SelectContent>
             </Select>
 
@@ -314,20 +316,20 @@ export default function NotePage() {
               }
             >
               <SelectTrigger className="w-[100px]">
-                <SelectValue placeholder="排序方式" />
+                <SelectValue placeholder={t('sortOrder.desc')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="desc">降序</SelectItem>
-                <SelectItem value="asc">升序</SelectItem>
+                <SelectItem value="desc">{t('sortOrder.desc')}</SelectItem>
+                <SelectItem value="asc">{t('sortOrder.asc')}</SelectItem>
               </SelectContent>
             </Select>
-            <Button onClick={handleCreateNote}>新建笔记</Button>
+            <Button onClick={handleCreateNote}>{t('actions.create')}</Button>
           </div>
         </div>
 
         {/* 标签筛选 */}
         <div className="mt-4 flex flex-wrap gap-2 items-center">
-          <span className="text-sm font-medium ">标签筛选:</span>
+          <span className="text-sm font-medium ">{t('filter.label')}</span>
           {allTags.map((tag) => (
             <Button
               key={tag}
@@ -346,7 +348,7 @@ export default function NotePage() {
               onClick={handleClearFilter}
               className="rounded-full"
             >
-              清除筛选
+              {t('filter.clear')}
             </Button>
           )}
         </div>
@@ -359,14 +361,14 @@ export default function NotePage() {
       <div className="flex-1 overflow-auto">
         {isNotesLoading ? (
           <div className="flex items-center justify-center h-full">
-            <div className="text-lg">加载中...</div>
+            <div className="text-lg">{t('list.loading')}</div>
           </div>
         ) : notes.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
-              <p className="text-gray-500">暂无笔记</p>
+              <p className="text-gray-500">{t('list.empty')}</p>
               <Button onClick={handleCreateNote} className="mt-4">
-                创建第一个笔记
+                {t('actions.createFirst')}
               </Button>
             </div>
           </div>
@@ -431,11 +433,11 @@ export default function NotePage() {
               disabled={currentPage === 1 || isNotesLoading}
               variant="outline"
             >
-              上一页
+              {t('pagination.prev')}
             </Button>
 
             <span className="px-3 py-1 flex items-center">
-              {currentPage} / {totalPages}
+              {t('pagination.page', { current: currentPage, total: totalPages })}
             </span>
 
             <Button
@@ -443,7 +445,7 @@ export default function NotePage() {
               disabled={currentPage === totalPages || isNotesLoading}
               variant="outline"
             >
-              下一页
+              {t('pagination.next')}
             </Button>
           </div>
         </div>
@@ -456,13 +458,13 @@ export default function NotePage() {
     <div className="flex flex-col h-full">
       {/* 编辑器头部 */}
       <div className="flex items-center justify-between py-4">
-        <h1 className="text-xl font-bold">{selectedNote ? '编辑笔记' : '新建笔记'}</h1>
+        <h1 className="text-xl font-bold">{selectedNote ? t('editor.editTitle') : t('editor.newTitle')}</h1>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => setIsEditing(false)}>
-            取消
+            {t('actions.cancel')}
           </Button>
           <Button onClick={handleSaveNote} disabled={isSaveLoading}>
-            {isSaveLoading ? '保存中...' : '保存'}
+            {isSaveLoading ? t('actions.saving') : t('actions.save')}
           </Button>
         </div>
       </div>
@@ -484,7 +486,7 @@ export default function NotePage() {
           <div className="mb-6">
             <Input
               type="text"
-              placeholder="请输入笔记标题"
+              placeholder={t('editor.titleLabel')}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="text-2xl font-bold h-9"
@@ -514,19 +516,19 @@ export default function NotePage() {
               <Input
                 className="h-9"
                 type="text"
-                placeholder="添加标签"
+                placeholder={t('editor.tagPlaceholder')}
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
               />
-              <Button onClick={handleAddTag}>添加</Button>
+              <Button onClick={handleAddTag}>{t('actions.add')}</Button>
             </div>
           </div>
 
           {/* 内容编辑器 */}
           <div className="mb-6">
             <Textarea
-              placeholder="请输入笔记内容（支持 Markdown 语法）"
+              placeholder={t('editor.contentLabel')}
               value={content}
               onChange={(e) => setContent(e.target.value)}
               className="h-60"

@@ -15,6 +15,7 @@ import {
 import { Input } from '@renderer/components/ui/input';
 import { Label } from '@renderer/components/ui/label';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 interface EditCashBalanceDialogProps {
   open: boolean;
@@ -22,14 +23,18 @@ interface EditCashBalanceDialogProps {
 }
 
 export function EditCashBalanceDialog({ open, onOpenChange }: EditCashBalanceDialogProps) {
+  const { t } = useTranslation('asset');
   const { data: account } = useAccountQuery();
   const { mutate: updateBalance, isPending } = useUpdateAccountBalanceMutation();
-  const [newBalance, setNewBalance] = useState(account?.balance?.toString() || '');
+  const [newBalance, setNewBalance] = useState('');
 
   // 当对话框打开时，初始化新余额为当前余额
   useEffect(() => {
     if (open && account?.balance !== undefined) {
       setNewBalance(account.balance.toString());
+    } else if (!open) {
+      // 关闭对话框时清空输入框
+      setNewBalance('');
     }
   }, [open, account?.balance]);
 
@@ -38,17 +43,17 @@ export function EditCashBalanceDialog({ open, onOpenChange }: EditCashBalanceDia
 
     const balanceValue = parseFloat(newBalance);
     if (isNaN(balanceValue) || balanceValue < 0) {
-      toast.error('请输入有效的金额');
+      toast.error(t('editCashBalanceDialog.invalidAmount'));
       return;
     }
 
     updateBalance(balanceValue, {
       onSuccess: () => {
-        toast.success('现金余额已更新');
+        toast.success(t('editCashBalanceDialog.balanceUpdated'));
         onOpenChange(false);
       },
       onError: (error) => {
-        toast.error('更新现金余额失败: ' + (error as Error).message);
+        toast.error(t('editCashBalanceDialog.updateFailed') + ': ' + (error as Error).message);
       },
     });
   };
@@ -57,17 +62,17 @@ export function EditCashBalanceDialog({ open, onOpenChange }: EditCashBalanceDia
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>修改现金余额</DialogTitle>
+          <DialogTitle>{t('editCashBalanceDialog.title')}</DialogTitle>
           <DialogDescription>
-            输入新的现金余额。当前余额:{' '}
-            {account?.balance !== undefined ? formatCurrency(account.balance) : '加载中...'}
+            {t('editCashBalanceDialog.description')}{' '}
+            {account?.balance !== undefined ? formatCurrency(account.balance) : t('loading')}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="balance" className="text-right">
-                新余额
+                {t('editCashBalanceDialog.newBalanceLabel')}
               </Label>
               <div className="col-span-3 relative">
                 <Input
@@ -88,10 +93,10 @@ export function EditCashBalanceDialog({ open, onOpenChange }: EditCashBalanceDia
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              取消
+              {t('editCashBalanceDialog.cancel')}
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending ? '更新中...' : '更新余额'}
+              {isPending ? t('editCashBalanceDialog.updating') : t('editCashBalanceDialog.updateBalance')}
             </Button>
           </DialogFooter>
         </form>

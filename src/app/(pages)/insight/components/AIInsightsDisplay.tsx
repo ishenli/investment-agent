@@ -23,6 +23,7 @@ import { Spinner } from '@renderer/components/ui/spinner';
 import { useAIInsightsQuery } from '@renderer/hooks/usePositionQueries';
 import { AIInsight } from '@renderer/store/position/aiInsightsTypes';
 import { cn } from '@/app/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 // 数据新鲜度映射到中文和颜色
 const dataFreshnessConfig = {
@@ -42,6 +43,7 @@ const getConfidenceColor = (confidence: number): string => {
 
 // AI洞察显示组件
 export function AIInsightsDisplay() {
+  const { t } = useTranslation('insight');
   const {
     data: aiInsights,
     isLoading: isAIInsightsLoading,
@@ -66,13 +68,13 @@ export function AIInsightsDisplay() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">机会识别</CardTitle>
-          <CardDescription>基于数据分析的智能洞察</CardDescription>
+          <CardTitle className="text-lg font-semibold">{t('opportunityFinder.loadingTitle')}</CardTitle>
+          <CardDescription>{t('opportunityFinder.loadingDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8 text-muted-foreground">
             <Spinner />
-            <p>正在分析中...</p>
+            <p>{t('loading.analyzing')}</p>
           </div>
         </CardContent>
       </Card>
@@ -84,13 +86,14 @@ export function AIInsightsDisplay() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">机会识别</CardTitle>
-          <CardDescription>基于数据分析的智能洞察</CardDescription>
+          <CardTitle className="text-lg font-semibold">{t('aiInsights.title')}</CardTitle>
+          <CardDescription>{t('aiInsights.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
             <LightbulbIcon className="h-12 w-12 mx-auto mb-4 text-yellow-500" />
-            <p>暂无分析结论</p>
+            <p>{t('aiInsights.noData')}</p>
+          </div>
             <Button
               variant="outline"
               size="sm"
@@ -101,16 +104,15 @@ export function AIInsightsDisplay() {
               {loading ? (
                 <>
                   <Spinner className="mr-2 h-4 w-4" />
-                  刷新中...
+                  {t('loading.refreshing')}
                 </>
               ) : (
                 <>
                   <RotateCcwIcon className="h-4 w-4 mr-2" />
-                  刷新
+                  {t('common.refresh')}
                 </>
               )}
             </Button>
-          </div>
         </CardContent>
       </Card>
     );
@@ -121,8 +123,8 @@ export function AIInsightsDisplay() {
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle className="text-lg font-semibold">机会识别</CardTitle>
-            <CardDescription>基于 AI 大模型的数据分析的智能洞察</CardDescription>
+            <CardTitle className="text-lg font-semibold">{t('aiInsights.title')}</CardTitle>
+            <CardDescription>{t('aiInsights.description')}</CardDescription>
           </div>
           <Button
             variant="ghost"
@@ -164,7 +166,7 @@ export function AIInsightsDisplay() {
                       <Badge
                         className={`text-xs ${getConfidenceColor(insight.confidence)} text-white`}
                       >
-                        {insight.confidence.toFixed(0)}% 置信度
+                        {insight.confidence.toFixed(0)}% {t('badge.confidence')}
                       </Badge>
                       {freshness && (
                         <Badge variant="outline" className="text-xs gap-1">
@@ -184,13 +186,13 @@ export function AIInsightsDisplay() {
                     <div className="bg-muted/50 rounded-md p-3 text-xs space-y-2">
                       {insight.metadata?.confidenceReason && (
                         <div className="flex gap-2">
-                          <span className="text-muted-foreground font-medium">置信依据：</span>
+                          <span className="text-muted-foreground font-medium">{t('metadata.confidenceBasis')}：</span>
                           <span className="text-foreground">{insight.metadata.confidenceReason}</span>
                         </div>
                       )}
                       {insight.metadata?.lastDataUpdate && (
                         <div className="flex gap-2">
-                          <span className="text-muted-foreground font-medium">数据时间：</span>
+                          <span className="text-muted-foreground font-medium">{t('metadata.dataTime')}：</span>
                           <span className="text-foreground">
                             {dayjs(insight.metadata.lastDataUpdate).format('YYYY-MM-DD HH:mm')}
                           </span>
@@ -199,7 +201,7 @@ export function AIInsightsDisplay() {
                       {insight.metadata?.relatedAssets &&
                         insight.metadata?.relatedAssets.length > 0 && (
                           <div className="flex gap-2">
-                            <span className="text-muted-foreground font-medium">相关标的：</span>
+                            <span className="text-muted-foreground font-medium">{t('metadata.relatedAssets')}：</span>
                             <div className="flex gap-1 flex-wrap">
                               {insight.metadata.relatedAssets.map((asset: string, idx: number) => (
                                 <Badge

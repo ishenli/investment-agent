@@ -21,8 +21,10 @@ import {
 import { IconSearch, IconLoader, IconWorld, IconDatabase } from '@tabler/icons-react';
 import { get } from '@/app/lib/request';
 import { SearchResultItem, SearchResponse } from '@/types/search';
+import { useTranslation } from 'react-i18next';
 
 export default function SearchPage() {
+  const { t } = useTranslation('search');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState<'all' | 'local' | 'web'>('all');
   const [searchResults, setSearchResults] = useState<SearchResultItem[]>([]);
@@ -47,10 +49,10 @@ export default function SearchPage() {
         params: { query, page: page.toString(), pageSize: size.toString() },
       });
       return response.data;
-    } catch (err) {
-      throw new Error('搜索本地数据时发生错误');
+    } catch (_error) {
+      throw new Error(t('error.localSearchError'));
     }
-  }, []);
+  }, [t]);
 
   const searchWebData = useCallback(async (query: string, page: number, size: number) => {
     try {
@@ -58,10 +60,10 @@ export default function SearchPage() {
         params: { query, page: page.toString(), pageSize: size.toString() },
       });
       return response.data;
-    } catch (err) {
-      throw new Error('搜索网络数据时发生错误');
+    } catch (_error) {
+      throw new Error(t('error.webSearchError'));
     }
-  }, []);
+  }, [t]);
 
   const handleSearch = useCallback(async () => {
     if (!searchQuery.trim()) {
@@ -98,8 +100,8 @@ export default function SearchPage() {
       }
 
       setHasSearched(true);
-    } catch (err) {
-      setError('搜索失败，请稍后重试');
+    } catch (_error) {
+      setError(t('error.searchFailed'));
       setSearchResults([]);
       setWebSearchResults([]);
       setTotalResults(0);
@@ -108,7 +110,7 @@ export default function SearchPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [searchQuery, searchType, currentPage, pageSize, searchLocalData, searchWebData]);
+  }, [searchQuery, searchType, currentPage, pageSize, searchLocalData, searchWebData, t]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -128,7 +130,7 @@ export default function SearchPage() {
       setTotalPages(0);
       setHasSearched(false);
     }
-  }, [searchType, currentPage, hasSearched]); // 移除 searchQuery 依赖项，避免在输入时触发搜索
+  }, [searchType, currentPage, hasSearched, handleSearch, searchQuery]); // 移除 searchQuery 依赖项，避免在输入时触发搜索
 
   // 渲染搜索结果卡片列表
   const renderResultsCards = (results: SearchResultItem[], title?: string) => (
@@ -164,12 +166,12 @@ export default function SearchPage() {
                       {result.type === 'local' ? (
                         <>
                           <IconDatabase className="mr-1 size-3" />
-                          本地
+                          {t('resultType.local')}
                         </>
                       ) : (
                         <>
                           <IconWorld className="mr-1 size-3" />
-                          网络
+                          {t('resultType.web')}
                         </>
                       )}
                     </span>
@@ -190,7 +192,7 @@ export default function SearchPage() {
                           className="text-xs text-blue-500 hover:underline truncate max-w-[50%]"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          访问链接
+                          {t('result.visitLink')}
                         </a>
                       )}
                     </div>
@@ -209,22 +211,22 @@ export default function SearchPage() {
                         : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
                     }`}
                   >
-                    {selectedItem?.type === 'local' ? '本地' : '网络'}
+                    {selectedItem?.type === 'local' ? t('resultType.local') : t('resultType.web')}
                   </span>
                 </DialogTitle>
               </DialogHeader>
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-2">
-                  <h3 className="font-medium">来源</h3>
+                  <h3 className="font-medium">{t('result.source')}</h3>
                   <p className="text-sm text-muted-foreground">{selectedItem?.source}</p>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <h3 className="font-medium">描述</h3>
+                  <h3 className="font-medium">{t('result.description')}</h3>
                   <p className="text-sm whitespace-pre-wrap">{selectedItem?.description}</p>
                 </div>
                 {selectedItem?.url && (
                   <div className="flex flex-col gap-2">
-                    <h3 className="font-medium">链接</h3>
+                    <h3 className="font-medium">{t('result.link')}</h3>
                     <a
                       href={selectedItem.url}
                       target="_blank"
@@ -246,8 +248,8 @@ export default function SearchPage() {
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
       <div className="flex flex-col gap-4">
-        <h1 className="text-2xl font-bold">信息搜索</h1>
-        <p className="text-muted-foreground">搜索本地数据和网络信息</p>
+        <h1 className="text-2xl font-bold">{t('title')}</h1>
+        <p className="text-muted-foreground">{t('description')}</p>
       </div>
 
       {/* 搜索框和选项 */}
@@ -255,7 +257,7 @@ export default function SearchPage() {
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Input
-              placeholder="输入搜索关键词..."
+              placeholder={t('placeholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => {
@@ -277,19 +279,19 @@ export default function SearchPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">全部数据</SelectItem>
-              <SelectItem value="local">本地数据</SelectItem>
-              <SelectItem value="web">网络信息</SelectItem>
+              <SelectItem value="all">{t('searchType.all')}</SelectItem>
+              <SelectItem value="local">{t('searchType.local')}</SelectItem>
+              <SelectItem value="web">{t('searchType.web')}</SelectItem>
             </SelectContent>
           </Select>
           <Button onClick={handleSearch} disabled={isLoading || !searchQuery.trim()}>
             {isLoading ? (
               <>
                 <IconLoader className="mr-2 size-4 animate-spin" />
-                搜索中...
+                {t('searching')}
               </>
             ) : (
-              '搜索'
+              t('searchButton')
             )}
           </Button>
         </div>
@@ -299,13 +301,13 @@ export default function SearchPage() {
       {hasSearched && searchQuery.trim() && (
         <div className="rounded-lg bg-muted p-3">
           <div className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="font-medium">搜索条件:</span>
-            <span className="rounded bg-background px-2 py-1 font-mono">"{searchQuery}"</span>
+            <span className="font-medium">{t('condition.label')}</span>
+            <span className="rounded bg-background px-2 py-1 font-mono">&quot;{searchQuery}&quot;</span>
             <span className="text-muted-foreground">•</span>
             <span className="rounded bg-background px-2 py-1">
-              {searchType === 'all' && '全部数据'}
-              {searchType === 'local' && '本地数据'}
-              {searchType === 'web' && '网络信息'}
+              {searchType === 'all' && t('searchType.all')}
+              {searchType === 'local' && t('searchType.local')}
+              {searchType === 'web' && t('searchType.web')}
             </span>
           </div>
         </div>
@@ -319,15 +321,15 @@ export default function SearchPage() {
           {searchType === 'all' ? (
             // 显示所有结果
             <>
-              {searchResults.length > 0 && renderResultsCards(searchResults, '本地数据')}
+              {searchResults.length > 0 && renderResultsCards(searchResults, t('searchType.local'))}
 
-              {webSearchResults.length > 0 && renderResultsCards(webSearchResults, '网络信息')}
+              {webSearchResults.length > 0 && renderResultsCards(webSearchResults, t('searchType.web'))}
 
               {searchResults.length === 0 && webSearchResults.length === 0 && !isLoading && (
                 <div className="flex flex-1 items-center justify-center">
                   <div className="text-center">
-                    <div className="text-lg font-medium">未找到相关结果</div>
-                    <div className="text-muted-foreground">请尝试使用不同的关键词进行搜索</div>
+                    <div className="text-lg font-medium">{t('empty.noResults')}</div>
+                    <div className="text-muted-foreground">{t('empty.suggestion')}</div>
                   </div>
                 </div>
               )}
@@ -339,8 +341,8 @@ export default function SearchPage() {
             ) : !isLoading ? (
               <div className="flex flex-1 items-center justify-center">
                 <div className="text-center">
-                  <div className="text-lg font-medium">未找到相关本地数据</div>
-                  <div className="text-muted-foreground">请尝试使用不同的关键词进行搜索</div>
+                  <div className="text-lg font-medium">{t('empty.noLocalData')}</div>
+                  <div className="text-muted-foreground">{t('empty.suggestion')}</div>
                 </div>
               </div>
             ) : null
@@ -350,8 +352,8 @@ export default function SearchPage() {
           ) : !isLoading ? (
             <div className="flex flex-1 items-center justify-center">
               <div className="text-center">
-                <div className="text-lg font-medium">未找到相关网络信息</div>
-                <div className="text-muted-foreground">请尝试使用不同的关键词进行搜索</div>
+                <div className="text-lg font-medium">{t('empty.noWebData')}</div>
+                <div className="text-muted-foreground">{t('empty.suggestion')}</div>
               </div>
             </div>
           ) : null}
@@ -359,7 +361,9 @@ export default function SearchPage() {
           {/* 分页控件 */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">共 {totalResults} 条结果</div>
+              <div className="text-sm text-muted-foreground">
+                {t('pagination.total', { count: totalResults })}
+              </div>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -367,7 +371,7 @@ export default function SearchPage() {
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                 >
-                  上一页
+                  {t('pagination.previous')}
                 </Button>
 
                 <div className="flex items-center gap-1">
@@ -402,11 +406,11 @@ export default function SearchPage() {
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
                 >
-                  下一页
+                  {t('pagination.next')}
                 </Button>
               </div>
               <div className="text-sm text-muted-foreground">
-                第 {currentPage} 页，共 {totalPages} 页
+                {t('pagination.pageInfo', { current: currentPage, total: totalPages })}
               </div>
             </div>
           )}
