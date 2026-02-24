@@ -31,8 +31,10 @@ import {
   CreateAgentRequestType,
   UpdateAgentRequestType,
 } from '@typings/agent';
+import { useTranslation } from 'react-i18next';
 
 export default function AgentSettingsPage() {
+  const { t } = useTranslation('setting');
   // 智能体列表状态
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -245,7 +247,7 @@ export default function AgentSettingsPage() {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-4">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        <div className="text-lg text-muted-foreground">加载中...</div>
+        <div className="text-lg text-muted-foreground">{t('agent.loading', '加载中...')}</div>
       </div>
     );
   }
@@ -267,9 +269,9 @@ export default function AgentSettingsPage() {
     <div className="flex-1 flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">智能体设置</h1>
+          <h1 className="text-2xl font-bold">{t('agent.title', '智能体设置')}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            管理您的 AI 智能体配置
+            {t('agent.description', '管理您的 AI 智能体配置')}
           </p>
         </div>
       </div>
@@ -281,7 +283,7 @@ export default function AgentSettingsPage() {
               <div>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <IconRobot className="h-5 w-5" />
-                  {isCreating ? '创建智能体' : `编辑 ${editingAgent?.name}`}
+                  {isCreating ? t('agent.form.title.create', '创建智能体') : t('agent.form.title.edit', '编辑 %s').replace('%s', editingAgent?.name || '')}
                 </CardTitle>
               </div>
               <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
@@ -291,83 +293,83 @@ export default function AgentSettingsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="agent-name">名称 *</Label>
+              <Label htmlFor="agent-name">{t('agent.form.fields.name.label', '名称 *')}</Label>
               <Input
                 id="agent-name"
                 value={formData.name || ''}
                 onChange={(e) => handleChange('name', e.target.value)}
-                placeholder="输入智能体名称"
+                placeholder={t('agent.form.fields.name.placeholder', '输入智能体名称')}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="agent-slug">Slug *</Label>
+              <Label htmlFor="agent-slug">{t('agent.form.fields.slug.label', 'Slug *')}</Label>
               <Input
                 id="agent-slug"
                 value={formData.slug || ''}
                 onChange={(e) => handleChange('slug', e.target.value)}
-                placeholder="输入智能体 Slug"
+                placeholder={t('agent.form.fields.slug.placeholder', '输入智能体 Slug')}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="agent-type">类型 *</Label>
+              <Label htmlFor="agent-type">{t('agent.form.fields.type.label', '类型 *')}</Label>
               <select
                 id="agent-type"
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 value={formData.type || 'LOCAL'}
                 onChange={(e) => handleChange('type', e.target.value as 'LOCAL' | 'LINGXI')}
               >
-                <option value="LOCAL">本地</option>
-                <option value="LINGXI">灵犀</option>
+                <option value="LOCAL">{t('agent.form.fields.type.local', '本地')}</option>
+                <option value="LINGXI">{t('agent.form.fields.type.lingxi', '灵犀')}</option>
               </select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="agent-description">描述</Label>
+              <Label htmlFor="agent-description">{t('agent.form.fields.description.label', '描述')}</Label>
               <Input
                 id="agent-description"
                 value={formData.description || ''}
                 onChange={(e) => handleChange('description', e.target.value)}
-                placeholder="输入智能体描述"
+                placeholder={t('agent.form.fields.description.placeholder', '输入智能体描述')}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="agent-apiKey">API密钥 *</Label>
+              <Label htmlFor="agent-apiKey">{t('agent.form.fields.apiKey.label', 'API密钥 *')}</Label>
               <Input
                 id="agent-apiKey"
                 value={formData.apiKey || ''}
                 onChange={(e) => handleChange('apiKey', e.target.value)}
-                placeholder="输入API密钥"
+                placeholder={t('agent.form.fields.apiKey.placeholder', '输入API密钥')}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="agent-apiUrl">API地址 *</Label>
+              <Label htmlFor="agent-apiUrl">{t('agent.form.fields.apiUrl.label', 'API地址 *')}</Label>
               <Input
                 id="agent-apiUrl"
                 value={formData.apiUrl || ''}
                 onChange={(e) => handleChange('apiUrl', e.target.value)}
-                placeholder="输入API地址"
+                placeholder={t('agent.form.fields.apiUrl.placeholder', '输入API地址')}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="agent-systemRole">系统提示词</Label>
+              <Label htmlFor="agent-systemRole">{t('agent.form.fields.systemRole.label', '系统提示词')}</Label>
               <Textarea
                 id="agent-systemRole"
                 value={formData.systemRole || ''}
                 onChange={(e) => handleChange('systemRole', e.target.value)}
-                placeholder="输入智能体的系统提示词..."
+                placeholder={t('agent.form.fields.systemRole.placeholder', '输入智能体的系统提示词...')}
                 className="min-h-[200px]"
               />
-              <p className="text-sm text-muted-foreground">设置智能体的行为准则和角色定位。</p>
+              <p className="text-sm text-muted-foreground">{t('agent.form.fields.systemRole.description', '设置智能体的行为准则和角色定位。')}</p>
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label>开场问题</Label>
+                <Label>{t('agent.form.fields.openingQuestions.label', '开场问题')}</Label>
                 <Button
                   type="button"
                   variant="outline"
@@ -384,7 +386,7 @@ export default function AgentSettingsPage() {
                     <Input
                       value={question || ''}
                       onChange={(e) => handleOpeningQuestionChange(index, e.target.value)}
-                      placeholder={`开场问题 ${index + 1}`}
+                      placeholder={t('agent.form.fields.openingQuestions.placeholder', '开场问题 %d').replace('%d', (index + 1).toString())}
                     />
                     <Button
                       type="button"
@@ -398,25 +400,25 @@ export default function AgentSettingsPage() {
                   </div>
                 ))}
                 {(formData.openingQuestions || []).length === 0 && (
-                  <p className="text-sm text-muted-foreground">暂无开场问题，点击上方按钮添加</p>
+                  <p className="text-sm text-muted-foreground">{t('agent.form.fields.openingQuestions.noQuestions', '暂无开场问题，点击上方按钮添加')}</p>
                 )}
               </div>
               <p className="text-sm text-muted-foreground">
-                设置智能体的开场问题，帮助用户快速开始对话。
+                {t('agent.form.fields.openingQuestions.description', '设置智能体的开场问题，帮助用户快速开始对话。')}
               </p>
             </div>
 
             <div className="flex items-center gap-2 pt-4">
               <Button onClick={handleSaveAgent} disabled={saving}>
-                {saving ? '保存中...' : '保存设置'}
+                {saving ? t('agent.actions.saving', '保存中...') : t('agent.actions.saveSettings', '保存设置')}
               </Button>
               <Button variant="outline" onClick={handleCancelEdit}>
-                取消
+                {t('agent.actions.cancel', '取消')}
               </Button>
               {saved && (
                 <div className="flex items-center gap-1 text-sm text-green-600">
                   <IconCheck className="h-4 w-4" />
-                  设置已保存
+                  {t('agent.messages.settingsSaved', '设置已保存')}
                 </div>
               )}
             </div>
@@ -426,13 +428,13 @@ export default function AgentSettingsPage() {
         <Tabs defaultValue="all" className="w-full">
           <div className="flex items-center justify-between">
             <TabsList>
-              <TabsTrigger value="all">全部</TabsTrigger>
-              <TabsTrigger value="local">本地</TabsTrigger>
-              <TabsTrigger value="lingxi">灵犀</TabsTrigger>
+              <TabsTrigger value="all">{t('agent.tabs.all', '全部')}</TabsTrigger>
+              <TabsTrigger value="local">{t('agent.tabs.local', '本地')}</TabsTrigger>
+              <TabsTrigger value="lingxi">{t('agent.tabs.lingxi', '灵犀')}</TabsTrigger>
             </TabsList>
             <Button onClick={handleCreateAgent}>
               <IconPlus className="mr-2 h-4 w-4" />
-              新增智能体
+              {t('agent.actions.addAgent', '新增智能体')}
             </Button>
           </div>
 
@@ -441,24 +443,24 @@ export default function AgentSettingsPage() {
               {agents.map((agent) => (
                 <Card key={agent.id} className="flex flex-col">
                   <CardHeader>
-                    <CardTitle className="text-lg">{agent.description || '无描述'}</CardTitle>
+                    <CardTitle className="text-lg">{agent.description || t('agent.cards.noDescription', '无描述')}</CardTitle>
                   </CardHeader>
                   <CardContent className="flex-1">
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">类型:</span>
+                        <span className="text-sm font-medium">{t('agent.cards.typeLabel', '类型:')}</span>
                         <span className="text-sm text-muted-foreground">
-                          {agent.type === 'LINGXI' ? '灵犀' : '本地'}
+                          {agent.type === 'LINGXI' ? t('agent.types.lingxi', '灵犀') : t('agent.types.local', '本地')}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">API地址:</span>
+                        <span className="text-sm font-medium">{t('agent.cards.apiUrlLabel', 'API地址:')}</span>
                         <span className="text-sm text-muted-foreground truncate max-w-[120px]">
                           {agent.apiUrl}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">创建时间:</span>
+                        <span className="text-sm font-medium">{t('agent.cards.createdAtLabel', '创建时间:')}</span>
                         <span className="text-sm text-muted-foreground">
                           {new Date(agent.createdAt).toLocaleDateString()}
                         </span>
@@ -468,7 +470,7 @@ export default function AgentSettingsPage() {
                   <div className="p-4 pt-0 flex gap-2">
                     <Button className="flex-1" onClick={() => handleEditAgent(agent)}>
                       <IconEdit className="mr-2 h-4 w-4" />
-                      编辑
+                      {t('agent.actions.edit', '编辑')}
                     </Button>
                     <Button
                       variant="destructive"
@@ -476,7 +478,7 @@ export default function AgentSettingsPage() {
                       onClick={() => handleDeleteAgent(agent.id)}
                     >
                       <IconTrash className="mr-2 h-4 w-4" />
-                      删除
+                      {t('agent.actions.delete', '删除')}
                     </Button>
                   </div>
                 </Card>
@@ -485,11 +487,11 @@ export default function AgentSettingsPage() {
               {agents.length === 0 && (
                 <div className="col-span-full flex flex-col items-center justify-center py-12">
                   <IconRobot className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium mb-2">暂无智能体</h3>
-                  <p className="text-muted-foreground mb-4">点击上方按钮创建您的第一个智能体</p>
+                  <h3 className="text-lg font-medium mb-2">{t('agent.empty.noAgents', '暂无智能体')}</h3>
+                  <p className="text-muted-foreground mb-4">{t('agent.empty.createFirstAgent', '点击上方按钮创建您的第一个智能体')}</p>
                   <Button onClick={handleCreateAgent}>
                     <IconPlus className="mr-2 h-4 w-4" />
-                    创建智能体
+                    {t('agent.actions.createAgent', '创建智能体')}
                   </Button>
                 </div>
               )}
@@ -507,22 +509,22 @@ export default function AgentSettingsPage() {
                         <CardTitle>{agent.name}</CardTitle>
                       </div>
                     </div>
-                    <CardDescription>{agent.description || '无描述'}</CardDescription>
+                    <CardDescription>{agent.description || t('agent.cards.noDescription', '无描述')}</CardDescription>
                   </CardHeader>
                   <CardContent className="flex-1">
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">类型:</span>
-                        <span className="text-sm text-muted-foreground">本地</span>
+                        <span className="text-sm font-medium">{t('agent.cards.typeLabel', '类型:')}</span>
+                        <span className="text-sm text-muted-foreground">{t('agent.types.local', '本地')}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">API地址:</span>
+                        <span className="text-sm font-medium">{t('agent.cards.apiUrlLabel', 'API地址:')}</span>
                         <span className="text-sm text-muted-foreground truncate max-w-[120px]">
                           {agent.apiUrl}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">创建时间:</span>
+                        <span className="text-sm font-medium">{t('agent.cards.createdAtLabel', '创建时间:')}</span>
                         <span className="text-sm text-muted-foreground">
                           {new Date(agent.createdAt).toLocaleDateString()}
                         </span>
@@ -532,7 +534,7 @@ export default function AgentSettingsPage() {
                   <div className="p-4 pt-0 flex gap-2">
                     <Button className="flex-1" onClick={() => handleEditAgent(agent)}>
                       <IconEdit className="mr-2 h-4 w-4" />
-                      编辑
+                      {t('agent.actions.edit', '编辑')}
                     </Button>
                     <Button
                       variant="destructive"
@@ -540,7 +542,7 @@ export default function AgentSettingsPage() {
                       onClick={() => handleDeleteAgent(agent.id)}
                     >
                       <IconTrash className="mr-2 h-4 w-4" />
-                      删除
+                      {t('agent.actions.delete', '删除')}
                     </Button>
                   </div>
                 </Card>
@@ -549,8 +551,8 @@ export default function AgentSettingsPage() {
               {localAgents.length === 0 && (
                 <div className="col-span-full flex flex-col items-center justify-center py-12">
                   <IconRobot className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium mb-2">暂无本地智能体</h3>
-                  <p className="text-muted-foreground mb-4">点击上方按钮创建您的第一个本地智能体</p>
+                  <h3 className="text-lg font-medium mb-2">{t('agent.empty.noLocalAgents', '暂无本地智能体')}</h3>
+                  <p className="text-muted-foreground mb-4">{t('agent.empty.createFirstLocalAgent', '点击上方按钮创建您的第一个本地智能体')}</p>
                   <Button
                     onClick={() => {
                       handleCreateAgent();
@@ -558,7 +560,7 @@ export default function AgentSettingsPage() {
                     }}
                   >
                     <IconPlus className="mr-2 h-4 w-4" />
-                    创建本地智能体
+                    {t('agent.actions.createLocalAgent', '创建本地智能体')}
                   </Button>
                 </div>
               )}
@@ -576,22 +578,22 @@ export default function AgentSettingsPage() {
                         <CardTitle>{agent.name}</CardTitle>
                       </div>
                     </div>
-                    <CardDescription>{agent.description || '无描述'}</CardDescription>
+                    <CardDescription>{agent.description || t('agent.cards.noDescription', '无描述')}</CardDescription>
                   </CardHeader>
                   <CardContent className="flex-1">
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">类型:</span>
-                        <span className="text-sm text-muted-foreground">灵犀</span>
+                        <span className="text-sm font-medium">{t('agent.cards.typeLabel', '类型:')}</span>
+                        <span className="text-sm text-muted-foreground">{t('agent.types.lingxi', '灵犀')}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">API地址:</span>
+                        <span className="text-sm font-medium">{t('agent.cards.apiUrlLabel', 'API地址:')}</span>
                         <span className="text-sm text-muted-foreground truncate max-w-[120px]">
                           {agent.apiUrl}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">创建时间:</span>
+                        <span className="text-sm font-medium">{t('agent.cards.createdAtLabel', '创建时间:')}</span>
                         <span className="text-sm text-muted-foreground">
                           {new Date(agent.createdAt).toLocaleDateString()}
                         </span>
@@ -601,7 +603,7 @@ export default function AgentSettingsPage() {
                   <div className="p-4 pt-0 flex gap-2">
                     <Button className="flex-1" onClick={() => handleEditAgent(agent)}>
                       <IconEdit className="mr-2 h-4 w-4" />
-                      编辑
+                      {t('agent.actions.edit', '编辑')}
                     </Button>
                     <Button
                       variant="destructive"
@@ -609,7 +611,7 @@ export default function AgentSettingsPage() {
                       onClick={() => handleDeleteAgent(agent.id)}
                     >
                       <IconTrash className="mr-2 h-4 w-4" />
-                      删除
+                      {t('agent.actions.delete', '删除')}
                     </Button>
                   </div>
                 </Card>
@@ -618,8 +620,8 @@ export default function AgentSettingsPage() {
               {lingxiAgents.length === 0 && (
                 <div className="col-span-full flex flex-col items-center justify-center py-12">
                   <IconRobot className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium mb-2">暂无灵犀智能体</h3>
-                  <p className="text-muted-foreground mb-4">点击上方按钮创建您的第一个灵犀智能体</p>
+                  <h3 className="text-lg font-medium mb-2">{t('agent.empty.noLingxiAgents', '暂无灵犀智能体')}</h3>
+                  <p className="text-muted-foreground mb-4">{t('agent.empty.createFirstLingxiAgent', '点击上方按钮创建您的第一个灵犀智能体')}</p>
                   <Button
                     onClick={() => {
                       handleCreateAgent();
@@ -627,7 +629,7 @@ export default function AgentSettingsPage() {
                     }}
                   >
                     <IconPlus className="mr-2 h-4 w-4" />
-                    创建灵犀智能体
+                    {t('agent.actions.createLingxiAgent', '创建灵犀智能体')}
                   </Button>
                 </div>
               )}

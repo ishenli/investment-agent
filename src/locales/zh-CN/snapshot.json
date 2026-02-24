@@ -1,0 +1,61 @@
+{
+  "benchmark": "基准 ({{symbol}})",
+  "collapse": "收起",
+  "createButton": "创建快照",
+  "createdOn": "创建于 {{date}}",
+  "deleteConfirm": {
+    "cancelButton": "取消",
+    "confirmButton": "确认删除",
+    "description": "此操作无法撤销。将永久删除 {{date}} 的快照记录。",
+    "title": "确认删除?"
+  },
+  "emptyState": {
+    "description": "点击\"创建快照\"按钮记录当前投资组合状态",
+    "title": "暂无快照数据"
+  },
+  "expand": "详情",
+  "firstSnapshotButton": "创建第一个快照",
+  "loading": "加载中...",
+  "loadingFailed": {
+    "description": "无法加载快照数据，请稍后重试",
+    "title": "加载失败"
+  },
+  "positions": {
+    "count": "持仓数量",
+    "detailsTitle": "持仓详情",
+    "empty": "无持仓记录",
+    "table": {
+      "costPrice": "成本价",
+      "currentPrice": "现价",
+      "marketValue": "市值",
+      "pnl": "盈亏",
+      "quantity": "数量",
+      "symbol": "股票"
+    },
+    "totalValue": "总市值"
+  },
+  "refreshButton": "刷新",
+  "retryButton": "重试",
+  "source": {
+    "backfill": "回填快照",
+    "manual": "手动快照",
+    "scheduled": "定时快照"
+  },
+  "stats": {
+    "cashBalance": "现金余额",
+    "earliestSnapshot": "最早快照",
+    "latestSnapshot": "最新快照",
+    "positionCount": "持仓数量",
+    "positionValue": "持仓市值",
+    "totalSnapshots": "总快照数",
+    "totalValue": "总市值"
+  },
+  "subtitle": "记录投资组合的历史状态，用于业绩分析和报告生成",
+  "title": "投资组合快照",
+  "toasts": {
+    "createFailed": "创建失败: {{message}}",
+    "createSuccess": "快照创建成功",
+    "deleteFailed": "删除失败: {{message}}",
+    "deleteSuccess": "快照已删除"
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "actions": {
+    "edit": "Edit",
+    "viewInfo": "View Info"
+  },
+  "alerts": {
+    "description": "Risk matters that need attention",
+    "high": "High",
+    "low": "Low",
+    "medium": "Medium",
+    "title": "Risk Alerts"
+  },
+  "currency": {
+    "cny": "¥",
+    "hkd": "HK$",
+    "usd": "$"
+  },
+  "editDialog": {
+    "actions": {
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving..."
+    },
+    "description": "Modify position information, click save to apply changes.",
+    "fields": {
+      "averageCost": "Average Cost",
+      "quantity": "Position Quantity",
+      "symbol": "Stock Symbol"
+    },
+    "title": "Edit Position"
+  },
+  "error": {
+    "description": "Unable to get position data, please try again later",
+    "title": "Load Failed"
+  },
+  "filter": {
+    "all": "All Markets",
+    "cn": "A Shares",
+    "hk": "HK Stocks",
+    "market": "Market",
+    "us": "US Stocks"
+  },
+  "loading": "Loading...",
+  "noData": "No position data",
+  "search": {
+    "placeholder": "Search stock symbol..."
+  },
+  "sort": {
+    "ascending": "Ascending",
+    "descending": "Descending"
+  },
+  "table": {
+    "actions": "Actions",
+    "averageCost": "Average Cost",
+    "currentPrice": "Current Price",
+    "market": "Market",
+    "marketValue": "Market Value",
+    "positionRatio": "Position Ratio",
+    "quantity": "Quantity",
+    "symbol": "Stock Symbol",
+    "unrealizedPnL": "Unrealized P&L"
+  },
+  "title": "Holdings",
+  "totalGain": "Total Position Gain",
+  "totalValue": "Total Stock Value"
+}

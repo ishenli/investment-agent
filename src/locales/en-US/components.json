@@ -1,0 +1,29 @@
+{
+  "sidebar": {
+    "documents": {
+      "addMarketInfo": "Add Market Info",
+      "assetData": "Asset Data",
+      "investmentNotes": "Notes",
+      "marketInfo": "Market Info",
+      "portfolioSnapshot": "Snapshot",
+      "search": "Search"
+    },
+    "navMain": {
+      "accountInfo": "Account Info",
+      "aiAdvisor": "AI Advisor",
+      "aiInsights": "AI Insights",
+      "aiReports": "AI Reports",
+      "deepAnalysis": "Deep Analysis",
+      "positionManagement": "Holdings",
+      "tradeRecords": "Activities"
+    },
+    "settings": {
+      "settings": "Settings"
+    }
+  },
+  "thinking": {
+    "completed": "Deep thinking completed",
+    "completedWithDuration": "Deep thinking completed ({{duration}} seconds)",
+    "inProgress": "Deep thinking..."
+  }
+}

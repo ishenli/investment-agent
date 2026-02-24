@@ -9,6 +9,7 @@ import { useChatStore } from '@renderer/store/chat';
 import { useUserStore } from '@renderer/store/user';
 import { preferenceSelectors } from '@renderer/store/user/selectors';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 const useStyles = createStyles(({ css, prefixCls }) => {
   return {
@@ -27,7 +28,7 @@ interface SendMoreProps {
 
 const SendMore = memo<SendMoreProps>(({ disabled, isMac }) => {
   const { styles } = useStyles();
-
+  const { t } = useTranslation('chat');
   const [useCmdEnterToSend, updatePreference] = useUserStore((s) => [
     preferenceSelectors.useCmdEnterToSend(s),
     s.updatePreference,
@@ -44,7 +45,7 @@ const SendMore = memo<SendMoreProps>(({ disabled, isMac }) => {
           {
             icon: !useCmdEnterToSend ? <Icon icon={LucideCheck} /> : <div />,
             key: 'sendWithEnter',
-            label: '按 Enter 键发送',
+            label: t('sendWithEnter'),
             onClick: () => {
               updatePreference({ useCmdEnterToSend: false });
             },
@@ -52,7 +53,7 @@ const SendMore = memo<SendMoreProps>(({ disabled, isMac }) => {
           {
             icon: useCmdEnterToSend ? <Icon icon={LucideCheck} /> : <div />,
             key: 'sendWithCmdEnter',
-            label: '按 Cmd + Enter 键发送',
+            label: t('sendWithCmdEnter'),
             onClick: () => {
               updatePreference({ useCmdEnterToSend: true });
             },
@@ -61,7 +62,7 @@ const SendMore = memo<SendMoreProps>(({ disabled, isMac }) => {
           {
             icon: <Icon icon={BotMessageSquare} />,
             key: 'addAi',
-            label: '添加一条 AI 消息',
+            label: t('addAiMessage'),
             onClick: () => {
               addAIMessage();
             },
@@ -71,7 +72,7 @@ const SendMore = memo<SendMoreProps>(({ disabled, isMac }) => {
             key: 'addUser',
             label: (
               <Flexbox align={'center'} gap={24} horizontal>
-                添加一条用户消息
+                {t('addUserMessage')}
               </Flexbox>
             ),
             onClick: () => {

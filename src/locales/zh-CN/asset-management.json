@@ -1,0 +1,66 @@
+{
+  "actions": {
+    "edit": "编辑",
+    "viewInfo": "查看信息"
+  },
+  "alerts": {
+    "description": "需要关注的风险事项",
+    "high": "高",
+    "low": "低",
+    "medium": "中",
+    "title": "风险提醒"
+  },
+  "currency": {
+    "cny": "¥",
+    "hkd": "HK$",
+    "usd": "$"
+  },
+  "editDialog": {
+    "actions": {
+      "cancel": "取消",
+      "save": "保存",
+      "saving": "保存中..."
+    },
+    "description": "修改持仓信息，点击保存以应用更改。",
+    "fields": {
+      "averageCost": "平均成本",
+      "quantity": "持仓数量",
+      "symbol": "股票代码"
+    },
+    "title": "编辑持仓"
+  },
+  "error": {
+    "description": "无法获取持仓数据，请稍后重试",
+    "title": "加载失败"
+  },
+  "filter": {
+    "all": "全部市场",
+    "cn": "A股",
+    "hk": "港股",
+    "market": "市场",
+    "us": "美股"
+  },
+  "loading": "加载中...",
+  "noData": "暂无持仓数据",
+  "search": {
+    "placeholder": "搜索股票代码..."
+  },
+  "sort": {
+    "ascending": "升序",
+    "descending": "降序"
+  },
+  "table": {
+    "actions": "操作",
+    "averageCost": "均价",
+    "currentPrice": "当前价",
+    "market": "市场",
+    "marketValue": "市值",
+    "positionRatio": "持仓占比",
+    "quantity": "数量",
+    "symbol": "股票代码",
+    "unrealizedPnL": "持仓盈亏"
+  },
+  "title": "持仓管理",
+  "totalGain": "持仓总收益",
+  "totalValue": "股票总金额"
+}

@@ -1,0 +1,61 @@
+{
+  "benchmark": "Benchmark ({{symbol}})",
+  "collapse": "Collapse",
+  "createButton": "Create Snapshot",
+  "createdOn": "Created on {{date}}",
+  "deleteConfirm": {
+    "cancelButton": "Cancel",
+    "confirmButton": "Confirm Delete",
+    "description": "This action cannot be undone. It will permanently delete the snapshot record from {{date}}.",
+    "title": "Confirm Delete?"
+  },
+  "emptyState": {
+    "description": "Click \"Create Snapshot\" button to record current portfolio state",
+    "title": "No Snapshot Data"
+  },
+  "expand": "Details",
+  "firstSnapshotButton": "Create First Snapshot",
+  "loading": "Loading...",
+  "loadingFailed": {
+    "description": "Unable to load snapshot data, please try again later",
+    "title": "Loading Failed"
+  },
+  "positions": {
+    "count": "Position Count",
+    "detailsTitle": "Position Details",
+    "empty": "No position records",
+    "table": {
+      "costPrice": "Cost Price",
+      "currentPrice": "Current Price",
+      "marketValue": "Market Value",
+      "pnl": "P&L",
+      "quantity": "Quantity",
+      "symbol": "Symbol"
+    },
+    "totalValue": "Total Value"
+  },
+  "refreshButton": "Refresh",
+  "retryButton": "Retry",
+  "source": {
+    "backfill": "Backfill",
+    "manual": "Manual",
+    "scheduled": "Scheduled"
+  },
+  "stats": {
+    "cashBalance": "Cash Balance",
+    "earliestSnapshot": "Earliest Snapshot",
+    "latestSnapshot": "Latest Snapshot",
+    "positionCount": "Position Count",
+    "positionValue": "Position Value",
+    "totalSnapshots": "Total Snapshots",
+    "totalValue": "Total Value"
+  },
+  "subtitle": "Record historical states of your portfolio for performance analysis and report generation",
+  "title": "Portfolio Snapshots",
+  "toasts": {
+    "createFailed": "Creation failed: {{message}}",
+    "createSuccess": "Snapshot created successfully",
+    "deleteFailed": "Deletion failed: {{message}}",
+    "deleteSuccess": "Snapshot deleted"
+  }
+}

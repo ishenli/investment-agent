@@ -1,0 +1,140 @@
+{
+  "allocationChart": {
+    "allocationRatio": "Allocation Ratio",
+    "benchmarkAllocation": "Benchmark Allocation",
+    "category": "Category",
+    "currentAllocation": "Current Allocation",
+    "description": "Distribution of asset classes in your portfolio",
+    "noData": "No data available",
+    "title": "Asset Allocation"
+  },
+  "asset": {
+    "allocationChart": {
+      "noData": ""
+    }
+  },
+  "concentrationChart": {
+    "asset": "Asset",
+    "description": "Distribution of assets in your portfolio",
+    "noData": "No data available",
+    "percentage": "Percentage",
+    "title": "Asset Concentration",
+    "unknown": "Unknown"
+  },
+  "dashboard": {
+    "allocationRatio": "Asset Allocation Ratio",
+    "assetAllocation": "Asset Allocation Analysis",
+    "assetAllocationDesc": "Detailed asset distribution and proportion",
+    "assetBreakdown": "Asset Breakdown",
+    "cashBalance": "Cash Balance",
+    "cashBalanceLabel": "Cash Balance",
+    "cashRatio": "Cash Ratio",
+    "noAccountData": "No Account Data",
+    "noAccountDataDesc": "No account information",
+    "noCashData": "No Cash Data",
+    "noCashDataDesc": "Unable to fetch cash data",
+    "noData": "Load Failed",
+    "noDataDesc": "Unable to fetch account information",
+    "noGainData": "No Gain Data",
+    "noGainDataDesc": "Unable to fetch gain data",
+    "noPositionData": "No Position Data",
+    "noPositionDataDesc": "Unable to fetch position data",
+    "performanceSummary": "Performance Summary",
+    "stockGain": "Stock Position Gain",
+    "stockGainLabel": "Stock Position Gain",
+    "stockMarketValue": "Stock Market Value",
+    "stockMarketValueLabel": "Stock Market Value",
+    "stockRatio": "Stock Ratio",
+    "stockReturnRate": "Stock Return Rate",
+    "totalAssets": "Total Assets",
+    "totalBalance": "Total Balance",
+    "totalInvestment": "Total Investment"
+  },
+  "editCashBalanceDialog": {
+    "balanceUpdated": "Cash balance updated",
+    "cancel": "Cancel",
+    "description": "Enter the new cash balance. Current balance:",
+    "invalidAmount": "Please enter a valid amount",
+    "newBalanceLabel": "New Balance",
+    "title": "Edit Cash Balance",
+    "updateBalance": "Update Balance",
+    "updateFailed": "Failed to update cash balance",
+    "updating": "Updating..."
+  },
+  "error": {
+    "fetchFailed": "Failed to fetch data",
+    "title": "Error",
+    "unknown": "Unknown error"
+  },
+  "loading": "Loading...",
+  "priceRefresh": {
+    "failed": "Price update failed, please try again later",
+    "networkError": "Price refresh failed, please check your network connection",
+    "partialSuccess": "Price update completed: {{succeeded}} succeeded, {{failed}} failed",
+    "success": "Price update completed: {{count}} positions updated"
+  },
+  "revenue": {
+    "annualReturnRate": "Annual Return Rate",
+    "description": "Your investment performance",
+    "maxDrawdown": "Maximum Drawdown",
+    "title": "Performance Metrics",
+    "totalReturnRate": "Total Return Rate",
+    "volatility": "Volatility"
+  },
+  "revenueAnalytics": {
+    "accountAssetTrend": "Account total asset trend",
+    "annualizedPerformance": "Annualized Performance",
+    "annualizedReturnRate": "Annualized Return Rate",
+    "benchmarkReturn": "Benchmark Return",
+    "cannotFetchRevenue": "Cannot fetch revenue data",
+    "contribution": "Contribution",
+    "contributionToTotalReturn": "Contribution of each position to total return",
+    "cumulativePerformance": "Cumulative performance relative to initial",
+    "cumulativeReturnRate": "Cumulative Return Rate",
+    "currentTotalAssets": "Current Total Assets",
+    "date": "Date",
+    "detailedMetrics": "Detailed Metrics",
+    "detailedReturnMetrics": "Detailed return metrics for your portfolio",
+    "excessReturn": "Excess Return",
+    "holdingDays": "Held for {{days}} days",
+    "initial": "Initial",
+    "loadFailed": "Load Failed",
+    "maxDrawdown": "Max Drawdown",
+    "noChartData": "No chart data available",
+    "noData": "No data",
+    "noSnapshotData": "No snapshot data, please create a snapshot first",
+    "period1M": "1 Month",
+    "period1W": "1 Week",
+    "period1Y": "1 Year",
+    "period3M": "3 Months",
+    "period6M": "6 Months",
+    "periodAll": "All Time",
+    "periodYTD": "Year to Date",
+    "pleaseRetry": "Please try again later",
+    "positionCount": "Position Count",
+    "positionReturnDetails": "Position Return Details",
+    "refreshData": "Refresh Data",
+    "retry": "Retry",
+    "returnAmount": "Return Amount",
+    "riskAdjustedReturn": "Risk Adjusted Return",
+    "shares": "{{quantity}} shares",
+    "sharpeRatio": "Sharpe Ratio",
+    "timeRange": "Time Range",
+    "totalAssetChange": "Total Asset Change",
+    "totalAssets": "Total Assets",
+    "totalReturnRate": "Total Return Rate",
+    "volatility": "Volatility"
+  },
+  "structure": {
+    "loadRiskError": "Error loading risk data",
+    "retryLater": "Please try again later",
+    "riskInsights": "Risk Insights",
+    "riskInsightsDesc": "Real-time risk insights and portfolio analysis"
+  },
+  "tabs": {
+    "dashboard": "Account Info",
+    "position": "Asset Structure",
+    "revenue": "Performance"
+  },
+  "title": "Asset Management"
+}

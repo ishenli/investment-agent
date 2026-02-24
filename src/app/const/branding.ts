@@ -1,1 +1,1 @@
-export const BRANDING_NAME = 'Tina';
+export const BRANDING_NAME = 'Investment Agent';

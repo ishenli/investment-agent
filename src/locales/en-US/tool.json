@@ -1,0 +1,44 @@
+{
+  "actions": {
+    "close": "Close",
+    "configure": "Configure",
+    "useTool": "Use Tool"
+  },
+  "browser": {
+    "description": "Access web content and browse the internet",
+    "title": "Browser"
+  },
+  "calculator": {
+    "description": "Perform mathematical calculations",
+    "title": "Calculator"
+  },
+  "investment": {
+    "portfolioAnalyzer": {
+      "description": "Analyze and optimize your investment portfolio",
+      "title": "Portfolio Analyzer"
+    },
+    "riskCalculator": {
+      "description": "Calculate and assess investment risks",
+      "title": "Risk Calculator"
+    },
+    "stockQuote": {
+      "description": "Get real-time stock quotes and market data",
+      "title": "Stock Quote"
+    },
+    "title": "Investment Tools"
+  },
+  "localFiles": {
+    "openFile": "Open File",
+    "openFolder": "Open Folder"
+  },
+  "search": {
+    "description": "Search for information using web search",
+    "searchBar": {
+      "button": "Search",
+      "placeholder": "Enter keywords to search..."
+    },
+    "searchResult": "Search Results",
+    "title": "Search Tool"
+  },
+  "title": "Tools"
+}

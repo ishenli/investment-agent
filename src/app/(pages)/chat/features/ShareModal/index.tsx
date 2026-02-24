@@ -2,14 +2,12 @@ import { Modal, type ModalProps, Segmented, type SegmentedProps } from '@lobehub
 import { memo, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
-
 import React from 'react';
 import ShareImage from './ShareImage';
-import ShareJSON from './ShareLink';
 import ShareText from './ShareText';
 
 enum Tab {
-  JSON = 'json',
+  // JSON = 'json',
   Screenshot = 'screenshot',
   Text = 'text',
 }
@@ -17,23 +15,19 @@ enum Tab {
 const ShareModal = memo<ModalProps>(({ onCancel, open }) => {
   const [tab, setTab] = useState<Tab>(Tab.Screenshot);
   const { t } = useTranslation('chat');
-
+  
   const options: SegmentedProps['options'] = useMemo(
     () => [
       {
-        label: '截图',
+        label: t('screenshot'),
         value: Tab.Screenshot,
       },
       {
-        label: '文本',
+        label: t('text'),
         value: Tab.Text,
-      },
-      {
-        label: '链接',
-        value: Tab.JSON,
-      },
+      }
     ],
-    [],
+    [t],
   );
 
   const isMobile = false;
@@ -44,7 +38,7 @@ const ShareModal = memo<ModalProps>(({ onCancel, open }) => {
       footer={null}
       onCancel={onCancel}
       open={open}
-      title="分享"
+      title={t('shareTitle')}
       width={1440}
     >
       <Flexbox gap={isMobile ? 8 : 24}>
@@ -58,7 +52,6 @@ const ShareModal = memo<ModalProps>(({ onCancel, open }) => {
         />
         {tab === Tab.Screenshot && <ShareImage mobile={isMobile} />}
         {tab === Tab.Text && <ShareText />}
-        {tab === Tab.JSON && <ShareJSON />}
       </Flexbox>
     </Modal>
   );

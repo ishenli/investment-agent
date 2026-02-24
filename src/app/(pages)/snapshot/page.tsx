@@ -41,6 +41,7 @@ import {
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { cn } from '@renderer/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 // Source badge color mapping
 const SOURCE_COLORS: Record<string, 'default' | 'secondary' | 'outline'> = {
@@ -49,17 +50,14 @@ const SOURCE_COLORS: Record<string, 'default' | 'secondary' | 'outline'> = {
   backfill: 'outline',
 };
 
-// Source display names
-const SOURCE_DISPLAY_NAMES: Record<string, string> = {
-  scheduled: '定时快照',
-  manual: '手动快照',
-  backfill: '回填快照',
-};
+
 
 // Position detail component
 function PositionDetail({ positions }: { positions: SnapshotRecord['positions'] }) {
+  const { t } = useTranslation('snapshot');
+  
   if (!positions || positions.positions.length === 0) {
-    return <div className="text-muted-foreground text-sm">无持仓记录</div>;
+    return <div className="text-muted-foreground text-sm">{t('positions.empty')}</div>;
   }
 
   const formatCents = (cents: number) => `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -67,18 +65,18 @@ function PositionDetail({ positions }: { positions: SnapshotRecord['positions'] 
   return (
     <div className="space-y-2">
       <div className="text-sm font-medium text-muted-foreground mb-2">
-        持仓数量: {positions.positionCount} | 总市值: {formatCents(positions.totalPositionsValueCents)}
+        {t('positions.count')}: {positions.positionCount} | {t('positions.totalValue')}: {formatCents(positions.totalPositionsValueCents)}
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b">
-              <th className="text-left py-2 px-2">股票</th>
-              <th className="text-right py-2 px-2">数量</th>
-              <th className="text-right py-2 px-2">成本价</th>
-              <th className="text-right py-2 px-2">现价</th>
-              <th className="text-right py-2 px-2">市值</th>
-              <th className="text-right py-2 px-2">盈亏</th>
+              <th className="text-left py-2 px-2">{t('positions.table.symbol')}</th>
+              <th className="text-right py-2 px-2">{t('positions.table.quantity')}</th>
+              <th className="text-right py-2 px-2">{t('positions.table.costPrice')}</th>
+              <th className="text-right py-2 px-2">{t('positions.table.currentPrice')}</th>
+              <th className="text-right py-2 px-2">{t('positions.table.marketValue')}</th>
+              <th className="text-right py-2 px-2">{t('positions.table.pnl')}</th>
             </tr>
           </thead>
           <tbody>
@@ -120,6 +118,7 @@ function SnapshotCard({
   snapshot: SnapshotRecord;
   onDelete: (id: number) => void;
 }) {
+  const { t } = useTranslation('snapshot');
   const [expanded, setExpanded] = useState(false);
 
   const snapshotDate = new Date(snapshot.snapshotDate);
@@ -142,7 +141,7 @@ function SnapshotCard({
               </span>
             </div>
             <Badge variant={SOURCE_COLORS[snapshot.source]}>
-              {SOURCE_DISPLAY_NAMES[snapshot.source] || snapshot.source}
+              {t(`source.${snapshot.source}`) || snapshot.source}
             </Badge>
           </div>
           <div className="flex items-center gap-2">
@@ -154,12 +153,12 @@ function SnapshotCard({
               {expanded ? (
                 <>
                   <ChevronUp className="h-4 w-4 mr-1" />
-                  收起
+                  {t('collapse')}
                 </>
               ) : (
                 <>
                   <ChevronDown className="h-4 w-4 mr-1" />
-                  详情
+                  {t('expand')}
                 </>
               )}
             </Button>
@@ -171,18 +170,18 @@ function SnapshotCard({
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>确认删除?</AlertDialogTitle>
+                  <AlertDialogTitle>{t('deleteConfirm.title')}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    此操作无法撤销。将永久删除 {format(snapshotDate, 'yyyy-MM-dd')} 的快照记录。
+                    {t('deleteConfirm.description', { date: format(snapshotDate, 'yyyy-MM-dd') })}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>取消</AlertDialogCancel>
+                  <AlertDialogCancel>{t('deleteConfirm.cancelButton')}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={() => onDelete(snapshot.id)}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
-                    确认删除
+                    {t('deleteConfirm.confirmButton')}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -194,26 +193,26 @@ function SnapshotCard({
         {/* Summary Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="space-y-1">
-            <div className="text-xs text-muted-foreground">总市值</div>
+            <div className="text-xs text-muted-foreground">{t('stats.totalValue')}</div>
             <div className="text-lg font-semibold flex items-center gap-1">
               <DollarSign className="h-4 w-4 text-muted-foreground" />
               {formatCentsToDollars(totalValue)}
             </div>
           </div>
           <div className="space-y-1">
-            <div className="text-xs text-muted-foreground">持仓市值</div>
+            <div className="text-xs text-muted-foreground">{t('stats.positionValue')}</div>
             <div className="text-lg font-semibold">
               {formatCentsToDollars(positionValue)}
             </div>
           </div>
           <div className="space-y-1">
-            <div className="text-xs text-muted-foreground">现金余额</div>
+            <div className="text-xs text-muted-foreground">{t('stats.cashBalance')}</div>
             <div className="text-lg font-semibold">
               {formatCentsToDollars(cashBalance)}
             </div>
           </div>
           <div className="space-y-1">
-            <div className="text-xs text-muted-foreground">持仓数量</div>
+            <div className="text-xs text-muted-foreground">{t('stats.positionCount')}</div>
             <div className="text-lg font-semibold flex items-center gap-1">
               <Package className="h-4 w-4 text-muted-foreground" />
               {snapshot.positions.positionCount}
@@ -224,14 +223,14 @@ function SnapshotCard({
         {/* Benchmark Info */}
         {snapshot.benchmarkValueCents && (
           <div className="text-sm text-muted-foreground">
-            基准 ({snapshot.benchmarkSymbol}): {formatCentsToDollars(snapshot.benchmarkValueCents)}
+            {t('benchmark', { symbol: snapshot.benchmarkSymbol })}: {formatCentsToDollars(snapshot.benchmarkValueCents)}
           </div>
         )}
 
         {/* Expanded Position Details */}
         {expanded && (
           <div className="pt-4 border-t">
-            <h4 className="font-medium mb-3">持仓详情</h4>
+            <h4 className="font-medium mb-3">{t('positions.detailsTitle')}</h4>
             <PositionDetail positions={snapshot.positions} />
           </div>
         )}
@@ -239,7 +238,7 @@ function SnapshotCard({
         {/* Footer */}
         <div className="text-xs text-muted-foreground flex items-center gap-1 pt-2">
           <Calendar className="h-3 w-3" />
-          创建于 {format(createdAt, 'yyyy-MM-dd HH:mm')}
+          {t('createdOn', { date: format(createdAt, 'yyyy-MM-dd HH:mm') })}
         </div>
       </CardContent>
     </Card>
@@ -247,6 +246,7 @@ function SnapshotCard({
 }
 
 export default function SnapshotPage() {
+  const { t } = useTranslation('snapshot');
   const { data, isLoading, error, refetch } = useSnapshots();
   const createMutation = useCreateSnapshot();
   const deleteMutation = useDeleteSnapshot();
@@ -254,18 +254,18 @@ export default function SnapshotPage() {
   const handleCreateSnapshot = async () => {
     try {
       await createMutation.mutateAsync({ source: 'manual' });
-      toast.success('快照创建成功');
+      toast.success(t('toasts.createSuccess'));
     } catch (err) {
-      toast.error(`创建失败: ${err instanceof Error ? err.message : '未知错误'}`);
+      toast.error(t('toasts.createFailed', { message: err instanceof Error ? err.message : '未知错误' }));
     }
   };
 
   const handleDeleteSnapshot = async (id: number) => {
     try {
       await deleteMutation.mutateAsync({ id });
-      toast.success('快照已删除');
+      toast.success(t('toasts.deleteSuccess'));
     } catch (err) {
-      toast.error(`删除失败: ${err instanceof Error ? err.message : '未知错误'}`);
+      toast.error(t('toasts.deleteFailed', { message: err instanceof Error ? err.message : '未知错误' }));
     }
   };
 
@@ -282,14 +282,14 @@ export default function SnapshotPage() {
       <div className="space-y-4 p-6">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>加载失败</AlertTitle>
+          <AlertTitle>{t('loadingFailed.title')}</AlertTitle>
           <AlertDescription>
-            无法加载快照数据，请稍后重试
+            {t('loadingFailed.description')}
           </AlertDescription>
         </Alert>
         <Button onClick={() => refetch()}>
           <RefreshCw className="mr-2 h-4 w-4" />
-          重试
+          {t('retryButton')}
         </Button>
       </div>
     );
@@ -304,16 +304,16 @@ export default function SnapshotPage() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Camera className="h-6 w-6" />
-            投资组合快照
+            {t('title')}
           </h1>
           <p className="text-muted-foreground mt-1">
-            记录投资组合的历史状态，用于业绩分析和报告生成
+            {t('subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={() => refetch()}>
             <RefreshCw className="mr-2 h-4 w-4" />
-            刷新
+            {t('refreshButton')}
           </Button>
           <Button onClick={handleCreateSnapshot} disabled={createMutation.isPending}>
             {createMutation.isPending ? (
@@ -321,7 +321,7 @@ export default function SnapshotPage() {
             ) : (
               <Plus className="mr-2 h-4 w-4" />
             )}
-            创建快照
+            {t('createButton')}
           </Button>
         </div>
       </div>
@@ -330,13 +330,13 @@ export default function SnapshotPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <div className="text-sm text-muted-foreground">总快照数</div>
+            <div className="text-sm text-muted-foreground">{t('stats.totalSnapshots')}</div>
             <div className="text-2xl font-bold">{data?.totalCount ?? 0}</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className="text-sm text-muted-foreground">最早快照</div>
+            <div className="text-sm text-muted-foreground">{t('stats.earliestSnapshot')}</div>
             <div className="text-2xl font-bold">
               {snapshots.length > 0
                 ? format(new Date(snapshots[snapshots.length - 1].snapshotDate), 'yyyy-MM-dd')
@@ -346,7 +346,7 @@ export default function SnapshotPage() {
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <div className="text-sm text-muted-foreground">最新快照</div>
+            <div className="text-sm text-muted-foreground">{t('stats.latestSnapshot')}</div>
             <div className="text-2xl font-bold">
               {snapshots.length > 0
                 ? format(new Date(snapshots[0].snapshotDate), 'yyyy-MM-dd')
@@ -362,13 +362,13 @@ export default function SnapshotPage() {
           <CardContent className="py-12">
             <div className="text-center">
               <Camera className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium">暂无快照数据</h3>
+              <h3 className="text-lg font-medium">{t('emptyState.title')}</h3>
               <p className="text-muted-foreground mt-1">
-                点击"创建快照"按钮记录当前投资组合状态
+                {t('emptyState.description')}
               </p>
               <Button onClick={handleCreateSnapshot} className="mt-4" disabled={createMutation.isPending}>
                 <Plus className="mr-2 h-4 w-4" />
-                创建第一个快照
+                {t('firstSnapshotButton')}
               </Button>
             </div>
           </CardContent>

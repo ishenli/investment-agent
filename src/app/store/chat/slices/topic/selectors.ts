@@ -1,4 +1,3 @@
-import TopicConfig from '@renderer/const/text/topicConfig';
 import { ChatTopic, ChatTopicSummary, GroupedTopic } from '@typings/topic';
 import { groupTopicsByTime } from '@renderer/lib/utils/topic';
 import { ChatStoreState } from '../../initialState';
@@ -53,7 +52,7 @@ const groupedTopicsSelector = (s: ChatStoreState): GroupedTopic[] => {
         {
           children: favTopics,
           id: 'favorite',
-          title: TopicConfig.favorite,
+          title: 'favorite', // Will be translated in UI layer
         },
         ...groupTopicsByTime(unfavTopics),
       ]

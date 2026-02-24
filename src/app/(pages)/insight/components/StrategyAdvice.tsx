@@ -9,14 +9,16 @@ import {
   CardTitle,
 } from '@renderer/components/ui/card';
 import { Button } from '@renderer/components/ui/button';
-import { LightbulbIcon, ThumbsUpIcon, ThumbsDownIcon } from 'lucide-react';
+import { LightbulbIcon } from 'lucide-react';
 import { useStrategyAdviceQuery } from '@renderer/hooks/usePositionQueries';
 import { Spinner } from '@renderer/components/ui/spinner';
 import { AdviceType } from '@typings/insight';
 import { RotateCcwIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // 策略建议组件
 export function StrategyAdvice() {
+  const { t } = useTranslation('insight');
   const { data: advice, isLoading: isStrategyAdviceLoading, refetch, isRefetching } =
     useStrategyAdviceQuery<AdviceType[]>();
 
@@ -36,13 +38,13 @@ export function StrategyAdvice() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">策略建议</CardTitle>
-          <CardDescription>基于您投资组合的个性化策略建议</CardDescription>
+          <CardTitle className="text-lg font-semibold">{t('strategyAdvice.cardTitle')}</CardTitle>
+          <CardDescription>{t('strategyAdvice.cardDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8 text-muted-foreground">
             <Spinner />
-            <p>正在分析中...</p>
+            <p>{t('loading.analyzing')}</p>
           </div>
         </CardContent>
       </Card>
@@ -53,11 +55,11 @@ export function StrategyAdvice() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">策略建议</CardTitle>
-          <CardDescription>基于您投资组合的个性化策略建议</CardDescription>
+          <CardTitle className="text-lg font-semibold">{t('strategy.title')}</CardTitle>
+          <CardDescription>{t('strategy.description')}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-muted-foreground">暂无策略建议</div>
+          <div className="text-center py-8 text-muted-foreground">{t('strategy.noData')}</div>
         </CardContent>
       </Card>
     );
@@ -68,19 +70,19 @@ export function StrategyAdvice() {
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle className="text-lg font-semibold">投资组合策略建议</CardTitle>
-            <CardDescription>基于您投资组合的个性化策略建议</CardDescription>
+            <CardTitle className="text-lg font-semibold">{t('strategy.title')}</CardTitle>
+            <CardDescription>{t('strategy.description')}</CardDescription>
           </div>
           <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading}>
             {loading ? (
               <>
                 <Spinner className="mr-2 h-4 w-4" />
-                刷新中...
+                {t('loading.refreshing')}
               </>
             ) : (
               <>
                 <RotateCcwIcon className="h-4 w-4 mr-2" />
-                刷新
+                {t('common.refresh')}
               </>
             )}
           </Button>

@@ -9,7 +9,7 @@ import { useChatStore } from '@renderer/store/chat';
 import { useActionSWR } from '@renderer/lib/utils/swr';
 
 const SaveTopic = memo<{ mobile?: boolean }>(({ mobile }) => {
-  const { t } = useTranslation('chat');
+  const { t } = useTranslation('topic');
   const [hasTopic, openNewTopicOrSaveTopic] = useChatStore((s) => [
     !!s.activeTopicId,
     s.openNewTopicOrSaveTopic,
@@ -20,7 +20,7 @@ const SaveTopic = memo<{ mobile?: boolean }>(({ mobile }) => {
   const [confirmOpened, setConfirmOpened] = useState(false);
 
   const icon = hasTopic ? LucideMessageSquarePlus : LucideGalleryVerticalEnd;
-  const desc = t(hasTopic ? '开启新话题' : '将当前会话保存为话题');
+  const desc = t(hasTopic ? 'newTopicButton' : 'saveTopicButton');
 
   if (mobile) {
     return (
@@ -40,7 +40,7 @@ const SaveTopic = memo<{ mobile?: boolean }>(({ mobile }) => {
                 wordBreak: 'break-word',
               }}
             >
-              {t(hasTopic ? '是否开启新话题?' : '是否保存当前会话为话题?')}
+              {t(hasTopic ? 'confirmNewTopic' : 'confirmSaveTopic')}
             </div>
           </Flexbox>
         }

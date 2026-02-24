@@ -2,6 +2,7 @@
 
 import { IconDots, type Icon } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 
 import {
   DropdownMenu,
@@ -45,13 +46,14 @@ export function NavDocuments({
     )[];
   }[];
 }) {
+  const { t } = useTranslation('common');
   const { isMobile } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>知识库</SidebarGroupLabel>
+      <SidebarGroupLabel>{t('documents.knowledgeBase')}</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
           const isActive = pathname.startsWith(item.url);

@@ -15,11 +15,13 @@ import Inbox from './Inbox';
 import SessionList from './List';
 import ConfigGroupModal from './Modals/ConfigGroupModal';
 import RenameGroupModal from './Modals/RenameGroupModal';
+import { useTranslation } from 'react-i18next';
 
 const DefaultMode = memo(() => {
   const [activeGroupId, setActiveGroupId] = useState<string>();
   const [renameGroupModalOpen, setRenameGroupModalOpen] = useState(false);
   const [configGroupModalOpen, setConfigGroupModalOpen] = useState(false);
+  const { t } = useTranslation('chat');
 
   useFetchSessions();
 
@@ -49,7 +51,7 @@ const DefaultMode = memo(() => {
             //   />
             // ),
             key: SessionDefaultGroup.Pinned,
-            label: '置顶',
+            label: t('pinnedSessions'),
           },
         ...(customSessionGroups || []).map(({ id, name, children }) => ({
           children: <SessionList dataSource={children} groupId={id} />,
@@ -73,10 +75,10 @@ const DefaultMode = memo(() => {
           //   <Actions openConfigModal={() => setConfigGroupModalOpen(true)} />
           // ),
           key: SessionDefaultGroup.Default,
-          label: '专业助手列表',
+          label: t('professionalAssistantList'),
         },
       ].filter(Boolean) as CollapseProps['items'],
-    [customSessionGroups, pinnedSessions, defaultSessions],
+    [customSessionGroups, pinnedSessions, defaultSessions, t],
   );
 
   return (

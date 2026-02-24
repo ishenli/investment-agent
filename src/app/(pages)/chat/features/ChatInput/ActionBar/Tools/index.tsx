@@ -10,7 +10,7 @@ const Tools = memo(() => {
   const items = useControls({ setUpdating });
 
   return (
-    <Suspense fallback={<Action disabled icon={Blocks} title={t('tools.title')} />}>
+    <Suspense fallback={<Action disabled icon={Blocks} title={t('tool.title')} />}>
       <Action
         dropdown={{
           maxHeight: 500,
@@ -21,7 +21,7 @@ const Tools = memo(() => {
         icon={Blocks}
         loading={updating}
         showTooltip={false}
-        title={t('tools.title')}
+        title={t('tool.title')}
       />
     </Suspense>
   );

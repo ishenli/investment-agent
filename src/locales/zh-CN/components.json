@@ -1,0 +1,29 @@
+{
+  "sidebar": {
+    "documents": {
+      "addMarketInfo": "添加市场信息",
+      "assetData": "资产数据",
+      "investmentNotes": "投资笔记",
+      "marketInfo": "市场信息",
+      "portfolioSnapshot": "组合快照",
+      "search": "搜索"
+    },
+    "navMain": {
+      "accountInfo": "账户信息",
+      "aiAdvisor": "AI投顾",
+      "aiInsights": "AI洞察",
+      "aiReports": "AI报告",
+      "deepAnalysis": "深度分析",
+      "positionManagement": "持仓管理",
+      "tradeRecords": "交易记录"
+    },
+    "settings": {
+      "settings": "设置"
+    }
+  },
+  "thinking": {
+    "completed": "深度思考完成",
+    "completedWithDuration": "深度思考完成（用时 {{duration}} 秒）",
+    "inProgress": "深度思考中..."
+  }
+}

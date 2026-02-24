@@ -1,0 +1,58 @@
+{
+  "actions": {
+    "add": "添加",
+    "back": "返回笔记列表",
+    "cancel": "取消",
+    "create": "新建笔记",
+    "createFirst": "创建第一个笔记",
+    "delete": "删除",
+    "edit": "编辑",
+    "save": "保存",
+    "saving": "保存中..."
+  },
+  "detail": {
+    "createTime": "创建时间",
+    "updateTime": "更新时间"
+  },
+  "editor": {
+    "contentLabel": "请输入笔记内容（支持 Markdown 语法）",
+    "editTitle": "编辑笔记",
+    "newTitle": "新建笔记",
+    "tagPlaceholder": "添加标签",
+    "titleLabel": "请输入笔记标题"
+  },
+  "filter": {
+    "clear": "清除筛选",
+    "label": "标签筛选:"
+  },
+  "list": {
+    "empty": "暂无笔记",
+    "loading": "加载中...",
+    "noNotes": "暂无笔记"
+  },
+  "messages": {
+    "deleteConfirm": "确定要删除这个笔记吗？",
+    "deleteSuccess": "笔记删除成功",
+    "loadDetailError": "获取笔记详情失败",
+    "loadError": "获取笔记列表失败",
+    "saveError": "保存笔记失败",
+    "saveSuccess": "笔记保存成功",
+    "tagExists": "标签已存在"
+  },
+  "pagination": {
+    "next": "下一页",
+    "page": "{{current}} / {{total}}",
+    "prev": "上一页"
+  },
+  "searchPlaceholder": "搜索笔记标题或内容...",
+  "sortBy": {
+    "createdAt": "创建时间",
+    "title": "标题",
+    "updatedAt": "更新时间"
+  },
+  "sortOrder": {
+    "asc": "升序",
+    "desc": "降序"
+  },
+  "title": "笔记"
+}

@@ -3,6 +3,7 @@ import { App } from 'antd';
 import isEqual from 'fast-deep-equal';
 import qs from 'query-string';
 import { memo, use, useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { VirtuosoContext } from '@renderer/(pages)/chat/features/Conversation/components/VirtualizedList/VirtuosoContext';
 import { useChatStore } from '@renderer/store/chat';
@@ -38,6 +39,7 @@ interface ActionsProps {
 }
 
 const Actions = memo<ActionsProps>(({ id, inPortalThread, index }) => {
+  const { t } = useTranslation('chat');
   const item = useChatStore(chatSelectors.getMessageById(id), isEqual);
   const [
     deleteMessage,
@@ -71,12 +73,6 @@ const Actions = memo<ActionsProps>(({ id, inPortalThread, index }) => {
     });
 
     console.warn('feedbackContent', feedbackContentStr);
-    (window as any).yuyanMonitor?.log({
-      code: 11,
-      msg: '点踩消息',
-      d1: `消息id; ${id}`,
-      d2: `反馈内容: ${feedbackContentStr}`,
-    });
     setFeedBackModal(false);
   };
 
@@ -98,7 +94,7 @@ const Actions = memo<ActionsProps>(({ id, inPortalThread, index }) => {
       switch (action.key) {
         case 'copy': {
           await copyMessage(id, item.content);
-          message.success('复制成功');
+          message.success(t('copySuccess'));
           break;
         }
 
@@ -126,9 +122,9 @@ const Actions = memo<ActionsProps>(({ id, inPortalThread, index }) => {
           });
           const res = await likeMessage(id, content);
           if (res.likeAction === 'like') {
-            message.success('点赞成功');
+            message.success(t('likeSuccess'));
           } else if (res.likeAction === 'unknown') {
-            message.success('取消点赞成功');
+            message.success(t('likeCancelSuccess'));
           }
           break;
         }
@@ -162,7 +158,7 @@ const Actions = memo<ActionsProps>(({ id, inPortalThread, index }) => {
       //   translateMessage(id, lang);
       // }
     },
-    [item],
+    [item, t],
   );
 
   const RenderFunction = renderActions[(item?.role || '') as MessageRoleType] ?? ActionsBar;

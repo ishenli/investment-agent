@@ -3,7 +3,6 @@ import isEqual from 'fast-deep-equal';
 import useSWR, { SWRResponse, mutate } from 'swr';
 import { StateCreator } from 'zustand/vanilla';
 
-import { message } from '@renderer/(pages)/chat/components/AntdStaticMethods';
 import { LOADING_FLAT } from '@renderer/const/message';
 import { chatService } from '@renderer/services/chat';
 import { messageService } from '@renderer/services/message';
@@ -15,7 +14,6 @@ import { ChatTopic } from '@typings/topic';
 import { merge } from '@renderer/lib/utils/merge';
 import { useClientDataSWR } from '@renderer/lib/utils/swr';
 
-import TopicConfig from '@renderer/const/text/topicConfig';
 import { chainSummaryTitle } from '@renderer/prompts/summaryTitle';
 import { chatSelectors } from '../message/selectors';
 import { ChatTopicDispatch, topicReducer } from './reducer';
@@ -76,7 +74,7 @@ export const chatTopic: StateCreator<
     set({ creatingTopic: true }, false, 'creatingTopic/start');
     const topicId = await internal_createTopic({
       sessionId: activeId,
-      title: TopicConfig.defaultTitle,
+      title: 'default', // Will be translated in UI layer
       messages: messages.map((m) => m.id),
     });
     set({ creatingTopic: false }, false, 'creatingTopic/end');
@@ -94,7 +92,7 @@ export const chatTopic: StateCreator<
     // 1. create topic and bind these messages
     const topicId = await internal_createTopic({
       sessionId: activeId,
-      title: TopicConfig.defaultTitle,
+      title: 'default', // Will be translated in UI layer
       messages: messages.map((m) => m.id),
     });
 
@@ -113,16 +111,17 @@ export const chatTopic: StateCreator<
 
     const newTitle = topic.title + '副本';
 
-    message.loading({
-      content: TopicConfig.duplicateLoading,
-      key: 'duplicateTopic',
-      duration: 0,
-    });
+    // These will be handled by UI components using translation
+    // message.loading({
+    //   content: TopicConfig.duplicateLoading,
+    //   key: 'duplicateTopic',
+    //   duration: 0,
+    // });
 
     const newTopicId = await topicService.cloneTopic(id, newTitle);
     await refreshTopic();
-    message.destroy('duplicateTopic');
-    message.success(TopicConfig.duplicateSuccess);
+    // message.destroy('duplicateTopic');
+    // message.success(TopicConfig.duplicateSuccess);
 
     await switchTopic(newTopicId);
   },

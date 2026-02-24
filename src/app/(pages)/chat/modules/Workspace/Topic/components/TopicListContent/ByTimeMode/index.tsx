@@ -8,11 +8,12 @@ import { useChatStore } from '@renderer/store/chat';
 import { topicSelectors } from '@renderer/store/chat/selectors';
 import { ChatTopic } from '@typings/topic';
 
-import TopicConfig from '@renderer/const/text/topicConfig';
 import TopicItem from '../TopicItem';
 import TopicGroupItem from './GroupItem';
+import { useTranslation } from 'react-i18next';
 
 const ByTimeMode = memo(() => {
+  const { t } = useTranslation('topic');
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const [activeTopicId, activeThreadId] = useChatStore((s) => [s.activeTopicId, s.activeThreadId]);
   const groupTopics = useChatStore(topicSelectors.groupedTopicsSelector, isEqual);
@@ -28,12 +29,12 @@ const ByTimeMode = memo(() => {
         {
           favorite: false,
           id: 'default',
-          title: TopicConfig.defaultTitle,
+          title: t('defaultTitle'),
         } as ChatTopic,
         ...groupTopics.flatMap((group) => group.children),
       ],
     };
-  }, [groupTopics]);
+  }, [groupTopics, t]);
 
   const itemContent = useCallback(
     (index: number) => {

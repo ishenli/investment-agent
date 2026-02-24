@@ -1,20 +1,18 @@
-import { Avatar, Icon, ItemType } from '@lobehub/ui';
+import { Avatar, ItemType } from '@lobehub/ui';
 import isEqual from 'fast-deep-equal';
-import { ArrowRight, Store, ToyBrick } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Flexbox } from 'react-layout-kit';
 
-import PluginAvatar from '../../../../components/Plugins/PluginAvatar';
 import { useCheckPluginsIsInstalled } from '@renderer/hooks/useCheckPluginsIsInstalled';
 import { useFetchInstalledPlugins } from '@renderer/hooks/useFetchInstalledPlugins';
 import { useAgentStore } from '@renderer/store/agent';
 import { agentSelectors } from '@renderer/store/agent/selectors';
 import { useToolStore } from '@renderer/store/tool';
-import { builtinToolSelectors, pluginSelectors } from '@renderer/store/tool/selectors';
+import { builtinToolSelectors } from '@renderer/store/tool/selectors';
 
 import ToolItem from './ToolItem';
 
 export const useControls = ({ setUpdating }: { setUpdating: (updating: boolean) => void }) => {
+  const { t } = useTranslation('chat');
   const { showDalle } = { showDalle: false };
   const [checked, togglePlugin] = useAgentStore((s) => [
     agentSelectors.currentAgentPlugins(s),
@@ -46,7 +44,7 @@ export const useControls = ({ setUpdating }: { setUpdating: (updating: boolean) 
       })),
 
       key: 'builtins',
-      label: '内置插件',
+      label: t('tools.plugins.groupName'),
       type: 'group',
     },
     // {

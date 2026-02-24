@@ -14,6 +14,7 @@ import React from 'react';
 import { useStyles } from '../style';
 import Preview from './Preview';
 import { FieldType } from './type';
+import { useTranslation } from 'react-i18next';
 
 const DEFAULT_FIELD_VALUE: FieldType = {
   imageType: ImageType.JPG,
@@ -25,6 +26,7 @@ const DEFAULT_FIELD_VALUE: FieldType = {
 
 const ShareImage = memo<{ mobile?: boolean }>(() => {
   const currentAgentTitle = useSessionStore(sessionMetaSelectors.currentAgentTitle);
+  const { t } = useTranslation(['chat', 'common']);
   const [fieldValue, setFieldValue] = useState<FieldType>(DEFAULT_FIELD_VALUE);
   const { styles } = useStyles();
   const { loading, onDownload, title } = useScreenshot({
@@ -43,7 +45,7 @@ const ShareImage = memo<{ mobile?: boolean }>(() => {
     // },
     {
       children: <Switch />,
-      label: '包含背景',
+      label: t('withBackground'),
       layout: 'horizontal',
       minWidth: undefined,
       name: 'withBackground',
@@ -51,7 +53,7 @@ const ShareImage = memo<{ mobile?: boolean }>(() => {
     },
     {
       children: <Switch />,
-      label: '包含页脚',
+      label: t('withFooter'),
       layout: 'horizontal',
       minWidth: undefined,
       name: 'withFooter',
@@ -59,7 +61,7 @@ const ShareImage = memo<{ mobile?: boolean }>(() => {
     },
     {
       children: <Segmented options={imageTypeOptions} />,
-      label: '图片格式',
+      label: t('imageFormat'),
       layout: 'horizontal',
       minWidth: undefined,
       name: 'imageType',
@@ -78,10 +80,10 @@ const ShareImage = memo<{ mobile?: boolean }>(() => {
         size={isMobile ? undefined : 'large'}
         type={'primary'}
       >
-        复制
+        {t('copy')}
       </Button>
       <Button block loading={loading} onClick={onDownload} size={isMobile ? undefined : 'large'}>
-        下载截图
+        {t('common:download')}
       </Button>
     </>
   );

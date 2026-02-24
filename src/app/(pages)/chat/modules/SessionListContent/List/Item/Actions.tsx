@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/preserve-manual-memoization */
 import { ActionIcon, Dropdown, Icon } from '@lobehub/ui';
 import { App } from 'antd';
 import { createStyles } from 'antd-style';
@@ -10,6 +11,7 @@ import { useSessionStore } from '@renderer/store/session';
 import { sessionHelpers } from '@renderer/store/session/helpers';
 import { sessionGroupSelectors, sessionSelectors } from '@renderer/store/session/selectors';
 import { SessionDefaultGroup } from '@typings/session';
+import { useTranslation } from 'react-i18next';
 
 const useStyles = createStyles(({ css }) => ({
   modalRoot: css`
@@ -43,6 +45,7 @@ const Actions = memo<ActionProps>(({ group, id, agentCode, openCreateGroupModal,
   );
 
   const { modal, message } = App.useApp();
+  const { t } = useTranslation('chat');
 
   const isDefault = group === SessionDefaultGroup.Default;
   // const hasDivider = !isDefault || Object.keys(sessionByGroup).length > 0;
@@ -54,7 +57,7 @@ const Actions = memo<ActionProps>(({ group, id, agentCode, openCreateGroupModal,
           {
             icon: <Icon icon={pin ? PinOff : Pin} />,
             key: 'pin',
-            label: pin ? '取消置顶' : '置顶',
+            label: pin ? t('cancelPin') : t('pin'),
             onClick: () => {
               pinSession(id, !pin);
             },
@@ -137,7 +140,7 @@ const Actions = memo<ActionProps>(({ group, id, agentCode, openCreateGroupModal,
             danger: true,
             icon: <Icon icon={Trash} />,
             key: 'delete',
-            label: '删除',
+            label: t('delete'),
             onClick: ({ domEvent }) => {
               domEvent.stopPropagation();
               modal.confirm({

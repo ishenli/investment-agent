@@ -10,17 +10,20 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@renderer/components/ui/alert';
 import { Building2, Globe, Hash, Tag } from 'lucide-react';
 import { AssetMetaType } from '@/types/assetMeta';
+import { useTranslation } from 'react-i18next';
 
 interface BasicInfoViewProps {
   assetMeta: AssetMetaType | null;
 }
 
 export function BasicInfoView({ assetMeta }: BasicInfoViewProps) {
+  const { t } = useTranslation('asset-meta');
+  
   if (!assetMeta) {
     return (
       <Alert>
-        <AlertTitle>暂无数据</AlertTitle>
-        <AlertDescription>当前没有可用的资产基本信息。</AlertDescription>
+        <AlertTitle>{t('error.unknown')}</AlertTitle>
+        <AlertDescription>{t('error.unknown')}</AlertDescription>
       </Alert>
     );
   }
@@ -28,23 +31,23 @@ export function BasicInfoView({ assetMeta }: BasicInfoViewProps) {
   const infoItems = [
     {
       icon: Hash,
-      label: '股票代码',
+      label: t('table.headers.symbol'),
       value: assetMeta.symbol,
     },
     {
       icon: Tag,
-      label: '中文名称',
-      value: assetMeta.chineseName || '未设置',
+      label: t('form.fields.chineseName'),
+      value: assetMeta.chineseName || t('error.unknown'),
     },
     {
       icon: Building2,
-      label: '英文全称',
-      value: assetMeta.fullName || '未设置',
+      label: t('form.fields.fullName'),
+      value: assetMeta.fullName || t('error.unknown'),
     },
     {
       icon: Globe,
-      label: '市场',
-      value: assetMeta.market === 'CN' ? 'A股' : assetMeta.market === 'HK' ? '港股' : '美股',
+      label: t('table.headers.market'),
+      value: assetMeta.market === 'CN' ? t('form.markets.CN') : assetMeta.market === 'HK' ? t('form.markets.HK') : t('form.markets.US'),
     },
   ];
 
@@ -52,8 +55,8 @@ export function BasicInfoView({ assetMeta }: BasicInfoViewProps) {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>资产基本信息</CardTitle>
-          <CardDescription>查看和编辑资产的基本信息</CardDescription>
+          <CardTitle>{t('basicInfo.title')}</CardTitle>
+          <CardDescription>{t('basicInfo.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-8">

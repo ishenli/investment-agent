@@ -3,6 +3,7 @@ import { createStyles } from 'antd-style';
 import { TextAreaRef } from 'antd/es/input/TextArea';
 import React, { RefObject, memo, useEffect, useRef } from 'react';
 import { useAutoFocus } from '../useAutoFocus';
+import { useTranslation } from 'react-i18next';
 
 const useStyles = createStyles(({ css }) => {
   return {
@@ -33,7 +34,7 @@ interface InputAreaProps {
 
 const InputArea = memo<InputAreaProps>(({ onSend, value, loading, onChange }) => {
   const { styles } = useStyles();
-
+  const { t } = useTranslation('chat');
   const ref = useRef<TextAreaRef>(null);
   const isChineseInput = useRef(false);
 
@@ -85,7 +86,7 @@ const InputArea = memo<InputAreaProps>(({ onSend, value, loading, onChange }) =>
           };
           send();
         }}
-        placeholder="输入聊天内容..."
+        placeholder={t('typing')}
         ref={ref}
         value={value}
         variant={'borderless'}

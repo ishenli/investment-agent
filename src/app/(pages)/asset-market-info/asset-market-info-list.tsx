@@ -18,6 +18,7 @@ import { zhCN } from 'date-fns/locale';
 import Link from 'next/link';
 import { get } from '@renderer/lib/request';
 import { AssetMarketInfoType } from '@/types/marketInfo';
+import { useTranslation } from 'react-i18next';
 
 export function AssetMarketInfoList() {
   const [marketInfos, setMarketInfos] = useState<AssetMarketInfoType[]>([]);
@@ -28,6 +29,7 @@ export function AssetMarketInfoList() {
     start: subDays(new Date(), 7),
     end: new Date(),
   });
+  const { t } = useTranslation('asset-market-info');
 
   const fetchMarketInfos = async () => {
     try {
@@ -97,13 +99,13 @@ export function AssetMarketInfoList() {
     return (
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
-        <AlertTitle>错误</AlertTitle>
+        <AlertTitle>{t('error.title')}</AlertTitle>
         <AlertDescription>
           {error}
           <div className="mt-4">
             <Button onClick={fetchMarketInfos} variant="outline">
               <RefreshCw className="mr-2 h-4 w-4" />
-              重新加载
+              {t('error.reload')}
             </Button>
           </div>
         </AlertDescription>
@@ -115,7 +117,7 @@ export function AssetMarketInfoList() {
     <div className="space-y-3">
       <div className="flex justify-end items-center">
         <Button asChild>
-          <Link href="/asset-market-info-fetcher">添加信息</Link>
+          <Link href="/asset-market-info-fetcher">{t('actions.addInfo')}</Link>
         </Button>
       </div>
       {/* 标签页切换 */}
@@ -129,7 +131,7 @@ export function AssetMarketInfoList() {
             }`}
             onClick={() => setActiveTab('latest')}
           >
-            最新消息
+            {t('tabs.latest')}
           </button>
           <button
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
@@ -139,7 +141,7 @@ export function AssetMarketInfoList() {
             }`}
             onClick={() => setActiveTab('dateRange')}
           >
-            时间范围
+            {t('tabs.dateRange')}
           </button>
         </nav>
       </div>
@@ -149,7 +151,7 @@ export function AssetMarketInfoList() {
         <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
-            <span>时间范围:</span>
+            <span>{t('dateRange.label')}</span>
           </div>
           <div className="flex items-center gap-2">
             <input
@@ -163,7 +165,7 @@ export function AssetMarketInfoList() {
               }
               className="border rounded p-2"
             />
-            <span>至</span>
+            <span>{t('dateRange.to')}</span>
             <input
               type="date"
               value={format(dateRange.end, 'yyyy-MM-dd')}
@@ -182,18 +184,12 @@ export function AssetMarketInfoList() {
       {/* 市场信息列表 */}
       {marketInfos.length === 0 ? (
         <Alert>
-          <AlertTitle>暂无数据</AlertTitle>
-          <AlertDescription>当前没有可用的资产市场信息。</AlertDescription>
+          <AlertTitle>{t('list.noData.title')}</AlertTitle>
+          <AlertDescription>{t('list.noData.description')}</AlertDescription>
         </Alert>
       ) : (
         <div className="grid gap-6">
           {marketInfos.map((info) => {
-            // 直接从 assetMetas 字段获取资产的中文名称
-            const assetNames = info.assetMetas.map((meta) => meta.chineseName || meta.symbol);
-
-            // 如果没有找到中文名称，回退到symbol
-            const displayNames = assetNames.length > 0 ? assetNames.join(', ') : info.symbol;
-
             return (
               <Card key={info.id} className="hover:shadow-md transition-shadow">
                 <CardHeader>
@@ -218,15 +214,15 @@ export function AssetMarketInfoList() {
                     <div className="flex gap-2">
                       <Badge
                         variant="outline"
-                        className={getSentimentColor(info.sentiment) + ' w-12 text-center'}
+                        className={getSentimentColor(info.sentiment) + ' text-center rounded-full'}
                       >
                         {info.sentiment}
                       </Badge>
                       <Badge
                         variant="outline"
-                        className={getImportanceColor(info.importance) + ' w-16 text-center'}
+                        className={getImportanceColor(info.importance) + ' text-center rounded-full'}
                       >
-                        重要性 {info.importance}/10
+                        {t('importance')} {info.importance}/10
                       </Badge>
                     </div>
                   </div>
@@ -265,7 +261,7 @@ export function AssetMarketInfoList() {
                           <Link key={assetMeta.id} href={`/asset-meta/${assetMeta.id}`}>
                             <Badge
                               variant="secondary"
-                              className={`cursor-pointer hover:underline ${getColorClass(assetMeta.symbol)}`}
+                              className={`cursor-pointer rounded-full hover:underline ${getColorClass(assetMeta.symbol)}`}
                             >
                               {displayName}
                             </Badge>

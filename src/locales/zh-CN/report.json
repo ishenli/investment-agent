@@ -1,0 +1,31 @@
+{
+  "detail": {
+    "generateFailed": "生成失败",
+    "generateSuccess": "报告生成任务已提交",
+    "title": "报告详情",
+    "unknownError": "未知错误"
+  },
+  "list": {
+    "empty": "暂无报告",
+    "emptyDescription": "您还没有生成过任何投资报告。点击上方按钮开始生成。",
+    "generateButton": "生成报告",
+    "status": {
+      "completed": "已完成",
+      "failed": "失败",
+      "pending": "等待中",
+      "processing": "处理中"
+    },
+    "title": "报告列表",
+    "type": {
+      "emergency": "紧急报告",
+      "monthly": "月报",
+      "placeholder": "类型",
+      "weekly": "周报"
+    }
+  },
+  "messages": {
+    "loadError": "无法加载报告列表: {{error}}",
+    "noDateRange": "无时间范围"
+  },
+  "title": "报告"
+}

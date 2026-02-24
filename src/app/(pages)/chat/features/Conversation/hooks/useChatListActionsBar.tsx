@@ -11,6 +11,7 @@ import {
   Trash,
 } from 'lucide-react';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface ChatListActionsBar {
   branching?: ActionIconGroupItemType;
@@ -29,6 +30,8 @@ interface ChatListActionsBar {
 export const useChatListActionsBar = ({
   hasThread,
 }: { hasThread?: boolean } = {}): ChatListActionsBar => {
+  const { t } = useTranslation('chat');
+  
   return useMemo(
     () => ({
       // branching: {
@@ -42,29 +45,29 @@ export const useChatListActionsBar = ({
       like: {
         icon: ThumbsUp,
         key: 'like',
-        label: '点赞',
+        label: t('like'),
       },
       notLike: {
         icon: ThumbsDown,
         key: 'notLike',
-        label: '点踩',
+        label: t('notLike'),
       },
       share: {
         icon: Share2,
         key: 'share',
-        label: '分享',
+        label: t('conversation.share'),
       },
       copy: {
         icon: Copy,
         key: 'copy',
-        label: '复制',
+        label: t('copy'),
       },
       del: {
         danger: true,
         disable: hasThread,
         icon: Trash,
         key: 'del',
-        label: hasThread ? '存在子话题，不能删除' : '删除',
+        label: hasThread ? '存在子话题，不能删除' : t('delete'),
       },
       delAndRegenerate: {
         disable: hasThread,
@@ -78,7 +81,7 @@ export const useChatListActionsBar = ({
       edit: {
         icon: Edit,
         key: 'edit',
-        label: '编辑',
+        label: t('edit'),
       },
       export: {
         icon: DownloadIcon,
@@ -88,9 +91,9 @@ export const useChatListActionsBar = ({
       regenerate: {
         icon: RotateCcw,
         key: 'regenerate',
-        label: '重新生成',
+        label: t('regenerate'),
       },
     }),
-    [hasThread],
+    [hasThread, t],
   );
 };

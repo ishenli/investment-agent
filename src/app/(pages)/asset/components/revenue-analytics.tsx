@@ -30,8 +30,10 @@ import { Skeleton } from '@renderer/components/ui/skeleton';
 import { Button } from '@renderer/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import { SnapshotRevenuePeriod } from '@typings/account';
+import { useTranslation } from 'react-i18next';
 
 export function RevenueAnalytics() {
+  const { t } = useTranslation('asset');
   const [period, setPeriod] = useState<SnapshotRevenuePeriod>('1M');
   const [needsRetry, setNeedsRetry] = useState(false);
 
@@ -180,14 +182,14 @@ export function RevenueAnalytics() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-red-500">加载失败</CardTitle>
+              <CardTitle className="text-sm font-medium text-red-500">{t('revenueAnalytics.loadFailed')}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-500">无法获取收益数据</div>
-              <p className="text-xs text-muted-foreground mb-4">请稍后重试</p>
+              <div className="text-2xl font-bold text-red-500">{t('revenueAnalytics.cannotFetchRevenue')}</div>
+              <p className="text-xs text-muted-foreground mb-4">{t('revenueAnalytics.pleaseRetry')}</p>
               <Button onClick={handleRetry} size="sm" variant="outline">
                 <RefreshCw className="h-4 w-4 mr-2" />
-                重试
+                {t('revenueAnalytics.retry')}
               </Button>
             </CardContent>
           </Card>
@@ -203,11 +205,11 @@ export function RevenueAnalytics() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">暂无数据</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('revenueAnalytics.noData')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">-</div>
-              <p className="text-xs text-muted-foreground">暂无快照数据，请先创建快照</p>
+              <p className="text-xs text-muted-foreground">{t('revenueAnalytics.noSnapshotData')}</p>
             </CardContent>
           </Card>
         </div>
@@ -236,26 +238,26 @@ export function RevenueAnalytics() {
       {/* 时间范围选择器 */}
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
         <div className="flex items-center gap-2">
-          <label className="text-sm font-medium">时间范围:</label>
+          <label className="text-sm font-medium">{t('revenueAnalytics.timeRange')}:</label>
           <Select value={period} onValueChange={(v) => setPeriod(v as SnapshotRevenuePeriod)}>
             <SelectTrigger className="w-32">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="1W">1周</SelectItem>
-              <SelectItem value="1M">1个月</SelectItem>
-              <SelectItem value="3M">3个月</SelectItem>
-              <SelectItem value="6M">6个月</SelectItem>
-              <SelectItem value="YTD">年初至今</SelectItem>
-              <SelectItem value="1Y">1年</SelectItem>
-              <SelectItem value="ALL">全部时间</SelectItem>
+              <SelectItem value="1W">{t('revenueAnalytics.period1W')}</SelectItem>
+              <SelectItem value="1M">{t('revenueAnalytics.period1M')}</SelectItem>
+              <SelectItem value="3M">{t('revenueAnalytics.period3M')}</SelectItem>
+              <SelectItem value="6M">{t('revenueAnalytics.period6M')}</SelectItem>
+              <SelectItem value="YTD">{t('revenueAnalytics.periodYTD')}</SelectItem>
+              <SelectItem value="1Y">{t('revenueAnalytics.period1Y')}</SelectItem>
+              <SelectItem value="ALL">{t('revenueAnalytics.periodAll')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         {isErrorAny && (
           <Button onClick={handleRetry} size="sm" variant="outline">
             <RefreshCw className="h-4 w-4 mr-2" />
-            刷新数据
+            {t('revenueAnalytics.refreshData')}
           </Button>
         )}
       </div>
@@ -264,7 +266,7 @@ export function RevenueAnalytics() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">总收益率</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('revenueAnalytics.totalReturnRate')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div
@@ -274,13 +276,13 @@ export function RevenueAnalytics() {
               {profitRate.toFixed(2)}%
             </div>
             <p className="text-xs text-muted-foreground">
-              期初: ${metrics.comparisonSnapshot.totalValue.toLocaleString()}
+              {t('revenueAnalytics.initial')}: ${metrics.comparisonSnapshot.totalValue.toLocaleString()}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">年化收益率</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('revenueAnalytics.annualizedReturnRate')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div
@@ -289,12 +291,12 @@ export function RevenueAnalytics() {
               {performance.annualizedReturn >= 0 ? '+' : ''}
               {performance.annualizedReturn.toFixed(2)}%
             </div>
-            <p className="text-xs text-muted-foreground">年化表现</p>
+            <p className="text-xs text-muted-foreground">{t('revenueAnalytics.annualizedPerformance')}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">超额收益</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('revenueAnalytics.excessReturn')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div
@@ -304,13 +306,13 @@ export function RevenueAnalytics() {
               {performance.excessReturn.toFixed(2)}%
             </div>
             <p className="text-xs text-muted-foreground">
-              基准收益: {performance.benchmarkProfitRate.toFixed(2)}%
+              {t('revenueAnalytics.benchmarkReturn')}: {performance.benchmarkProfitRate.toFixed(2)}%
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">收益金额</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('revenueAnalytics.returnAmount')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div
@@ -319,16 +321,16 @@ export function RevenueAnalytics() {
               {performance.profitAmount >= 0 ? '+' : ''}$
               {performance.profitAmount.toLocaleString()}
             </div>
-            <p className="text-xs text-muted-foreground">持有 {metrics.daysHeld} 天</p>
+            <p className="text-xs text-muted-foreground">{t('revenueAnalytics.holdingDays', { days: metrics.daysHeld })}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">夏普比率</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('revenueAnalytics.sharpeRatio')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{derivedMetrics.sharpeRatio.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">风险调整后收益</p>
+            <p className="text-xs text-muted-foreground">{t('revenueAnalytics.riskAdjustedReturn')}</p>
           </CardContent>
         </Card>
       </div>
@@ -338,8 +340,8 @@ export function RevenueAnalytics() {
         {/* Profit Rate Chart */}
         <Card>
           <CardHeader>
-            <CardTitle>累计收益率</CardTitle>
-            <CardDescription>相对于期初的累计收益表现</CardDescription>
+            <CardTitle>{t('revenueAnalytics.cumulativeReturnRate')}</CardTitle>
+            <CardDescription>{t('revenueAnalytics.cumulativePerformance')}</CardDescription>
           </CardHeader>
           <CardContent>
             {hasChartData ? (
@@ -353,14 +355,14 @@ export function RevenueAnalytics() {
                       domain={getProfitRateYDomain()}
                     />
                     <Tooltip
-                      formatter={(value: number) => [`${value.toFixed(2)}%`, '累计收益率']}
-                      labelFormatter={(label) => `日期: ${label}`}
+                      formatter={(value: number) => [`${value.toFixed(2)}%`, t('revenueAnalytics.cumulativeReturnRate')]}
+                      labelFormatter={(label) => `${t('revenueAnalytics.date')}: ${label}`}
                     />
                     <Legend />
                     <Line
                       type="monotone"
                       dataKey="value"
-                      name="累计收益率"
+                      name={t('revenueAnalytics.cumulativeReturnRate')}
                       stroke="#8884d8"
                       strokeWidth={2}
                       dot={{ r: 3 }}
@@ -371,7 +373,7 @@ export function RevenueAnalytics() {
               </div>
             ) : (
               <div className="h-80 flex items-center justify-center">
-                <p className="text-muted-foreground">暂无图表数据</p>
+                <p className="text-muted-foreground">{t('revenueAnalytics.noChartData')}</p>
               </div>
             )}
           </CardContent>
@@ -380,8 +382,8 @@ export function RevenueAnalytics() {
         {/* Total Value Chart */}
         <Card>
           <CardHeader>
-            <CardTitle>总资产变化</CardTitle>
-            <CardDescription>账户总资产走势</CardDescription>
+            <CardTitle>{t('revenueAnalytics.totalAssetChange')}</CardTitle>
+            <CardDescription>{t('revenueAnalytics.accountAssetTrend')}</CardDescription>
           </CardHeader>
           <CardContent>
             {hasChartData ? (
@@ -395,14 +397,14 @@ export function RevenueAnalytics() {
                       domain={getTotalValueYDomain()}
                     />
                     <Tooltip
-                      formatter={(value: number) => [`$${value.toLocaleString()}`, '总资产']}
-                      labelFormatter={(label) => `日期: ${label}`}
+                      formatter={(value: number) => [`$${value.toLocaleString()}`, t('revenueAnalytics.totalAssets')]}
+                      labelFormatter={(label) => `${t('revenueAnalytics.date')}: ${label}`}
                     />
                     <Legend />
                     <Line
                       type="monotone"
                       dataKey="value"
-                      name="总资产"
+                      name={t('revenueAnalytics.totalAssets')}
                       stroke="#82ca9d"
                       strokeWidth={2}
                       dot={{ r: 3 }}
@@ -413,7 +415,7 @@ export function RevenueAnalytics() {
               </div>
             ) : (
               <div className="h-80 flex items-center justify-center">
-                <p className="text-muted-foreground">暂无图表数据</p>
+                <p className="text-muted-foreground">{t('revenueAnalytics.noChartData')}</p>
               </div>
             )}
           </CardContent>
@@ -423,29 +425,29 @@ export function RevenueAnalytics() {
       {/* Detailed Metrics */}
       <Card>
         <CardHeader>
-          <CardTitle>详细指标</CardTitle>
-          <CardDescription>投资组合的详细收益指标</CardDescription>
+          <CardTitle>{t('revenueAnalytics.detailedMetrics')}</CardTitle>
+          <CardDescription>{t('revenueAnalytics.detailedReturnMetrics')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">波动率</p>
+              <p className="text-sm text-muted-foreground">{t('revenueAnalytics.volatility')}</p>
               <p className="text-2xl font-bold">{(derivedMetrics.volatility * 100).toFixed(2)}%</p>
             </div>
             <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">最大回撤</p>
+              <p className="text-sm text-muted-foreground">{t('revenueAnalytics.maxDrawdown')}</p>
               <p className="text-2xl font-bold text-red-500">
                 {derivedMetrics.maxDrawdown ? `-${(derivedMetrics.maxDrawdown * 100).toFixed(2)}%` : '0%'}
               </p>
             </div>
             <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">当前总资产</p>
+              <p className="text-sm text-muted-foreground">{t('revenueAnalytics.currentTotalAssets')}</p>
               <p className="text-2xl font-bold">
                 ${metrics.currentSnapshot.totalValue.toLocaleString()}
               </p>
             </div>
             <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">持仓数量</p>
+              <p className="text-sm text-muted-foreground">{t('revenueAnalytics.positionCount')}</p>
               <p className="text-2xl font-bold">{positions.length}</p>
             </div>
           </div>
@@ -456,8 +458,8 @@ export function RevenueAnalytics() {
       {positions.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>持仓收益明细</CardTitle>
-            <CardDescription>各持仓对总收益的贡献</CardDescription>
+            <CardTitle>{t('revenueAnalytics.positionReturnDetails')}</CardTitle>
+            <CardDescription>{t('revenueAnalytics.contributionToTotalReturn')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -465,14 +467,14 @@ export function RevenueAnalytics() {
                 <div key={pos.symbol} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <span className="font-medium">{pos.symbol}</span>
-                    <span className="text-sm text-muted-foreground">{pos.quantity} 股</span>
+                    <span className="text-sm text-muted-foreground">{t('revenueAnalytics.shares', { quantity: pos.quantity })}</span>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right">
                       <div
                         className={`font-medium ${pos.profitAmount >= 0 ? 'text-green-500' : 'text-red-500'}`}
                       >
-                        {pos.profitAmount >= 0 ? '+' : ''}${pos.profitAmount.toLocaleString()}
+                        {pos.profitAmount >= 0 ? '+' : '+'}$ {pos.profitAmount.toLocaleString()}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {pos.profitRate >= 0 ? '+' : ''}
@@ -480,7 +482,7 @@ export function RevenueAnalytics() {
                       </div>
                     </div>
                     <div className="w-20 text-right">
-                      <div className="text-sm text-muted-foreground">贡献</div>
+                      <div className="text-sm text-muted-foreground">{t('revenueAnalytics.contribution')}</div>
                       <div
                         className={`font-medium ${pos.contribution >= 0 ? 'text-green-500' : 'text-red-500'}`}
                       >

@@ -29,8 +29,10 @@ import {
   Conversation,
   ConversationScrollButton,
 } from '@renderer/components/ai-elements/conversation';
+import { useTranslation } from 'react-i18next';
 
 export default function StockAnalysisPage() {
+  const { t } = useTranslation('research');
   const [formData, setFormData] = useState({
     stockSymbol: 'AAPL',
     analysisDate: new Date().toISOString().split('T')[0],
@@ -38,7 +40,7 @@ export default function StockAnalysisPage() {
     researchDepth: 3,
     llmProvider: 'ant',
     llmModel: 'Kimi-K2-Instruct',
-    marketType: '美股',
+    marketType: t('analysis.marketOptions.us'), // 默认为美股
   });
 
   const [error, setError] = useState<string | null>(null);
@@ -114,7 +116,7 @@ export default function StockAnalysisPage() {
                       htmlFor="stockSymbol"
                       className="block text-sm font-medium mb-1"
                     >
-                      股票代码 *
+                      {t('analysis.stockSymbol')}
                     </label>
                     <Input
                       type="text"
@@ -123,7 +125,7 @@ export default function StockAnalysisPage() {
                       value={formData.stockSymbol}
                       onChange={handleChange}
                       required
-                      placeholder="例如: AAPL"
+                      placeholder={t('analysis.placeholder')}
                     />
                   </div>
 
@@ -132,7 +134,7 @@ export default function StockAnalysisPage() {
                       htmlFor="analysisDate"
                       className="block text-sm font-medium mb-1"
                     >
-                      分析日期 *
+                      {t('analysis.analysisDate')}
                     </label>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -148,7 +150,7 @@ export default function StockAnalysisPage() {
                               locale: zhCN,
                             })
                           ) : (
-                            <span>选择日期</span>
+                            <span>{t('analysis.selectDate')}</span>
                           )}
                         </Button>
                       </DropdownMenuTrigger>
@@ -167,7 +169,7 @@ export default function StockAnalysisPage() {
                       htmlFor="marketType"
                       className="block text-sm font-medium mb-1"
                     >
-                      市场类型
+                      {t('analysis.marketType')}
                     </label>
                     <Select
                       name="marketType"
@@ -177,12 +179,12 @@ export default function StockAnalysisPage() {
                       }
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="选择市场类型" />
+                        <SelectValue placeholder={t('analysis.selectMarketType')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="美股">美股</SelectItem>
-                        <SelectItem value="港股">港股</SelectItem>
-                        <SelectItem value="A股">A股</SelectItem>
+                        <SelectItem value={t('analysis.marketOptions.us')}>{t('analysis.marketOptions.us')}</SelectItem>
+                        <SelectItem value={t('analysis.marketOptions.hk')}>{t('analysis.marketOptions.hk')}</SelectItem>
+                        <SelectItem value={t('analysis.marketOptions.cn')}>{t('analysis.marketOptions.cn')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -192,7 +194,7 @@ export default function StockAnalysisPage() {
                       htmlFor="researchDepth"
                       className="block text-sm font-medium mb-1"
                     >
-                      研究深度
+                      {t('analysis.researchDepth')}
                     </label>
                     <Input
                       type="number"
@@ -210,7 +212,7 @@ export default function StockAnalysisPage() {
                       htmlFor="llmModel"
                       className="block text-sm font-medium mb-1"
                     >
-                      LLM模型
+                      {t('analysis.llmModel')}
                     </label>
                     <Input
                       type="text"
@@ -218,7 +220,7 @@ export default function StockAnalysisPage() {
                       name="llmModel"
                       value={formData.llmModel}
                       onChange={handleChange}
-                      placeholder="例如: Kimi-K2-Instruct"
+                      placeholder={t('analysis.modelPlaceholder')}
                     />
                   </div>
                 </div>
@@ -228,7 +230,7 @@ export default function StockAnalysisPage() {
                     htmlFor="analysts"
                     className="block text-sm font-medium mb-1"
                   >
-                    分析师列表 (用逗号分隔)
+                    {t('analysis.analysts')}
                   </label>
                   <textarea
                     id="analysts"
@@ -237,7 +239,7 @@ export default function StockAnalysisPage() {
                     onChange={handleAnalystsChange}
                     rows={2}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="例如: market, news, risk"
+                    placeholder={t('analysis.analystsPlaceholder')}
                   />
                 </div>
 
@@ -251,7 +253,7 @@ export default function StockAnalysisPage() {
                         : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
                     }`}
                   >
-                    {loading ? '分析中...' : '开始分析'}
+                    {loading ? t('analysis.analyzing') : t('analysis.analyzeButton')}
                   </button>
                 </div>
               </form>
@@ -263,12 +265,12 @@ export default function StockAnalysisPage() {
             <ScrollArea className="h-[calc(100vh-200px)]">
               {loading && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mb-8">
-                  <h3 className="text-blue-800 font-medium">正在分析中...</h3>
+                  <h3 className="text-blue-800 font-medium">{t('loading.analyzing')}</h3>
                 </div>
               )}
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-8">
-                  <h3 className="text-red-800 font-medium">错误</h3>
+                  <h3 className="text-red-800 font-medium">{t('error.title')}</h3>
                   <p className="text-red-700 mt-1">{error}</p>
                 </div>
               )}
@@ -294,9 +296,9 @@ export default function StockAnalysisPage() {
                       />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-medium mb-1">暂无分析结果</h3>
+                  <h3 className="text-lg font-medium mb-1">{t('analysis.noResults')}</h3>
                   <p className="text-gray-500 max-w-md">
-                    请输入股票信息并点击&quot;开始分析&quot;按钮获取详细的股票分析报告。
+                    {t('analysis.noResultsDesc')}
                   </p>
                 </div>
               )}

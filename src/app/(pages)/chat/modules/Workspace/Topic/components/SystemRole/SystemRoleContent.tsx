@@ -139,7 +139,7 @@ const SystemRole = memo(() => {
             }}
             text={{
               cancel: t('cancel'),
-              confirm: t('ok'),
+              confirm: t('confirm'),
               edit: t('edit'),
               title: t('settingAgent.prompt.title', { ns: 'setting' }),
             }}

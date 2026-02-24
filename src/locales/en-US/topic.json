@@ -1,0 +1,62 @@
+{
+  "actions": {
+    "archive": "Archive",
+    "autoRename": "Smart Rename",
+    "confirmRemoveAll": "About to delete all topics. Once deleted, they cannot be recovered. Please proceed with caution.",
+    "confirmRemoveTopic": "About to delete this topic. Once deleted, it cannot be recovered. Please proceed with caution.",
+    "confirmRemoveUnstarred": "About to delete unstarred topics. Once deleted, they cannot be recovered. Please proceed with caution.",
+    "duplicate": "Duplicate",
+    "export": "Export",
+    "newTopic": "New Topic",
+    "removeAll": "Delete All Topics",
+    "removeUnstarred": "Delete Unstarred Topics"
+  },
+  "confirmNewTopic": "Start a new topic?",
+  "confirmSaveTopic": "Save current session as topic?",
+  "create": "Create Topic",
+  "defaultTitle": "Default Topic",
+  "delete": "Delete Topic",
+  "duplicateLoading": "Duplicating topic...",
+  "duplicateSuccess": "Topic duplicated successfully",
+  "empty": {
+    "description": "Start a new conversation or topic to organize your chats",
+    "title": "No topics yet"
+  },
+  "favorite": "Favorite",
+  "groupMode": {
+    "ascMessages": "Sort by Total Messages Ascending",
+    "byTime": "Group by Time",
+    "descMessages": "Sort by Total Messages Descending",
+    "flat": "No Grouping"
+  },
+  "groupTitle": {
+    "byTime": {
+      "month": "This Month",
+      "today": "Today",
+      "week": "This Week",
+      "yesterday": "Yesterday"
+    }
+  },
+  "guide": {
+    "alt": "Start a new conversation or topic to organize your chats",
+    "desc": "Start a new conversation or topic to organize your chats",
+    "title": "No topics yet"
+  },
+  "newTopicButton": "Start New Topic",
+  "rename": "Rename Topic",
+  "saveTopicButton": "Save Current Session as Topic",
+  "search": "Search topics...",
+  "searchPlaceholder": "Search topics...",
+  "searchResultEmpty": "No search results found",
+  "status": {
+    "active": "Active",
+    "archived": "Archived"
+  },
+  "temp": "Temporary",
+  "title": "Topics",
+  "tools": {
+    "plugins": {
+      "groupName": "Built-in Plugins"
+    }
+  }
+}

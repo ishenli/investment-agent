@@ -15,13 +15,13 @@ interface PluginTagProps {
 
 const PluginTag = memo<PluginTagProps>(
   ({ showIcon = true, author, type, showText = true, isMCP }) => {
-    const { t } = useTranslation('plugin');
+    const { t } = useTranslation('plugin'); // 使用 plugin 命名空间
     const isCustom = type === 'customPlugin';
     const isOfficial = author === 'LobeHub';
 
     const customTag = (
       <Tag color={'warning'} icon={showIcon && <Icon icon={Package} />} size={'small'}>
-        {t('store.customPlugin')}
+        {t('store.customPlugin')} {/* 引用 plugin 命名空间下的 store.customPlugin 键 */}
       </Tag>
     );
 
@@ -41,7 +41,7 @@ const PluginTag = memo<PluginTagProps>(
         icon={showIcon && <Icon icon={isOfficial ? BadgeCheck : CircleUser} />}
         size={'small'}
       >
-        {showText && (author || t('store.communityPlugin'))}
+        {showText && (author || t('store.communityPlugin'))} {/* 引用 plugin 命名空间下的 store.communityPlugin 键 */}
       </Tag>
     );
   },

@@ -1,4 +1,4 @@
-import authService, { AuthService } from '@server/service/authService';
+import authService from '@server/service/authService';
 import { modelProviderResolver } from '@server/service/modelProviderResolver';
 import { ChatOpenAI } from '@langchain/openai';
 import logger from '@server/base/logger';

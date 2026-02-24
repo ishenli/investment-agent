@@ -21,7 +21,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
       <div className="flex h-full min-h-screen w-full">
         {/* Settings Sidebar */}
         <aside className="w-50 border-r border-border/40 bg-background shrink-0">
-          <div className="p-6">
+          <div className="p-2">
             <SettingsSidebar
               activeCategory={currentCategory}
               onCategoryChange={handleCategoryChange}

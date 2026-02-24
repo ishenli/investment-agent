@@ -1,11 +1,8 @@
 'use client';
 
 import {
-  IconCreditCard,
   IconDotsVertical,
   IconLogout,
-  IconNotification,
-  IconSettings,
   IconUserCircle,
   IconUserPlus,
 } from '@tabler/icons-react';
@@ -29,6 +26,7 @@ import {
 import Link from 'next/link';
 import { useState } from 'react';
 import { SwitchAccountDialog } from './switch-account-dialog';
+import { useTranslation } from 'react-i18next';
 
 export function NavUser({
   user,
@@ -39,6 +37,7 @@ export function NavUser({
     avatar: string;
   };
 }) {
+  const { t } = useTranslation('common');
   const { isMobile } = useSidebar();
   const [showSwitchAccountDialog, setShowSwitchAccountDialog] = useState(false);
 
@@ -90,20 +89,20 @@ export function NavUser({
                 <Link href="/account/create">
                   <DropdownMenuItem>
                     <IconUserPlus />
-                    新增账户
+                    {t('user.addAccount')}
                   </DropdownMenuItem>
                 </Link>
                 <Link href="/account/setting">
                   <DropdownMenuItem>
                     <IconUserCircle />
-                    账户设置
+                    {t('user.accountSettings')}
                   </DropdownMenuItem>
                 </Link>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSwitchAccount}>
                 <IconLogout />
-                切换账号
+                {t('user.switchAccount')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

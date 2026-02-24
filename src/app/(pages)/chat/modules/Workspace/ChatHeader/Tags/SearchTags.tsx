@@ -5,13 +5,13 @@ import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 
 const SearchTag = memo(() => {
-  const { t } = useTranslation('chat');
+  const { t } = useTranslation('search');
 
   return (
     <Flexbox height={22}>
       <Tag>
         {<Icon icon={Globe} />}
-        <div>{t('search.title')}</div>
+        <div>{t('title')}</div>
       </Tag>
     </Flexbox>
   );

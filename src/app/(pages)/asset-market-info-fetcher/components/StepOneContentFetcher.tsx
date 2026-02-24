@@ -22,6 +22,7 @@ import {
 } from '@tabler/icons-react';
 import { Card, CardContent } from '@renderer/components/ui/card';
 import { MarketInformation, ContentFormat, DataSourceType } from '@typings/market';
+import { useTranslation } from 'react-i18next';
 
 interface StepOneContentFetcherProps {
   inputMode: 'url' | 'manual' | null;
@@ -34,6 +35,7 @@ export function StepOneContentFetcher({
   setInputMode,
   onNext,
 }: StepOneContentFetcherProps) {
+  const { t } = useTranslation('asset-market-info-fetcher');
   // URL抓取状态
   const [url, setUrl] = useState('');
   const [dataSourceType, setDataSourceType] = useState<DataSourceType>(DataSourceType.WEB);
@@ -73,10 +75,10 @@ export function StepOneContentFetcher({
         setCrawlResult(result.data.data);
         onNext(result.data.data);
       } else {
-        setCrawlError(result.error || '抓取失败');
+        setCrawlError(result.error || t('error.crawlFailed'));
       }
     } catch (error) {
-      setCrawlError(error instanceof Error ? error.message : '未知错误');
+      setCrawlError(error instanceof Error ? error.message : t('error.unknown'));
     } finally {
       setIsCrawling(false);
     }
@@ -107,10 +109,10 @@ export function StepOneContentFetcher({
         setSaveManualResult(result.data.data);
         onNext(result.data.data);
       } else {
-        setSaveManualError(result.error || '保存失败');
+        setSaveManualError(result.error || t('error.saveFailed'));
       }
     } catch (error) {
-      setSaveManualError(error instanceof Error ? error.message : '未知错误');
+      setSaveManualError(error instanceof Error ? error.message : t('error.unknown'));
     } finally {
       setIsSavingManual(false);
     }
@@ -128,8 +130,8 @@ export function StepOneContentFetcher({
             >
               <CardContent className="flex flex-col items-center justify-center p-6 text-center">
                 <IconLink className="mb-2 h-8 w-8 text-primary" />
-                <h3 className="font-medium">通过URL抓取</h3>
-                <p className="mt-1 text-sm text-muted-foreground">输入网页地址自动抓取内容</p>
+                <h3 className="font-medium">{t('steps.step1.urlMode.title')}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{t('steps.step1.urlMode.description')}</p>
               </CardContent>
             </Card>
 
@@ -139,8 +141,8 @@ export function StepOneContentFetcher({
             >
               <CardContent className="flex flex-col items-center justify-center p-6 text-center">
                 <IconPencil className="mb-2 h-8 w-8 text-primary" />
-                <h3 className="font-medium">手动录入</h3>
-                <p className="mt-1 text-sm text-muted-foreground">手动输入市场信息内容</p>
+                <h3 className="font-medium">{t('steps.step1.manualMode.title')}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{t('steps.step1.manualMode.description')}</p>
               </CardContent>
             </Card>
           </div>
@@ -152,20 +154,20 @@ export function StepOneContentFetcher({
             <div className="rounded-md bg-green-50 p-4 dark:bg-green-900/20">
               <div className="flex items-center gap-2">
                 <IconCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
-                <h3 className="text-lg font-medium text-green-800 dark:text-green-200">抓取成功</h3>
+                <h3 className="text-lg font-medium text-green-800 dark:text-green-200">{t('steps.step1.crawlSuccess.title')}</h3>
               </div>
               <div className="mt-2 text-sm text-green-700 dark:text-green-300">
-                <p>标题: {crawlResult.metadata?.extractedData?.title || '未提取到标题'}</p>
-                <p>来源: {crawlResult.source.name}</p>
-                <p>内容长度: {crawlResult.content.length} 字符</p>
+                <p>{t('steps.step1.crawlSuccess.titleLabel')}: {crawlResult.metadata?.extractedData?.title || t('error.unknown')}</p>
+                <p>{t('steps.step1.crawlSuccess.source')}: {crawlResult.source.name}</p>
+                <p>{t('steps.step1.crawlSuccess.contentLength')}: {crawlResult.content.length} {t('steps.step1.crawlSuccess.contentLength')}</p>
               </div>
             </div>
 
             <div className="flex justify-between">
               <Button variant="outline" onClick={() => setInputMode(null)}>
-                重新选择
+                {t('steps.step1.actions.reselect')}
               </Button>
-              <Button onClick={() => onNext(crawlResult)}>下一步: AI分析</Button>
+              <Button onClick={() => onNext(crawlResult)}>{t('steps.step2.actions.next')}</Button>
             </div>
           </div>
         ) : (
@@ -177,47 +179,47 @@ export function StepOneContentFetcher({
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="url">网页URL</Label>
+              <Label htmlFor="url">{t('steps.step1.form.url.label')}</Label>
               <Input
                 id="url"
                 type="url"
-                placeholder="https://example.com/market-news"
+                placeholder={t('steps.step1.form.url.placeholder')}
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 required
               />
-              <p className="text-sm text-muted-foreground">输入要抓取的网页地址</p>
+              <p className="text-sm text-muted-foreground">{t('steps.step1.form.url.description')}</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="dataSourceType">数据源类型</Label>
+              <Label htmlFor="dataSourceType">{t('steps.step1.form.dataSourceType.label')}</Label>
               <Select
                 value={dataSourceType}
                 onValueChange={(value: DataSourceType) => setDataSourceType(value)}
               >
                 <SelectTrigger id="dataSourceType">
-                  <SelectValue placeholder="选择数据源类型" />
+                  <SelectValue placeholder={t('steps.step1.form.dataSourceType.placeholder')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={DataSourceType.WEB}>普通网页</SelectItem>
-                  <SelectItem value={DataSourceType.WECHAT_MP}>微信公众号</SelectItem>
-                  <SelectItem value={DataSourceType.FUTU_NEWS}>富途新闻</SelectItem>
+                  <SelectItem value={DataSourceType.WEB}>{t('dataTypes.web')}</SelectItem>
+                  <SelectItem value={DataSourceType.WECHAT_MP}>{t('dataTypes.wechatMp')}</SelectItem>
+                  <SelectItem value={DataSourceType.FUTU_NEWS}>{t('dataTypes.futuNews')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="flex justify-between">
               <Button variant="outline" onClick={() => setInputMode(null)}>
-                返回
+                {t('steps.step1.actions.back')}
               </Button>
               <Button type="submit" disabled={isCrawling}>
                 {isCrawling ? (
                   <>
                     <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
-                    抓取中...
+                    {t('steps.step1.actions.crawling')}
                   </>
                 ) : (
-                  '开始抓取'
+                  t('steps.step1.actions.crawl')
                 )}
               </Button>
             </div>
@@ -229,20 +231,20 @@ export function StepOneContentFetcher({
           <div className="rounded-md bg-green-50 p-4 dark:bg-green-900/20">
             <div className="flex items-center gap-2">
               <IconCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
-              <h3 className="text-lg font-medium text-green-800 dark:text-green-200">录入成功</h3>
+              <h3 className="text-lg font-medium text-green-800 dark:text-green-200">{t('steps.step1.form.saveSuccess.title')}</h3>
             </div>
             <div className="mt-2 text-sm text-green-700 dark:text-green-300">
-              <p>标题: {saveManualResult.metadata?.extractedData?.title || '未提取到标题'}</p>
-              <p>格式: {saveManualResult.format}</p>
-              <p>内容长度: {saveManualResult.content.length} 字符</p>
+              <p>{t('steps.step1.form.saveSuccess.titleLabel')}: {saveManualResult.metadata?.extractedData?.title || t('error.unknown')}</p>
+              <p>{t('steps.step1.form.saveSuccess.format')}: {saveManualResult.format}</p>
+              <p>{t('steps.step1.form.saveSuccess.contentLength')}: {saveManualResult.content.length} {t('steps.step1.form.saveSuccess.contentLength')}</p>
             </div>
           </div>
 
           <div className="flex justify-between">
             <Button variant="outline" onClick={() => setInputMode(null)}>
-              重新选择
+              {t('steps.step1.actions.reselect')}
             </Button>
-            <Button onClick={() => onNext(saveManualResult)}>下一步: AI分析</Button>
+            <Button onClick={() => onNext(saveManualResult)}>{t('steps.step2.actions.next')}</Button>
           </div>
         </div>
       ) : (
@@ -254,10 +256,10 @@ export function StepOneContentFetcher({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="content">内容</Label>
+            <Label htmlFor="content">{t('steps.step1.form.content.label')}</Label>
             <Textarea
               id="content"
-              placeholder="输入市场信息内容..."
+              placeholder={t('steps.step1.form.content.placeholder')}
               value={content}
               onChange={(e) => setContent(e.target.value)}
               required
@@ -266,30 +268,30 @@ export function StepOneContentFetcher({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="format">内容格式</Label>
+            <Label htmlFor="format">{t('steps.step1.form.format.label')}</Label>
             <Select value={format} onValueChange={(value: ContentFormat) => setFormat(value)}>
               <SelectTrigger id="format">
-                <SelectValue placeholder="选择内容格式" />
+                <SelectValue placeholder={t('steps.step1.form.format.placeholder')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ContentFormat.TEXT}>纯文本</SelectItem>
-                <SelectItem value={ContentFormat.MARKDOWN}>Markdown</SelectItem>
+                <SelectItem value={ContentFormat.TEXT}>{t('dataTypes.text')}</SelectItem>
+                <SelectItem value={ContentFormat.MARKDOWN}>{t('dataTypes.markdown')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="flex justify-between">
             <Button variant="outline" onClick={() => setInputMode(null)}>
-              返回
+              {t('steps.step1.actions.back')}
             </Button>
             <Button type="submit" disabled={isSavingManual}>
               {isSavingManual ? (
                 <>
                   <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
-                  保存中...
+                  {t('steps.step1.actions.saving')}
                 </>
               ) : (
-                '保存信息'
+                t('steps.step1.actions.save')
               )}
             </Button>
           </div>

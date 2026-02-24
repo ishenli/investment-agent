@@ -1,0 +1,80 @@
+{
+  "create": {
+    "form": {
+      "accountName": {
+        "description": "用户名长度应在3-30个字符之间",
+        "label": "账户名",
+        "placeholder": "输入账户名"
+      },
+      "creating": "创建中...",
+      "initialDeposit": {
+        "label": "初始资金",
+        "placeholder": "输入初始资金金额"
+      },
+      "market": {
+        "description": "选择您希望交易的市场",
+        "label": "交易市场",
+        "placeholder": "选择市场"
+      },
+      "submit": "创建交易账户"
+    },
+    "success": {
+      "manualRedirect": "手动跳转到资产页面",
+      "message": "您的账户已成功创建！正在跳转到资产页面...",
+      "redirecting": "正在设置账户并跳转...",
+      "title": "账户创建成功"
+    },
+    "title": "创建账户"
+  },
+  "dashboard": {
+    "accountBalance": "账户余额",
+    "accountName": "账户名称",
+    "leverage": "杠杆",
+    "market": "市场",
+    "noData": "未找到账户数据",
+    "title": "账户仪表板"
+  },
+  "error": {
+    "fetchFailed": "获取账户信息失败",
+    "saveFailed": "保存失败",
+    "title": "错误",
+    "unknown": "未知错误"
+  },
+  "list": {
+    "accountName": "账户名",
+    "balance": "余额",
+    "noData": "暂无账户数据",
+    "select": "选择",
+    "title": "账户列表"
+  },
+  "loading": "加载中...",
+  "settings": {
+    "leverage": {
+      "description": "杠杆可以放大收益，但也会放大风险。建议新手从低杠杆开始。",
+      "label": "杠杆设置",
+      "placeholder": "选择杠杆"
+    },
+    "market": {
+      "description": "选择您希望交易的市场。不同市场有不同的交易规则和可用股票。",
+      "label": "交易市场",
+      "placeholder": "选择市场"
+    },
+    "riskMode": {
+      "advanced": "进阶模式",
+      "description": "选择适合您的风险评估标准",
+      "label": "风险模式",
+      "placeholder": "风险模式",
+      "retail": "散户模式",
+      "title": "风险模式"
+    },
+    "save": "保存设置",
+    "saved": "设置已保存",
+    "saving": "保存中...",
+    "tabs": {
+      "account": "账户设置",
+      "risk": "风险模式"
+    },
+    "title": "账户设置"
+  },
+  "title": "账户管理"
+}

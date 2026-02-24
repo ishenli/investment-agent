@@ -1,0 +1,387 @@
+{
+  "about": {
+    "appName": "智能投资助手",
+    "appSubtitle": "Investment Agent 是一款基于人工智能的投资管理助手，帮助用户进行资产管理、市场分析、投资决策等操作。通过强大的 AI 能力，为用户提供个性化的投资建议和市场洞察。",
+    "buildDate": "构建",
+    "coreFeatures": "核心功能",
+    "description": "了解当前应用的基本信息",
+    "developer": "开发团队",
+    "features": {
+      "agentManagement": {
+        "description": "灵活配置和管理 AI 智能体",
+        "title": "智能体管理"
+      },
+      "aiInsights": {
+        "description": "基于 AI 的市场分析和投资建议",
+        "title": "AI 洞察"
+      },
+      "assetManagement": {
+        "description": "全面的账户管理和持仓跟踪",
+        "title": "资产管理"
+      },
+      "dataVisualization": {
+        "description": "直观的数据展示和分析",
+        "title": "数据可视化"
+      },
+      "modelIntegration": {
+        "description": "支持多种模型服务商",
+        "title": "模型集成"
+      },
+      "researchReports": {
+        "description": "深度分析和智能报告生成",
+        "title": "研究报告"
+      },
+      "smartInteraction": {
+        "description": "与 AI 助手进行自然语言对话",
+        "title": "智能交互"
+      },
+      "themeSwitching": {
+        "description": "支持浅色/深色主题",
+        "title": "主题切换"
+      }
+    },
+    "license": "许可证",
+    "techFeatures": "技术特性",
+    "thanks": "致谢",
+    "thanksText": "感谢所有为本项目做出贡献的开发者和用户。我们将继续努力，提供更好的产品和服务。",
+    "title": "关于",
+    "version": "版本"
+  },
+  "account": {
+    "billing": "账单",
+    "data": "数据管理",
+    "profile": "个人资料设置",
+    "security": "安全",
+    "subscription": "订阅",
+    "title": "账户"
+  },
+  "actions": {
+    "cancel": "取消",
+    "export": "导出设置",
+    "import": "导入设置",
+    "reset": "恢复默认值",
+    "save": "设置已保存",
+    "saveSettings": "保存设置",
+    "saving": "保存中..."
+  },
+  "agent": {
+    "actions": {
+      "addAgent": "新增智能体",
+      "addOpeningQuestion": "添加开场问题",
+      "cancel": "取消",
+      "createAgent": "创建智能体",
+      "createLingxiAgent": "创建灵犀智能体",
+      "createLocalAgent": "创建本地智能体",
+      "delete": "删除",
+      "edit": "编辑",
+      "saveSettings": "保存设置",
+      "saving": "保存中..."
+    },
+    "cards": {
+      "apiUrlLabel": "API地址:",
+      "createdAtLabel": "创建时间:",
+      "noDescription": "无描述",
+      "typeLabel": "类型:"
+    },
+    "confirm": {
+      "deleteAgent": "确定要删除这个智能体吗？"
+    },
+    "description": "管理您的 AI 智能体配置",
+    "empty": {
+      "createFirstAgent": "点击上方按钮创建您的第一个智能体",
+      "createFirstLingxiAgent": "点击上方按钮创建您的第一个灵犀智能体",
+      "createFirstLocalAgent": "点击上方按钮创建您的第一个本地智能体",
+      "noAgents": "暂无智能体",
+      "noLingxiAgents": "暂无灵犀智能体",
+      "noLocalAgents": "暂无本地智能体"
+    },
+    "form": {
+      "fields": {
+        "apiKey": {
+          "label": "API密钥 *",
+          "placeholder": "输入API密钥"
+        },
+        "apiUrl": {
+          "label": "API地址 *",
+          "placeholder": "输入API地址"
+        },
+        "description": {
+          "label": "描述",
+          "placeholder": "输入智能体描述"
+        },
+        "name": {
+          "label": "名称 *",
+          "placeholder": "输入智能体名称"
+        },
+        "openingQuestions": {
+          "description": "设置智能体的开场问题，帮助用户快速开始对话。",
+          "label": "开场问题",
+          "noQuestions": "暂无开场问题，点击上方按钮添加",
+          "placeholder": "开场问题 %d"
+        },
+        "slug": {
+          "label": "Slug *",
+          "placeholder": "输入智能体 Slug"
+        },
+        "systemRole": {
+          "description": "设置智能体的行为准则和角色定位。",
+          "label": "系统提示词",
+          "placeholder": "输入智能体的系统提示词..."
+        },
+        "type": {
+          "label": "类型 *",
+          "lingxi": "灵犀",
+          "local": "本地"
+        }
+      },
+      "title": {
+        "create": "创建智能体",
+        "edit": "编辑 %s"
+      }
+    },
+    "messages": {
+      "createSuccess": "智能体创建成功",
+      "deleteFailed": "删除智能体失败",
+      "deleteSuccess": "智能体删除成功",
+      "fetchFailed": "获取智能体列表失败",
+      "saveFailed": "保存智能体失败",
+      "settingsSaved": "设置已保存",
+      "updateSuccess": "智能体更新成功"
+    },
+    "tabs": {
+      "all": "全部",
+      "lingxi": "灵犀",
+      "local": "本地"
+    },
+    "title": "智能体设置",
+    "types": {
+      "lingxi": "灵犀",
+      "local": "本地"
+    }
+  },
+  "appearance": {
+    "theme": {
+      "dark": "暗黑",
+      "light": "明亮",
+      "system": "跟随系统"
+    },
+    "title": "外观"
+  },
+  "general": {
+    "americaNewYork": "美洲/纽约 (GMT-5)",
+    "asiaShanghai": "亚洲/上海 (GMT+8)",
+    "asiaTokyo": "亚洲/东京 (GMT+9)",
+    "autoRefresh": "自动刷新数据",
+    "autoSave": "自动保存",
+    "autoSaveDescription": "自动保存您的更改",
+    "currency": "货币",
+    "dateFormat": "日期格式",
+    "description": "管理您的通用偏好设置",
+    "enableNotification": "启用通知",
+    "europeLondon": "欧洲/伦敦 (GMT+0)",
+    "language": "语言和地区",
+    "notificationDescription": "管理通知偏好",
+    "notifications": "通知",
+    "receiveUpdates": "接收重要更新和提醒",
+    "regionDescription": "设置界面语言和地区偏好",
+    "selectLanguage": "选择语言",
+    "selectTimezone": "选择时区",
+    "theme": "主题",
+    "timeFormat": "时间格式",
+    "timezone": "时区",
+    "title": "通用"
+  },
+  "language": {
+    "en-US": "English (US)",
+    "zh-CN": "简体中文"
+  },
+  "preferences": {
+    "behavior": "行为设置",
+    "display": "显示选项",
+    "privacy": "隐私设置",
+    "title": "偏好设置"
+  },
+  "provider": {
+    "actions": {
+      "activate": "激活",
+      "addModel": "添加模型",
+      "addProvider": "添加服务商",
+      "deactivate": "停用",
+      "delete": "删除",
+      "edit": "编辑"
+    },
+    "addFirstProvider": "添加第一个服务商",
+    "confirm": {
+      "deleteModel": "确定要删除此模型吗？",
+      "deleteProvider": "确定要删除此服务商吗？"
+    },
+    "description": "管理您的模型服务商配置",
+    "details": {
+      "apiKey": "API Key",
+      "baseUrl": "Base URL",
+      "description": "描述",
+      "serviceName": "服务名称",
+      "slug": "Slug",
+      "title": "基本信息"
+    },
+    "form": {
+      "description": {
+        "create": "添加一个新的模型服务商配置",
+        "edit": "编辑服务商配置信息"
+      },
+      "fields": {
+        "apiKey": {
+          "label": "API Key",
+          "note": "留空则保持原密钥不变（编辑时）",
+          "placeholder": "sk-..."
+        },
+        "baseUrl": {
+          "invalid": "URL必须使用https协议",
+          "label": "Base URL",
+          "note": "必须使用 https 协议",
+          "placeholder": "https://api.openai.com/v1",
+          "required": "Base URL不能为空"
+        },
+        "description": {
+          "label": "描述",
+          "placeholder": "服务商的描述信息..."
+        },
+        "name": {
+          "label": "服务名称",
+          "placeholder": "例如: OpenAI",
+          "required": "名称不能为空"
+        },
+        "slug": {
+          "invalid": "Slug只能包含字母、数字、连字符、下划线和点",
+          "label": "Slug",
+          "note": "只能包含字母、数字、连字符、下划线和点",
+          "placeholder": "openai",
+          "required": "Slug不能为空"
+        }
+      },
+      "model": {
+        "description": {
+          "create": "为服务商添加一个新的模型",
+          "edit": "编辑模型的配置信息"
+        },
+        "fields": {
+          "contextWindow": {
+            "label": "上下文窗口",
+            "note": "模型支持的上下文窗口大小（tokens）",
+            "placeholder": "128000"
+          },
+          "name": {
+            "label": "模型名称",
+            "placeholder": "GPT-4",
+            "required": "模型名称不能为空"
+          },
+          "slug": {
+            "invalid": "Slug只能包含字母、数字、连字符、下划线和点",
+            "label": "Slug",
+            "placeholder": "gpt-4",
+            "required": "模型 Slug 不能为空"
+          }
+        },
+        "title": {
+          "create": "添加模型",
+          "edit": "编辑模型"
+        }
+      },
+      "title": {
+        "create": "添加服务商",
+        "edit": "编辑服务商"
+      }
+    },
+    "list": "服务商列表",
+    "listDescription": "选择服务商查看或编辑",
+    "models": {
+      "addFirstModel": "点击上方按钮添加第一个模型",
+      "contextWindow": "tokens",
+      "functions": "Functions",
+      "noModels": "暂无模型",
+      "title": "模型列表",
+      "vision": "Vision"
+    },
+    "noProviders": "暂无服务商，点击上方按钮添加",
+    "noProvidersYet": "还未选择服务商",
+    "selectProviderPrompt": "请从左侧列表中选择一个服务商,或点击右上角\"添加服务商\"创建新的",
+    "title": "模型服务商管理"
+  },
+  "settingAgent": {
+    "prompt": {
+      "placeholder": "输入系统提示词",
+      "title": "系统提示词"
+    }
+  },
+  "sidebar": {
+    "about": "关于",
+    "agent": "智能体设置",
+    "general": "通用设置",
+    "provider": "模型设置",
+    "theme": "主题设置",
+    "tool": "工具设置"
+  },
+  "theme": {
+    "backgroundColorExample": "这是背景色示例",
+    "currentThemePreview": "当前主题效果预览",
+    "dark": {
+      "description": "使用深色界面主题",
+      "label": "深色模式"
+    },
+    "description": "自定义您的界面外观和主题",
+    "interfaceTheme": "界面主题",
+    "light": {
+      "description": "使用浅色界面主题",
+      "label": "浅色模式"
+    },
+    "primaryColorExample": "这是主色调示例",
+    "secondaryColorExample": "这是辅助色示例",
+    "system": {
+      "description": "根据系统设置自动切换主题",
+      "label": "跟随系统"
+    },
+    "themePreview": "主题预览",
+    "themeStyle": "主题风格",
+    "title": "主题设置"
+  },
+  "title": "设置",
+  "tool": {
+    "actions": {
+      "delete": "删除",
+      "save": "保存",
+      "saving": "保存中..."
+    },
+    "description": "管理您的外部服务 API 密钥",
+    "descriptions": {
+      "FINANCIAL_DATASETS_KEY": "Financial Datasets密钥",
+      "FINNHUB_API_KEY": "Finnhub API密钥",
+      "LANGSMITH_API_KEY": "LangSmith API密钥",
+      "TAVILY_API_KEY": "Tavily API密钥"
+    },
+    "details": {
+      "FINANCIAL_DATASETS_KEY": "访问金融数据集的身份验证密钥",
+      "FINNHUB_API_KEY": "用于获取实时股票市场数据和分析报告",
+      "LANGSMITH_API_KEY": "LangSmith 提供的 API 密钥，用于追踪和管理模型调用",
+      "TAVILY_API_KEY": "Tavily 搜索引擎的 API 密钥，用于高级搜索功能"
+    },
+    "fields": {
+      "envVarName": "环境变量名",
+      "inputPlaceholder": "请输入 %s 的值"
+    },
+    "messages": {
+      "deleteSettingsFailed": "删除设置失败",
+      "getSettingsFailed": "获取设置失败",
+      "networkError": "网络错误",
+      "saveSettingsFailed": "保存设置失败",
+      "settingsDeleted": "设置已删除",
+      "settingsSaved": "设置已保存"
+    },
+    "tabs": {
+      "financial": "FINANCIAL",
+      "finnhub": "FINNHUB",
+      "langsmith": "LANGSMITH",
+      "tavily": "TAVILY"
+    },
+    "title": "API KEY 配置"
+  }
+}

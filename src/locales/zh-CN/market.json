@@ -1,0 +1,20 @@
+{
+  "sectors": {
+    "china": "中国",
+    "financial": "金融",
+    "services": "服务",
+    "technology": "科技"
+  },
+  "title": "市场",
+  "widgets": {
+    "heatmap": {
+      "title": "股票热力图"
+    },
+    "marketOverview": {
+      "title": "市场概览"
+    },
+    "marketQuotes": {
+      "title": "市场报价"
+    }
+  }
+}

@@ -334,12 +334,6 @@ export const chatMessage: StateCreator<
       await messageService.updateMessageLikeStatus(id, 'like', content);
       likeAction = 'like';
     }
-    (window as any).yuyanMonitor?.log({
-      code: 11,
-      msg: '点赞消息',
-      d1: `消息id; ${id}`,
-      d2: `消息内容: ${content}`,
-    });
 
     return {
       likeAction,

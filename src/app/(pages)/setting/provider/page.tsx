@@ -42,6 +42,7 @@ import {
   IconCheck,
 } from '@tabler/icons-react';
 import clsx from 'clsx';
+import { useTranslation } from 'react-i18next';
 
 type ProviderSettingsProps = object;
 
@@ -50,6 +51,7 @@ export default function ProviderSettings(
     // Add props if needed
   }: ProviderSettingsProps,
 ) {
+  const { t } = useTranslation('setting');
   const {
     providers,
     models,
@@ -122,7 +124,7 @@ export default function ProviderSettings(
   };
 
   const handleDeleteProvider = async () => {
-    if (activeProviderId && confirm('确定要删除此服务商吗？')) {
+    if (activeProviderId && confirm(t('provider.confirm.deleteProvider', '确定要删除此服务商吗？'))) {
       await deleteProvider(activeProviderId);
       resetForm();
     }
@@ -133,17 +135,17 @@ export default function ProviderSettings(
     const errors: Record<string, string> = {};
 
     if (!draftProvider.name?.trim()) {
-      errors.name = '名称不能为空';
+      errors.name = t('provider.form.fields.name.required', '名称不能为空');
     }
     if (!draftProvider.slug?.trim()) {
-      errors.slug = 'Slug不能为空';
+      errors.slug = t('provider.form.fields.slug.required', 'Slug不能为空');
     } else if (!/^[a-zA-Z0-9_.-]+$/.test(draftProvider.slug)) {
-      errors.slug = 'Slug只能包含字母、数字、连字符、下划线和点';
+      errors.slug = t('provider.form.fields.slug.invalid', 'Slug只能包含字母、数字、连字符、下划线和点');
     }
     if (!draftProvider.baseUrl?.trim()) {
-      errors.baseUrl = 'Base URL不能为空';
+      errors.baseUrl = t('provider.form.fields.baseUrl.required', 'Base URL不能为空');
     } else if (!/^https:\/\//.test(draftProvider.baseUrl)) {
-      errors.baseUrl = 'URL必须使用https协议';
+      errors.baseUrl = t('provider.form.fields.baseUrl.invalid', 'URL必须使用https协议');
     }
 
     if (Object.keys(errors).length > 0) {
@@ -180,7 +182,7 @@ export default function ProviderSettings(
   };
 
   const handleDeleteModel = async (id: number) => {
-    if (confirm('确定要删除此模型吗？')) {
+    if (confirm(t('provider.confirm.deleteModel', '确定要删除此模型吗？'))) {
       await deleteModel(id);
     }
   };
@@ -189,12 +191,12 @@ export default function ProviderSettings(
     const errors: Record<string, string> = {};
 
     if (!draftModel.slug?.trim()) {
-      errors.slug = 'Model Slug不能为空';
+      errors.slug = t('provider.form.model.fields.slug.required', 'Model Slug不能为空');
     } else if (!/^[a-zA-Z0-9_.-]+$/.test(draftModel.slug)) {
-      errors.slug = 'Slug只能包含字母、数字、连字符、下划线和点';
+      errors.slug = t('provider.form.model.fields.slug.invalid', 'Slug只能包含字母、数字、连字符、下划线和点');
     }
     if (!draftModel.name?.trim()) {
-      errors.name = '模型名称不能为空';
+      errors.name = t('provider.form.model.fields.name.required', '模型名称不能为空');
     }
 
     if (Object.keys(errors).length > 0) {
@@ -233,10 +235,10 @@ export default function ProviderSettings(
   return (
     <div className="flex flex-1 flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">模型服务商管理</h1>
+        <h1 className="text-2xl font-bold">{t('provider.title', '模型服务商管理')}</h1>
         <Button onClick={handleCreateProvider} className="gap-2">
           <IconPlus className="h-4 w-4" />
-          添加服务商
+          {t('provider.actions.addProvider', '添加服务商')}
         </Button>
       </div>
 
@@ -250,8 +252,8 @@ export default function ProviderSettings(
         {/* Providers List */}
         <Card className="w-full md:w-80 flex flex-col">
           <CardHeader>
-            <CardTitle>服务商列表</CardTitle>
-            <CardDescription>选择服务商查看或编辑</CardDescription>
+            <CardTitle>{t('provider.list', '服务商列表')}</CardTitle>
+            <CardDescription>{t('provider.listDescription', '选择服务商查看或编辑')}</CardDescription>
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto">
             <ItemGroup className="gap-1">
@@ -268,7 +270,7 @@ export default function ProviderSettings(
                 </div>
               ) : providers.length === 0 ? (
                 <div className="text-sm text-muted-foreground text-center py-8 border border-dashed rounded-lg">
-                  暂无服务商，点击上方按钮添加
+                  {t('provider.noProviders', '暂无服务商，点击上方按钮添加')}
                 </div>
               ) : (
                 providers.map((provider) => (
@@ -299,12 +301,12 @@ export default function ProviderSettings(
                         {provider.isActive ? (
                           <span className="inline-flex items-center gap-1 text-[10px] text-primary font-medium">
                             <span className="w-1.5 h-1.5 bg-primary rounded-full" />
-                            激活
+                            {t('provider.actions.activate', '激活')}
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground/60">
                             <span className="w-1.5 h-1.5 bg-muted-foreground/40 rounded-full" />
-                            未激活
+                            {t('provider.actions.deactivate', '未激活')}
                           </span>
                         )}
                       </ItemDescription>
@@ -343,7 +345,7 @@ export default function ProviderSettings(
                     <Toggle
                       pressed={activeProvider.isActive}
                       onPressedChange={(pressed) => setProviderActive(activeProvider.id, pressed)}
-                      aria-label={activeProvider.isActive ? '停用' : '激活'}
+                      aria-label={activeProvider.isActive ? t('provider.actions.deactivate', '停用') : t('provider.actions.activate', '激活')}
                       className={clsx(
                         'gap-2 px-3 py-1.5 h-auto text-xs font-medium transition-colors',
                         activeProvider.isActive
@@ -359,15 +361,15 @@ export default function ProviderSettings(
                             : 'bg-muted-foreground/50',
                         )}
                       />
-                      {activeProvider.isActive ? '已激活' : '未激活'}
+                      {activeProvider.isActive ? t('provider.actions.activate', '已激活') : t('provider.actions.deactivate', '未激活')}
                     </Toggle>
                   </div>
                 </div>
               </>
             ) : (
               <>
-                <CardTitle>服务商配置</CardTitle>
-                <CardDescription>选择一个服务商查看详情</CardDescription>
+                <CardTitle>{t('provider.details.title', '服务商配置')}</CardTitle>
+                <CardDescription>{t('provider.listDescription', '选择一个服务商查看详情')}</CardDescription>
               </>
             )}
           </CardHeader>
@@ -381,22 +383,22 @@ export default function ProviderSettings(
               <div className="space-y-6">
                 {/* Provider Details */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">基本信息</h3>
+                  <h3 className="text-lg font-semibold">{t('provider.details.title', '基本信息')}</h3>
                   <div className="grid gap-4">
                     <div>
-                      <Label>服务名称</Label>
+                      <Label>{t('provider.details.serviceName', '服务名称')}</Label>
                       <div className="mt-1 text-sm">{activeProvider.name}</div>
                     </div>
                     <div>
-                      <Label>Slug</Label>
+                      <Label>{t('provider.details.slug', 'Slug')}</Label>
                       <div className="mt-1 text-sm font-mono">{activeProvider.slug}</div>
                     </div>
                     <div>
-                      <Label>Base URL</Label>
+                      <Label>{t('provider.details.baseUrl', 'Base URL')}</Label>
                       <div className="mt-1 text-sm break-all">{activeProvider.baseUrl}</div>
                     </div>
                     <div>
-                      <Label>API Key</Label>
+                      <Label>{t('provider.details.apiKey', 'API Key')}</Label>
                       <div className="mt-2 p-3 bg-muted/50 rounded-lg border border-muted">
                         <div className="flex items-center justify-between">
                           <code className="text-sm font-mono tracking-wide">
@@ -423,7 +425,7 @@ export default function ProviderSettings(
                     </div>
                     {activeProvider.description && (
                       <div>
-                        <Label>描述</Label>
+                        <Label>{t('provider.details.description', '描述')}</Label>
                         <div className="mt-1 text-sm">{activeProvider.description}</div>
                       </div>
                     )}
@@ -433,7 +435,7 @@ export default function ProviderSettings(
                 {/* Models Section */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">模型列表</h3>
+                    <h3 className="text-lg font-semibold">{t('provider.models.title', '模型列表')}</h3>
                     <Button
                       variant="outline"
                       size="sm"
@@ -441,7 +443,7 @@ export default function ProviderSettings(
                       className="gap-2"
                     >
                       <IconPlus className="h-4 w-4" />
-                      添加模型
+                      {t('provider.actions.addModel', '添加模型')}
                     </Button>
                   </div>
                   {models.length === 0 ? (
@@ -449,8 +451,8 @@ export default function ProviderSettings(
                       <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-3">
                         <div className="w-6 h-6 border-2 border-dashed border-muted-foreground/30 rounded-full" />
                       </div>
-                      <p className="text-sm font-medium mb-1">暂无模型</p>
-                      <p className="text-xs text-muted-foreground">点击上方按钮添加第一个模型</p>
+                      <p className="text-sm font-medium mb-1">{t('provider.models.noModels', '暂无模型')}</p>
+                      <p className="text-xs text-muted-foreground">{t('provider.models.addFirstModel', '点击上方按钮添加第一个模型')}</p>
                     </div>
                   ) : (
                     <ItemGroup className="gap-2">
@@ -468,17 +470,17 @@ export default function ProviderSettings(
                               </span>
                               {model.contextWindow && (
                                 <Badge variant="outline" className="text-[10px]">
-                                  {model.contextWindow.toLocaleString()} tokens
+                                  {model.contextWindow.toLocaleString()} {t('provider.models.contextWindow', 'tokens')}
                                 </Badge>
                               )}
                               {model.supportsVision && (
                                 <Badge variant="secondary" className="text-[10px]">
-                                  Vision
+                                  {t('provider.models.vision', 'Vision')}
                                 </Badge>
                               )}
                               {model.supportsFunctionCalling && (
                                 <Badge variant="secondary" className="text-[10px]">
-                                  Functions
+                                  {t('provider.models.functions', 'Functions')}
                                 </Badge>
                               )}
                             </ItemDescription>
@@ -518,13 +520,13 @@ export default function ProviderSettings(
                   <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-muted/50 mb-4">
                     <IconArrowRight className="h-10 w-10 text-muted-foreground/50" />
                   </div>
-                  <h3 className="text-lg font-medium text-foreground mb-2">还未选择服务商</h3>
+                  <h3 className="text-lg font-medium text-foreground mb-2">{t('provider.noProvidersYet', '还未选择服务商')}</h3>
                   <p className="text-sm max-w-sm mx-auto mb-6">
-                    请从左侧列表中选择一个服务商,或点击右上角&quot;添加服务商&quot;创建新的
+                    {t('provider.selectProviderPrompt', '请从左侧列表中选择一个服务商,或点击右上角"添加服务商"创建新的')}
                   </p>
                   <Button onClick={handleCreateProvider} variant="default" className="gap-2">
                     <IconPlus className="h-4 w-4" />
-                    添加第一个服务商
+                    {t('provider.addFirstProvider', '添加第一个服务商')}
                   </Button>
                 </div>
               </div>
@@ -537,84 +539,84 @@ export default function ProviderSettings(
       <Dialog open={providerDialogOpen} onOpenChange={setProviderDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>{mode === 'create' ? '添加服务商' : '编辑服务商'}</DialogTitle>
+            <DialogTitle>{mode === 'create' ? t('provider.form.title.create', '添加服务商') : t('provider.form.title.edit', '编辑服务商')}</DialogTitle>
             <DialogDescription>
-              {mode === 'create' ? '添加一个新的模型服务商配置' : '编辑服务商配置信息'}
+              {mode === 'create' ? t('provider.form.description.create', '添加一个新的模型服务商配置') : t('provider.form.description.edit', '编辑服务商配置信息')}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="name">
-                服务名称 <span className="text-destructive">*</span>
+                {t('provider.form.fields.name.label', '服务名称')} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="name"
                 value={draftProvider.name || ''}
                 onChange={(e) => setDraftProvider({ name: e.target.value })}
-                placeholder="例如: OpenAI"
+                placeholder={t('provider.form.fields.name.placeholder', '例如: OpenAI')}
                 className={errors.name ? 'border-destructive' : ''}
               />
               {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="slug">
-                Slug <span className="text-destructive">*</span>
+                {t('provider.form.fields.slug.label', 'Slug')} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="slug"
                 value={draftProvider.slug || ''}
                 onChange={(e) => setDraftProvider({ slug: e.target.value })}
-                placeholder="openai"
+                placeholder={t('provider.form.fields.slug.placeholder', 'openai')}
                 disabled={mode === 'edit'}
                 className={errors.slug ? 'border-destructive' : ''}
               />
               <p className="text-xs text-muted-foreground">
-                只能包含字母、数字、连字符、下划线和点
+                {t('provider.form.fields.slug.note', '只能包含字母、数字、连字符、下划线和点')}
               </p>
               {errors.slug && <p className="text-sm text-destructive">{errors.slug}</p>}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="baseUrl">
-                Base URL <span className="text-destructive">*</span>
+                {t('provider.form.fields.baseUrl.label', 'Base URL')} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="baseUrl"
                 value={draftProvider.baseUrl || ''}
                 onChange={(e) => setDraftProvider({ baseUrl: e.target.value })}
-                placeholder="https://api.openai.com/v1"
+                placeholder={t('provider.form.fields.baseUrl.placeholder', 'https://api.openai.com/v1')}
                 className={errors.baseUrl ? 'border-destructive' : ''}
               />
-              <p className="text-xs text-muted-foreground">必须使用 https 协议</p>
+              <p className="text-xs text-muted-foreground">{t('provider.form.fields.baseUrl.note', '必须使用 https 协议')}</p>
               {errors.baseUrl && <p className="text-sm text-destructive">{errors.baseUrl}</p>}
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="apiKey">API Key</Label>
+              <Label htmlFor="apiKey">{t('provider.form.fields.apiKey.label', 'API Key')}</Label>
               <Input
                 id="apiKey"
                 type="password"
                 value={draftProvider.apiKey || ''}
                 onChange={(e) => setDraftProvider({ apiKey: e.target.value })}
-                placeholder="sk-..."
+                placeholder={t('provider.form.fields.apiKey.placeholder', 'sk-...')}
               />
-              <p className="text-xs text-muted-foreground">留空则保持原密钥不变（编辑时）</p>
+              <p className="text-xs text-muted-foreground">{t('provider.form.fields.apiKey.note', '留空则保持原密钥不变（编辑时）')}</p>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="description">描述</Label>
+              <Label htmlFor="description">{t('provider.details.description', '描述')}</Label>
               <Textarea
                 id="description"
                 value={draftProvider.description || ''}
                 onChange={(e) => setDraftProvider({ description: e.target.value })}
-                placeholder="服务商的描述信息..."
+                placeholder={t('provider.form.fields.description.placeholder', '服务商的描述信息...')}
                 rows={3}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setProviderDialogOpen(false)}>
-              取消
+              {t('actions.cancel', '取消')}
             </Button>
             <Button onClick={handleSaveProvider} disabled={saving}>
-              {saving ? '保存中...' : mode === 'create' ? '创建' : '保存'}
+              {saving ? t('actions.saving', '保存中...') : mode === 'create' ? t('provider.form.title.create', '创建') : t('actions.save', '保存')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -624,44 +626,44 @@ export default function ProviderSettings(
       <Dialog open={modelDialogOpen} onOpenChange={setModelDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>{mode === 'model-create' ? '添加模型' : '编辑模型'}</DialogTitle>
+            <DialogTitle>{mode === 'model-create' ? t('provider.form.model.title.create', '添加模型') : t('provider.form.model.title.edit', '编辑模型')}</DialogTitle>
             <DialogDescription>
-              {mode === 'model-create' ? '为服务商添加一个新的模型' : '编辑模型的配置信息'}
+              {mode === 'model-create' ? t('provider.form.model.description.create', '为服务商添加一个新的模型') : t('provider.form.model.description.edit', '编辑模型的配置信息')}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="modelName">
-                模型名称 <span className="text-destructive">*</span>
+                {t('provider.form.model.fields.name.label', '模型名称')} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="modelName"
                 value={draftModel.name || ''}
                 onChange={(e) => setDraftModel({ name: e.target.value })}
-                placeholder="GPT-4"
+                placeholder={t('provider.form.model.fields.name.placeholder', 'GPT-4')}
                 className={errors.name ? 'border-destructive' : ''}
               />
               {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="modelSlug">
-                Slug <span className="text-destructive">*</span>
+                {t('provider.form.model.fields.slug.label', 'Slug')} <span className="text-destructive">*</span>
               </Label>
               <Input
                 required
                 id="modelSlug"
                 value={draftModel.slug || ''}
                 onChange={(e) => setDraftModel({ slug: e.target.value })}
-                placeholder="gpt-4"
+                placeholder={t('provider.form.model.fields.slug.placeholder', 'gpt-4')}
                 className={errors.slug ? 'border-destructive' : ''}
               />
               <p className="text-xs text-muted-foreground">
-                只能包含字母、数字、连字符、下划线和点
+                {t('provider.form.model.fields.slug.note', '只能包含字母、数字、连字符、下划线和点')}
               </p>
               {errors.slug && <p className="text-sm text-destructive">{errors.slug}</p>}
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="contextWindow">上下文窗口</Label>
+              <Label htmlFor="contextWindow">{t('provider.form.model.fields.contextWindow.label', '上下文窗口')}</Label>
               <Input
                 required
                 id="contextWindow"
@@ -672,16 +674,16 @@ export default function ProviderSettings(
                     contextWindow: e.target.value ? Number(e.target.value) : null,
                   })
                 }
-                placeholder="128000"
+                placeholder={t('provider.form.model.fields.contextWindow.placeholder', '128000')}
                 min="1"
                 max="1000000"
               />
-              <p className="text-xs text-muted-foreground">模型支持的上下文窗口大小（tokens）</p>
+              <p className="text-xs text-muted-foreground">{t('provider.form.model.fields.contextWindow.note', '模型支持的上下文窗口大小（tokens）')}</p>
             </div>
             {/* <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="supportVision" className="cursor-pointer">
-                  支持 Vision
+                  {t('provider.form.model.fields.supportVision.label', '支持 Vision')}
                 </Label>
                 <div className="flex items-center gap-2">
                   <Toggle
@@ -689,12 +691,12 @@ export default function ProviderSettings(
                     pressed={draftModel.supportsVision || false}
                     onPressedChange={(pressed) => setDraftModel({ supportsVision: pressed })}
                   />
-                  <span className="text-sm text-muted-foreground">视觉理解能力</span>
+                  <span className="text-sm text-muted-foreground">{t('provider.form.model.fields.supportVision.description', '视觉理解能力')}</span>
                 </div>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="supportFunction" className="cursor-pointer">
-                  支持函数调用
+                  {t('provider.form.model.fields.supportFunction.label', '支持函数调用')}
                 </Label>
                 <div className="flex items-center gap-2">
                   <Toggle
@@ -704,17 +706,17 @@ export default function ProviderSettings(
                       setDraftModel({ supportsFunctionCalling: pressed })
                     }
                   />
-                  <span className="text-sm text-muted-foreground">Function Calling</span>
+                  <span className="text-sm text-muted-foreground">{t('provider.form.model.fields.supportFunction.description', 'Function Calling')}</span>
                 </div>
               </div>
             </div> */}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setModelDialogOpen(false)}>
-              取消
+              {t('actions.cancel', '取消')}
             </Button>
             <Button onClick={handleSaveModel} disabled={saving}>
-              {saving ? '保存中...' : mode === 'model-create' ? '添加' : '保存'}
+              {saving ? t('actions.saving', '保存中...') : mode === 'model-create' ? t('provider.form.model.title.create', '添加') : t('actions.save', '保存')}
             </Button>
           </DialogFooter>
         </DialogContent>

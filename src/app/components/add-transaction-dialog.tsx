@@ -17,6 +17,7 @@ import { AssetType, MarketType } from '@typings/asset';
 import { useState } from 'react';
 import { Alert, AlertTitle } from './ui/alert';
 import { AlertCircleIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface AddTransactionDialogProps {
   open: boolean;
@@ -24,6 +25,7 @@ interface AddTransactionDialogProps {
 }
 
 export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialogProps) {
+  const { t } = useTranslation('transaction');
   const [type, setType] = useState<TransactionType>('buy');
   const [assetType, setAssetType] = useState<AssetType>('stock');
   const [marketType, setMarketType] = useState<MarketType>('US');
@@ -122,10 +124,10 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
     <Modal
       isOpen={open}
       onClose={() => onOpenChange(false)}
-      title="添加交易记录"
+      title={t('dialog.title')}
       onSubmit={handleSubmit}
-      submitText={loading ? '添加中...' : '添加交易'}
-      cancelText="取消"
+      submitText={loading ? t('dialog.submitting') : t('dialog.addButton')}
+      cancelText={t('dialog.cancel')}
     >
       <div className="grid gap-4">
         {addTransactionsError && (
@@ -136,36 +138,36 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
         )}
         <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="type" className="text-right">
-            类型
+            {t('dialog.tradeType')}
           </Label>
           <Select
             value={type}
             onValueChange={(value: 'buy' | 'sell' | 'deposit' | 'withdrawal') => setType(value)}
           >
             <SelectTrigger className="col-span-3">
-              <SelectValue placeholder="选择类型" />
+              <SelectValue placeholder={t('dialog.tradeTypePlaceholder')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="buy">买入</SelectItem>
-              <SelectItem value="sell">卖出</SelectItem>
-              <SelectItem value="deposit">入金</SelectItem>
-              <SelectItem value="withdrawal">出金</SelectItem>
+              <SelectItem value="buy">{t('dialog.type.buy')}</SelectItem>
+              <SelectItem value="sell">{t('dialog.type.sell')}</SelectItem>
+              <SelectItem value="deposit">{t('dialog.type.deposit')}</SelectItem>
+              <SelectItem value="withdrawal">{t('dialog.type.withdrawal')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         {type !== 'deposit' && type !== 'withdrawal' && (
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="market" className="text-right">
-              市场类型
+              {t('dialog.marketType')}
             </Label>
             <Select value={marketType} onValueChange={(value: MarketType) => setMarketType(value)}>
               <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="选择市场" />
+                <SelectValue placeholder={t('history.market.US')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="US">美股</SelectItem>
-                <SelectItem value="HK">港股</SelectItem>
-                <SelectItem value="CN">A股</SelectItem>
+                <SelectItem value="US">{t('history.market.US')}</SelectItem>
+                <SelectItem value="HK">{t('history.market.HK')}</SelectItem>
+                <SelectItem value="CN">{t('history.market.CN')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -173,17 +175,17 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
         {type !== 'deposit' && type !== 'withdrawal' && (
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="type" className="text-right">
-              资产类型
+              {t('dialog.assetType')}
             </Label>
             <Select value={assetType} onValueChange={(value: AssetType) => setAssetType(value)}>
               <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="选择类型" />
+                <SelectValue placeholder={t('dialog.tradeTypePlaceholder')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="stock">股票</SelectItem>
-                <SelectItem value="crypto">加密货币</SelectItem>
-                <SelectItem value="fund">基金</SelectItem>
-                <SelectItem value="etf">etf</SelectItem>
+                <SelectItem value="stock">{t('dialog.stock')}</SelectItem>
+                <SelectItem value="crypto">{t('dialog.crypto')}</SelectItem>
+                <SelectItem value="fund">{t('dialog.fund')}</SelectItem>
+                <SelectItem value="etf">{t('dialog.etf')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -191,16 +193,16 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
         {(type === 'deposit' || type === 'withdrawal') && (
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="currency" className="text-right">
-              资金类型
+              {t('dialog.currencyType')}
             </Label>
             <Select key={`currency-${type}`} value={currencyType} onValueChange={(value: MarketType) => setCurrencyType(value)}>
               <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="选择资金类型" />
+                <SelectValue placeholder={t('dialog.tradeTypePlaceholder')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="US">美元 (USD)</SelectItem>
-                <SelectItem value="HK">港币 (HKD)</SelectItem>
-                <SelectItem value="CN">人民币 (CNY)</SelectItem>
+                <SelectItem value="HK">港幣 (HKD)</SelectItem>
+                <SelectItem value="CN">人民幣 (CNY)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -209,7 +211,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
         {type === 'deposit' || type === 'withdrawal' ? (
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="amount" className="text-right">
-              金额 ({getCurrencySymbol(currencyType)})
+              {t('dialog.amount')} ({getCurrencySymbol(currencyType)})
             </Label>
             <Input
               id="amount"
@@ -217,7 +219,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
               value={amount}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAmount(e.target.value)}
               className="col-span-3"
-              placeholder={`请输入金额 (${getCurrencySymbol(currencyType)})`}
+              placeholder={`${t('dialog.amount')} (${getCurrencySymbol(currencyType)})`}
               required
             />
           </div>
@@ -225,20 +227,20 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
           <>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="symbol" className="text-right">
-                股票代码
+                {t('dialog.symbol')}
               </Label>
               <Input
                 id="symbol"
                 value={symbol}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSymbol(e.target.value)}
                 className="col-span-3"
-                placeholder="请输入股票代码，如 AAPL"
+                placeholder={t('dialog.symbolPlaceholder')}
                 required
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="quantity" className="text-right">
-                数量
+                {t('dialog.quantity')}
               </Label>
               <Input
                 id="quantity"
@@ -246,13 +248,13 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
                 value={quantity}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuantity(e.target.value)}
                 className="col-span-3"
-                placeholder="请输入数量"
+                placeholder={t('dialog.quantityPlaceholder')}
                 required
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="price" className="text-right">
-                价格 ({getCurrencySymbol(marketType)})
+                {t('dialog.price')} ({getCurrencySymbol(marketType)})
               </Label>
               <Input
                 id="price"
@@ -261,7 +263,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
                 value={price}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPrice(e.target.value)}
                 className="col-span-3"
-                placeholder={`请输入价格 (${getCurrencySymbol(marketType)})`}
+                placeholder={t('dialog.pricePlaceholder', { symbol: getCurrencySymbol(marketType) })}
                 required
               />
             </div>
@@ -270,7 +272,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
 
         <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="tradeTime" className="text-right">
-            交易时间
+            {t('dialog.time')}
           </Label>
           <Input
             id="tradeTime"
@@ -278,20 +280,20 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
             value={tradeTime}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTradeTime(e.target.value)}
             className="col-span-3"
-            placeholder="请选择交易时间"
+            placeholder={t('dialog.timePlaceholder')}
             required
           />
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="description" className="text-right">
-            描述
+            {t('dialog.description')}
           </Label>
           <Input
             id="description"
             value={description}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDescription(e.target.value)}
             className="col-span-3"
-            placeholder="请输入交易描述"
+            placeholder={t('dialog.descriptionPlaceholder')}
           />
         </div>
       </div>

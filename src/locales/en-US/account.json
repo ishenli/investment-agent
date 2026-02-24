@@ -1,0 +1,80 @@
+{
+  "create": {
+    "form": {
+      "accountName": {
+        "description": "Username should be between 3-30 characters",
+        "label": "Account Name",
+        "placeholder": "Enter account name"
+      },
+      "creating": "Creating...",
+      "initialDeposit": {
+        "label": "Initial Deposit",
+        "placeholder": "Enter initial deposit amount"
+      },
+      "market": {
+        "description": "Select the market you want to trade in",
+        "label": "Trading Market",
+        "placeholder": "Select market"
+      },
+      "submit": "Create Trading Account"
+    },
+    "success": {
+      "manualRedirect": "Manual redirect to asset page",
+      "message": "Your account has been created successfully! Redirecting to asset page...",
+      "redirecting": "Setting up account and redirecting...",
+      "title": "Account Created Successfully"
+    },
+    "title": "Create Account"
+  },
+  "dashboard": {
+    "accountBalance": "Account Balance",
+    "accountName": "Account Name",
+    "leverage": "Leverage",
+    "market": "Market",
+    "noData": "No account data found",
+    "title": "Account Dashboard"
+  },
+  "error": {
+    "fetchFailed": "Failed to fetch account information",
+    "saveFailed": "Save failed",
+    "title": "Error",
+    "unknown": "Unknown error"
+  },
+  "list": {
+    "accountName": "Account Name",
+    "balance": "Balance",
+    "noData": "No account data",
+    "select": "Select",
+    "title": "Account List"
+  },
+  "loading": "Loading...",
+  "settings": {
+    "leverage": {
+      "description": "Leverage can amplify gains but also amplifies risk. Beginners are recommended to start with low leverage.",
+      "label": "Leverage Settings",
+      "placeholder": "Select leverage"
+    },
+    "market": {
+      "description": "Select the market you want to trade in. Different markets have different trading rules and available stocks.",
+      "label": "Trading Market",
+      "placeholder": "Select market"
+    },
+    "riskMode": {
+      "advanced": "Advanced Mode",
+      "description": "Select risk assessment standard suitable for you",
+      "label": "Risk Mode",
+      "placeholder": "Risk Mode",
+      "retail": "Retail Mode",
+      "title": "Risk Mode"
+    },
+    "save": "Save Settings",
+    "saved": "Settings saved",
+    "saving": "Saving...",
+    "tabs": {
+      "account": "Account Settings",
+      "risk": "Risk Mode"
+    },
+    "title": "Account Settings"
+  },
+  "title": "Account Management"
+}

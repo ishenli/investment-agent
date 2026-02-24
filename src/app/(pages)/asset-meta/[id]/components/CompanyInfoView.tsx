@@ -19,6 +19,7 @@ import {
 import { Eye, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import dayjs from 'dayjs';
+import { useTranslation } from 'react-i18next';
 
 type AssetCompanyInfoType = {
   id: number;
@@ -36,13 +37,14 @@ interface CompanyInfoViewProps {
 }
 
 export function CompanyInfoView({ companyInfos, onEdit, onDelete }: CompanyInfoViewProps) {
+  const { t } = useTranslation('asset-meta');
   const [viewingInfo, setViewingInfo] = useState<AssetCompanyInfoType | null>(null);
 
   if (companyInfos.length === 0) {
     return (
       <Alert>
-        <AlertTitle>暂无数据</AlertTitle>
-        <AlertDescription>当前没有可用的公司信息。</AlertDescription>
+        <AlertTitle>{t('detail.company.noData.title')}</AlertTitle>
+        <AlertDescription>{t('detail.company.noData.description')}</AlertDescription>
       </Alert>
     );
   }
@@ -64,12 +66,12 @@ export function CompanyInfoView({ companyInfos, onEdit, onDelete }: CompanyInfoV
                   variant="ghost"
                   size="icon"
                   onClick={() => setViewingInfo(info)}
-                  title="查看详情"
+                  title={t('detail.company.actions.viewDetail')}
                 >
                   <Eye className="h-4 w-4" />
                 </Button>
                 {onEdit && (
-                  <Button variant="ghost" size="icon" onClick={() => onEdit(info)} title="编辑">
+                  <Button variant="ghost" size="icon" onClick={() => onEdit(info)} title={t('detail.company.actions.edit')}>
                     <Pencil className="h-4 w-4" />
                   </Button>
                 )}
@@ -78,7 +80,7 @@ export function CompanyInfoView({ companyInfos, onEdit, onDelete }: CompanyInfoV
                     variant="ghost"
                     size="icon"
                     onClick={() => onDelete(info)}
-                    title="删除"
+                    title={t('detail.company.actions.delete')}
                     className="text-red-500 hover:text-red-600 hover:bg-red-50"
                   >
                     <Trash2 className="h-4 w-4" />

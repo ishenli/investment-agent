@@ -4,6 +4,7 @@ import React, { memo, useId, useMemo, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
 import ShareImage from './ShareImage';
 import ShareText from './ShareText';
+import { useTranslation } from 'react-i18next';
 
 enum Tab {
   Screenshot = 'screenshot',
@@ -19,7 +20,7 @@ interface ShareModalProps {
 const ShareModal = memo<ShareModalProps>(({ onCancel, open, message }) => {
   const [tab, setTab] = useState<Tab>(Tab.Screenshot);
   const uniqueId = useId();
-
+  const { t } = useTranslation('chat');
   const options: SegmentedProps['options'] = useMemo(
     () => [
       {
@@ -42,7 +43,7 @@ const ShareModal = memo<ShareModalProps>(({ onCancel, open, message }) => {
       footer={null}
       onCancel={onCancel}
       open={open}
-      title="分享"
+      title={t('shareTitle')}
       width={1440}
     >
       <Flexbox gap={isMobile ? 8 : 24}>

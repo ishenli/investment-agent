@@ -10,6 +10,7 @@ import { Flexbox } from 'react-layout-kit';
 
 import { useSendMessage } from '@renderer/(pages)/chat/features/ChatInput/useSend';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import MessageFromUrl from './MessageFromUrl';
 import SendMore from './SendMore';
 
@@ -40,6 +41,8 @@ interface FooterProps {
 }
 
 const Footer = memo<FooterProps>(({ onExpandChange, expand }) => {
+  const { t } = useTranslation('chat');
+  
   const { styles } = useStyles();
 
   const [isAIGenerating, stopGenerateMessage] = useChatStore((s) => [
@@ -89,7 +92,7 @@ const Footer = memo<FooterProps>(({ onExpandChange, expand }) => {
                   }}
                   type={'primary'}
                 >
-                  发送
+                  {t('send')}
                 </Button>
                 <SendMore disabled={!canSend} isMac={true} />
               </Space.Compact>

@@ -1,0 +1,387 @@
+{
+  "about": {
+    "appName": "Intelligent Investment Assistant",
+    "appSubtitle": "Investment Agent is an AI-based investment management assistant that helps users with asset management, market analysis, investment decisions, and more. Through powerful AI capabilities, it provides users with personalized investment advice and market insights.",
+    "buildDate": "Build",
+    "coreFeatures": "Core Features",
+    "description": "Learn about the basic information of the current application",
+    "developer": "Development Team",
+    "features": {
+      "agentManagement": {
+        "description": "Flexible configuration and management of AI agents",
+        "title": "Agent Management"
+      },
+      "aiInsights": {
+        "description": "AI-based market analysis and investment recommendations",
+        "title": "AI Insights"
+      },
+      "assetManagement": {
+        "description": "Comprehensive account management and position tracking",
+        "title": "Asset Management"
+      },
+      "dataVisualization": {
+        "description": "Intuitive data display and analysis",
+        "title": "Data Visualization"
+      },
+      "modelIntegration": {
+        "description": "Support for multiple model providers",
+        "title": "Model Integration"
+      },
+      "researchReports": {
+        "description": "In-depth analysis and intelligent report generation",
+        "title": "Research Reports"
+      },
+      "smartInteraction": {
+        "description": "Natural language conversation with AI assistant",
+        "title": "Smart Interaction"
+      },
+      "themeSwitching": {
+        "description": "Support for light/dark themes",
+        "title": "Theme Switching"
+      }
+    },
+    "license": "License",
+    "techFeatures": "Technical Features",
+    "thanks": "Acknowledgements",
+    "thanksText": "Thank you to all developers and users who have contributed to this project. We will continue to work hard to provide better products and services.",
+    "title": "About",
+    "version": "Version"
+  },
+  "account": {
+    "billing": "Billing",
+    "data": "Data Management",
+    "profile": "Profile Settings",
+    "security": "Security",
+    "subscription": "Subscription",
+    "title": "Account"
+  },
+  "actions": {
+    "cancel": "Cancel",
+    "export": "Export Settings",
+    "import": "Import Settings",
+    "reset": "Reset to Default",
+    "save": "Settings Saved",
+    "saveSettings": "Save Settings",
+    "saving": "Saving..."
+  },
+  "agent": {
+    "actions": {
+      "addAgent": "Add Agent",
+      "addOpeningQuestion": "Add Opening Question",
+      "cancel": "Cancel",
+      "createAgent": "Create Agent",
+      "createLingxiAgent": "Create Lingxi Agent",
+      "createLocalAgent": "Create Local Agent",
+      "delete": "Delete",
+      "edit": "Edit",
+      "saveSettings": "Save Settings",
+      "saving": "Saving..."
+    },
+    "cards": {
+      "apiUrlLabel": "API URL:",
+      "createdAtLabel": "Created At:",
+      "noDescription": "No description",
+      "typeLabel": "Type:"
+    },
+    "confirm": {
+      "deleteAgent": "Are you sure you want to delete this agent?"
+    },
+    "description": "Manage your AI agent configurations",
+    "empty": {
+      "createFirstAgent": "Click the button above to create your first agent",
+      "createFirstLingxiAgent": "Click the button above to create your first Lingxi agent",
+      "createFirstLocalAgent": "Click the button above to create your first local agent",
+      "noAgents": "No agents",
+      "noLingxiAgents": "No Lingxi agents",
+      "noLocalAgents": "No local agents"
+    },
+    "form": {
+      "fields": {
+        "apiKey": {
+          "label": "API Key *",
+          "placeholder": "Enter API key"
+        },
+        "apiUrl": {
+          "label": "API URL *",
+          "placeholder": "Enter API URL"
+        },
+        "description": {
+          "label": "Description",
+          "placeholder": "Enter agent description"
+        },
+        "name": {
+          "label": "Name *",
+          "placeholder": "Enter agent name"
+        },
+        "openingQuestions": {
+          "description": "Set the agent's opening questions to help users start conversations quickly.",
+          "label": "Opening Questions",
+          "noQuestions": "No opening questions, click the button above to add",
+          "placeholder": "Opening question %d"
+        },
+        "slug": {
+          "label": "Slug *",
+          "placeholder": "Enter agent slug"
+        },
+        "systemRole": {
+          "description": "Set the agent's behavioral guidelines and role positioning.",
+          "label": "System Prompt",
+          "placeholder": "Enter the agent's system prompt..."
+        },
+        "type": {
+          "label": "Type *",
+          "lingxi": "Lingxi",
+          "local": "Local"
+        }
+      },
+      "title": {
+        "create": "Create Agent",
+        "edit": "Edit %s"
+      }
+    },
+    "messages": {
+      "createSuccess": "Agent created successfully",
+      "deleteFailed": "Failed to delete agent",
+      "deleteSuccess": "Agent deleted successfully",
+      "fetchFailed": "Failed to fetch agent list",
+      "saveFailed": "Failed to save agent",
+      "settingsSaved": "Settings saved",
+      "updateSuccess": "Agent updated successfully"
+    },
+    "tabs": {
+      "all": "All",
+      "lingxi": "Lingxi",
+      "local": "Local"
+    },
+    "title": "Agent Settings",
+    "types": {
+      "lingxi": "Lingxi",
+      "local": "Local"
+    }
+  },
+  "appearance": {
+    "theme": {
+      "dark": "Dark",
+      "light": "Light",
+      "system": "System"
+    },
+    "title": "Appearance"
+  },
+  "general": {
+    "americaNewYork": "America/New York (GMT-5)",
+    "asiaShanghai": "Asia/Shanghai (GMT+8)",
+    "asiaTokyo": "Asia/Tokyo (GMT+9)",
+    "autoRefresh": "Auto Refresh Data",
+    "autoSave": "Auto save",
+    "autoSaveDescription": "Automatically save your changes",
+    "currency": "Currency",
+    "dateFormat": "Date Format",
+    "description": "Manage your general preferences",
+    "enableNotification": "Enable notifications",
+    "europeLondon": "Europe/London (GMT+0)",
+    "language": "Language & Region",
+    "notificationDescription": "Manage notification preferences",
+    "notifications": "Notifications",
+    "receiveUpdates": "Receive important updates and reminders",
+    "regionDescription": "Set interface language and region preferences",
+    "selectLanguage": "Select language",
+    "selectTimezone": "Select timezone",
+    "theme": "Theme",
+    "timeFormat": "Time Format",
+    "timezone": "Timezone",
+    "title": "General"
+  },
+  "language": {
+    "en-US": "English (US)",
+    "zh-CN": "简体中文"
+  },
+  "preferences": {
+    "behavior": "Behavior Settings",
+    "display": "Display Options",
+    "privacy": "Privacy Settings",
+    "title": "Preferences"
+  },
+  "provider": {
+    "actions": {
+      "activate": "Activate",
+      "addModel": "Add Model",
+      "addProvider": "Add Provider",
+      "deactivate": "Deactivate",
+      "delete": "Delete",
+      "edit": "Edit"
+    },
+    "addFirstProvider": "Add First Provider",
+    "confirm": {
+      "deleteModel": "Are you sure you want to delete this model?",
+      "deleteProvider": "Are you sure you want to delete this provider?"
+    },
+    "description": "Manage your model provider configurations",
+    "details": {
+      "apiKey": "API Key",
+      "baseUrl": "Base URL",
+      "description": "Description",
+      "serviceName": "Service Name",
+      "slug": "Slug",
+      "title": "Basic Information"
+    },
+    "form": {
+      "description": {
+        "create": "Add a new model provider configuration",
+        "edit": "Edit provider configuration information"
+      },
+      "fields": {
+        "apiKey": {
+          "label": "API Key",
+          "note": "Leave empty to keep original key unchanged (when editing)",
+          "placeholder": "sk-..."
+        },
+        "baseUrl": {
+          "invalid": "URL must use https protocol",
+          "label": "Base URL",
+          "note": "Must use https protocol",
+          "placeholder": "https://api.openai.com/v1",
+          "required": "Base URL cannot be empty"
+        },
+        "description": {
+          "label": "Description",
+          "placeholder": "Provider description..."
+        },
+        "name": {
+          "label": "Service Name",
+          "placeholder": "e.g., OpenAI",
+          "required": "Name cannot be empty"
+        },
+        "slug": {
+          "invalid": "Slug can only contain letters, numbers, hyphens, underscores, and dots",
+          "label": "Slug",
+          "note": "Can only contain letters, numbers, hyphens, underscores, and dots",
+          "placeholder": "openai",
+          "required": "Slug cannot be empty"
+        }
+      },
+      "model": {
+        "description": {
+          "create": "Add a new model for the provider",
+          "edit": "Edit model configuration information"
+        },
+        "fields": {
+          "contextWindow": {
+            "label": "Context Window",
+            "note": "Model's supported context window size (in tokens)",
+            "placeholder": "128000"
+          },
+          "name": {
+            "label": "Model Name",
+            "placeholder": "GPT-4",
+            "required": "Model name cannot be empty"
+          },
+          "slug": {
+            "invalid": "Slug can only contain letters, numbers, hyphens, underscores, and dots",
+            "label": "Slug",
+            "placeholder": "gpt-4",
+            "required": "Model Slug cannot be empty"
+          }
+        },
+        "title": {
+          "create": "Add Model",
+          "edit": "Edit Model"
+        }
+      },
+      "title": {
+        "create": "Add Provider",
+        "edit": "Edit Provider"
+      }
+    },
+    "list": "Provider List",
+    "listDescription": "Select a provider to view or edit",
+    "models": {
+      "addFirstModel": "Click the button above to add the first model",
+      "contextWindow": "tokens",
+      "functions": "Functions",
+      "noModels": "No models",
+      "title": "Model List",
+      "vision": "Vision"
+    },
+    "noProviders": "No providers yet, click the button above to add",
+    "noProvidersYet": "No provider selected yet",
+    "selectProviderPrompt": "Please select a provider from the left list, or click \"Add Provider\" in the top right corner to create a new one",
+    "title": "Model Provider Management"
+  },
+  "settingAgent": {
+    "prompt": {
+      "placeholder": "Enter system prompt",
+      "title": "System Prompt"
+    }
+  },
+  "sidebar": {
+    "about": "About",
+    "agent": "Agent",
+    "general": "General",
+    "provider": "Provider",
+    "theme": "Theme",
+    "tool": "Tool"
+  },
+  "theme": {
+    "backgroundColorExample": "This is a background color example",
+    "currentThemePreview": "Current theme effect preview",
+    "dark": {
+      "description": "Use dark interface theme",
+      "label": "Dark Mode"
+    },
+    "description": "Customize your interface appearance and theme",
+    "interfaceTheme": "Interface Theme",
+    "light": {
+      "description": "Use light interface theme",
+      "label": "Light Mode"
+    },
+    "primaryColorExample": "This is a primary color example",
+    "secondaryColorExample": "This is a secondary color example",
+    "system": {
+      "description": "Automatically switch theme based on system settings",
+      "label": "Follow System"
+    },
+    "themePreview": "Theme Preview",
+    "themeStyle": "Theme Style",
+    "title": "Theme Settings"
+  },
+  "title": "Settings",
+  "tool": {
+    "actions": {
+      "delete": "Delete",
+      "save": "Save",
+      "saving": "Saving..."
+    },
+    "description": "Manage your external service API keys",
+    "descriptions": {
+      "FINANCIAL_DATASETS_KEY": "Financial Datasets Key",
+      "FINNHUB_API_KEY": "Finnhub API Key",
+      "LANGSMITH_API_KEY": "LangSmith API Key",
+      "TAVILY_API_KEY": "Tavily API Key"
+    },
+    "details": {
+      "FINANCIAL_DATASETS_KEY": "Authentication key for accessing financial datasets",
+      "FINNHUB_API_KEY": "Used to get real-time stock market data and analysis reports",
+      "LANGSMITH_API_KEY": "LangSmith provided API key for tracking and managing model calls",
+      "TAVILY_API_KEY": "Tavily search engine API key for advanced search functionality"
+    },
+    "fields": {
+      "envVarName": "Environment Variable Name",
+      "inputPlaceholder": "Please enter the value for %s"
+    },
+    "messages": {
+      "deleteSettingsFailed": "Failed to delete settings",
+      "getSettingsFailed": "Failed to get settings",
+      "networkError": "Network error",
+      "saveSettingsFailed": "Failed to save settings",
+      "settingsDeleted": "Settings deleted",
+      "settingsSaved": "Settings saved"
+    },
+    "tabs": {
+      "financial": "FINANCIAL",
+      "finnhub": "FINNHUB",
+      "langsmith": "LANGSMITH",
+      "tavily": "TAVILY"
+    },
+    "title": "API KEY Configuration"
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "allocationChart": {
+    "allocationRatio": "配置比例",
+    "benchmarkAllocation": "基准配置",
+    "category": "类别",
+    "currentAllocation": "当前配置",
+    "description": "您的投资组合资产类别分布",
+    "noData": "暂无数据",
+    "title": "资产配置"
+  },
+  "asset": {
+    "allocationChart": {
+      "noData": ""
+    }
+  },
+  "concentrationChart": {
+    "asset": "资产",
+    "description": "您的投资组合资产分布",
+    "noData": "暂无数据",
+    "percentage": "占比",
+    "title": "资产集中度",
+    "unknown": "未知"
+  },
+  "dashboard": {
+    "allocationRatio": "资产配置比例",
+    "assetAllocation": "资产结构分析",
+    "assetAllocationDesc": "详细资产分布和占比情况",
+    "assetBreakdown": "资产明细",
+    "cashBalance": "现金余额",
+    "cashBalanceLabel": "现金余额",
+    "cashRatio": "现金占比",
+    "noAccountData": "无账户信息",
+    "noAccountDataDesc": "无账户信息",
+    "noCashData": "无现金数据",
+    "noCashDataDesc": "无法获取现金数据",
+    "noData": "加载失败",
+    "noDataDesc": "无法获取账户信息",
+    "noGainData": "无收益数据",
+    "noGainDataDesc": "无法获取收益数据",
+    "noPositionData": "无持仓数据",
+    "noPositionDataDesc": "无法获取持仓数据",
+    "performanceSummary": "收益表现",
+    "stockGain": "持仓股票收益",
+    "stockGainLabel": "持仓股票收益",
+    "stockMarketValue": "股票市值",
+    "stockMarketValueLabel": "股票市值",
+    "stockRatio": "股票占比",
+    "stockReturnRate": "股票收益率",
+    "totalAssets": "总资产",
+    "totalBalance": "总余额",
+    "totalInvestment": "投资本金"
+  },
+  "editCashBalanceDialog": {
+    "balanceUpdated": "现金余额已更新",
+    "cancel": "取消",
+    "description": "输入新的现金余额。当前余额:",
+    "invalidAmount": "请输入有效的金额",
+    "newBalanceLabel": "新余额",
+    "title": "修改现金余额",
+    "updateBalance": "更新余额",
+    "updateFailed": "更新现金余额失败",
+    "updating": "更新中..."
+  },
+  "error": {
+    "fetchFailed": "获取数据失败",
+    "title": "错误",
+    "unknown": "未知错误"
+  },
+  "loading": "加载中...",
+  "priceRefresh": {
+    "failed": "价格更新失败，请稍后重试",
+    "networkError": "价格刷新失败，请检查网络连接",
+    "partialSuccess": "价格更新完成：成功 {{succeeded}} 个，失败 {{failed}} 个",
+    "success": "价格更新完成：成功更新 {{count}} 个持仓价格"
+  },
+  "revenue": {
+    "annualReturnRate": "年化收益率",
+    "description": "您的投资业绩表现",
+    "maxDrawdown": "最大回撤",
+    "title": "业绩指标",
+    "totalReturnRate": "总收益率",
+    "volatility": "波动率"
+  },
+  "revenueAnalytics": {
+    "accountAssetTrend": "账户总资产走势",
+    "annualizedPerformance": "年化表现",
+    "annualizedReturnRate": "年化收益率",
+    "benchmarkReturn": "基准收益",
+    "cannotFetchRevenue": "无法获取收益数据",
+    "contribution": "贡献",
+    "contributionToTotalReturn": "各持仓对总收益的贡献",
+    "cumulativePerformance": "相对于期初的累计收益表现",
+    "cumulativeReturnRate": "累计收益率",
+    "currentTotalAssets": "当前总资产",
+    "date": "日期",
+    "detailedMetrics": "详细指标",
+    "detailedReturnMetrics": "投资组合的详细收益指标",
+    "excessReturn": "超额收益",
+    "holdingDays": "持有 {{days}} 天",
+    "initial": "期初",
+    "loadFailed": "加载失败",
+    "maxDrawdown": "最大回撤",
+    "noChartData": "暂无图表数据",
+    "noData": "暂无数据",
+    "noSnapshotData": "暂无快照数据，请先创建快照",
+    "period1M": "1个月",
+    "period1W": "1周",
+    "period1Y": "1年",
+    "period3M": "3个月",
+    "period6M": "6个月",
+    "periodAll": "全部时间",
+    "periodYTD": "年初至今",
+    "pleaseRetry": "请稍后重试",
+    "positionCount": "持仓数量",
+    "positionReturnDetails": "持仓收益明细",
+    "refreshData": "刷新数据",
+    "retry": "重试",
+    "returnAmount": "收益金额",
+    "riskAdjustedReturn": "风险调整后收益",
+    "shares": "{{quantity}} 股",
+    "sharpeRatio": "夏普比率",
+    "timeRange": "时间范围",
+    "totalAssetChange": "总资产变化",
+    "totalAssets": "总资产",
+    "totalReturnRate": "总收益率",
+    "volatility": "波动率"
+  },
+  "structure": {
+    "loadRiskError": "加载风险数据时出错",
+    "retryLater": "请稍后重试",
+    "riskInsights": "风险洞察",
+    "riskInsightsDesc": "实时风险洞察和投资组合分析"
+  },
+  "tabs": {
+    "dashboard": "账户信息",
+    "position": "资产结构",
+    "revenue": "业绩分析"
+  },
+  "title": "资产管理"
+}

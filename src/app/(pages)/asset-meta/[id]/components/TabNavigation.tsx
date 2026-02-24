@@ -1,11 +1,15 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
+
 interface TabNavigationProps {
   activeTab: 'latest' | 'history' | 'company' | 'basic-info' | 'investment-memo';
   setActiveTab: (tab: 'latest' | 'history' | 'company' | 'basic-info' | 'investment-memo') => void;
 }
 
 export function TabNavigation({ activeTab, setActiveTab }: TabNavigationProps) {
+  const { t } = useTranslation('asset-meta');
+  
   return (
     <div className="border-b">
       <nav className="-mb-px flex space-x-8">
@@ -17,7 +21,7 @@ export function TabNavigation({ activeTab, setActiveTab }: TabNavigationProps) {
           }`}
           onClick={() => setActiveTab('latest')}
         >
-          最新市场纪要
+          {t('detail.tabs.latest')}
         </button>
         <button
           className={`py-4 px-1 border-b-2 font-medium text-sm ${
@@ -27,7 +31,7 @@ export function TabNavigation({ activeTab, setActiveTab }: TabNavigationProps) {
           }`}
           onClick={() => setActiveTab('history')}
         >
-          历史市场纪要
+          {t('detail.tabs.history')}
         </button>
         <button
           className={`py-4 px-1 border-b-2 font-medium text-sm ${
@@ -37,7 +41,7 @@ export function TabNavigation({ activeTab, setActiveTab }: TabNavigationProps) {
           }`}
           onClick={() => setActiveTab('company')}
         >
-          公司纪要
+          {t('detail.tabs.company')}
         </button>
         <button
           className={`py-4 px-1 border-b-2 font-medium text-sm ${
@@ -47,7 +51,7 @@ export function TabNavigation({ activeTab, setActiveTab }: TabNavigationProps) {
           }`}
           onClick={() => setActiveTab('basic-info')}
         >
-          基本信息
+          {t('detail.tabs.basicInfo')}
         </button>
         <button
           className={`py-4 px-1 border-b-2 font-medium text-sm ${
@@ -57,7 +61,7 @@ export function TabNavigation({ activeTab, setActiveTab }: TabNavigationProps) {
           }`}
           onClick={() => setActiveTab('investment-memo')}
         >
-          投资笔记
+          {t('detail.tabs.investmentMemo')}
         </button>
       </nav>
     </div>

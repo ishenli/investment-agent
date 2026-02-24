@@ -2,6 +2,7 @@ import { Button, Icon } from '@lobehub/ui';
 import { ListEnd } from 'lucide-react';
 import React, { memo } from 'react';
 import { useStyles } from './style';
+import { useTranslation } from 'react-i18next';
 
 export interface BackBottomProps {
   onScrollToBottom: () => void;
@@ -10,7 +11,7 @@ export interface BackBottomProps {
 
 const BackBottom = memo<BackBottomProps>(({ visible, onScrollToBottom }) => {
   const { styles, cx } = useStyles();
-
+  const { t } = useTranslation('chat');
   return (
     <Button
       className={cx(styles.container, visible && styles.visible)}
@@ -18,7 +19,7 @@ const BackBottom = memo<BackBottomProps>(({ visible, onScrollToBottom }) => {
       onClick={onScrollToBottom}
       size={'small'}
     >
-      回到底部
+      {t('backToBottom')}
     </Button>
   );
 });

@@ -1,0 +1,34 @@
+{
+  "actions": {
+    "addWidget": "添加组件",
+    "customize": "自定义仪表板",
+    "refresh": "刷新数据"
+  },
+  "artifacts": {
+    "svg": {
+      "copyAsImage": "复制为图片",
+      "copyFail": "复制失败：{{error}}",
+      "copySuccess": "已复制到剪贴板",
+      "download": {
+        "png": "下载PNG",
+        "svg": "下载SVG"
+      }
+    }
+  },
+  "dashboard": {
+    "holdings": "持仓",
+    "performance": "表现",
+    "summary": "摘要",
+    "title": "仪表板",
+    "transactions": "交易"
+  },
+  "messageDetail": "消息详情",
+  "title": "门户",
+  "widgets": {
+    "marketOverview": "市场概况",
+    "portfolioValue": "投资组合价值",
+    "recentActivity": "近期活动",
+    "topGainers": "涨幅榜",
+    "topLosers": "跌幅榜"
+  }
+}
