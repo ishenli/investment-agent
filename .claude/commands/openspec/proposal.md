@@ -4,7 +4,9 @@ description: Scaffold a new OpenSpec change and validate strictly.
 category: OpenSpec
 tags: [openspec, change]
 ---
-<!-- OPENSPEC:START -->
+
+Scaffold a new OpenSpec change and validate strictly.
+
 **Guardrails**
 - Favor straightforward, minimal implementations first and add complexity only when it is requested or clearly required.
 - Keep changes tightly scoped to the requested outcome.

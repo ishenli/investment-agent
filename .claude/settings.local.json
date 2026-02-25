@@ -29,7 +29,8 @@
       "Bash(pnpm test:*)",
       "Bash(git push:*)",
       "Bash(openspec --help:*)",
-      "Bash(pnpm tsc:*)"
+      "Bash(pnpm tsc:*)",
+      "Bash(head:*)"
     ]
   }
 }

@@ -4,7 +4,9 @@ description: Archive a deployed OpenSpec change and update specs.
 category: OpenSpec
 tags: [openspec, archive]
 ---
-<!-- OPENSPEC:START -->
+
+Archive a deployed OpenSpec change and update specs.
+
 **Guardrails**
 - Favor straightforward, minimal implementations first and add complexity only when it is requested or clearly required.
 - Keep changes tightly scoped to the requested outcome.
