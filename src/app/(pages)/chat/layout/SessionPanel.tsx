@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 
 import { DraggablePanel, DraggablePanelContainer, type DraggablePanelProps } from '@lobehub/ui';

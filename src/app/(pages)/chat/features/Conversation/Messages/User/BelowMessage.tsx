@@ -8,7 +8,6 @@ import { Flexbox } from 'react-layout-kit';
 
 import { useChatStore } from '@renderer/store/chat';
 import { ChatMessage } from '@typings/message';
-import React from 'react';
 
 const useStyles = createStyles(({ css, cx }) => ({
   action: cx(

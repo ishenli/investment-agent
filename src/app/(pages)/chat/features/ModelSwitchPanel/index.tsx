@@ -12,6 +12,7 @@ import type { ItemType } from 'antd/es/menu/interface';
 import { LucideArrowRight } from 'lucide-react';
 import React, { type ReactNode, memo, useMemo } from 'react';
 import { Flexbox } from 'react-layout-kit';
+import { useRouter } from 'next/navigation';
 
 const useStyles = createStyles(({ css, prefixCls }) => ({
   menu: css`
@@ -44,6 +45,7 @@ interface IProps {
 }
 
 const ModelSwitchPanel = memo<IProps>(({ children, onOpenChange, open }) => {
+  const router = useRouter();
   const { styles, theme } = useStyles();
   const [model, updateAgentConfig] = useAgentStore((s) => [
     agentSelectors.currentAgentModel(s),
@@ -76,7 +78,7 @@ const ModelSwitchPanel = memo<IProps>(({ children, onOpenChange, open }) => {
               </Flexbox>
             ),
             onClick: () => {
-              console.log('empty model');
+              router.push('/setting/provider');
             },
           },
         ];
@@ -95,7 +97,7 @@ const ModelSwitchPanel = memo<IProps>(({ children, onOpenChange, open }) => {
             </Flexbox>
           ),
           onClick: () => {
-            console.log('/settings/llm');
+            router.push('/setting/provider');
           },
         },
       ];
@@ -116,7 +118,7 @@ const ModelSwitchPanel = memo<IProps>(({ children, onOpenChange, open }) => {
       ),
       type: 'group',
     }));
-  }, [enabledList]);
+  }, [enabledList, updateAgentConfig, router, theme]);
 
   const icon = <div className={styles.tag}>{children}</div>;
 

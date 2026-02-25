@@ -3,9 +3,42 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@rend
 import { Package, Heart, Code, Zap, Shield, Info } from 'lucide-react';
 import { Separator } from '@renderer/components/ui/separator';
 import { useTranslation } from 'react-i18next';
+import { useEffect, useState } from 'react';
+
+interface AboutInfo {
+  version: string;
+  buildDate: string;
+  license: string;
+  developer: string;
+}
+
+async function fetchAboutInfo(): Promise<AboutInfo> {
+  const response = await fetch('/api/about');
+  if (!response.ok) {
+    throw new Error('Failed to fetch about info');
+  }
+  return response.json();
+}
 
 export default function AboutPage() {
   const { t } = useTranslation('setting');
+  const [aboutInfo, setAboutInfo] = useState<AboutInfo>({
+    version: '0.0.0',
+    buildDate: '-',
+    license: '-',
+    developer: '-',
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAboutInfo()
+      .then(setAboutInfo)
+      .catch(() => {
+        // 使用默认值
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div className="flex-1 flex flex-col gap-6">
       <div className="flex items-center justify-between">
@@ -39,22 +72,22 @@ export default function AboutPage() {
             <div className="flex items-center gap-2">
               <Info className="h-4 w-4 text-muted-foreground" />
               <span className="text-muted-foreground">{t('about.version', '版本:')}</span>
-              <span className="font-medium">1.0.0</span>
+              <span className="font-medium">{loading ? '-' : aboutInfo.version}</span>
             </div>
             <div className="flex items-center gap-2">
               <Zap className="h-4 w-4 text-muted-foreground" />
               <span className="text-muted-foreground">{t('about.buildDate', '构建:')}</span>
-              <span className="font-medium">2026-02-19</span>
+              <span className="font-medium">{loading ? '-' : aboutInfo.buildDate}</span>
             </div>
             <div className="flex items-center gap-2">
               <Shield className="h-4 w-4 text-muted-foreground" />
               <span className="text-muted-foreground">{t('about.license', '许可证:')}</span>
-              <span className="font-medium">MIT License</span>
+              <span className="font-medium">{loading ? '-' : aboutInfo.license}</span>
             </div>
             <div className="flex items-center gap-2">
               <Code className="h-4 w-4 text-muted-foreground" />
               <span className="text-muted-foreground">{t('about.developer', '开发团队:')}</span>
-              <span className="font-medium">ishenli</span>
+              <span className="font-medium">{loading ? '-' : aboutInfo.developer}</span>
             </div>
           </div>
         </CardContent>

@@ -32,6 +32,7 @@ import {
   SidebarMenuItem,
 } from '@renderer/components/ui/sidebar';
 import { useAccountStore } from '@renderer/store/account/store';
+import { useUserStore } from '@renderer/store/user';
 import { useEffect } from 'react';
 import { SwitchAccountDialog } from './switch-account-dialog';
 import { NavDocuments } from './nav-documents';
@@ -54,15 +55,16 @@ export const data = {
       url: '/trade',
       icon: IconTrademark,
     },
+        {
+      title: 'sidebar.navMain.aiAdvisor',
+      url: '/chat',
+      icon: IconMessage,
+    },
+
     {
       title: 'sidebar.navMain.aiInsights',
       url: '/insight',
       icon: IconEye,
-    },
-    {
-      title: 'sidebar.navMain.aiAdvisor',
-      url: '/chat',
-      icon: IconMessage,
     },
     {
       title: 'sidebar.navMain.aiReports',
@@ -158,10 +160,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const showSwitchAccountDialog = useAccountStore((state) => state.showSwitchAccountDialog);
   const initializeAccount = useAccountStore((state) => state.initializeAccount);
   const setShowSwitchAccountDialog = useAccountStore((state) => state.setShowSwitchAccountDialog);
+  const userAvatar = useUserStore((state) => state.avatar);
 
   const userData = {
     name: account?.accountName || '',
-    avatar: 'https://pic.616pic.com/ys_bnew_img/00/04/44/cgqCG3yYGS.jpg',
+    avatar: userAvatar,
   };
 
   useEffect(() => {
