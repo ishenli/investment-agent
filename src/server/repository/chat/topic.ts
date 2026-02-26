@@ -4,8 +4,7 @@
  * 聊天话题数据访问层
  */
 import { db } from '@server/lib/db';
-import { eq, and, desc, inArray } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
+import { eq, and, desc, inArray, sql } from 'drizzle-orm';
 import {
   chatTopics,
   chatMessages,
@@ -25,6 +24,13 @@ export class TopicRepository extends BaseRepository<ChatTopic> {
   }
 
   // ============== Query ==============
+
+  /**
+   * 根据 ID 查找话题
+   */
+  async findById(id: string): Promise<ChatTopic | undefined> {
+    return this._findById(id);
+  }
 
   /**
    * 根据会话 ID 获取话题列表
@@ -71,16 +77,12 @@ export class TopicRepository extends BaseRepository<ChatTopic> {
    * 创建话题
    */
   async create(data: CreateTopicParams): Promise<string> {
-    const id = nanoid();
-    const now = new Date();
     const { messages, ...topicData } = data;
-
-    await db.insert(chatTopics).values({
-      id,
+    const result = await this._create({
       ...topicData,
-      createdAt: now,
-      updatedAt: now,
+      favorite: topicData.favorite ?? false,
     });
+    const id = result.id;
 
     // 绑定消息到话题
     if (messages && messages.length > 0) {
@@ -165,12 +167,12 @@ export class TopicRepository extends BaseRepository<ChatTopic> {
    * 统计会话的话题数量
    */
   async countBySessionId(sessionId: string): Promise<number> {
-    const results = await db
-      .select({ id: chatTopics.id })
+    const result = await db
+      .select({ count: sql<number>`count(*)`.as('count') })
       .from(chatTopics)
       .where(eq(chatTopics.sessionId, sessionId));
 
-    return results.length;
+    return result[0]?.count ?? 0;
   }
 }
 

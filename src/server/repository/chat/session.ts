@@ -4,8 +4,7 @@
  * 聊天会话数据访问层
  */
 import { db } from '@server/lib/db';
-import { eq, and, desc, isNull, inArray } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
+import { eq, and, desc, isNull, inArray, sql } from 'drizzle-orm';
 import {
   chatSessions,
   chatSessionGroups,
@@ -33,6 +32,13 @@ export class SessionRepository extends BaseRepository<ChatSession> {
   }
 
   // ============== Query ==============
+
+  /**
+   * 根据 ID 查找会话
+   */
+  async findById(id: string): Promise<ChatSession | undefined> {
+    return this._findById(id);
+  }
 
   /**
    * 根据用户 ID 获取所有会话
@@ -108,17 +114,11 @@ export class SessionRepository extends BaseRepository<ChatSession> {
    * 创建新会话
    */
   async create(data: CreateSessionRepoParams): Promise<string> {
-    const id = nanoid();
-    const now = new Date();
-
-    await db.insert(chatSessions).values({
-      id,
+    const result = await this._create({
       ...data,
-      createdAt: now,
-      updatedAt: now,
-    });
-
-    return id;
+      groupId: data.groupId ?? null,
+    } as any);
+    return result.id;
   }
 
   // ============== Update ==============
@@ -204,12 +204,12 @@ export class SessionRepository extends BaseRepository<ChatSession> {
    * 统计用户的会话数量
    */
   async countByUserId(userId: number): Promise<number> {
-    const results = await db
-      .select({ id: chatSessions.id })
+    const result = await db
+      .select({ count: sql<number>`count(*)`.as('count') })
       .from(chatSessions)
       .where(eq(chatSessions.userId, userId));
 
-    return results.length;
+    return result[0]?.count ?? 0;
   }
 }
 
@@ -224,17 +224,11 @@ export class SessionGroupRepository extends BaseRepository<ChatSessionGroup> {
   }
 
   async create(data: Omit<NewChatSessionGroup, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
-    const id = nanoid();
-    const now = new Date();
-
-    await db.insert(chatSessionGroups).values({
-      id,
+    const result = await this._create({
       ...data,
-      createdAt: now,
-      updatedAt: now,
-    });
-
-    return id;
+      sort: data.sort ?? 0,
+    } as any);
+    return result.id;
   }
 
   async update(id: string, data: Partial<Pick<NewChatSessionGroup, 'name' | 'sort'>>): Promise<boolean> {

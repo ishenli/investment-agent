@@ -5,7 +5,6 @@
  */
 import { db } from '@server/lib/db';
 import { eq, and, desc, inArray, isNull } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
 import {
   chatThreads,
   type ChatThread,
@@ -24,6 +23,13 @@ export class ThreadRepository extends BaseRepository<ChatThread> {
   }
 
   // ============== Query ==============
+
+  /**
+   * 根据 ID 查找线程
+   */
+  async findById(id: string): Promise<ChatThread | undefined> {
+    return this._findById(id);
+  }
 
   /**
    * 根据话题 ID 获取线程列表
@@ -121,18 +127,12 @@ export class ThreadRepository extends BaseRepository<ChatThread> {
    * 创建线程
    */
   async create(data: CreateThreadParams): Promise<string> {
-    const id = nanoid();
     const now = new Date();
-
-    await db.insert(chatThreads).values({
-      id,
+    const result = await this._create({
       ...data,
       lastActiveAt: data.lastActiveAt || now,
-      createdAt: now,
-      updatedAt: now,
     } as any);
-
-    return id;
+    return result.id;
   }
 
   // ============== Update ==============

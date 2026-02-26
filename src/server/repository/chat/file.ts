@@ -89,17 +89,11 @@ export class FileRepository extends BaseRepository<ChatFile> {
    * 创建文件记录
    */
   async create(data: CreateFileParams): Promise<string> {
-    const id = nanoid();
-    const now = new Date();
-
-    await db.insert(chatFiles).values({
-      id,
+    const result = await this._create({
       ...data,
-      createdAt: now,
-      updatedAt: now,
-    });
-
-    return id;
+      data: data.data ?? null,
+    } as any);
+    return result.id;
   }
 
   /**
@@ -115,9 +109,10 @@ export class FileRepository extends BaseRepository<ChatFile> {
       return {
         id,
         ...data,
+        data: data.data ?? null,
         createdAt: now,
         updatedAt: now,
-      };
+      } as any;
     });
 
     await db.insert(chatFiles).values(values);

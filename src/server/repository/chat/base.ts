@@ -5,7 +5,7 @@
  * 但使用 Drizzle ORM 操作 SQLite 数据库
  */
 import { db } from '@server/lib/db';
-import { eq, and, desc, asc, SQL } from 'drizzle-orm';
+import { eq, and, desc, asc, SQL, sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { SQLiteTable } from 'drizzle-orm/sqlite-core';
 
@@ -35,9 +35,9 @@ export abstract class BaseRepository<T extends { id: string; createdAt: Date; up
   }
 
   /**
-   * 根据 ID 查找记录
+   * 根据 ID 查找记录 (protected)
    */
-  async findById(id: string): Promise<T | undefined> {
+  protected async _findById(id: string): Promise<T | undefined> {
     const results = await (db as any)
       .select()
       .from(this.table)
@@ -45,13 +45,6 @@ export abstract class BaseRepository<T extends { id: string; createdAt: Date; up
       .limit(1);
 
     return results[0] as T | undefined;
-  }
-
-  /**
-   * 根据 ID 查找记录 (protected 别名)
-   */
-  protected async _findById(id: string): Promise<T | undefined> {
-    return this.findById(id);
   }
 
   /**
@@ -133,12 +126,16 @@ export abstract class BaseRepository<T extends { id: string; createdAt: Date; up
    * 计数
    */
   protected async _count(where?: SQL): Promise<number> {
-    const result = await (db as any)
-      .select({ count: (this.table as any).id })
-      .from(this.table)
-      .where(where);
+    const query = (db as any)
+      .select({ count: sql<number>`count(*)`.as('count') })
+      .from(this.table);
 
-    return result.length;
+    if (where) {
+      query.where(where);
+    }
+
+    const result = await query;
+    return result[0]?.count ?? 0;
   }
 
   /**

@@ -60,7 +60,7 @@ const mockAccount = {
 
 const mockProvider = {
   id: 1,
-  accountId: 1,
+  userId: 1,
   slug: 'openai',
   name: 'OpenAI',
   baseUrl: 'https://api.openai.com/v1',
@@ -303,7 +303,7 @@ describe('ModelProviderBizController', () => {
     it('用户未登录时应该返回错误', async () => {
       vi.spyOn(authService, 'getCurrentUserId').mockResolvedValue('');
 
-      const result = await controller.deleteProvider({ id: 1 });
+      const result = await controller.deleteProvider({ id: '1' });
 
       expect(result.success).toBe(false);
       expect(result.message).toBe('用户未登录');
@@ -314,7 +314,7 @@ describe('ModelProviderBizController', () => {
       vi.spyOn(authService, 'getCurrentUserId').mockResolvedValue('1');
       vi.spyOn(authService, 'getCurrentUserAccount').mockResolvedValue(null);
 
-      const result = await controller.deleteProvider({ id: 1 });
+      const result = await controller.deleteProvider({ id: '1' });
 
       expect(result.success).toBe(false);
       expect(result.message).toBe('未找到账户');
@@ -325,6 +325,7 @@ describe('ModelProviderBizController', () => {
       vi.spyOn(authService, 'getCurrentUserId').mockResolvedValue('1');
       vi.spyOn(authService, 'getCurrentUserAccount').mockResolvedValue(mockAccount as any);
 
+      // @ts-expect-error
       const result = await controller.deleteProvider({});
 
       expect(result.success).toBe(false);
@@ -348,7 +349,7 @@ describe('ModelProviderBizController', () => {
       vi.spyOn(authService, 'getCurrentUserAccount').mockResolvedValue(mockAccount as any);
       vi.mocked(modelProviderService.deleteProvider).mockResolvedValue(true);
 
-      const result = await controller.deleteProvider({ id: 1 });
+      const result = await controller.deleteProvider({ id: '1' });
 
       expect(result.success).toBe(true);
       expect(result.data?.message).toBe('删除成功');
@@ -360,7 +361,7 @@ describe('ModelProviderBizController', () => {
       vi.spyOn(authService, 'getCurrentUserAccount').mockResolvedValue(mockAccount as any);
       vi.mocked(modelProviderService.deleteProvider).mockResolvedValue(false);
 
-      const result = await controller.deleteProvider({ id: 999 });
+      const result = await controller.deleteProvider({ id: '999' });
 
       expect(result.success).toBe(false);
       expect(result.message).toBe('服务商不存在或无权限删除');
@@ -372,7 +373,7 @@ describe('ModelProviderBizController', () => {
       vi.spyOn(authService, 'getCurrentUserAccount').mockResolvedValue(mockAccount as any);
       vi.mocked(modelProviderService.deleteProvider).mockRejectedValue(new Error('Database error'));
 
-      const result = await controller.deleteProvider({ id: 1 });
+      const result = await controller.deleteProvider({ id: '1' });
 
       expect(result.success).toBe(false);
       expect(result.message).toBe('删除服务商失败');
@@ -384,7 +385,7 @@ describe('ModelProviderBizController', () => {
     it('用户未登录时应该返回错误', async () => {
       vi.spyOn(authService, 'getCurrentUserId').mockResolvedValue('');
 
-      const result = await controller.setProviderActive({ id: 1, isActive: true });
+      const result = await controller.setProviderActive({ id: '1', isActive: true });
 
       expect(result.success).toBe(false);
       expect(result.message).toBe('用户未登录');
@@ -395,7 +396,7 @@ describe('ModelProviderBizController', () => {
       vi.spyOn(authService, 'getCurrentUserId').mockResolvedValue('1');
       vi.spyOn(authService, 'getCurrentUserAccount').mockResolvedValue(null);
 
-      const result = await controller.setProviderActive({ id: 1, isActive: true });
+      const result = await controller.setProviderActive({ id: '1', isActive: true });
 
       expect(result.success).toBe(false);
       expect(result.message).toBe('未找到账户');
@@ -406,7 +407,7 @@ describe('ModelProviderBizController', () => {
       vi.spyOn(authService, 'getCurrentUserId').mockResolvedValue('1');
       vi.spyOn(authService, 'getCurrentUserAccount').mockResolvedValue(mockAccount as any);
 
-      const result = await controller.setProviderActive({ isActive: true });
+      const result = await controller.setProviderActive({ id: undefined as unknown as string, isActive: true });
 
       expect(result.success).toBe(false);
       expect(result.message).toBe('服务商 ID 不能为空');
@@ -417,7 +418,7 @@ describe('ModelProviderBizController', () => {
       vi.spyOn(authService, 'getCurrentUserId').mockResolvedValue('1');
       vi.spyOn(authService, 'getCurrentUserAccount').mockResolvedValue(mockAccount as any);
 
-      const result = await controller.setProviderActive({ id: 1 });
+      const result = await controller.setProviderActive({ id: '1', isActive: undefined as unknown as boolean });
 
       expect(result.success).toBe(false);
       expect(result.message).toBe('状态不能为空');
@@ -429,7 +430,7 @@ describe('ModelProviderBizController', () => {
       vi.spyOn(authService, 'getCurrentUserAccount').mockResolvedValue(mockAccount as any);
       vi.mocked(modelProviderService.setProviderActive).mockResolvedValue(true);
 
-      const result = await controller.setProviderActive({ id: 1, isActive: true });
+      const result = await controller.setProviderActive({ id: '1', isActive: true });
 
       expect(result.success).toBe(true);
       expect(result.data?.message).toBe('状态更新成功');
@@ -441,7 +442,7 @@ describe('ModelProviderBizController', () => {
       vi.spyOn(authService, 'getCurrentUserAccount').mockResolvedValue(mockAccount as any);
       vi.mocked(modelProviderService.setProviderActive).mockResolvedValue(false);
 
-      const result = await controller.setProviderActive({ id: 999, isActive: true });
+      const result = await controller.setProviderActive({ id: '999', isActive: true });
 
       expect(result.success).toBe(false);
       expect(result.message).toBe('服务商不存在或无权限修改');
@@ -453,7 +454,7 @@ describe('ModelProviderBizController', () => {
       vi.spyOn(authService, 'getCurrentUserAccount').mockResolvedValue(mockAccount as any);
       vi.mocked(modelProviderService.setProviderActive).mockRejectedValue(new Error('Database error'));
 
-      const result = await controller.setProviderActive({ id: 1, isActive: true });
+      const result = await controller.setProviderActive({ id: '1', isActive: true });
 
       expect(result.success).toBe(false);
       expect(result.message).toBe('更新状态失败');
@@ -509,7 +510,7 @@ describe('ModelProviderBizController', () => {
     it('无权限访问提供商时应该返回错误', async () => {
       vi.spyOn(authService, 'getCurrentUserId').mockResolvedValue('1');
       vi.spyOn(authService, 'getCurrentUserAccount').mockResolvedValue(mockAccount as any);
-      vi.mocked(modelProviderService.getProviderById).mockResolvedValue({ ...mockProvider, accountId: 2 });
+      vi.mocked(modelProviderService.getProviderById).mockResolvedValue({ ...mockProvider, userId: 2 });
 
       const result = await controller.getModels({ id: 1 });
 
@@ -580,6 +581,7 @@ describe('ModelProviderBizController', () => {
       vi.spyOn(authService, 'getCurrentUserId').mockResolvedValue('1');
       vi.spyOn(authService, 'getCurrentUserAccount').mockResolvedValue(mockAccount as any);
 
+      // @ts-expect-error
       const result = await controller.createModel({ ...validRequestBody, providerId: undefined });
 
       expect(result.success).toBe(false);
@@ -602,7 +604,7 @@ describe('ModelProviderBizController', () => {
     it('无权限访问提供商时应该返回错误', async () => {
       vi.spyOn(authService, 'getCurrentUserId').mockResolvedValue('1');
       vi.spyOn(authService, 'getCurrentUserAccount').mockResolvedValue(mockAccount as any);
-      vi.mocked(modelProviderService.getProviderById).mockResolvedValue({ ...mockProvider, accountId: 2 });
+      vi.mocked(modelProviderService.getProviderById).mockResolvedValue({ ...mockProvider, userId: 2 });
 
       const result = await controller.createModel(validRequestBody);
 
@@ -877,15 +879,17 @@ describe('ModelProviderBizController', () => {
       expect(result.code).toBe('unauthorized');
     });
 
-    it('账户不存在时应该返回错误', async () => {
-      vi.spyOn(authService, 'getCurrentUserId').mockResolvedValue('1');
+    it('应该成功返回可用模型列表当用户ID存在时', async () => {
+      vi.spyOn(authService, 'getCurrentUserId').mockResolvedValue('1');      
       vi.spyOn(authService, 'getCurrentUserAccount').mockResolvedValue(null);
+      vi.mocked(modelProviderResolver.getAvailableModels).mockResolvedValue(mockModels);
+      vi.mocked(modelProviderResolver.getDefaultModelSlug).mockResolvedValue('gpt-4');
 
       const result = await controller.getAvailableModels();
 
-      expect(result.success).toBe(false);
-      expect(result.message).toBe('未找到账户');
-      expect(result.code).toBe('account_not_found');
+      expect(result.success).toBe(true);
+      expect(result.data.models).toEqual(mockModels);
+      expect(result.data.defaultModel).toBe('gpt-4');
     });
 
     it('应该成功返回可用模型列表', async () => {

@@ -1,6 +1,3 @@
-import { db } from '@server/lib/db';
-import { analysisReports, accounts, transactions } from '@/drizzle/schema';
-import { eq, and, desc, sql, gte, lte } from 'drizzle-orm';
 import logger from '@server/base/logger';
 import transactionService from './transactionService';
 import noteService from './noteService';
@@ -9,6 +6,9 @@ import assetMetaService from './assetMetaService';
 import positionService from './positionService';
 import authService from './authService';
 import portfolioSnapshotService from './portfolioSnapshotService';
+import { transactionRepository, type CashFlow } from '../repository/transactionRepository';
+import { accountRepository } from '../repository/accountRepository';
+import { analysisReportRepository, type AnalysisReportEntity } from '../repository/analysisReportRepository';
 import { unifiedPriceService, type QuoteResponse } from './unifiedPriceService';
 import { AssetMarketInfoType } from '@/types/marketInfo';
 import { NoteType } from './noteService';
@@ -20,8 +20,8 @@ import {
   DataSourceSummary,
   DataSource,
 } from '@/types/report';
-import { chatModelOpenAI, ModelMap } from '@server/core/provider/chatModel';
-import { SystemMessage, HumanMessage } from '@langchain/core/messages';
+import { chatModelOpenAI } from '@server/core/provider/chatModel';
+import { SystemMessage, HumanMessage } from 'langchain';
 import { recordPrompt } from '../utils/file';
 import { createAgent } from 'langchain';
 import {
@@ -167,14 +167,12 @@ export class ReportService {
         );
       }
 
-      // Calculate cash flow summary
-      const totalDepositCents = cashFlows
-        .filter(cf => cf.type === 'deposit')
-        .reduce((sum, cf) => sum + cf.amountCents, 0);
-      const totalWithdrawalCents = cashFlows
-        .filter(cf => cf.type === 'withdrawal')
-        .reduce((sum, cf) => sum + cf.amountCents, 0);
-      const netCashFlowCents = totalDepositCents - totalWithdrawalCents;
+      // Calculate cash flow summary using repository
+      const cashFlowSummary = await transactionRepository.getTotalDepositsAndWithdrawals(
+        accountIdNum,
+        startDate,
+        endDate,
+      );
 
       // Get benchmark return
       const benchmarkReturn = await this.getBenchmarkReturn(startDate, endDate, benchmarkSymbol);
@@ -190,9 +188,9 @@ export class ReportService {
         benchmarkReturn,
         excessReturn,
         timeWeightedReturn,
-        totalDepositCents,
-        totalWithdrawalCents,
-        netCashFlowCents,
+        totalDepositCents: cashFlowSummary.totalDepositCents,
+        totalWithdrawalCents: cashFlowSummary.totalWithdrawalCents,
+        netCashFlowCents: cashFlowSummary.totalDepositCents - cashFlowSummary.totalWithdrawalCents,
       };
     } catch (error) {
       logger.error(`[ReportService] Failed to calculate performance for account ${accountId}: ${error}`);
@@ -211,23 +209,9 @@ export class ReportService {
     accountId: number,
     startDate: Date,
     endDate: Date,
-  ): Promise<Array<{ type: 'deposit' | 'withdrawal'; amountCents: number; date: Date }>> {
+  ): Promise<CashFlow[]> {
     try {
-      const cashFlowRecords = await db.query.transactions.findMany({
-        where: and(
-          eq(transactions.accountId, accountId),
-          sql`${transactions.type} IN ('deposit', 'withdrawal')`,
-          gte(transactions.createdAt, startDate),
-          lte(transactions.createdAt, endDate),
-        ),
-        orderBy: [transactions.createdAt],
-      });
-
-      return cashFlowRecords.map(record => ({
-        type: record.type as 'deposit' | 'withdrawal',
-        amountCents: record.totalAmountCents ?? 0,
-        date: record.createdAt,
-      }));
+      return await transactionRepository.getCashFlows(accountId, startDate, endDate);
     } catch (error) {
       logger.error(`[ReportService] Failed to get cash flows: ${error}`);
       return [];
@@ -576,11 +560,9 @@ export class ReportService {
       });
 
       // 验证账户是否存在
-      const account = await db.query.accounts.findFirst({
-        where: eq(accounts.id, parseInt(request.accountId)),
-      });
+      const accountExists = await accountRepository.existsById(parseInt(request.accountId));
 
-      if (!account) {
+      if (!accountExists) {
         throw new Error(`账户 ${request.accountId} 不存在`);
       }
 
@@ -595,20 +577,14 @@ export class ReportService {
       const title = this.generateReportTitle(request.type, startDate, endDate);
 
       // 创建报告记录（初始状态）
-      const now = new Date();
-      const [reportRecord] = await db
-        .insert(analysisReports)
-        .values({
-          accountId: parseInt(request.accountId),
-          type: request.type,
-          title,
-          content: '报告生成中...',
-          startDate,
-          endDate,
-          createdAt: now,
-          updatedAt: now,
-        })
-        .returning();
+      const reportRecord = await analysisReportRepository.createReport({
+        accountId: parseInt(request.accountId),
+        type: request.type,
+        title,
+        content: '报告生成中...',
+        startDate,
+        endDate,
+      });
 
       // 异步生成报告内容
       this.processReportGeneration(
@@ -619,15 +595,7 @@ export class ReportService {
       ).catch(async (error) => {
         logger.error('[ReportService] 报告生成失败', { reportId: reportRecord.id, error });
         // 更新报告状态为失败
-        await db
-          .update(analysisReports)
-          .set({
-            content: `报告生成失败: ${error.message}`,
-            generationProgress: 0,
-            generationStage: '生成失败',
-            updatedAt: new Date(),
-          })
-          .where(eq(analysisReports.id, reportRecord.id));
+        await analysisReportRepository.markFailed(reportRecord.id, `报告生成失败: ${error.message}`);
       });
 
       logger.info('[ReportService] 报告生成请求已接受', { reportId: reportRecord.id });
@@ -657,44 +625,23 @@ export class ReportService {
   ): Promise<void> {
     try {
       // 更新报告状态为处理中
-      await db
-        .update(analysisReports)
-        .set({
-          content: '正在收集数据...',
-          generationProgress: 10,
-          generationStage: '数据收集',
-          updatedAt: new Date(),
-        })
-        .where(eq(analysisReports.id, parseInt(reportId)));
+      await analysisReportRepository.updateProgress(parseInt(reportId), 10, '数据收集');
 
       // 聚合本周数据
       const reportData = await this.aggregateWeeklyData(accountId, startDate, endDate);
 
       // 更新报告状态为生成AI内容中
-      await db
-        .update(analysisReports)
-        .set({
-          content: '正在生成AI分析...',
-          generationProgress: 50,
-          generationStage: 'AI分析生成',
-          updatedAt: new Date(),
-        })
-        .where(eq(analysisReports.id, parseInt(reportId)));
+      await analysisReportRepository.updateProgress(parseInt(reportId), 50, 'AI分析生成');
 
       // 生成AI报告内容
       const reportContent = await this.generateAIReportContent(reportData);
 
       // 更新报告内容和状态（标记为完成）
-      await db
-        .update(analysisReports)
-        .set({
-          content: reportContent,
-          generationProgress: 100,
-          generationStage: '已完成',
-          dataSourceSummary: JSON.stringify(reportData.dataSourceSummary),
-          updatedAt: new Date(),
-        })
-        .where(eq(analysisReports.id, parseInt(reportId)));
+      await analysisReportRepository.updateContent(
+        parseInt(reportId),
+        reportContent,
+        JSON.stringify(reportData.dataSourceSummary),
+      );
 
       logger.info('[ReportService] 报告生成完成', { reportId });
     } catch (error) {
@@ -1080,25 +1027,26 @@ ${rows.join('\n')}
     try {
       logger.info('[ReportService] 获取报告列表', { accountId, type, limit, offset });
 
-      // 构建查询条件
-      const conditions = [eq(analysisReports.accountId, parseInt(accountId))];
+      // 获取报告列表和总数
+      let reportRows: AnalysisReportEntity[];
+      let totalCount: number;
+
       if (type) {
-        conditions.push(eq(analysisReports.type, type));
+        reportRows = await analysisReportRepository.findByAccountIdAndType(
+          parseInt(accountId),
+          type,
+          limit,
+          offset,
+        );
+        totalCount = await analysisReportRepository.countByAccountIdAndType(parseInt(accountId), type);
+      } else {
+        reportRows = await analysisReportRepository.findByAccountId(
+          parseInt(accountId),
+          limit,
+          offset,
+        );
+        totalCount = await analysisReportRepository.countByAccountId(parseInt(accountId));
       }
-
-      // 获取总数
-      const [totalCountResult] = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(analysisReports)
-        .where(and(...conditions));
-
-      // 获取报告列表
-      const reportRows = await db.query.analysisReports.findMany({
-        where: and(...conditions),
-        orderBy: [desc(analysisReports.createdAt)],
-        limit,
-        offset,
-      });
 
       const items: ReportListItem[] = reportRows.map((report) => ({
         id: report.id.toString(),
@@ -1109,7 +1057,7 @@ ${rows.join('\n')}
         createdAt: new Date(report.createdAt),
       }));
 
-      return { items, totalCount: totalCountResult?.count || 0 };
+      return { items, totalCount: totalCount || 0 };
     } catch (error) {
       logger.error('[ReportService] 获取报告列表失败', { error });
       return { items: [], totalCount: 0 };
@@ -1126,12 +1074,10 @@ ${rows.join('\n')}
     try {
       logger.info('[ReportService] 获取报告详情', { reportId });
 
-      const report = await db.query.analysisReports.findFirst({
-        where: and(
-          eq(analysisReports.id, parseInt(reportId)),
-          eq(analysisReports.accountId, parseInt(accountId)),
-        ),
-      });
+      const report = await analysisReportRepository.findByIdAndAccountId(
+        parseInt(reportId),
+        parseInt(accountId),
+      );
 
       if (!report) {
         return null;
@@ -1170,16 +1116,17 @@ ${rows.join('\n')}
     try {
       logger.info('[ReportService] 删除报告', { reportId, accountId });
 
-      const result = await db
-        .delete(analysisReports)
-        .where(
-          and(
-            eq(analysisReports.id, parseInt(reportId)),
-            eq(analysisReports.accountId, parseInt(accountId)),
-          ),
-        );
+      // 验证报告存在且属于指定账户
+      const hasOwnership = await analysisReportRepository.verifyOwnership(
+        parseInt(reportId),
+        parseInt(accountId),
+      );
 
-      return result.rowsAffected > 0;
+      if (!hasOwnership) {
+        return false;
+      }
+
+      return await analysisReportRepository.delete(parseInt(reportId));
     } catch (error) {
       logger.error('[ReportService] 删除报告失败', { reportId, error });
       return false;
@@ -1205,12 +1152,10 @@ ${rows.join('\n')}
       }
 
       // 验证报告存在且属于指定账户
-      const report = await db.query.analysisReports.findFirst({
-        where: and(
-          eq(analysisReports.id, parseInt(reportId)),
-          eq(analysisReports.accountId, parseInt(accountId)),
-        ),
-      });
+      const report = await analysisReportRepository.findByIdAndAccountId(
+        parseInt(reportId),
+        parseInt(accountId),
+      );
 
       if (!report) {
         logger.error('[ReportService] 更新报告失败：报告不存在或无权限', { reportId, accountId });
@@ -1218,14 +1163,11 @@ ${rows.join('\n')}
       }
 
       // 更新报告内容
-      const [updatedReport] = await db
-        .update(analysisReports)
-        .set({ 
-          content,
-          updatedAt: new Date(),
-        })
-        .where(eq(analysisReports.id, parseInt(reportId)))
-        .returning();
+      const updatedReport = await analysisReportRepository.update(parseInt(reportId), { content });
+
+      if (!updatedReport) {
+        return null;
+      }
 
       logger.info('[ReportService] 更新报告成功', { reportId, accountId });
 

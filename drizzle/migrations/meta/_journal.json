@@ -197,6 +197,34 @@
       "when": 1772067162689,
       "tag": "0027_calm_the_leader",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "6",
+      "when": 1772098612711,
+      "tag": "0028_long_cardiac",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "6",
+      "when": 1772098694102,
+      "tag": "0029_watery_taskmaster",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "6",
+      "when": 1772099771389,
+      "tag": "0030_safe_pretty_boy",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "6",
+      "when": 1772104323080,
+      "tag": "0031_equal_gambit",
+      "breakpoints": true
     }
   ]
 }

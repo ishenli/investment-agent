@@ -5,7 +5,6 @@
  */
 import { db } from '@server/lib/db';
 import { eq, inArray } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
 import {
   chatPlugins,
   type ChatPlugin,
@@ -70,17 +69,11 @@ export class PluginRepository extends BaseRepository<ChatPlugin> {
    * 创建插件
    */
   async create(data: CreatePluginParams): Promise<string> {
-    const id = nanoid();
-    const now = new Date();
-
-    await db.insert(chatPlugins).values({
-      id,
+    const result = await this._create({
       ...data,
-      createdAt: now,
-      updatedAt: now,
-    });
-
-    return id;
+      settings: data.settings ?? null,
+    } as any);
+    return result.id;
   }
 
   // ============== Update ==============

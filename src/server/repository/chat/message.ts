@@ -4,7 +4,7 @@
  * 聊天消息数据访问层
  */
 import { db } from '@server/lib/db';
-import { eq, and, desc, asc, isNull, inArray, lt } from 'drizzle-orm';
+import { eq, and, desc, asc, isNull, inArray, lt, sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import {
   chatMessages,
@@ -33,6 +33,13 @@ export class MessageRepository extends BaseRepository<ChatMessage> {
   }
 
   // ============== Query ==============
+
+  /**
+   * 根据 ID 查找消息
+   */
+  async findById(id: string): Promise<ChatMessage | undefined> {
+    return this._findById(id);
+  }
 
   /**
    * 查询会话-话题下的消息
@@ -197,17 +204,11 @@ export class MessageRepository extends BaseRepository<ChatMessage> {
    * 创建消息
    */
   async create(data: CreateMessageParams): Promise<string> {
-    const id = nanoid();
-    const now = new Date();
-
-    await db.insert(chatMessages).values({
-      id,
+    const result = await this._create({
       ...data,
-      createdAt: now,
-      updatedAt: now,
-    });
-
-    return id;
+      search: data.search ?? null,
+    } as any);
+    return result.id;
   }
 
   /**
@@ -223,9 +224,10 @@ export class MessageRepository extends BaseRepository<ChatMessage> {
       return {
         id,
         ...data,
+        search: data.search ?? null,
         createdAt: now,
         updatedAt: now,
-      };
+      } as any;
     });
 
     await db.insert(chatMessages).values(values);
@@ -377,25 +379,33 @@ export class MessageRepository extends BaseRepository<ChatMessage> {
    */
   async count(sessionId?: string, topicId?: string): Promise<number> {
     if (!sessionId) {
-      const results = await db.select({ id: chatMessages.id }).from(chatMessages);
-      return results.length;
+      const result = await db
+        .select({ count: sql<number>`count(*)`.as('count') })
+        .from(chatMessages);
+      return result[0]?.count ?? 0;
     }
 
     const conditions = topicId
       ? and(eq(chatMessages.sessionId, sessionId), eq(chatMessages.topicId, topicId))
       : and(eq(chatMessages.sessionId, sessionId), isNull(chatMessages.topicId));
 
-    const results = await db.select({ id: chatMessages.id }).from(chatMessages).where(conditions);
+    const result = await db
+      .select({ count: sql<number>`count(*)`.as('count') })
+      .from(chatMessages)
+      .where(conditions);
 
-    return results.length;
+    return result[0]?.count ?? 0;
   }
 
   /**
    * 检查是否有消息
    */
   async hasMessages(): Promise<boolean> {
-    const results = await db.select({ id: chatMessages.id }).from(chatMessages).limit(1);
-    return results.length > 0;
+    const result = await db
+      .select({ count: sql<number>`count(*)`.as('count') })
+      .from(chatMessages)
+      .limit(1);
+    return (result[0]?.count ?? 0) > 0;
   }
 }
 
