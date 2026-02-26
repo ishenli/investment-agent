@@ -1,4 +1,5 @@
 import { sqliteTable, text, integer, real, uniqueIndex, index } from 'drizzle-orm/sqlite-core';
+import { sql } from 'drizzle-orm';
 
 // 用户表（登录身份）
 export const users = sqliteTable('users', {
@@ -6,9 +7,12 @@ export const users = sqliteTable('users', {
   username: text('username').notNull().unique(),
   email: text('email').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
-});
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  deletedAt: integer('deleted_at', { mode: 'timestamp' }), // 软删除时间戳
+}, (table) => [
+  index('idx_users_deleted_at').on(table.deletedAt),
+]);
 
 // 交易账户（一个 user 可以有多个 account）
 export const accounts = sqliteTable('accounts', {
@@ -25,9 +29,13 @@ export const accounts = sqliteTable('accounts', {
   riskMode: text('risk_mode', { enum: ['retail', 'advanced'] })
     .notNull()
     .default('retail'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
-});
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  deletedAt: integer('deleted_at', { mode: 'timestamp' }), // 软删除时间戳
+}, (table) => [
+  index('idx_accounts_user_id').on(table.userId),
+  index('idx_accounts_deleted_at').on(table.deletedAt),
+]);
 
 // 账户资金表：使用 integer 存储最小货币单位（例如 cents）以避免浮点误差
 export const accountFunds = sqliteTable('account_funds', {
@@ -40,9 +48,12 @@ export const accountFunds = sqliteTable('account_funds', {
   currency: text('currency').notNull().default('USD'),
   // leverage moved to accounts for default; keep here if per-fund override needed
   leverage: integer('leverage').notNull().default(1),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
-});
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+}, (table) => [
+  uniqueIndex('idx_account_funds_account_currency_unique').on(table.accountId, table.currency),
+  index('idx_account_funds_account_id').on(table.accountId),
+]);
 
 // 用户选择的账户表
 export const userSelectedAccounts = sqliteTable('user_selected_accounts', {
@@ -53,9 +64,11 @@ export const userSelectedAccounts = sqliteTable('user_selected_accounts', {
   accountId: integer('account_id')
     .notNull()
     .references(() => accounts.id),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
-});
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+}, (table) => [
+  uniqueIndex('idx_user_selected_accounts_user_account_unique').on(table.userId, table.accountId),
+]);
 
 // 资产持仓表
 export const assetPositions = sqliteTable('asset_positions', {
@@ -70,9 +83,16 @@ export const assetPositions = sqliteTable('asset_positions', {
   averagePriceCents: integer('average_price_cents').notNull(),
   // sector information for the stock
   sector: text('sector', { enum: ['stock', 'etf', 'fund', 'crypto'] }).default('stock'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
-});
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  deletedAt: integer('deleted_at', { mode: 'timestamp' }), // 软删除时间戳
+}, (table) => [
+  // 仅对未删除记录使用唯一约束（避免软删除后无法创建同标的的新持仓）
+  uniqueIndex('idx_asset_positions_account_symbol_unique')
+    .on(table.accountId, table.symbol)
+    .where(sql`${table.deletedAt} is null`),
+  index('idx_asset_positions_deleted_at').on(table.deletedAt),
+]);
 
 // 交易/账本记录表（支持 trade 与 cash events）
 export const transactions = sqliteTable('transactions', {
@@ -97,10 +117,16 @@ export const transactions = sqliteTable('transactions', {
   status: text('status', { enum: ['pending', 'completed', 'failed'] })
     .notNull()
     .default('completed'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   // 交易时间，记录交易实际发生的时间
   tradeTime: integer('trade_time', { mode: 'timestamp' }),
-});
+  deletedAt: integer('deleted_at', { mode: 'timestamp' }), // 软删除时间戳（审计用，一般不直接删除交易记录）
+}, (table) => [
+  index('idx_transactions_account_created_at').on(table.accountId, table.createdAt),
+  index('idx_transactions_account_trade_time').on(table.accountId, table.tradeTime),
+  index('idx_transactions_deleted_at').on(table.deletedAt),
+]);
 
 // 收益/指标表
 export const revenueMetrics = sqliteTable('revenue_metrics', {
@@ -117,8 +143,8 @@ export const revenueMetrics = sqliteTable('revenue_metrics', {
   unrealizedGainLoss: real('unrealized_gain_loss'),
   // netProfit stored in cents
   netProfitCents: integer('net_profit_cents'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
 
 // 分析报告表：保存生成的分析报告（周报、月报等）
@@ -143,9 +169,12 @@ export const analysisReports = sqliteTable('analysis_reports', {
   lastEditedAt: integer('last_edited_at', { mode: 'timestamp' }),
   editCount: integer('edit_count').default(0),
 
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
-});
+  deletedAt: integer('deleted_at', { mode: 'timestamp' }), // 软删除时间戳
+}, (table) => [
+  index('idx_analysis_reports_deleted_at').on(table.deletedAt),
+]);
 
 // 资产元数据表：保存资产信息和价格历史（允许相同 symbol 不同 timestamp/source）
 export const assetMeta = sqliteTable('asset_meta', {
@@ -156,8 +185,8 @@ export const assetMeta = sqliteTable('asset_meta', {
     .notNull()
     .default('stock'),
   currency: text('currency').notNull().default('USD'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(), // 价格时间戳
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(), // 价格更新时间戳
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()), // 价格时间戳
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()), // 价格更新时间戳
   source: text('source').notNull().default('finnhub'), // 数据来源
   market: text('market', { enum: ['CN', 'US', 'HK'] })
     .notNull()
@@ -167,7 +196,10 @@ export const assetMeta = sqliteTable('asset_meta', {
   logoUrl: text('logo_url'), // Logo 地址
   investmentMemo: text('investment_memo'), // 投资笔记，用于AI分析的上下文信息
   deletedAt: integer('deleted_at', { mode: 'timestamp' }), // 软删除时间戳
-});
+}, (table) => [
+  uniqueIndex('idx_asset_meta_symbol_market_unique').on(table.symbol, table.market),
+  index('idx_asset_meta_deleted_at').on(table.deletedAt),
+]);
 
 // 资产价格历史表：保存资产的每日价格历史
 export const assetPriceHistory = sqliteTable('asset_price_history', {
@@ -182,8 +214,10 @@ export const assetPriceHistory = sqliteTable('asset_price_history', {
     .notNull()
     .default('US'),
   source: text('source').notNull().default('finnhub'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-});
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+}, (table) => [
+  index('idx_asset_price_symbol_date').on(table.symbol, table.date),
+]);
 
 // 市场信息表：保存资产的市场分析信息
 export const assetMarketInfo = sqliteTable('asset_market_info', {
@@ -203,8 +237,8 @@ export const assetMarketInfo = sqliteTable('asset_market_info', {
   contentMode: text('content_mode', { enum: ['ai_summary', 'original'] })
     .notNull()
     .default('ai_summary'), // 内容处理模式：ai_summary（AI摘要）或 original（原文保留）
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
 
 // 关联表：assetMarketInfo <-> assetMeta (Many-to-Many)
@@ -216,7 +250,10 @@ export const assetMarketInfoToAssetMeta = sqliteTable('asset_market_info_to_asse
   assetMetaId: integer('asset_meta_id')
     .notNull()
     .references(() => assetMeta.id, { onDelete: 'cascade' }),
-});
+}, (table) => [
+  uniqueIndex('idx_asset_market_info_to_asset_meta_unique')
+    .on(table.assetMarketInfoId, table.assetMetaId),
+]);
 
 // 公司信息表：保存资产的公司财务/销售等信息
 export const assetCompanyInfo = sqliteTable('asset_company_info', {
@@ -226,25 +263,24 @@ export const assetCompanyInfo = sqliteTable('asset_company_info', {
     .references(() => assetMeta.id),
   title: text('title').notNull(), // 标题
   content: text('content').notNull(), // 内容
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
 
 export const agent = sqliteTable('agent', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  slug: text('slug').notNull(),
+  slug: text('slug').notNull().unique(),
   name: text('name').notNull(),
   description: text('description'),
   systemRole: text('system_role'),
   logo: text('logo'),
-  apiKey: text('api_key').notNull(),
-  apiUrl: text('api_url').notNull(),
   openingQuestions: text('opening_questions', { mode: 'json' }).notNull().default([]),
   type: text('type', { enum: ['LOCAL', 'LINGXI'] })
     .notNull()
     .default('LOCAL'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
+  isBuiltin: integer('is_builtin', { mode: 'boolean' }).notNull().default(false),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
 
 // 新增一个笔记模块，用来记录用户笔记，同时也可以绑定各种标签
@@ -256,29 +292,34 @@ export const notes = sqliteTable('notes', {
   title: text('title').notNull(),
   content: text('content').notNull(),
   tags: text('tags', { mode: 'json' }).notNull().default([]),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
-});
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  deletedAt: integer('deleted_at', { mode: 'timestamp' }), // 软删除时间戳
+}, (table) => [
+  index('idx_notes_deleted_at').on(table.deletedAt),
+]);
 
 // 一个设置的数据表，能够管理每个账户的配置项
 export const settings = sqliteTable('settings', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  accountId: integer('account_id')
+  userId: integer('user_id')
     .notNull()
-    .references(() => accounts.id),
+    .references(() => users.id),
   key: text('key').notNull(),
   value: text('value').notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
-});
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+}, (table) => [
+  uniqueIndex('idx_settings_user_key_unique').on(table.userId, table.key),
+]);
 
 // 模型服务商表：存储 AI 模型服务提供商配置
 export const modelProviders = sqliteTable('model_providers', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  accountId: integer('account_id')
+  userId: integer('user_id')
     .notNull()
-    .references(() => accounts.id),
-  slug: text('slug').notNull().unique(),
+    .references(() => users.id),
+  slug: text('slug').notNull(),
   name: text('name').notNull(),
   baseUrl: text('base_url').notNull(),
   apiKey: text('api_key'),
@@ -287,7 +328,9 @@ export const modelProviders = sqliteTable('model_providers', {
   description: text('description'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
-});
+}, (table) => [
+  uniqueIndex('idx_model_providers_user_slug_unique').on(table.userId, table.slug),
+]);
 
 // 服务商模型表：存储每个服务商支持的模型
 export const providerModels = sqliteTable('provider_models', {
@@ -304,7 +347,9 @@ export const providerModels = sqliteTable('provider_models', {
   displayOrder: integer('display_order').notNull().default(0),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
-});
+}, (table) => [
+  uniqueIndex('idx_provider_models_provider_slug_unique').on(table.providerId, table.slug),
+]);
 
 // 定时任务执行日志表：记录定时任务的执行历史
 export const scheduledTaskLogs = sqliteTable('scheduled_task_logs', {
@@ -362,3 +407,34 @@ export const portfolioSnapshots = sqliteTable('portfolio_snapshots', {
   // 按日期范围查询快照
   index('idx_portfolio_snapshots_date').on(table.snapshotDate),
 ]);
+
+// ============== Chat Storage Tables ==============
+// 聊天存储相关表，从 drizzle/schema/chat.ts 导入
+export {
+  chatSessionGroups,
+  chatSessions,
+  chatTopics,
+  chatMessages,
+  chatThreads,
+  chatFiles,
+  chatPlugins,
+  type AgentConfig,
+  type SessionMeta,
+  type ToolCall,
+  type PluginInfo,
+  type TranslateInfo,
+  type ChatSession,
+  type NewChatSession,
+  type ChatTopic,
+  type NewChatTopic,
+  type ChatMessage,
+  type NewChatMessage,
+  type ChatThread,
+  type NewChatThread,
+  type ChatFile,
+  type NewChatFile,
+  type ChatSessionGroup,
+  type NewChatSessionGroup,
+  type ChatPlugin,
+  type NewChatPlugin,
+} from './schema/chat';

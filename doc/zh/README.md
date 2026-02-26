@@ -42,17 +42,13 @@
 
 ### 功能特性
 
-![投顾智能体对话](https://mdn.alipayobjects.com/huamei_ptvnul/afts/img/A*rBlqR5EDXF4AAAAAXYAAAAgAeg-GAQ/original)
+<center>明亮模式</center>
 
-<center>智能体对话</center>
+![](../asset//intro-light.png)
 
-![](https://mdn.alipayobjects.com/huamei_ptvnul/afts/img/A*xb4HTbkfOcoAAAAAWhAAAAgAeg-GAQ/original)
+<center>暗黑模式</center>
 
-<center>仓位管理</center>
-
-![市场信息获取](https://mdn.alipayobjects.com/huamei_ptvnul/afts/img/A*K5SeQbplfAQAAAAAYbAAAAgAeg-GAQ/original)
-
-<center>市场信息获取</center>
+![](../asset//intro-dark.png)
 
 ### 整体功能列表
 

@@ -1,5 +1,4 @@
 # Investment Agent
-![Investment Agent](https://mdn.alipayobjects.com/huamei_ptvnul/afts/img/A*75cHQpMc8-4AAAAAcFAAAAgAeg-GAQ/original)
 
 This is a localized investment analysis tool built with AI Coding, utilizing AI to provide comprehensive stock market analysis, asset management, and investment recommendations.
 
@@ -42,17 +41,13 @@ Investment Agent is an advanced investment analysis platform that uses a multi-a
 
 ### Features
 
-![AI Agent Conversation](https://mdn.alipayobjects.com/huamei_ptvnul/afts/img/A*rBlqR5EDXF4AAAAAXYAAAAgAeg-GAQ/original)
+<center>light mode</center>
 
-<center>Agent Conversation</center>
+![](./doc/asset//intro-light.png)
 
-![](https://mdn.alipayobjects.com/huamei_ptvnul/afts/img/A*xb4HTbkfOcoAAAAAWhAAAAgAeg-GAQ/original)
+<center>dark mode</center>
 
-<center>Position Management</center>
-
-![Market Information Retrieval](https://mdn.alipayobjects.com/huamei_ptvnul/afts/img/A*K5SeQbplfAQAAAAAYbAAAAgAeg-GAQ/original)
-
-<center>Market Information Retrieval</center>
+![](./doc/asset//intro-dark.png)
 
 ### Complete Feature List
 
@@ -85,6 +80,10 @@ Investment Agent is an advanced investment analysis platform that uses a multi-a
 - **Automatic Market Information Retrieval**: Automatically fetch, analyze, and store market information
 
 - **Persistent Data Storage**: Reliable data persistence using SQLite and Drizzle ORM
+
+- **Theme**: Support light and dark mode
+
+- **Internationalization**: Support Simplified Chinese and English
 
 ## Installation and Usage
 
@@ -140,9 +139,6 @@ MODEL_PROVIDER_URL=your_openai_compatible_api_url
 
 # API Key
 MODEL_PROVIDER_API_KEY=your_api_key
-
-# Session User ID
-SESSION_USER_ID=your_user_id
 
 # =================== Data Providers ===================
 # Finnhub API Key (stock market data)
@@ -386,7 +382,6 @@ investment-agent/
 
 - **Drizzle ORM** - Type-safe SQL ORM with excellent TypeScript support
 - **Drizzle Kit** - Database schema management and migrations
-- **Better SQLite3** - High-performance embedded database
 - **@libsql/client** - LibSQL client for edge-compatible database operations
 - **Dexie** - IndexedDB wrapper for client-side data persistence
 

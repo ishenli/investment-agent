@@ -1,4 +1,4 @@
-import { WithRequestContext, WithRequestContextStatic } from '@server/base/decorators';
+import { WithRequestContextStatic } from '@server/base/decorators';
 import { BaseController } from '../base/baseController';
 import logger from '@server/base/logger';
 import stockService from '@server/service/stockService';

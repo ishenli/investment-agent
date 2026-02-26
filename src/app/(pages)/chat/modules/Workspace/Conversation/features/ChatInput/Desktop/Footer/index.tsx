@@ -78,7 +78,7 @@ const Footer = memo<FooterProps>(({ onExpandChange, expand }) => {
                 icon={StopLoadingIcon}
                 onClick={stopGenerateMessage}
               >
-                停止
+                {t('stop')}
               </Button>
             ) : (
               <Space.Compact>

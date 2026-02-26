@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import React, { memo } from 'react';
-
+import { useTranslation } from 'react-i18next';
 import { DEFAULT_BACKGROUND_COLOR, DEFAULT_INBOX_AVATAR } from '@renderer/const/meta';
-import { INBOX_SESSION_CONFIG, INBOX_SESSION_ID } from '@renderer/const/session';
+import { INBOX_SESSION_ID } from '@renderer/const/session';
 import { SESSION_CHAT_URL } from '@renderer/const/url';
 import { useSwitchSession } from '@renderer/hooks/useSwitchSession';
 import { getChatStoreState, useChatStore } from '@renderer/store/chat';
@@ -12,6 +12,7 @@ import { useSessionStore } from '@renderer/store/session';
 import ListItem from '../ListItem';
 
 const Inbox = memo(() => {
+  const { t } = useTranslation('chat');
   const activeId = useSessionStore((s) => s.activeId);
 
   const openNewTopicOrSaveTopic = useChatStore((s) => s.openNewTopicOrSaveTopic);
@@ -48,8 +49,8 @@ const Inbox = memo(() => {
             maskImage: `linear-gradient(90deg, #000 90%, transparent)`,
           },
         }}
-        title={INBOX_SESSION_CONFIG.title}
-        description={INBOX_SESSION_CONFIG.description}
+        title={t('inbox.title')}
+        description={t('inbox.description')}
       />
     </Link>
   );

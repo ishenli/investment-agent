@@ -77,6 +77,7 @@
       "saveSettings": "保存设置",
       "saving": "保存中..."
     },
+    "builtin": "内置",
     "cards": {
       "apiUrlLabel": "API地址:",
       "createdAtLabel": "创建时间:",
@@ -88,14 +89,22 @@
     },
     "description": "管理您的 AI 智能体配置",
     "empty": {
+      "builtinHint": "内置智能体在系统启动时自动初始化",
       "createFirstAgent": "点击上方按钮创建您的第一个智能体",
+      "createFirstCustomAgent": "点击上方按钮创建您的第一个自定义智能体",
       "createFirstLingxiAgent": "点击上方按钮创建您的第一个灵犀智能体",
       "createFirstLocalAgent": "点击上方按钮创建您的第一个本地智能体",
       "noAgents": "暂无智能体",
+      "noBuiltinAgents": "暂无内置智能体",
+      "noCustomAgents": "暂无自定义智能体",
       "noLingxiAgents": "暂无灵犀智能体",
       "noLocalAgents": "暂无本地智能体"
     },
+    "errors": {
+      "cannotDeleteBuiltin": "内置智能体不能删除"
+    },
     "form": {
+      "builtinHint": "内置智能体只能编辑描述、系统提示词、Logo 和开场问题。",
       "fields": {
         "apiKey": {
           "label": "API密钥 *",
@@ -108,6 +117,10 @@
         "description": {
           "label": "描述",
           "placeholder": "输入智能体描述"
+        },
+        "logo": {
+          "label": "Logo URL",
+          "placeholder": "输入Logo URL"
         },
         "name": {
           "label": "名称 *",
@@ -139,6 +152,7 @@
         "edit": "编辑 %s"
       }
     },
+    "loading": "加载中...",
     "messages": {
       "createSuccess": "智能体创建成功",
       "deleteFailed": "删除智能体失败",
@@ -150,6 +164,8 @@
     },
     "tabs": {
       "all": "全部",
+      "builtin": "内置",
+      "custom": "自定义",
       "lingxi": "灵犀",
       "local": "本地"
     },
@@ -174,6 +190,12 @@
     "autoRefresh": "自动刷新数据",
     "autoSave": "自动保存",
     "autoSaveDescription": "自动保存您的更改",
+    "avatar": {
+      "changeAvatar": "更换头像",
+      "description": "上传您的个人头像",
+      "removeAvatar": "移除头像",
+      "title": "头像"
+    },
     "currency": "货币",
     "dateFormat": "日期格式",
     "description": "管理您的通用偏好设置",

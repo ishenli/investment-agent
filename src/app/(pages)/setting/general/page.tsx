@@ -7,7 +7,8 @@ import { Button } from '@renderer/components/ui/button';
 import { Switch } from '@renderer/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@renderer/components/ui/select';
 import { Separator } from '@renderer/components/ui/separator';
-import { Check, Globe, Bell } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@renderer/components/ui/avatar';
+import { Check, Globe, Bell, User, Camera, Trash2 } from 'lucide-react';
 import { useUserStore } from '@renderer/store/user';
 import { SupportedLanguage } from '@typings/user';
 import { useTranslation } from 'react-i18next';
@@ -19,16 +20,19 @@ export default function GeneralSettings({
   // Add props if needed
 }: GeneralSettingsProps) {
   const { t } = useTranslation('setting');
-  const [dataRetention, setDataRetention] = React.useState('30d');
+  // const [dataRetention, setDataRetention] = React.useState('30d');
   const [saving, setSaving] = React.useState(false);
   const [saved, setSaved] = React.useState(false);
-  
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
   // 从store获取和更新所有设置，优先使用 i18n 当前语言避免闪烁
   const storeLanguage = useUserStore(state => state.preference.language);
   const currentLanguage = storeLanguage || (i18nInstance.language as SupportedLanguage) || defaultLanguage;
   const currentNotifications = useUserStore(state => state.preference.enableNotifications ?? false);
   const currentAutoSave = useUserStore(state => state.preference.autoSave ?? true);
+  const currentAvatar = useUserStore(state => state.avatar);
   const updatePreference = useUserStore(state => state.updatePreference);
+  const updateAvatar = useUserStore(state => state.updateAvatar);
 
   const handleLanguageChange = async (value: string) => {
     const newLanguage = value as SupportedLanguage;
@@ -41,6 +45,42 @@ export default function GeneralSettings({
 
   const handleAutoSaveChange = async (checked: boolean) => {
     await updatePreference({ autoSave: checked });
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // 验证文件类型
+    if (!file.type.startsWith('image/')) {
+      return;
+    }
+
+    // 验证文件大小 (最大 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      return;
+    }
+
+    // 转换为 base64
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const base64 = e.target?.result as string;
+      await updateAvatar(base64);
+    };
+    reader.readAsDataURL(file);
+
+    // 清除 input 以便可以再次选择相同文件
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    await updateAvatar('');
   };
 
   const handleSave = async () => {
@@ -70,6 +110,55 @@ export default function GeneralSettings({
         )}
       </div>
 
+      {/* Avatar */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <User className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <CardTitle>{t('general.avatar.title')}</CardTitle>
+              <CardDescription>{t('general.avatar.description')}</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-6">
+            <Avatar className="h-20 w-20">
+              <AvatarImage src={currentAvatar} alt="Avatar" />
+              <AvatarFallback className="text-lg">
+                <User className="h-8 w-8" />
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={handleAvatarClick}>
+                  <Camera className="h-4 w-4 mr-2" />
+                  {t('general.avatar.changeAvatar')}
+                </Button>
+                {currentAvatar && (
+                  <Button variant="outline" size="sm" onClick={handleRemoveAvatar}>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    {t('general.avatar.removeAvatar')}
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                JPG, PNG or GIF. Max 2MB.
+              </p>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarChange}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Language & Region */}
       <Card>
         <CardHeader>
@@ -94,7 +183,7 @@ export default function GeneralSettings({
               <SelectContent>
                 <SelectItem value="zh-CN">{t('language.zh-CN')}</SelectItem>
                 <SelectItem value="en-US">{t('language.en-US')}</SelectItem>
-                
+
               </SelectContent>
             </Select>
           </div>

@@ -9,9 +9,8 @@ import { agentSelectors } from '@renderer/store/agent/selectors';
 import { useSessionStore } from '@renderer/store/session';
 import { sessionMetaSelectors, sessionSelectors } from '@renderer/store/session/selectors';
 
-import { SESSION_CONFIG_TITLE } from '@renderer/const/text/sessionConfig';
-import React from 'react';
 import { useTranslation } from 'react-i18next';
+import React from 'react';
 import { useContainerStyles } from '../style';
 import ChatList from './ChatList';
 import { useStyles } from './style';
@@ -19,7 +18,7 @@ import { FieldType } from './type';
 
 const Preview = memo<FieldType & { title?: string }>(
   ({ title, withSystemRole, withBackground, withFooter }) => {
-    const { t } = useTranslation('common');
+    const { t } = useTranslation(['common', 'chat']);
     const [model, plugins, systemRole] = useAgentStore((s) => [
       agentSelectors.currentAgentModel(s),
       agentSelectors.currentAgentPlugins(s),
@@ -35,9 +34,9 @@ const Preview = memo<FieldType & { title?: string }>(
     const { styles } = useStyles(withBackground);
     const { styles: containerStyles } = useContainerStyles();
 
-    const displayTitle = isInbox ? SESSION_CONFIG_TITLE.INBOX : title;
+    const displayTitle = isInbox ? t('chat:sessionConfig.inboxTitle') : title;
     const displayDesc = isInbox
-      ? '开启大脑集群，激发思维火花。你的智能助理，在这里与你交流一切'
+      ? t('chat:sessionConfig.inboxDescription')
       : description;
 
     return (

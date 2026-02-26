@@ -11,7 +11,7 @@ import { systemStatusSelectors } from '@renderer/store/global/selectors';
 import { useSessionStore } from '@renderer/store/session';
 import { sessionMetaSelectors, sessionSelectors } from '@renderer/store/session/selectors';
 
-import { SESSION_CONFIG_TITLE } from '@renderer/const/text/sessionConfig';
+import { useTranslation } from 'react-i18next';
 import { useInitAgentConfig } from '@renderer/hooks/useInitAgentConfig';
 import TogglePanelButton from '../../SessionLayout/TogglePanelButton';
 import Tags from './Tags';
@@ -39,6 +39,7 @@ const useStyles = createStyles(({ css }) => ({
 }));
 
 const Main = memo<{ className?: string }>(({ className }) => {
+  const { t } = useTranslation('chat');
   const { styles } = useStyles();
   useInitAgentConfig();
   const [isPinned] = usePinnedAgentState();
@@ -55,7 +56,7 @@ const Main = memo<{ className?: string }>(({ className }) => {
     console.log('openChatSettings');
   };
 
-  const displayTitle = isInbox ? SESSION_CONFIG_TITLE.INBOX : title;
+  const displayTitle = isInbox ? t('sessionConfig.inboxTitle') : title;
   const showSessionPanel = useGlobalStore(systemStatusSelectors.showSessionPanel);
 
   if (!init)

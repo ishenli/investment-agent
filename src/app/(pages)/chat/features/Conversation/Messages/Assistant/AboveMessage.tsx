@@ -5,14 +5,14 @@ import { get } from 'lodash';
 import { createStyles } from 'antd-style';
 import React, { memo } from 'react';
 
-const useStyles = createStyles(({ css }) => ({
+const useStyles = createStyles(({ css, token }) => ({
   container: css`
     padding-block: 8px;
     padding-inline: 8px;
     border-radius: 8px;
-    background: #fff;
-    border: 1px solid #f4f4f4;
     margin-bottom: 4px;
+    background: ${token.colorFillQuaternary};
+    border: 1px solid ${token.colorBorderSecondary};
   `,
 
   title: css`
@@ -20,10 +20,13 @@ const useStyles = createStyles(({ css }) => ({
     gap: 2px;
     margin: 0;
     align-items: center;
+    color: ${token.colorText};
+    font-size: 14px;
   `,
   img: css`
     width: 20px;
     height: 20px;
+    opacity: 0.85;
   `,
 }));
 

@@ -1,6 +1,47 @@
 import { build } from 'esbuild';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const rootDir = path.resolve(__dirname, '..');
+
+// Generate version info file for about page
+function generateVersionInfo() {
+  const packageJsonPath = path.join(rootDir, 'package.json');
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+
+  const versionInfo = {
+    version: packageJson.version || '0.0.0',
+    author: packageJson.author || 'Unknown',
+    license: packageJson.license || 'Unknown',
+    buildDate: new Date().toISOString().split('T')[0],
+  };
+
+  // Write to public directory for web build
+  const publicDir = path.join(rootDir, 'public');
+  if (!fs.existsSync(publicDir)) {
+    fs.mkdirSync(publicDir, { recursive: true });
+  }
+  fs.writeFileSync(
+    path.join(publicDir, 'version.json'),
+    JSON.stringify(versionInfo, null, 2),
+    'utf-8'
+  );
+
+  // Write to .next/standalone for Electron build
+  const standaloneDir = path.join(rootDir, '.next', 'standalone');
+  if (fs.existsSync(standaloneDir)) {
+    fs.writeFileSync(
+      path.join(standaloneDir, 'version.json'),
+      JSON.stringify(versionInfo, null, 2),
+      'utf-8'
+    );
+  }
+
+  console.log('Version info generated:', versionInfo);
+  return versionInfo;
+}
 
 // Replace symlinks in standalone with real copies so electron-builder can package them
 function resolveStandaloneSymlinks() {
@@ -24,6 +65,9 @@ function resolveStandaloneSymlinks() {
 }
 
 async function buildElectron() {
+  // Generate version info before building
+  generateVersionInfo();
+
   const shared = {
     bundle: true,
     platform: 'node',

@@ -1,37 +1,32 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ModelProviderService } from '../modelProviderService';
 import logger from '../../../server/base/logger';
-import { db } from '../../../server/lib/db';
+import { modelProviderRepository, providerModelRepository, modelProviderCombinedRepository } from '@server/repository/modelProviderRepository';
 
-// Mock modules
-vi.mock('drizzle-orm', () => ({
-  eq: vi.fn((field: any, value: any) => ({ field, value, operator: 'eq' })),
-  and: vi.fn((...conditions: any[]) => ({ conditions, operator: 'and' })),
-  desc: vi.fn((field: any) => ({ field, direction: 'desc' })),
-  asc: vi.fn((field: any) => ({ field, direction: 'asc' })),
-}));
-
-vi.mock('@/drizzle/schema', () => ({
-  modelProviders: {},
-  providerModels: {},
-  accounts: {},
-}));
-
-vi.mock('@server/lib/db', () => ({
-  db: {
-    query: {
-      modelProviders: {
-        findFirst: vi.fn(),
-        findMany: vi.fn(),
-      },
-      providerModels: {
-        findFirst: vi.fn(),
-        findMany: vi.fn(),
-      },
-    },
-    insert: vi.fn(),
+// Mock repositories
+vi.mock('@server/repository/modelProviderRepository', () => ({
+  modelProviderRepository: {
+    create: vi.fn(),
+    findByUserId: vi.fn(),
+    findById: vi.fn(),
+    findByUserIdAndSlug: vi.fn(),
+    existsByUserIdAndSlug: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+    verifyOwnership: vi.fn(),
+    toggleActive: vi.fn(),
+  },
+  providerModelRepository: {
+    create: vi.fn(),
+    findByProviderId: vi.fn(),
+    findById: vi.fn(),
+    findByProviderIdAndSlug: vi.fn(),
+    existsByProviderIdAndSlug: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+  },
+  modelProviderCombinedRepository: {
+    verifyModelOwnership: vi.fn(),
   },
 }));
 
@@ -78,6 +73,8 @@ describe('ModelProviderService', () => {
   beforeEach(() => {
     service = new ModelProviderService();
     vi.clearAllMocks();
+    // 重置所有 mocks 的实现
+    vi.resetAllMocks();
   });
 
   describe('createProvider', () => {
@@ -90,15 +87,8 @@ describe('ModelProviderService', () => {
     };
 
     it('应该成功创建新的模型提供商', async () => {
-      (db.query.modelProviders.findFirst as any).mockResolvedValue(null);
-      
-      const mockInsert = vi.fn().mockResolvedValue([mockProvider]);
-      const mockValues = vi.fn().mockReturnValue({
-        returning: mockInsert,
-      });
-      (db.insert as any).mockReturnValue({
-        values: mockValues,
-      });
+      (modelProviderRepository.findByUserIdAndSlug as any).mockResolvedValue(null);
+      (modelProviderRepository.create as any).mockResolvedValue(mockProvider);
 
       const result = await service.createProvider(1, validRequest);
 
@@ -107,21 +97,14 @@ describe('ModelProviderService', () => {
     });
 
     it('当Slug已存在时应该抛出错误', async () => {
-      (db.query.modelProviders.findFirst as any).mockResolvedValue(mockProvider);
+      (modelProviderRepository.findByUserIdAndSlug as any).mockResolvedValue(mockProvider);
 
       await expect(service.createProvider(1, validRequest)).rejects.toThrow('Slug already exists in this account');
     });
 
     it('数据库插入失败时应该抛出错误', async () => {
-      (db.query.modelProviders.findFirst as any).mockResolvedValue(null);
-      
-      const mockInsert = vi.fn().mockRejectedValue(new Error('Database error'));
-      const mockValues = vi.fn().mockReturnValue({
-        returning: mockInsert,
-      });
-      (db.insert as any).mockReturnValue({
-        values: mockValues,
-      });
+      (modelProviderRepository.findByUserIdAndSlug as any).mockResolvedValue(null);
+      (modelProviderRepository.create as any).mockRejectedValue(new Error('Database error'));
 
       await expect(service.createProvider(1, validRequest)).rejects.toThrow('Database error');
       expect(logger.error).toHaveBeenCalled();
@@ -131,16 +114,15 @@ describe('ModelProviderService', () => {
   describe('getProvidersByAccountId', () => {
     it('应该返回账户的所有提供商', async () => {
       const providers = [mockProvider, { ...mockProvider, id: 2, slug: 'anthropic' }];
-      (db.query.modelProviders.findMany as any).mockResolvedValue(providers);
+      (modelProviderRepository.findByUserId as any).mockResolvedValue(providers);
 
       const result = await service.getProvidersByAccountId(1);
 
       expect(result).toEqual(providers);
-      expect(db.query.modelProviders.findMany).toHaveBeenCalled();
     });
 
     it('当没有提供商时应该返回空数组', async () => {
-      (db.query.modelProviders.findMany as any).mockResolvedValue([]);
+      (modelProviderRepository.findByUserId as any).mockResolvedValue([]);
 
       const result = await service.getProvidersByAccountId(1);
 
@@ -148,7 +130,7 @@ describe('ModelProviderService', () => {
     });
 
     it('数据库查询失败时应该返回空数组', async () => {
-      (db.query.modelProviders.findMany as any).mockRejectedValue(new Error('Database error'));
+      (modelProviderRepository.findByUserId as any).mockRejectedValue(new Error('Database error'));
 
       const result = await service.getProvidersByAccountId(1);
 
@@ -159,7 +141,7 @@ describe('ModelProviderService', () => {
 
   describe('getProviderById', () => {
     it('应该返回指定ID的提供商', async () => {
-      (db.query.modelProviders.findFirst as any).mockResolvedValue(mockProvider);
+      (modelProviderRepository.findById as any).mockResolvedValue(mockProvider);
 
       const result = await service.getProviderById(1);
 
@@ -167,7 +149,7 @@ describe('ModelProviderService', () => {
     });
 
     it('当提供商不存在时应该返回null', async () => {
-      (db.query.modelProviders.findFirst as any).mockResolvedValue(null);
+      (modelProviderRepository.findById as any).mockResolvedValue(null);
 
       const result = await service.getProviderById(999);
 
@@ -175,7 +157,7 @@ describe('ModelProviderService', () => {
     });
 
     it('数据库查询失败时应该返回null', async () => {
-      (db.query.modelProviders.findFirst as any).mockRejectedValue(new Error('Database error'));
+      (modelProviderRepository.findById as any).mockRejectedValue(new Error('Database error'));
 
       const result = await service.getProviderById(1);
 
@@ -192,13 +174,11 @@ describe('ModelProviderService', () => {
     };
 
     it('应该成功更新提供商', async () => {
-      (db.query.modelProviders.findFirst as any).mockResolvedValueOnce(mockProvider); // For auth check
-      (db.query.modelProviders.findFirst as any).mockResolvedValueOnce(null); // For slug uniqueness check
-      
-      const mockSet = vi.fn().mockReturnValue({ where: vi.fn() });
-      (db.update as any).mockReturnValue({ set: mockSet });
-      
-      vi.spyOn(service, 'getProviderById').mockResolvedValue({ ...mockProvider, ...updateRequest });
+      (modelProviderRepository.verifyOwnership as any).mockResolvedValue(true);
+      (modelProviderRepository.findById as any).mockResolvedValueOnce(mockProvider); // For auth check
+      (modelProviderRepository.existsByUserIdAndSlug as any).mockResolvedValueOnce(false); // For slug uniqueness check
+      (modelProviderRepository.update as any).mockResolvedValue({ ...mockProvider, ...updateRequest });
+      (modelProviderRepository.findById as any).mockResolvedValue({ ...mockProvider, ...updateRequest });
 
       const result = await service.updateProvider(1, 1, updateRequest);
 
@@ -207,7 +187,7 @@ describe('ModelProviderService', () => {
     });
 
     it('当提供商不存在时应该返回null', async () => {
-      (db.query.modelProviders.findFirst as any).mockResolvedValue(null);
+      (modelProviderRepository.findById as any).mockResolvedValue(null);
 
       const result = await service.updateProvider(999, 1, updateRequest);
 
@@ -215,20 +195,18 @@ describe('ModelProviderService', () => {
     });
 
     it('当Slug已存在时应该抛出错误', async () => {
-      (db.query.modelProviders.findFirst as any).mockResolvedValueOnce(mockProvider);
-      (db.query.modelProviders.findFirst as any).mockResolvedValueOnce({ ...mockProvider, id: 2 });
+      (modelProviderRepository.verifyOwnership as any).mockResolvedValue(true);
+      (modelProviderRepository.findById as any).mockResolvedValueOnce(mockProvider);
+      (modelProviderRepository.existsByUserIdAndSlug as any).mockResolvedValueOnce(true);
 
       await expect(service.updateProvider(1, 1, updateRequest)).rejects.toThrow('Slug already exists in this account');
     });
 
     it('数据库更新失败时应该抛出错误', async () => {
-      (db.query.modelProviders.findFirst as any).mockResolvedValueOnce(mockProvider);
-      (db.query.modelProviders.findFirst as any).mockResolvedValueOnce(null);
-      
-      // Mock the full chain: db.update().set().where()
-      const mockWhere = vi.fn().mockRejectedValue(new Error('Database error'));
-      const mockSet = vi.fn().mockReturnValue({ where: mockWhere });
-      (db.update as any).mockReturnValue({ set: mockSet });
+      (modelProviderRepository.verifyOwnership as any).mockResolvedValue(true);
+      (modelProviderRepository.findById as any).mockResolvedValueOnce(mockProvider);
+      (modelProviderRepository.existsByUserIdAndSlug as any).mockResolvedValueOnce(false);
+      (modelProviderRepository.update as any).mockRejectedValue(new Error('Database error'));
 
       await expect(service.updateProvider(1, 1, updateRequest)).rejects.toThrow('Database error');
       expect(logger.error).toHaveBeenCalled();
@@ -237,20 +215,17 @@ describe('ModelProviderService', () => {
 
   describe('deleteProvider', () => {
     it('应该成功删除提供商', async () => {
-      (db.query.modelProviders.findFirst as any).mockResolvedValue(mockProvider);
-      
-      const mockDelete = vi.fn().mockResolvedValue(undefined);
-      const mockWhere = vi.fn().mockReturnValue({ returning: mockDelete });
-      (db.delete as any).mockReturnValue({ where: mockWhere });
+      (modelProviderRepository.findById as any).mockResolvedValue(mockProvider);
+      (modelProviderRepository.verifyOwnership as any).mockResolvedValue(true);
+      (modelProviderRepository.delete as any).mockResolvedValue(true);
 
       const result = await service.deleteProvider(1, 1);
 
       expect(result).toBe(true);
-      expect(logger.info).toHaveBeenCalledWith('Model provider deleted: 1');
     });
 
     it('当提供商不存在时应该返回false', async () => {
-      (db.query.modelProviders.findFirst as any).mockResolvedValue(null);
+      (modelProviderRepository.verifyOwnership as any).mockResolvedValue(false);
 
       const result = await service.deleteProvider(999, 1);
 
@@ -258,10 +233,9 @@ describe('ModelProviderService', () => {
     });
 
     it('数据库删除失败时应该返回false', async () => {
-      (db.query.modelProviders.findFirst as any).mockResolvedValue(mockProvider);
-      
-      const mockWhere = vi.fn().mockRejectedValue(new Error('Database error'));
-      (db.delete as any).mockReturnValue({ where: mockWhere });
+      (modelProviderRepository.findById as any).mockResolvedValue(mockProvider);
+      (modelProviderRepository.verifyOwnership as any).mockResolvedValue(true);
+      (modelProviderRepository.delete as any).mockRejectedValue(new Error('Database error'));
 
       const result = await service.deleteProvider(1, 1);
 
@@ -272,10 +246,9 @@ describe('ModelProviderService', () => {
 
   describe('setProviderActive', () => {
     it('应该成功设置提供商激活状态', async () => {
-      vi.spyOn(service, 'getProviderById').mockResolvedValue(mockProvider);
-      
-      const mockSet = vi.fn().mockReturnValue({ where: vi.fn() });
-      (db.update as any).mockReturnValue({ set: mockSet });
+      (modelProviderRepository.findById as any).mockResolvedValue(mockProvider);
+      (modelProviderRepository.verifyOwnership as any).mockResolvedValue(true);
+      (modelProviderRepository.toggleActive as any).mockResolvedValue({ ...mockProvider, isActive: false });
 
       const result = await service.setProviderActive(1, 1, false);
 
@@ -284,7 +257,8 @@ describe('ModelProviderService', () => {
     });
 
     it('当提供商不存在时应该返回false', async () => {
-      vi.spyOn(service, 'getProviderById').mockResolvedValue(null);
+      (modelProviderRepository.findById as any).mockResolvedValue(null);
+      (modelProviderRepository.verifyOwnership as any).mockResolvedValue(false);
 
       const result = await service.setProviderActive(999, 1, true);
 
@@ -292,7 +266,8 @@ describe('ModelProviderService', () => {
     });
 
     it('当无权限时应该返回false', async () => {
-      vi.spyOn(service, 'getProviderById').mockResolvedValue({ ...mockProvider, accountId: 2 });
+      (modelProviderRepository.findById as any).mockResolvedValue(mockProvider);
+      (modelProviderRepository.verifyOwnership as any).mockResolvedValue(false);
 
       const result = await service.setProviderActive(1, 1, true);
 
@@ -300,10 +275,9 @@ describe('ModelProviderService', () => {
     });
 
     it('数据库更新失败时应该返回false', async () => {
-      vi.spyOn(service, 'getProviderById').mockResolvedValue(mockProvider);
-      
-      const mockSet = vi.fn().mockRejectedValue(new Error('Database error'));
-      (db.update as any).mockReturnValue({ set: mockSet });
+      (modelProviderRepository.findById as any).mockResolvedValue(mockProvider);
+      (modelProviderRepository.verifyOwnership as any).mockResolvedValue(true);
+      (modelProviderRepository.toggleActive as any).mockRejectedValue(new Error('Database error'));
 
       const result = await service.setProviderActive(1, 1, true);
 
@@ -322,16 +296,9 @@ describe('ModelProviderService', () => {
     };
 
     it('应该成功创建新的模型', async () => {
-      vi.spyOn(service, 'getProviderById').mockResolvedValue(mockProvider);
-      (db.query.providerModels.findFirst as any).mockResolvedValue(null);
-      
-      const mockInsert = vi.fn().mockResolvedValue([mockModel]);
-      const mockValues = vi.fn().mockReturnValue({
-        returning: mockInsert,
-      });
-      (db.insert as any).mockReturnValue({
-        values: mockValues,
-      });
+      (modelProviderRepository.findById as any).mockResolvedValue(mockProvider);
+      (providerModelRepository.findByProviderIdAndSlug as any).mockResolvedValue(null);
+      (providerModelRepository.create as any).mockResolvedValue(mockModel);
 
       const result = await service.createModel(1, validModelRequest);
 
@@ -340,29 +307,22 @@ describe('ModelProviderService', () => {
     });
 
     it('当提供商不存在时应该抛出错误', async () => {
-      vi.spyOn(service, 'getProviderById').mockResolvedValue(null);
+      (modelProviderRepository.findById as any).mockResolvedValue(null);
 
       await expect(service.createModel(999, validModelRequest)).rejects.toThrow('Provider not found');
     });
 
     it('当模型Slug已存在时应该抛出错误', async () => {
-      vi.spyOn(service, 'getProviderById').mockResolvedValue(mockProvider);
-      (db.query.providerModels.findFirst as any).mockResolvedValue(mockModel);
+      (modelProviderRepository.findById as any).mockResolvedValue(mockProvider);
+      (providerModelRepository.findByProviderIdAndSlug as any).mockResolvedValue(mockModel);
 
       await expect(service.createModel(1, validModelRequest)).rejects.toThrow('Model slug already exists for this provider');
     });
 
     it('数据库插入失败时应该抛出错误', async () => {
-      vi.spyOn(service, 'getProviderById').mockResolvedValue(mockProvider);
-      (db.query.providerModels.findFirst as any).mockResolvedValue(null);
-      
-      const mockInsert = vi.fn().mockRejectedValue(new Error('Database error'));
-      const mockValues = vi.fn().mockReturnValue({
-        returning: mockInsert,
-      });
-      (db.insert as any).mockReturnValue({
-        values: mockValues,
-      });
+      (modelProviderRepository.findById as any).mockResolvedValue(mockProvider);
+      (providerModelRepository.findByProviderIdAndSlug as any).mockResolvedValue(null);
+      (providerModelRepository.create as any).mockRejectedValue(new Error('Database error'));
 
       await expect(service.createModel(1, validModelRequest)).rejects.toThrow('Database error');
       expect(logger.error).toHaveBeenCalled();
@@ -372,16 +332,15 @@ describe('ModelProviderService', () => {
   describe('getModelsByProviderId', () => {
     it('应该返回提供商的所有模型', async () => {
       const models = [mockModel, { ...mockModel, id: 2, slug: 'gpt-3.5-turbo' }];
-      (db.query.providerModels.findMany as any).mockResolvedValue(models);
+      (providerModelRepository.findByProviderId as any).mockResolvedValue(models);
 
       const result = await service.getModelsByProviderId(1);
 
       expect(result).toEqual(models);
-      expect(db.query.providerModels.findMany).toHaveBeenCalled();
     });
 
     it('当没有模型时应该返回空数组', async () => {
-      (db.query.providerModels.findMany as any).mockResolvedValue([]);
+      (providerModelRepository.findByProviderId as any).mockResolvedValue([]);
 
       const result = await service.getModelsByProviderId(1);
 
@@ -389,7 +348,7 @@ describe('ModelProviderService', () => {
     });
 
     it('数据库查询失败时应该返回空数组', async () => {
-      (db.query.providerModels.findMany as any).mockRejectedValue(new Error('Database error'));
+      (providerModelRepository.findByProviderId as any).mockRejectedValue(new Error('Database error'));
 
       const result = await service.getModelsByProviderId(1);
 
@@ -400,7 +359,7 @@ describe('ModelProviderService', () => {
 
   describe('getModelById', () => {
     it('应该返回指定ID的模型', async () => {
-      (db.query.providerModels.findFirst as any).mockResolvedValue(mockModel);
+      (providerModelRepository.findById as any).mockResolvedValue(mockModel);
 
       const result = await service.getModelById(1);
 
@@ -408,7 +367,7 @@ describe('ModelProviderService', () => {
     });
 
     it('当模型不存在时应该返回null', async () => {
-      (db.query.providerModels.findFirst as any).mockResolvedValue(null);
+      (providerModelRepository.findById as any).mockResolvedValue(null);
 
       const result = await service.getModelById(999);
 
@@ -416,7 +375,7 @@ describe('ModelProviderService', () => {
     });
 
     it('数据库查询失败时应该返回null', async () => {
-      (db.query.providerModels.findFirst as any).mockRejectedValue(new Error('Database error'));
+      (providerModelRepository.findById as any).mockRejectedValue(new Error('Database error'));
 
       const result = await service.getModelById(1);
 
@@ -433,15 +392,12 @@ describe('ModelProviderService', () => {
     };
 
     it('应该成功更新模型', async () => {
-      (db.query.providerModels.findFirst as any).mockResolvedValueOnce(mockModel); // First call for model lookup
-      (db.query.providerModels.findFirst as any).mockResolvedValueOnce(null); // Second call for slug uniqueness check
-      
-      vi.spyOn(service, 'getProviderById').mockResolvedValue(mockProvider);
-      
-      const mockSet = vi.fn().mockReturnValue({ where: vi.fn() });
-      (db.update as any).mockReturnValue({ set: mockSet });
-      
-      vi.spyOn(service, 'getModelById').mockResolvedValue({ ...mockModel, ...updateModelRequest });
+      (modelProviderCombinedRepository.verifyModelOwnership as any).mockResolvedValue(true);
+      (providerModelRepository.findById as any).mockResolvedValueOnce(mockModel); // First call for model lookup
+      (providerModelRepository.existsByProviderIdAndSlug as any).mockResolvedValueOnce(false); // Second call for slug uniqueness check
+      (modelProviderRepository.findById as any).mockResolvedValue(mockProvider);
+      (providerModelRepository.update as any).mockResolvedValue({ ...mockModel, ...updateModelRequest });
+      (providerModelRepository.findById as any).mockResolvedValue({ ...mockModel, ...updateModelRequest });
 
       const result = await service.updateModel(1, 1, updateModelRequest);
 
@@ -450,7 +406,7 @@ describe('ModelProviderService', () => {
     });
 
     it('当模型不存在时应该返回null', async () => {
-      (db.query.providerModels.findFirst as any).mockResolvedValue(null);
+      (providerModelRepository.findById as any).mockResolvedValue(null);
 
       const result = await service.updateModel(999, 1, updateModelRequest);
 
@@ -458,8 +414,7 @@ describe('ModelProviderService', () => {
     });
 
     it('当无权限时应该返回null', async () => {
-      (db.query.providerModels.findFirst as any).mockResolvedValue(mockModel);
-      vi.spyOn(service, 'getProviderById').mockResolvedValue({ ...mockProvider, accountId: 2 });
+      (modelProviderCombinedRepository.verifyModelOwnership as any).mockResolvedValue(false);
 
       const result = await service.updateModel(1, 1, updateModelRequest);
 
@@ -467,36 +422,26 @@ describe('ModelProviderService', () => {
     });
 
     it('当模型Slug已存在时应该抛出错误', async () => {
-      (db.query.providerModels.findFirst as any).mockResolvedValueOnce(mockModel);
-      (db.query.providerModels.findFirst as any).mockResolvedValueOnce({ ...mockModel, id: 2 });
-      vi.spyOn(service, 'getProviderById').mockResolvedValue(mockProvider);
+      (modelProviderCombinedRepository.verifyModelOwnership as any).mockResolvedValue(true);
+      // 使用 mockImplementation 来控制多次调用的返回值
+      (providerModelRepository.findById as any).mockImplementation((id: number) => {
+        if (id === 1) {
+          return Promise.resolve({ ...mockModel, slug: 'gpt-4-old' });
+        }
+        return Promise.resolve(null);
+      });
+      (providerModelRepository.existsByProviderIdAndSlug as any).mockResolvedValueOnce(true);
+      (modelProviderRepository.findById as any).mockResolvedValue(mockProvider);
 
       await expect(service.updateModel(1, 1, { id: 1, slug: 'gpt-4-new' })).rejects.toThrow('Model slug already exists for this provider');
     });
-
-    // TODO: 修复这个测试的状态污染问题
-    // it('数据库更新失败时应该抛出错误', async () => {
-    //   (db.query.providerModels.findFirst as any).mockResolvedValueOnce(mockModel);
-    //   (db.query.providerModels.findFirst as any).mockResolvedValueOnce(null);
-    //   vi.spyOn(service, 'getProviderById').mockResolvedValue(mockProvider);
-    //   
-    //   // Mock the full chain: db.update().set().where()
-    //   const mockWhere = vi.fn().mockRejectedValue(new Error('Database error'));
-    //   const mockSet = vi.fn().mockReturnValue({ where: mockWhere });
-    //   (db.update as any).mockReturnValue({ set: mockSet });
-
-    //   await expect(service.updateModel(1, 1, updateModelRequest)).rejects.toThrow('Database error');
-    //   expect(logger.error).toHaveBeenCalled();
-    // });
   });
 
   describe('deleteModel', () => {
     it('应该成功删除模型', async () => {
-      (db.query.providerModels.findFirst as any).mockResolvedValue(mockModel);
-      vi.spyOn(service, 'getProviderById').mockResolvedValue(mockProvider);
-      
-      const mockDelete = vi.fn().mockResolvedValue(undefined);
-      (db.delete as any).mockReturnValue({ where: mockDelete });
+      (modelProviderCombinedRepository.verifyModelOwnership as any).mockResolvedValue(true);
+      (providerModelRepository.findById as any).mockResolvedValue(mockModel);
+      (providerModelRepository.delete as any).mockResolvedValue(true);
 
       const result = await service.deleteModel(1, 1);
 
@@ -505,7 +450,7 @@ describe('ModelProviderService', () => {
     });
 
     it('当模型不存在时应该返回false', async () => {
-      (db.query.providerModels.findFirst as any).mockResolvedValue(null);
+      (modelProviderCombinedRepository.verifyModelOwnership as any).mockResolvedValue(false);
 
       const result = await service.deleteModel(999, 1);
 
@@ -513,8 +458,7 @@ describe('ModelProviderService', () => {
     });
 
     it('当无权限时应该返回false', async () => {
-      (db.query.providerModels.findFirst as any).mockResolvedValue(mockModel);
-      vi.spyOn(service, 'getProviderById').mockResolvedValue({ ...mockProvider, accountId: 2 });
+      (modelProviderCombinedRepository.verifyModelOwnership as any).mockResolvedValue(false);
 
       const result = await service.deleteModel(1, 1);
 
@@ -522,11 +466,9 @@ describe('ModelProviderService', () => {
     });
 
     it('数据库删除失败时应该返回false', async () => {
-      (db.query.providerModels.findFirst as any).mockResolvedValue(mockModel);
-      vi.spyOn(service, 'getProviderById').mockResolvedValue(mockProvider);
-      
-      const mockDelete = vi.fn().mockRejectedValue(new Error('Database error'));
-      (db.delete as any).mockReturnValue({ where: mockDelete });
+      (modelProviderCombinedRepository.verifyModelOwnership as any).mockResolvedValue(true);
+      (providerModelRepository.findById as any).mockResolvedValue(mockModel);
+      (providerModelRepository.delete as any).mockRejectedValue(new Error('Database error'));
 
       const result = await service.deleteModel(1, 1);
 

@@ -10,6 +10,10 @@
   "cancelPin": "Cancel Pin",
   "clearChatMessages": "Clear Chat Messages",
   "clearHistory": "Clear History",
+  "confirm": {
+    "deleteSessionSuccess": "Successfully deleted",
+    "deleteSessionTitle": "The session will be deleted and cannot be recovered. Please proceed with caution."
+  },
   "continue": "Continue",
   "conversation": {
     "delete": "Delete Conversation",
@@ -23,12 +27,39 @@
   "copySuccess": "Copy Success",
   "defaultAgent": "Default Agent",
   "delete": "Delete",
+  "deleteAndRegenerate": "Delete and Regenerate",
   "edit": "Edit",
   "errorOccurred": "Error Occurred",
   "exportChat": "Export Chat",
+  "feedback": {
+    "betterAnswer": {
+      "placeholder": "Please enter",
+      "title": "What do you think is the ideal answer?"
+    },
+    "cancel": "Cancel",
+    "misunderstanding": {
+      "answerNotRelevant": "Answer not relevant",
+      "cannotUnderstandContext": "Cannot understand context",
+      "missedProblem": "Missed problems made",
+      "noUnderstandInstruction": "Did not understand instruction",
+      "title": "Misunderstanding"
+    },
+    "poorAnswer": {
+      "formatError": "Format error",
+      "logicalConfusion": "Logical confusion",
+      "repetitiveAnswer": "Repetitive answer",
+      "title": "Poor Answer"
+    },
+    "submit": "Submit",
+    "title": "Further Feedback"
+  },
   "historySummary": "History Summary",
   "imageFormat": "Image Format",
   "importChat": "Import Chat",
+  "inbox": {
+    "description": "Comprehensive Investment Research Analysis",
+    "title": "Investment Research Analysis"
+  },
   "includeTool": "Include Tool",
   "includeUser": "Include User",
   "input": {
@@ -52,6 +83,10 @@
     "system": "System",
     "user": "You"
   },
+  "agent": {
+    "builtin": "Built-in",
+    "switchAgent": "Switch Agent"
+  },
   "model": "Model",
   "newChat": "New Chat",
   "noMessages": "No Messages",
@@ -74,6 +109,12 @@
   "send": "Send",
   "sendWithCmdEnter": "Send with Cmd + Enter",
   "sendWithEnter": "Send with Enter",
+  "sessionConfig": {
+    "defaultDescription": "Activate brain cluster, spark thinking. Your AI assistant, communicating with you here",
+    "defaultTitle": "General Assistant",
+    "inboxDescription": "Activate brain cluster, spark thinking. Your AI assistant, communicating with you here",
+    "inboxTitle": "Just Chat"
+  },
   "shareTitle": "Share",
   "stop": "Stop",
   "systemPrompt": "System Prompt",

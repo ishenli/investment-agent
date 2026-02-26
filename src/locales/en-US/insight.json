@@ -33,8 +33,8 @@
     "relatedAssets": "Related Assets"
   },
   "opportunityFinder": {
-    "loadingTitle": "Opportunity Finder",
-    "loadingDescription": "Intelligent insights based on data analysis"
+    "loadingDescription": "Intelligent insights based on data analysis",
+    "loadingTitle": "Opportunity Finder"
   },
   "strategy": {
     "description": "Personalized strategy advice based on your portfolio",
@@ -42,8 +42,8 @@
     "title": "Strategy Advice"
   },
   "strategyAdvice": {
-    "cardTitle": "Strategy Advice",
-    "cardDescription": "Personalized strategy advice based on your portfolio"
+    "cardDescription": "Personalized strategy advice based on your portfolio",
+    "cardTitle": "Strategy Advice"
   },
   "table": {
     "asset": "Asset",

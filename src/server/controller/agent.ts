@@ -17,10 +17,9 @@ const AgentSchema = z.object({
   description: z.string().nullable().optional(),
   systemRole: z.string().nullable().optional(),
   logo: z.string().nullable().optional(),
-  apiKey: z.string().min(1, 'API密钥不能为空'),
-  apiUrl: z.string().min(1, 'API地址不能为空'),
   openingQuestions: z.array(z.string()).optional().default([]),
   type: z.enum(['LOCAL', 'LINGXI']),
+  isBuiltin: z.boolean().optional(),
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
 });
@@ -29,12 +28,14 @@ const CreateAgentRequestSchema = AgentSchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  isBuiltin: true, // 创建时不允许设置 isBuiltin
 });
 
 const UpdateAgentRequestSchema = AgentSchema.partial().omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  isBuiltin: true, // 更新时不允许修改 isBuiltin
 });
 
 export class AgentBizController extends BaseBizController {
@@ -58,15 +59,20 @@ export class AgentBizController extends BaseBizController {
         return this.responseValidateError(error);
       }
 
+      // 处理业务错误
+      if (error instanceof Error) {
+        return this.error(error.message, 'create_agent_error');
+      }
+
       logger.error('[AgentBizController] 创建 Agent 失败:', error);
       return this.error('创建 Agent 失败', 'create_agent_error');
     }
   }
 
   @WithRequestContext()
-  async getAgent(query: { agentId?: string }) {
+  async getAgent(query: { agentId?: string; isBuiltin?: string }) {
     try {
-      const { agentId } = query;
+      const { agentId, isBuiltin } = query;
 
       if (agentId) {
         // 获取单个 Agent 信息
@@ -81,6 +87,11 @@ export class AgentBizController extends BaseBizController {
         }
 
         return this.success(agent as AgentTypeResponse);
+      } else if (isBuiltin !== undefined) {
+        // 按 isBuiltin 过滤
+        const isBuiltinBool = isBuiltin === 'true';
+        const agents = await agentService.listAgents({ isBuiltin: isBuiltinBool });
+        return this.success(agents as AgentTypeResponse[]);
       } else {
         // 获取所有 Agent 列表
         const agents = await agentService.getAllAgents();
@@ -148,8 +159,8 @@ export class AgentBizController extends BaseBizController {
       }
 
       const result = await agentService.deleteAgent(id);
-      if (!result) {
-        return this.error('删除 Agent 失败', 'delete_agent_error');
+      if (!result.success) {
+        return this.error(result.reason || '删除 Agent 失败', 'delete_agent_error');
       }
 
       return this.success({ message: 'Agent 删除成功' });

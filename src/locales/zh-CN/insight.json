@@ -33,8 +33,8 @@
     "relatedAssets": "相关标的"
   },
   "opportunityFinder": {
-    "loadingTitle": "机会识别",
-    "loadingDescription": "基于数据分析的智能洞察"
+    "loadingDescription": "基于数据分析的智能洞察",
+    "loadingTitle": "机会识别"
   },
   "strategy": {
     "description": "基于您投资组合的个性化策略建议",
@@ -42,8 +42,8 @@
     "title": "策略建议"
   },
   "strategyAdvice": {
-    "cardTitle": "策略建议",
-    "cardDescription": "基于您投资组合的个性化策略建议"
+    "cardDescription": "基于您投资组合的个性化策略建议",
+    "cardTitle": "策略建议"
   },
   "table": {
     "asset": "资产",

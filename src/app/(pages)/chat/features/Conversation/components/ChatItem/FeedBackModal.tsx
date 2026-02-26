@@ -1,6 +1,7 @@
 import { Button, Modal } from '@lobehub/ui';
 import { Input, Radio } from 'antd';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export type FeedbackOptions = {
   misunderstanding: string;
@@ -15,10 +16,10 @@ interface FeedBackModalProps {
 }
 
 const FeedBackModal = ({ visible, onClose, onSubmit }: FeedBackModalProps) => {
+  const { t } = useTranslation('chat');
   const [selectedOptions, setSelectedOptions] = useState({
     misunderstanding: '',
     poorAnswer: '',
-    harmfulInfo: '',
   });
   const [betterAnswer, setBetterAnswer] = useState('');
 
@@ -40,79 +41,79 @@ const FeedBackModal = ({ visible, onClose, onSubmit }: FeedBackModalProps) => {
 
   return (
     <Modal
-      title="进一步反馈"
+      title={t('feedback.title')}
       open={visible}
       onCancel={onClose}
       footer={
         <>
           <Button onClick={onClose} type="default">
-            取消
+            {t('feedback.cancel')}
           </Button>
           <Button onClick={handleSubmit} type="primary">
-            提交
+            {t('feedback.submit')}
           </Button>
         </>
       }
     >
       <div style={{ padding: '20px 0' }}>
         <div style={{ marginBottom: '20px' }}>
-          <h4 style={{ margin: '0 0 10px 0', color: '#333' }}>理解问题有误</h4>
+          <h4 style={{ margin: '0 0 10px 0', color: '#333' }}>{t('feedback.misunderstanding.title')}</h4>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
             <Radio
               checked={selectedOptions.misunderstanding === 'noUnderstandInstruction'}
               onChange={() => handleOptionChange('misunderstanding', 'noUnderstandInstruction')}
             >
-              没有理解指令
+              {t('feedback.misunderstanding.noUnderstandInstruction')}
             </Radio>
             <Radio
               checked={selectedOptions.misunderstanding === 'cannotUnderstandContext'}
               onChange={() => handleOptionChange('misunderstanding', 'cannotUnderstandContext')}
             >
-              无法理解上下文
+              {t('feedback.misunderstanding.cannotUnderstandContext')}
             </Radio>
             <Radio
               checked={selectedOptions.misunderstanding === 'answerNotRelevant'}
               onChange={() => handleOptionChange('misunderstanding', 'answerNotRelevant')}
             >
-              答非所问
+              {t('feedback.misunderstanding.answerNotRelevant')}
             </Radio>
             <Radio
               checked={selectedOptions.misunderstanding === 'missedProblem'}
               onChange={() => handleOptionChange('misunderstanding', 'missedProblem')}
             >
-              未发现问题做的错误
+              {t('feedback.misunderstanding.missedProblem')}
             </Radio>
           </div>
         </div>
 
         <div style={{ marginBottom: '20px' }}>
-          <h4 style={{ margin: '0 0 10px 0', color: '#333' }}>回答不佳</h4>
+          <h4 style={{ margin: '0 0 10px 0', color: '#333' }}>{t('feedback.poorAnswer.title')}</h4>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
             <Radio
               checked={selectedOptions.poorAnswer === 'repetitiveAnswer'}
               onChange={() => handleOptionChange('poorAnswer', 'repetitiveAnswer')}
             >
-              回答有重复
+              {t('feedback.poorAnswer.repetitiveAnswer')}
             </Radio>
             <Radio
               checked={selectedOptions.poorAnswer === 'logicalConfusion'}
               onChange={() => handleOptionChange('poorAnswer', 'logicalConfusion')}
             >
-              回答逻辑混乱
+              {t('feedback.poorAnswer.logicalConfusion')}
             </Radio>
             <Radio
               checked={selectedOptions.poorAnswer === 'formatError'}
               onChange={() => handleOptionChange('poorAnswer', 'formatError')}
             >
-              答案格式错误
+              {t('feedback.poorAnswer.formatError')}
             </Radio>
           </div>
         </div>
 
         <div style={{ marginBottom: '20px' }}>
-          <h4 style={{ margin: '0 0 10px 0', color: '#333' }}>您认为更理想的回答是什么？</h4>
+          <h4 style={{ margin: '0 0 10px 0', color: '#333' }}>{t('feedback.betterAnswer.title')}</h4>
           <Input.TextArea
-            placeholder="请输入"
+            placeholder={t('feedback.betterAnswer.placeholder')}
             value={betterAnswer}
             onChange={(e) => setBetterAnswer(e.target.value)}
             rows={4}

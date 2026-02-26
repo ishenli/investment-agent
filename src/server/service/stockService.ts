@@ -6,7 +6,7 @@ import {
 } from '@/types';
 import { validateWithFormat } from '@/shared';
 import fs from 'fs-extra';
-import { defaultConfig, DefaultConfigType } from '@shared/config/config.default';
+import { getProjectDir } from '@server/base/env';
 import logger, { Logger } from '../base/logger';
 import { prepareStockData } from '../core/utils/stockUtils/validator';
 import { AnalystType } from '../core/graph/tradeDecision/setup';
@@ -14,10 +14,11 @@ import { SSEEmitter } from '../base/sseEmitter';
 
 export class StockService {
   logger: Logger;
-  config: DefaultConfigType;
+  projectDir: string;
+
   constructor() {
     this.logger = logger;
-    this.config = defaultConfig;
+    this.projectDir = getProjectDir();
   }
 
   /**
@@ -84,11 +85,7 @@ export class StockService {
     const graph = await TradingAgentsGraph.create({
       logger: this.logger,
       selectedAnalysts: validatedOptions.analysts as AnalystType[],
-      config: {
-        ...this.config,
-        deep_think_llm: 'Kimi-K2-Instruct',
-        quick_think_llm: 'Qwen3-Next-80B-A3B-Instruct',
-      },
+      projectDir: this.projectDir,
     });
 
     const [state, decision] = await graph.propagateStream({
@@ -111,7 +108,7 @@ export class StockService {
     };
 
     fs.outputFile(
-      `${this.config.project_dir}/report/${validatedOptions.stockSymbol}/${sessionId}.json`,
+      `${this.projectDir}/report/${validatedOptions.stockSymbol}/${sessionId}.json`,
       JSON.stringify(results),
     );
 

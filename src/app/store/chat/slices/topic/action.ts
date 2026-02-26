@@ -18,6 +18,7 @@ import { chainSummaryTitle } from '@renderer/prompts/summaryTitle';
 import { chatSelectors } from '../message/selectors';
 import { ChatTopicDispatch, topicReducer } from './reducer';
 import { topicSelectors } from './selectors';
+import { DEFAULT_MODEL } from '@/app/const/settings';
 
 const SWR_USE_FETCH_TOPIC = 'SWR_USE_FETCH_TOPIC';
 const SWR_USE_SEARCH_TOPIC = 'SWR_USE_SEARCH_TOPIC';
@@ -85,7 +86,11 @@ export const chatTopic: StateCreator<
   saveToTopic: async () => {
     // if there is no message, stop
     const messages = chatSelectors.activeBaseChats(get());
-    if (messages.length === 0) return;
+    if (messages.length === 0) {
+      console.info('[saveToTopic]messages', messages);
+      return;
+    }
+
 
     const { activeId, summaryTopicTitle, internal_createTopic } = get();
 
@@ -100,6 +105,8 @@ export const chatTopic: StateCreator<
     // 2. auto summary topic Title
     // we don't need to wait for summary, just let it run async
     summaryTopicTitle(topicId, messages);
+
+    console.info('[saveToTopic]messages', messages);
 
     return topicId;
   },
@@ -137,7 +144,7 @@ export const chatTopic: StateCreator<
 
     // Get current agent for topic
     const topicConfig = {
-      model: 'Qwen3-30B-A3B-Instruct-2507',
+      model:  DEFAULT_MODEL,
     };
 
     // Automatically summarize the topic title

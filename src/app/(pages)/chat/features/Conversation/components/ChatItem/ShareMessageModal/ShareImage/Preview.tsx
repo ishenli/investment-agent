@@ -11,11 +11,6 @@ import { agentSelectors } from '@renderer/store/agent/selectors';
 import { useSessionStore } from '@renderer/store/session';
 import { sessionMetaSelectors, sessionSelectors } from '@renderer/store/session/selectors';
 import { ChatMessage } from '@typings/message';
-
-import {
-  SESSION_CONFIG_DESCRIPTION,
-  SESSION_CONFIG_TITLE,
-} from '@renderer/const/text/sessionConfig';
 import React from 'react';
 import { useContainerStyles } from '../style';
 import { useStyles } from './style';
@@ -45,8 +40,8 @@ const Preview = memo<PreviewProps>(
     const { styles } = useStyles(withBackground);
     const { styles: containerStyles } = useContainerStyles();
 
-    const displayTitle = isInbox ? SESSION_CONFIG_TITLE.INBOX : title;
-    const displayDesc = isInbox ? SESSION_CONFIG_DESCRIPTION.INBOX : description;
+    const displayTitle = isInbox ? t('sessionConfig.inboxTitle') : title;
+    const displayDesc = isInbox ? t('sessionConfig.inboxDescription') : description;
 
     return (
       <div className={containerStyles.preview}>

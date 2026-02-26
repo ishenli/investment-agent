@@ -1,0 +1,56 @@
+{
+  "i18n-ally.localesPaths": [
+    "src/app/api/chat/messages"
+  ],
+  "react-i18n.i18nPaths": "",
+  "i18n-swapper.decorationStyle": "inline",
+  "i18n-swapper.defaultLocale": "zh-CN",
+  "i18n-swapper.functionName": "t",
+  "i18n-swapper.localesPaths": [],
+  "i18n-swapper.quoteType": "single",
+  "i18n-swapper.scanPatterns": [
+    "label",
+    "value",
+    "placeholder",
+    "title",
+    "message",
+    "text"
+  ],
+  "i18n-swapper.showFullFormInEditMode": true,
+  "i18n-swapper.suffixStyle": {
+    "color": "#6A9955",
+    "fontSize": "14px",
+    "fontWeight": "400",
+    "fontStyle": "normal",
+    "margin": "0 0 0 3px"
+  },
+  "i18n-swapper.inlineStyle": {
+    "color": "#ffdd00",
+    "fontSize": "14px",
+    "fontWeight": "400",
+    "fontStyle": "normal",
+    "margin": "0"
+  },
+  "i18n-swapper.tencentTranslation.apiKey": "",
+  "i18n-swapper.tencentTranslation.apiSecret": "",
+  "i18n-swapper.tencentTranslation.region": "ap-guangzhou",
+  "i18n-swapper.tencentTranslation.sourceLanguage": "zh",
+  "i18n-swapper.tencentTranslation.languageMappings": [],
+  "i18n-swapper.autoGenerateKeyFromText": true,
+  "i18n-swapper.autoGenerateKeyPrefix": "_iw",
+  "i18n-swapper.autoTranslateAllLanguages": true,
+  "i18n-swapper.missingKeyBorderWidth": "0 0 2px 0",
+  "i18n-swapper.missingKeyBorderStyle": "solid",
+  "i18n-swapper.missingKeyBorderColor": "#ff6900",
+  "i18n-swapper.missingKeyBorderSpacing": "2px",
+  "i18n-swapper.excludeFiles": [
+    "node_modules",
+    "dist",
+    "build",
+    ".git",
+    "vendor",
+    ".history"
+  ],
+  "i18n-swapper.includeFiles": [],
+  "i18n-swapper.SkipPrompt": []
+}

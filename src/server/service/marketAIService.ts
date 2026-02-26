@@ -1,7 +1,7 @@
 import { ChatOpenAI } from '@langchain/openai';
-import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import logger from '@server/base/logger';
 import { chatModelOpenAI } from '../core/provider/chatModel';
+import { HumanMessage, SystemMessage } from 'langchain';
 
 /**
  * 市场AI服务接口
@@ -43,12 +43,12 @@ export class MarketAIService implements IMarketAIService {
    */
   static async create(): Promise<MarketAIService> {
     const instance = new MarketAIService();
-    instance.chatModel = await chatModelOpenAI('Qwen3-Next-80B-A3B-Instruct');
+    instance.chatModel = await chatModelOpenAI();
     return instance;
   }
 
   /**
-   * 总结内容
+   * 总结内容 
    * @param content 内容
    * @param title 标题（可选）
    * @param language 语言（可选，默认为中文）

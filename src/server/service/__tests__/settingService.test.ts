@@ -1,18 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SettingService, SettingType } from '../settingService';
 
-// Mock @server/lib/db before importing settingService
-vi.mock('@server/lib/db', () => ({
-  db: {
-    query: {
-      settings: {
-        findMany: vi.fn(),
-        findFirst: vi.fn(),
-      },
-    },
-    update: vi.fn(),
-    delete: vi.fn(),
-    insert: vi.fn(),
+// Mock @server/repository/settingRepository before importing settingService
+vi.mock('@server/repository/settingRepository', () => ({
+  settingRepository: {
+    findByUserId: vi.fn(),
+    findByUserIdAndKey: vi.fn(),
+    upsert: vi.fn(),
+    deleteByUserIdAndKey: vi.fn(),
+    deleteByUserId: vi.fn(),
   },
 }));
 
@@ -22,7 +18,7 @@ vi.mock('@server/service/authService', () => ({
   },
 }));
 
-import { db } from '../../lib/db';
+import { settingRepository } from '../../repository/settingRepository';
 import authService from '../authService';
 
 const mockSetting: SettingType = {
@@ -45,7 +41,7 @@ describe('SettingService', () => {
   describe('getConfigValueByKey', () => {
     it('应该返回设置的值', async () => {
       (authService.getCurrentUserId as any).mockResolvedValue('1');
-      vi.spyOn(settingService, 'getSettingByKey').mockResolvedValue(mockSetting);
+      (settingRepository.findByUserIdAndKey as any).mockResolvedValue(mockSetting);
 
       const result = await settingService.getConfigValueByKey('test_key');
 
@@ -54,7 +50,7 @@ describe('SettingService', () => {
 
     it('设置不存在时应该返回 process.env 值', async () => {
       (authService.getCurrentUserId as any).mockResolvedValue('1');
-      vi.spyOn(settingService, 'getSettingByKey').mockResolvedValue(null);
+      (settingRepository.findByUserIdAndKey as any).mockResolvedValue(null);
 
       const result = await settingService.getConfigValueByKey('NODE_ENV');
 
@@ -64,7 +60,7 @@ describe('SettingService', () => {
 
   describe('getSettingsByAccountId', () => {
     it('应该返回账户的所有设置', async () => {
-      (db.query.settings.findMany as any).mockResolvedValue([mockSetting]);
+      (settingRepository.findByUserId as any).mockResolvedValue([mockSetting]);
 
       const result = await settingService.getSettingsByAccountId(1);
 
@@ -73,7 +69,7 @@ describe('SettingService', () => {
     });
 
     it('应该返回空数组当没有设置', async () => {
-      (db.query.settings.findMany as any).mockResolvedValue([]);
+      (settingRepository.findByUserId as any).mockResolvedValue([]);
 
       const result = await settingService.getSettingsByAccountId(1);
 
@@ -81,7 +77,7 @@ describe('SettingService', () => {
     });
 
     it('数据库错误时应该抛出错误', async () => {
-      (db.query.settings.findMany as any).mockRejectedValue(new Error('Database error'));
+      (settingRepository.findByUserId as any).mockRejectedValue(new Error('Database error'));
 
       await expect(settingService.getSettingsByAccountId(1)).rejects.toThrow();
     });
@@ -89,7 +85,7 @@ describe('SettingService', () => {
 
   describe('getSettingByKey', () => {
     it('应该返回指定的设置', async () => {
-      (db.query.settings.findFirst as any).mockResolvedValue(mockSetting);
+      (settingRepository.findByUserIdAndKey as any).mockResolvedValue(mockSetting);
 
       const result = await settingService.getSettingByKey('1', 'test_key');
 
@@ -99,7 +95,7 @@ describe('SettingService', () => {
     });
 
     it('设置不存在时应该返回 null', async () => {
-      (db.query.settings.findFirst as any).mockResolvedValue(null);
+      (settingRepository.findByUserIdAndKey as any).mockResolvedValue(null);
 
       const result = await settingService.getSettingByKey('1', 'non_existent');
 
@@ -107,7 +103,7 @@ describe('SettingService', () => {
     });
 
     it('数据库错误时应该抛出错误', async () => {
-      (db.query.settings.findFirst as any).mockRejectedValue(new Error('Database error'));
+      (settingRepository.findByUserIdAndKey as any).mockRejectedValue(new Error('Database error'));
 
       await expect(settingService.getSettingByKey('1', 'test_key')).rejects.toThrow();
     });
@@ -115,14 +111,7 @@ describe('SettingService', () => {
 
   describe('setSetting', () => {
     it('应该成功更新现有设置', async () => {
-      vi.spyOn(settingService, 'getSettingByKey').mockResolvedValue(mockSetting);
-
-      const updatedSetting = { ...mockSetting, value: 'new_value' };
-      const mockReturning = vi.fn().mockResolvedValue([updatedSetting]);
-      const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning });
-      const mockSet = vi.fn().mockReturnValue({ where: mockWhere });
-
-      (db.update as any).mockReturnValue({ set: mockSet });
+      (settingRepository.upsert as any).mockResolvedValue({ ...mockSetting, value: 'new_value' });
 
       const result = await settingService.setSetting('1', 'test_key', 'new_value');
 
@@ -131,12 +120,7 @@ describe('SettingService', () => {
     });
 
     it('应该成功创建新设置', async () => {
-      vi.spyOn(settingService, 'getSettingByKey').mockResolvedValue(null);
-
-      const newSetting = { ...mockSetting, id: 2, key: 'new_key', value: 'new_value' };
-      const mockReturning = vi.fn().mockResolvedValue([newSetting]);
-      const mockValues = vi.fn().mockReturnValue({ returning: mockReturning });
-      (db.insert as any).mockReturnValue({ values: mockValues });
+      (settingRepository.upsert as any).mockResolvedValue({ ...mockSetting, id: 2, key: 'new_key', value: 'new_value' });
 
       const result = await settingService.setSetting('1', 'new_key', 'new_value');
 
@@ -145,43 +129,39 @@ describe('SettingService', () => {
     });
 
     it('数据库错误时应该抛出错误', async () => {
-      vi.spyOn(settingService, 'getSettingByKey').mockResolvedValue(null);
-
-      const mockValues = vi.fn().mockImplementation(() => {
-        throw new Error('Database error');
-      });
-      (db.insert as any).mockReturnValue({ values: mockValues });
+      (settingRepository.upsert as any).mockRejectedValue(new Error('Database error'));
 
       await expect(settingService.setSetting('1', 'test_key', 'value')).rejects.toThrow();
     });
   });
 
   describe('deleteSetting', () => {
+    it('应该成功删除设置', async () => {
+      (settingRepository.deleteByUserIdAndKey as any).mockResolvedValue(true);
+
+      const result = await settingService.deleteSetting('1', 'test_key');
+
+      expect(result).toBe(true);
+    });
+
     it('数据库错误时应该抛出错误', async () => {
-      const mockWhere = vi.fn().mockImplementation(() => {
-        throw new Error('Database error');
-      });
-      (db.delete as any).mockReturnValue({ where: mockWhere });
+      (settingRepository.deleteByUserIdAndKey as any).mockRejectedValue(new Error('Database error'));
 
       await expect(settingService.deleteSetting('1', 'test_key')).rejects.toThrow();
     });
   });
 
   describe('deleteAllSettings', () => {
-    it('数据库错误时应该抛出错误', async () => {
-      const mockWhere = vi.fn().mockImplementation(() => {
-        throw new Error('Database error');
-      });
-      (db.delete as any).mockReturnValue({ where: mockWhere });
+    it('应该成功删除所有设置', async () => {
+      (settingRepository.deleteByUserId as any).mockResolvedValue();
 
-      await expect(settingService.deleteAllSettings('1')).rejects.toThrow();
+      const result = await settingService.deleteAllSettings('1');
+
+      expect(result).toBe(true);
     });
 
     it('数据库错误时应该抛出错误', async () => {
-      const mockWhere = vi.fn().mockImplementation(() => {
-        throw new Error('Database error');
-      });
-      (db.delete as any).mockReturnValue({ where: mockWhere });
+      (settingRepository.deleteByUserId as any).mockRejectedValue(new Error('Database error'));
 
       await expect(settingService.deleteAllSettings('1')).rejects.toThrow();
     });
@@ -190,7 +170,7 @@ describe('SettingService', () => {
   describe('getModelServiceApiUrl', () => {
     it('应该从设置中返回模型服务 API 地址', async () => {
       (authService.getCurrentUserId as any).mockResolvedValue('1');
-      vi.spyOn(settingService, 'getSettingByKey').mockResolvedValue({
+      (settingRepository.findByUserIdAndKey as any).mockResolvedValue({
         ...mockSetting,
         key: 'MODEL_PROVIDER_URL',
         value: 'https://api.example.com',
@@ -203,7 +183,7 @@ describe('SettingService', () => {
 
     it('设置不存在时应该返回 process.env 值', async () => {
       (authService.getCurrentUserId as any).mockResolvedValue('1');
-      vi.spyOn(settingService, 'getSettingByKey').mockResolvedValue(null);
+      (settingRepository.findByUserIdAndKey as any).mockResolvedValue(null);
       process.env.MODEL_PROVIDER_URL = 'https://env.example.com';
 
       const result = await settingService.getModelServiceApiUrl();
@@ -213,7 +193,7 @@ describe('SettingService', () => {
 
     it('设置和环境变量都不存在时应该返回 null', async () => {
       (authService.getCurrentUserId as any).mockResolvedValue('1');
-      vi.spyOn(settingService, 'getSettingByKey').mockResolvedValue(null);
+      (settingRepository.findByUserIdAndKey as any).mockResolvedValue(null);
       delete process.env.MODEL_PROVIDER_URL;
 
       const result = await settingService.getModelServiceApiUrl();

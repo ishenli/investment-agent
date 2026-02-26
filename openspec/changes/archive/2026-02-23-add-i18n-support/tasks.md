@@ -5,8 +5,7 @@
 **参考**：[项目规范](file://openspec/project.md)
 
 **测试**：
-- 类型检查：`pnpm run type-check`
-- 代码检查：`pnpm run lint`
+- 类型检查：`pnpm run types:check`
 - 单元测试：`pnpm test`
 
 **组织方式**：任务按 User Stories 分组，支持增量交付和独立验证。

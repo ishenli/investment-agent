@@ -1,14 +1,13 @@
 import { TransactionRecordType, TransactionType } from '@typings/transaction';
-import { db } from '@server/lib/db';
-import { transactions, accountFunds } from '@/drizzle/schema';
-import { eq, desc, sql, and } from 'drizzle-orm';
 import logger from '@server/base/logger';
 import positionService from './positionService';
 import { AssetType } from '@typings/asset';
+import { transactionRepository, type CreateTransactionData, type UpdateTransactionData } from '../repository/transactionRepository';
+import { accountFundRepository } from '../repository/accountFundRepository';
 
 export class TransactionService {
   constructor() {
-    // 数据库连接已经在 db.ts 中初始化
+    // Repository 已经封装了数据库操作
   }
 
   /**
@@ -24,25 +23,21 @@ export class TransactionService {
     offset: number = 0,
   ): Promise<{ transactions: TransactionRecordType[]; totalCount: number }> {
     try {
-      // Get total count
-      const [totalCountResult] = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(transactions)
-        .where(eq(transactions.accountId, parseInt(accountId)));
+      // Get total count using repository
+      const totalCount = await transactionRepository.countByAccountId(parseInt(accountId));
 
-      // Get transactions
-      const transactionRecords = await db.query.transactions.findMany({
-        where: eq(transactions.accountId, parseInt(accountId)),
-        orderBy: [desc(transactions.createdAt)],
+      // Get transactions using repository
+      const transactionRecords = await transactionRepository.findByAccountId(
+        parseInt(accountId),
         limit,
         offset,
-      });
+      );
 
       // Calculate balance after each transaction
       const transactionsWithBalance = transactionRecords.map((record) => {
         return {
           id: record.id.toString(),
-          accountId: record.accountId.toString(),
+          accountId: record.accountId?.toString() || '',
           type: record.type as TransactionType,
           amount: (record.totalAmountCents ?? 0) / 100,
           description: record.description || '',
@@ -58,7 +53,7 @@ export class TransactionService {
 
       return {
         transactions: transactionsWithBalance,
-        totalCount: totalCountResult?.count || 0,
+        totalCount: totalCount || 0,
       };
     } catch (error) {
       logger.error(`Failed to get transaction history for account ${accountId}: ${error}`);
@@ -126,42 +121,32 @@ export class TransactionService {
         transactionData.price !== undefined ? Math.round(transactionData.price * 100) : undefined;
       const feeCents = 0;
 
-      // Insert transaction into database (use positive cents values; sign handled by logic)
-      const [newTransaction] = await db
-        .insert(transactions)
-        .values({
-          accountId: parseInt(transactionData.accountId),
-          type: dbType,
-          symbol: symbol || undefined,
-          quantity: quantity || undefined,
-          priceCents: priceCents ?? undefined,
-          totalAmountCents: totalAmountCents,
-          market: transactionData.market,
-          description: transactionData.description,
-          feeCents,
-          createdAt: new Date(),
-          tradeTime: transactionData.tradeTime,
-        })
-        .returning();
+      // Insert transaction into database using Repository
+      const newTransaction = await transactionRepository.createTransaction({
+        accountId: parseInt(transactionData.accountId),
+        type: dbType,
+        symbol: symbol || undefined,
+        quantity: quantity || undefined,
+        priceCents: priceCents ?? undefined,
+        totalAmountCents: totalAmountCents,
+        market: transactionData.market,
+        description: transactionData.description,
+        feeCents,
+        tradeTime: transactionData.tradeTime,
+      });
 
       // 如果是出入金交易，同步更新账户资金余额
       if (transactionData.type === 'deposit' || transactionData.type === 'withdrawal') {
-        const accountFund = await db.query.accountFunds.findFirst({
-          where: eq(accountFunds.accountId, parseInt(transactionData.accountId)),
-        });
+        // 使用 Repository 查询账户资金
+        const accountFund = await accountFundRepository.findByAccountId(parseInt(transactionData.accountId));
 
         if (accountFund) {
           // 计算新的余额：入金增加，出金减少
           const balanceChange = transactionData.type === 'deposit' ? totalAmountCents : -totalAmountCents;
           const newAmountCents = accountFund.amountCents + balanceChange;
 
-          await db
-            .update(accountFunds)
-            .set({
-              amountCents: newAmountCents,
-              updatedAt: new Date(),
-            })
-            .where(eq(accountFunds.accountId, parseInt(transactionData.accountId)));
+          // 更新账户资金余额
+          await accountFundRepository.updateBalance(parseInt(transactionData.accountId), newAmountCents);
 
           logger.info(
             `Account balance updated for deposit/withdrawal: accountId=${transactionData.accountId}, type=${transactionData.type}, change=${balanceChange / 100}, newBalance=${newAmountCents / 100}`
@@ -169,13 +154,12 @@ export class TransactionService {
         } else {
           // 如果没有 accountFunds 记录，创建一条新的（入金时）
           if (transactionData.type === 'deposit') {
-            await db.insert(accountFunds).values({
+            await accountFundRepository.createAccountFund({
               accountId: parseInt(transactionData.accountId),
               amountCents: totalAmountCents,
               currency: transactionData.market === 'HK' ? 'HKD' :
                        transactionData.market === 'CN' ? 'CNY' : 'USD',
-              createdAt: new Date(),
-              updatedAt: new Date(),
+              leverage: 1,
             });
             logger.info(
               `Created new account funds record for deposit: accountId=${transactionData.accountId}, amount=${totalAmountCents / 100}`
@@ -238,10 +222,8 @@ export class TransactionService {
     }>,
   ): Promise<TransactionRecordType> {
     try {
-      // Get existing transaction
-      const existingTransaction = await db.query.transactions.findFirst({
-        where: eq(transactions.id, parseInt(transactionId)),
-      });
+      // Get existing transaction using Repository
+      const existingTransaction = await transactionRepository.findById(parseInt(transactionId));
 
       if (!existingTransaction) {
         throw new Error('Transaction not found');
@@ -310,12 +292,15 @@ export class TransactionService {
         updateData.totalAmountCents = Math.round(Math.abs(amount) * 100);
       }
 
-      // Update transaction in database
-      const [updatedTransaction] = await db
-        .update(transactions)
-        .set(updateData)
-        .where(eq(transactions.id, parseInt(transactionId)))
-        .returning();
+      // Update transaction in database using Repository
+      const updatedTransaction = await transactionRepository.updateTransaction(
+        parseInt(transactionId),
+        updateData as UpdateTransactionData,
+      );
+
+      if (!updatedTransaction) {
+        throw new Error('Failed to update transaction');
+      }
 
       // 如果交易类型或相关字段被更新，需要相应地调整仓位或余额
       // 修复：正确处理仓位更新，确保平均价格计算准确
@@ -339,9 +324,8 @@ export class TransactionService {
       // 处理出入金交易对余额的影响
       if (originalType === 'deposit' || originalType === 'withdrawal' ||
           newType === 'deposit' || newType === 'withdrawal') {
-        const accountFund = await db.query.accountFunds.findFirst({
-          where: eq(accountFunds.accountId, existingTransaction.accountId),
-        });
+        // 使用 Repository 查询账户资金
+        const accountFund = await accountFundRepository.findByAccountId(existingTransaction.accountId);
 
         if (accountFund) {
           let balanceChangeCents = 0;
@@ -363,13 +347,8 @@ export class TransactionService {
           if (balanceChangeCents !== 0) {
             const newAmountCents = accountFund.amountCents + balanceChangeCents;
 
-            await db
-              .update(accountFunds)
-              .set({
-                amountCents: newAmountCents,
-                updatedAt: new Date(),
-              })
-              .where(eq(accountFunds.accountId, existingTransaction.accountId));
+            // 使用 Repository 更新账户资金余额
+            await accountFundRepository.updateBalance(existingTransaction.accountId, newAmountCents);
 
             logger.info(
               `Account balance updated for transaction update: accountId=${existingTransaction.accountId}, balanceChange=${balanceChangeCents / 100}, newBalance=${newAmountCents / 100}`
@@ -482,9 +461,8 @@ export class TransactionService {
    */
   async getAccountBalance(accountId: string, beforeTransactionId?: number): Promise<number> {
     try {
-      const accountFund = await db.query.accountFunds.findFirst({
-        where: eq(accountFunds.accountId, parseInt(accountId)),
-      });
+      // 使用 Repository 查询账户资金
+      const accountFund = await accountFundRepository.findByAccountId(parseInt(accountId));
 
       if (!accountFund) {
         return 0;
@@ -493,29 +471,17 @@ export class TransactionService {
       // Start with initial balance (convert cents -> dollars)
       let balance = (accountFund.amountCents ?? 0) / 100;
 
-      // Get all transactions up to the specified point
-      let transactionQuery = db.query.transactions.findMany({
-        where: eq(transactions.accountId, parseInt(accountId)),
-        orderBy: [desc(transactions.createdAt)],
-      });
-
+      // Get all transactions up to the specified point using repository
+      let transactionRecords: any[];
+      
       if (beforeTransactionId) {
-        const transaction = await db.query.transactions.findFirst({
-          where: eq(transactions.id, beforeTransactionId),
-        });
-
-        if (transaction) {
-          transactionQuery = db.query.transactions.findMany({
-            where: and(
-              eq(transactions.accountId, parseInt(accountId)),
-              sql`createdAt <= ${transaction.createdAt.toISOString()}`,
-            ),
-            orderBy: [desc(transactions.createdAt)],
-          });
-        }
+        transactionRecords = await transactionRepository.findBeforeTransactionId(
+          parseInt(accountId),
+          beforeTransactionId,
+        );
+      } else {
+        transactionRecords = await transactionRepository.findByAccountId(parseInt(accountId));
       }
-
-      const transactionRecords = await transactionQuery;
 
       // Calculate balance based on transactions (use cents -> dollars)
       for (const transaction of transactionRecords) {

@@ -15,39 +15,72 @@ export const ModelMap = {
 } as const;
 
 /**
- * Get a ChatOpenAI instance with the specified model
+ * Get a ChatOpenAI instance with the specified model or default model
  *
  * This function resolves the model configuration from:
  * 1. User-configured model providers in the database
- * 2. Fallback to environment variables (backward compatibility)
+ * 2. Fallback to default model if specified model not found
+ * 3. Fallback to environment variables (backward compatibility)
  *
- * @param modelSlug - The model slug to use
+ * @param modelSlug - Optional model slug to use. If not provided, uses default model.
  * @returns A ChatOpenAI instance configured with the appropriate credentials
  */
-export async function chatModelOpenAI(modelSlug: ModelNameType) {
-  let baseUrl = process.env.MODEL_PROVIDER_URL;
-  let apiKey = process.env.MODEL_PROVIDER_API_KEY;
+export async function chatModelOpenAI(modelSlug?: ModelNameType): Promise<ChatOpenAI> {
+  let baseUrl: string | undefined;
+  let apiKey: string | undefined;
+  let actualModelSlug = modelSlug;
 
   try {
     // Try to get model configuration from database
     const account = await authService.getCurrentUserAccount();
     if (account) {
       const accountId = parseInt(account.id);
-      const config = await modelProviderResolver.getActiveModelConfig(accountId, modelSlug);
 
-      if (config) {
-        baseUrl = config.provider.baseUrl;
-        apiKey = config.provider.apiKey || undefined;
-        logger.info(`[chatModelOpenAI] Using database config for model ${modelSlug} from provider ${config.provider.name}`);
+      if (modelSlug) {
+        // Try to get the specified model
+        const config = await modelProviderResolver.getActiveModelConfig(accountId, modelSlug);
+
+        if (config) {
+          baseUrl = config.provider.baseUrl;
+          apiKey = config.provider.apiKey || undefined;
+          logger.info(
+            `[chatModelOpenAI] Using database config for model ${modelSlug} from provider ${config.provider.name}`
+          );
+        } else {
+          // Model not found in user config, fallback to default model
+          logger.warn(
+            `[chatModelOpenAI] Model ${modelSlug} not found in user config, falling back to default model`
+          );
+          const defaultConfig = await modelProviderResolver.getDefaultModelConfig(accountId);
+
+          if (defaultConfig) {
+            baseUrl = defaultConfig.provider.baseUrl;
+            apiKey = defaultConfig.provider.apiKey || undefined;
+            actualModelSlug = defaultConfig.model.slug;
+            logger.warn(
+              `[chatModelOpenAI] Using default model ${actualModelSlug} from provider ${defaultConfig.provider.name}`
+            );
+          }
+        }
       } else {
-        logger.info(`[chatModelOpenAI] No database config for ${modelSlug}, using environment variables`);
+        // No model specified, get default model
+        const config = await modelProviderResolver.getDefaultModelConfig(accountId);
+
+        if (config) {
+          baseUrl = config.provider.baseUrl;
+          apiKey = config.provider.apiKey || undefined;
+          actualModelSlug = config.model.slug;
+          logger.info(
+            `[chatModelOpenAI] Using default model ${actualModelSlug} from provider ${config.provider.name}`
+          );
+        }
       }
     }
   } catch (error) {
-    logger.error('[chatModelOpenAI] Error resolving model config, falling back to environment variables:', error);
+    logger.error('[chatModelOpenAI] Error resolving model config:', error);
   }
 
-  // Fallback to environment variables
+  // Fallback to environment variables if no database config found
   if (!baseUrl) {
     baseUrl = process.env.MODEL_PROVIDER_URL;
   }
@@ -55,14 +88,25 @@ export async function chatModelOpenAI(modelSlug: ModelNameType) {
     apiKey = process.env.MODEL_PROVIDER_API_KEY;
   }
 
+  // If still no config, throw error
   if (!baseUrl || !apiKey) {
     throw new Error(
-      'Model provider configuration not found. Please configure a model provider in settings.',
+      'Model provider configuration not found. Please configure a model provider in settings or set MODEL_PROVIDER_URL and MODEL_PROVIDER_API_KEY environment variables.',
+    );
+  }
+
+  // Log warning if using environment variables
+  if (!actualModelSlug) {
+    logger.error(
+      '[chatModelOpenAI] No model configured in database, using environment variables. Consider configuring a model provider in settings.'
+    );
+    throw new Error(
+      'No model configured in database and MODEL_PROVIDER_URL and MODEL_PROVIDER_API_KEY environment variables are not set. Consider configuring a model provider in settings.'
     );
   }
 
   return new ChatOpenAI({
-    model: modelSlug,
+    model: actualModelSlug,
     configuration: {
       baseURL: baseUrl,
       apiKey: apiKey,

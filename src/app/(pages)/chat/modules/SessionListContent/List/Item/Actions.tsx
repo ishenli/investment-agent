@@ -148,10 +148,10 @@ const Actions = memo<ActionProps>(({ group, id, agentCode, openCreateGroupModal,
                 okButtonProps: { danger: true },
                 onOk: async () => {
                   await removeSession(id);
-                  message.success('删除成功');
+                  message.success(t('confirm.deleteSessionSuccess'));
                 },
                 rootClassName: styles.modalRoot,
-                title: '即将删除该会话，删除后将不可恢复，请谨慎操作。',
+                title: t('confirm.deleteSessionTitle'),
               });
             },
           },

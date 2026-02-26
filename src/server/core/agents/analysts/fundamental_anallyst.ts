@@ -998,7 +998,7 @@ Return exactly:
 }`,
   };
 
-  const llm = await chatModelOpenAI('Kimi-K2.5');
+  const llm = await chatModelOpenAI();
   logger.info('[WarrenBuffettAgent] prompt %s', prompt.system + prompt.human);
   const response = await llm.invoke([
     new SystemMessage(prompt.system),

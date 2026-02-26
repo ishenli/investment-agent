@@ -196,6 +196,7 @@ export class AccountService {
         totalAmountCents: amountCents,
         feeCents: 0,
         createdAt: new Date(),
+        updatedAt: new Date(),
       });
     }
 
@@ -350,6 +351,7 @@ export class AccountService {
           totalAmountCents: amountCents,
           feeCents: 0,
           createdAt: new Date(),
+          updatedAt: new Date(),
         });
       }
 
@@ -489,6 +491,7 @@ export class AccountService {
           feeCents: 0,
           description: `现金余额调整: ${oldBalance.toFixed(2)} -> ${newBalance.toFixed(2)}`,
           createdAt: new Date(),
+          updatedAt: new Date(),
         });
       }
 

@@ -120,12 +120,8 @@ export class ModelProviderBizController extends BaseBizController {
         return this.error('用户未登录', 'unauthorized');
       }
 
-      const account = await authService.getCurrentUserAccount();
-      if (!account) {
-        return this.error('未找到账户', 'account_not_found');
-      }
 
-      const accountId = parseInt(account.id);
+      const accountId = parseInt(userId);
 
       // Get available models from database
       const models = await modelProviderResolver.getAvailableModels(accountId);
@@ -343,7 +339,7 @@ export class ModelProviderBizController extends BaseBizController {
       const providerId = parseInt(param.id);
       const provider = await modelProviderService.getProviderById(providerId);
 
-      if (!provider || provider.accountId !== parseInt(account.id)) {
+      if (!provider || provider.userId !== parseInt(account.id)) {
         return this.error('服务商不存在', 'provider_not_found');
       }
 
@@ -379,7 +375,7 @@ export class ModelProviderBizController extends BaseBizController {
       const providerId = typeof body.providerId === 'string' ? parseInt(body.providerId) : body.providerId;
       const provider = await modelProviderService.getProviderById(providerId);
 
-      if (!provider || provider.accountId !== parseInt(account.id)) {
+      if (!provider || provider.userId !== parseInt(account.id)) {
         return this.error('服务商不存在', 'provider_not_found');
       }
 

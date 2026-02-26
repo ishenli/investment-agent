@@ -1,170 +1,102 @@
-import { db } from '@server/lib/db';
-import { settings } from '@/drizzle/schema';
-import { eq, and } from 'drizzle-orm';
+import { settingRepository, type Setting } from '@server/repository/settingRepository';
 import logger from '@server/base/logger';
 import authService from './authService';
 
-export type SettingType = {
-  id: number;
-  accountId: number;
-  key: string;
-  value: string;
-  createdAt: Date;
-  updatedAt: Date;
-};
+export type SettingType = Setting;
 
 export class SettingService {
   constructor() {
     // 数据库连接已经在 db.ts 中初始化
   }
 
-  async getConfigValueByKey(key: string) {
-    const accountId = await authService.getCurrentUserId();
-    const value = await this.getSettingByKey(accountId, key);
-    if (value) {
-      return value.value;
+  async getConfigValueByKey(key: string): Promise<string | undefined> {
+    const userId = await authService.getCurrentUserId();
+    const setting = await settingRepository.findByUserIdAndKey(parseInt(userId), key);
+    if (setting) {
+      return setting.value;
     }
     return process.env[key];
   }
 
   /**
    * 获取账户的所有设置
-   * @param accountId 账户ID
+   * @param userId 用户ID
    * @returns 设置列表
    */
-  async getSettingsByAccountId(accountId: number): Promise<SettingType[]> {
+  async getSettingsByAccountId(userId: number): Promise<SettingType[]> {
     try {
-      const result = await db.query.settings.findMany({
-        where: eq(settings.accountId, accountId),
-      });
-
-      return result.map((setting) => ({
-        ...setting,
-        createdAt: setting.createdAt ? new Date(setting.createdAt) : new Date(),
-        updatedAt: setting.updatedAt ? new Date(setting.updatedAt) : new Date(),
-      }));
+      return await settingRepository.findByUserId(userId);
     } catch (error) {
-      logger.error(`Failed to get settings for account ${accountId}: ${error}`);
+      logger.error(`Failed to get settings for user ${userId}: ${error}`);
       throw new Error(`Database query failed: ${error}`);
     }
   }
 
   /**
-   * 根据账户ID和键获取特定设置
-   * @param accountId 账户ID
+   * 根据用户ID和键获取特定设置
+   * @param userId 用户ID
    * @param key 设置键
    * @returns 设置值或null
    */
-  async getSettingByKey(accountId: string, key: string): Promise<SettingType | null> {
+  async getSettingByKey(userId: string, key: string): Promise<SettingType | null> {
     try {
-      const setting = await db.query.settings.findFirst({
-        where: and(eq(settings.accountId, parseInt(accountId)), eq(settings.key, key)),
-      });
-
-      return setting
-        ? {
-            ...setting,
-            createdAt: setting.createdAt ? new Date(setting.createdAt) : new Date(),
-            updatedAt: setting.updatedAt ? new Date(setting.updatedAt) : new Date(),
-          }
-        : null;
+      return await settingRepository.findByUserIdAndKey(parseInt(userId), key);
     } catch (error) {
-      logger.error(`Failed to get setting ${key} for account ${accountId}: ${error}`);
+      logger.error(`Failed to get setting ${key} for user ${userId}: ${error}`);
       throw new Error(`Database query failed: ${error}`);
     }
   }
 
   /**
    * 创建或更新账户设置
-   * @param accountId 账户ID
+   * @param userId 用户ID
    * @param key 设置键
    * @param value 设置值
    * @returns 创建或更新的设置
    */
-  async setSetting(accountId: string, key: string, value: string): Promise<SettingType> {
+  async setSetting(userId: string, key: string, value: string): Promise<SettingType> {
     try {
-      // 首先检查设置是否已存在
-      const existingSetting = await this.getSettingByKey(accountId, key);
-
-      if (existingSetting) {
-        // 更新现有设置
-        const [updatedSetting] = await db
-          .update(settings)
-          .set({
-            value,
-            updatedAt: new Date(),
-          })
-          .where(and(eq(settings.accountId, parseInt(accountId)), eq(settings.key, key)))
-          .returning();
-
-        return {
-          ...updatedSetting,
-          createdAt: updatedSetting.createdAt ? new Date(updatedSetting.createdAt) : new Date(),
-          updatedAt: updatedSetting.updatedAt ? new Date(updatedSetting.updatedAt) : new Date(),
-        };
-      } else {
-        // 创建新设置
-        const [newSetting] = await db
-          .insert(settings)
-          .values({
-            accountId: parseInt(accountId),
-            key,
-            value,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          })
-          .returning();
-
-        return {
-          ...newSetting,
-          createdAt: newSetting.createdAt ? new Date(newSetting.createdAt) : new Date(),
-          updatedAt: newSetting.updatedAt ? new Date(newSetting.updatedAt) : new Date(),
-        };
-      }
+      return await settingRepository.upsert(parseInt(userId), key, value);
     } catch (error) {
-      logger.error(`Failed to set setting ${key} for account ${accountId}: ${error}`);
+      logger.error(`Failed to set setting ${key} for user ${userId}: ${error}`);
       throw new Error(`Database operation failed: ${error}`);
     }
   }
 
   /**
    * 删除账户的特定设置
-   * @param accountId 账户ID
+   * @param userId 用户ID
    * @param key 设置键
    * @returns 删除是否成功
    */
-  async deleteSetting(accountId: string, key: string): Promise<boolean> {
+  async deleteSetting(userId: string, key: string): Promise<boolean> {
     try {
-      const result = await db
-        .delete(settings)
-        .where(and(eq(settings.accountId, parseInt(accountId)), eq(settings.key, key)));
-
-      return result.lastInsertRowid === BigInt(0);
+      return await settingRepository.deleteByUserIdAndKey(parseInt(userId), key);
     } catch (error) {
-      logger.error(`Failed to delete setting ${key} for account ${accountId}: ${error}`);
+      logger.error(`Failed to delete setting ${key} for user ${userId}: ${error}`);
       throw new Error(`Database delete failed: ${error}`);
     }
   }
 
   /**
    * 删除账户的所有设置
-   * @param accountId 账户ID
+   * @param userId 用户ID
    * @returns 删除是否成功
    */
-  async deleteAllSettings(accountId: string): Promise<boolean> {
+  async deleteAllSettings(userId: string): Promise<boolean> {
     try {
-      const result = await db.delete(settings).where(eq(settings.accountId, parseInt(accountId)));
-      return result.lastInsertRowid === BigInt(0);
+      await settingRepository.deleteByUserId(parseInt(userId));
+      return true;
     } catch (error) {
-      logger.error(`Failed to delete all settings for account ${accountId}: ${error}`);
+      logger.error(`Failed to delete all settings for user ${userId}: ${error}`);
       throw new Error(`Database delete failed: ${error}`);
     }
   }
 
   // 获取模型服务 API 地址
   async getModelServiceApiUrl(): Promise<string | null> {
-    const accountId = await authService.getCurrentUserId();
-    const setting = await this.getSettingByKey(accountId, 'MODEL_PROVIDER_URL');
+    const userId = await authService.getCurrentUserId();
+    const setting = await settingRepository.findByUserIdAndKey(parseInt(userId), 'MODEL_PROVIDER_URL');
     return setting ? setting.value : process.env.MODEL_PROVIDER_URL || null;
   }
 }

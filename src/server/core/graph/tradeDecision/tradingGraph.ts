@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { chatModelOpenAI, ModelNameType } from '../../provider/chatModel';
+import { chatModelOpenAI } from '../../provider/chatModel';
 import { ChatOpenAI } from '@langchain/openai';
 import { StockMarketDataUnifiedTool } from '../../tools/stock/stockGetPrice';
 import { ConditionalLogic } from './conditionalLogic';
@@ -12,7 +12,6 @@ import { CompiledStateGraph } from '@langchain/langgraph';
 import type { StateAnnotation } from './agentState';
 import { SignalProcessor } from './signalProcessor';
 import fs from 'fs-extra';
-import type { DefaultConfigType } from '@shared/config/config.default';
 import type { Logger } from '@server/base/logger';
 import { RISK_MANAGER_NODE } from '../../agents/managers/risk_manager';
 import { SSEEmitter } from '@server/base/sseEmitter';
@@ -21,7 +20,7 @@ import { StructuredTool, Tool } from 'langchain';
 export type TradingGraphOptionsType = {
   logger: Logger;
   selectedAnalysts: AnalystType[];
-  config: Partial<DefaultConfigType>;
+  projectDir: string;
 };
 
 export class TradingAgentsGraph {
@@ -40,23 +39,23 @@ export class TradingAgentsGraph {
   ticker: string = '';
   signal_processor!: SignalProcessor;
   curr_state: object = {};
-  config: Partial<DefaultConfigType>;
+  projectDir: string;
   logger: Logger;
   toolNodes: any;
   selectedAnalysts: AnalystType[];
 
   private constructor(options: TradingGraphOptionsType) {
-    this.config = options.config;
+    this.projectDir = options.projectDir;
     this.logger = options.logger;
     this.selectedAnalysts = options.selectedAnalysts;
 
     // Initialize synchronous properties
     this.conditional_logic = new ConditionalLogic();
-    this.bull_memory = new FinancialSituationMemory('bull_memory', this.config);
-    this.bear_memory = new FinancialSituationMemory('bear_memory', this.config);
-    this.invest_judge_memory = new FinancialSituationMemory('invest_judge_memory', this.config);
-    this.trader_memory = new FinancialSituationMemory('trader_memory', this.config);
-    this.risk_manager_memory = new FinancialSituationMemory('risk_manager_memory', this.config);
+    this.bull_memory = new FinancialSituationMemory('bull_memory');
+    this.bear_memory = new FinancialSituationMemory('bear_memory');
+    this.invest_judge_memory = new FinancialSituationMemory('invest_judge_memory');
+    this.trader_memory = new FinancialSituationMemory('trader_memory');
+    this.risk_manager_memory = new FinancialSituationMemory('risk_manager_memory');
   }
 
   /**
@@ -73,8 +72,8 @@ export class TradingAgentsGraph {
    * Async initialization - sets up LLMs and graph components
    */
   private async initialize(): Promise<void> {
-    this.deepThinkLLM = await chatModelOpenAI(this.config.deep_think_llm as unknown as ModelNameType);
-    this.quickThinkLLM = await chatModelOpenAI(this.config.quick_think_llm as unknown as ModelNameType);
+    this.deepThinkLLM = await chatModelOpenAI();
+    this.quickThinkLLM = await chatModelOpenAI();
     this.toolNodes = this.createToolNodes();
 
     this.graph_setup = new GraphSetup({
@@ -162,7 +161,7 @@ export class TradingAgentsGraph {
 
   dumpGraphArgs(graphArgs: object) {
     fs.outputFile(
-      `${this.config.project_dir}/run/graph_args.json`,
+      `${this.projectDir}/run/graph_args.json`,
       JSON.stringify(graphArgs, null, 2),
     );
   }

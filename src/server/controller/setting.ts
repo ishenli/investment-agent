@@ -14,6 +14,7 @@ const SettingKeySchema = z.enum([
   'LANGSMITH_API_KEY',
   'FINANCIAL_DATASETS_KEY',
   'TAVILY_API_KEY',
+  'AVATAR',
 ]);
 
 const SettingSchema = z.object({
@@ -30,13 +31,13 @@ export class SettingBizController extends BaseBizController {
   async getSettings() {
     try {
       // 1. 获取当前用户ID
-      const accountInfo = await authService.getCurrentUserAccount();
-      if (!accountInfo) {
+      const userId = await authService.getCurrentUserId();
+      if (!userId) {
         return this.error('用户未认证', 'unauthorized');
       }
 
       // 2. 获取用户的所有设置
-      const settings = await settingService.getSettingsByAccountId(parseInt(accountInfo.id));
+      const settings = await settingService.getSettingsByAccountId(parseInt(userId));
 
       // 3. 转换为键值对格式
       const settingsMap: Record<string, string> = {};

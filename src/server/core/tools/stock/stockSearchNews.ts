@@ -1,7 +1,7 @@
 import logger from '@server/base/logger';
 import { searchNews } from '@server/dataflows/finnhubUtil';
 import dayjs from 'dayjs';
-import { DynamicStructuredTool } from '@langchain/core/tools';
+import { DynamicStructuredTool } from 'langchain';
 import z from 'zod';
 
 const StockNewsParams = z.object({

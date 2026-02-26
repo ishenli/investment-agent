@@ -73,7 +73,7 @@ export const useChatListActionsBar = ({
         disable: hasThread,
         icon: ListRestart,
         key: 'delAndRegenerate',
-        label: '删除并重新生成',
+        label: t('deleteAndRegenerate'),
       },
       divider: {
         type: 'divider',

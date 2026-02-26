@@ -1,6 +1,4 @@
-import { eq, and } from 'drizzle-orm';
-import { db } from '@server/lib/db';
-import { modelProviders, providerModels } from '@drizzle/schema';
+import { modelProviderCombinedRepository } from '@server/repository/modelProviderRepository';
 import logger from '@server/base/logger';
 
 import type { ModelProvider, ProviderModel } from '@/types/modelProvider';
@@ -18,48 +16,32 @@ export class ModelProviderResolver {
   /**
    * Get active model provider and model configuration for a user's model slug
    *
-   * @param accountId - The user's account ID
+   * @param userId - The user's ID
    * @param modelSlug - The model slug to resolve
    * @returns The provider and model configuration, or null if not found
    */
   async getActiveModelConfig(
-    accountId: number,
+    userId: number,
     modelSlug: string
   ): Promise<{ provider: ModelProvider; model: ProviderModel } | null> {
     try {
-      // Query database for active provider with matching model
-      const result = await db
-        .select({
-          provider: modelProviders,
-          model: providerModels,
-        })
-        .from(providerModels)
-        .innerJoin(modelProviders, eq(providerModels.providerId, modelProviders.id))
-        .where(
-          and(
-            eq(modelProviders.accountId, accountId),
-            eq(modelProviders.isActive, true),
-            eq(providerModels.isActive, true),
-            eq(providerModels.slug, modelSlug)
-          )
-        )
-        .limit(1);
+      const result = await modelProviderCombinedRepository.findActiveModelConfigByUserIdAndSlug(
+        userId,
+        modelSlug
+      );
 
-      if (result.length === 0) {
+      if (!result) {
         this.logger.info(
-          `[ModelProviderResolver] No active model config found for model slug: ${modelSlug}, account: ${accountId}`
+          `[ModelProviderResolver] No active model config found for model slug: ${modelSlug}, user: ${userId}`
         );
         return null;
       }
 
       this.logger.info(
-        `[ModelProviderResolver] Found model config for ${modelSlug} from provider ${result[0].provider.name}`
+        `[ModelProviderResolver] Found model config for ${modelSlug} from provider ${result.provider.name}`
       );
 
-      return {
-        provider: result[0].provider as ModelProvider,
-        model: result[0].model as ProviderModel,
-      };
+      return result;
     } catch (error) {
       this.logger.error(
         `[ModelProviderResolver] Error querying model config for ${modelSlug}:`,
@@ -70,46 +52,14 @@ export class ModelProviderResolver {
   }
 
   /**
-   * Get all available models for a user account
+   * Get all available models for a user
    *
-   * @param accountId - The user's account ID
+   * @param userId - The user's ID
    * @returns Array of available provider models
    */
-  async getAvailableModels(accountId: number): Promise<ProviderModel[]> {
+  async getAvailableModels(userId: number): Promise<ProviderModel[]> {
     try {
-      const models = await db
-        .select({
-          id: providerModels.id,
-          providerId: providerModels.providerId,
-          slug: providerModels.slug,
-          name: providerModels.name,
-          contextWindow: providerModels.contextWindow,
-          supportsVision: providerModels.supportsVision,
-          supportsFunctionCalling: providerModels.supportsFunctionCalling,
-          isActive: providerModels.isActive,
-          displayOrder: providerModels.displayOrder,
-          createdAt: providerModels.createdAt,
-          updatedAt: providerModels.updatedAt,
-          providerName: modelProviders.name,
-          providerSlug: modelProviders.slug,
-        })
-        .from(providerModels)
-        .innerJoin(modelProviders, eq(providerModels.providerId, modelProviders.id))
-        .where(
-          and(
-            eq(modelProviders.accountId, accountId),
-            eq(modelProviders.isActive, true),
-            eq(providerModels.isActive, true)
-          )
-        )
-        .orderBy(providerModels.displayOrder, modelProviders.id);
-
-      return models.map((m) => ({
-        ...m,
-        // Create a composite field that references the provider
-        providerName: m.providerName,
-        providerSlug: m.providerSlug,
-      } as ProviderModel & { providerName: string; providerSlug: string }));
+      return await modelProviderCombinedRepository.findAllAvailableModelsByUserId(userId);
     } catch (error) {
       this.logger.error(`[ModelProviderResolver] Error getting available models:`, error);
       return [];
@@ -119,27 +69,13 @@ export class ModelProviderResolver {
   /**
    * Check if a model slug is configured and active for a user
    *
-   * @param accountId - The user's account ID
+   * @param userId - The user's ID
    * @param modelSlug - The model slug to check
    * @returns True if the model is available, false otherwise
    */
-  async isModelAvailable(accountId: number, modelSlug: string): Promise<boolean> {
+  async isModelAvailable(userId: number, modelSlug: string): Promise<boolean> {
     try {
-      const model = await db
-        .select({ id: providerModels.id })
-        .from(providerModels)
-        .innerJoin(modelProviders, eq(providerModels.providerId, modelProviders.id))
-        .where(
-          and(
-            eq(modelProviders.accountId, accountId),
-            eq(modelProviders.isActive, true),
-            eq(providerModels.isActive, true),
-            eq(providerModels.slug, modelSlug)
-          )
-        )
-        .limit(1);
-
-      return model.length > 0;
+      return await modelProviderCombinedRepository.isModelAvailableForUser(userId, modelSlug);
     } catch (error) {
       this.logger.error(
         `[ModelProviderResolver] Error checking model availability for ${modelSlug}:`,
@@ -150,31 +86,45 @@ export class ModelProviderResolver {
   }
 
   /**
-   * Get the default model for a user account
+   * Get the default model for a user
    * Returns the first active provider's first active model, sorted by displayOrder
    *
-   * @param accountId - The user's account ID
+   * @param userId - The user's ID
    * @returns The default model slug or null if no models available
    */
-  async getDefaultModelSlug(accountId: number): Promise<string | null> {
+  async getDefaultModelSlug(userId: number): Promise<string | null> {
     try {
-      const model = await db
-        .select({ slug: providerModels.slug })
-        .from(providerModels)
-        .innerJoin(modelProviders, eq(providerModels.providerId, modelProviders.id))
-        .where(
-          and(
-            eq(modelProviders.accountId, accountId),
-            eq(modelProviders.isActive, true),
-            eq(providerModels.isActive, true)
-          )
-        )
-        .orderBy(modelProviders.displayOrder, providerModels.id)
-        .limit(1);
-
-      return model.length > 0 ? model[0].slug : null;
+      return await modelProviderCombinedRepository.findDefaultModelSlugByUserId(userId);
     } catch (error) {
       this.logger.error(`[ModelProviderResolver] Error getting default model:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Get the default model configuration for a user
+   * Returns the first active provider's first active model with full configuration
+   *
+   * @param userId - The user's ID
+   * @returns The default model configuration or null if no models available
+   */
+  async getDefaultModelConfig(
+    userId: number
+  ): Promise<{ provider: ModelProvider; model: ProviderModel } | null> {
+    try {
+      const result = await modelProviderCombinedRepository.findDefaultModelConfigByUserId(userId);
+
+      if (result) {
+        this.logger.info(
+          `[ModelProviderResolver] Found default model ${result.model.slug} from provider ${result.provider.name}`
+        );
+      } else {
+        this.logger.info(`[ModelProviderResolver] No default model found for user ${userId}`);
+      }
+
+      return result;
+    } catch (error) {
+      this.logger.error(`[ModelProviderResolver] Error getting default model config:`, error);
       return null;
     }
   }

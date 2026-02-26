@@ -65,7 +65,7 @@ export class StrategyAdviceGraph {
    * Async initialization - sets up LLM and graph
    */
   private async initialize(): Promise<void> {
-    this.llm = await chatModelOpenAI('Qwen3-235B-A22B-Instruct-2507');
+    this.llm = await chatModelOpenAI();
     this.setupGraph();
   }
 
