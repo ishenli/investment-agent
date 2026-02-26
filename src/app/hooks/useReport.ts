@@ -72,6 +72,7 @@ const generateReport = async (payload: {
   type: ReportType;
   startDate?: string;
   endDate?: string;
+  modelSlug?: string;
 }) => {
   const response = await post<{ success: boolean; data: { id: string; status: string } }>(
     '/api/report',

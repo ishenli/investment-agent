@@ -1,7 +1,8 @@
-# Agent Management Specification
+# agent-management Specification
 
-## ADDED Requirements
-
+## Purpose
+TBD - created by archiving change unify-agent-management. Update Purpose after archive.
+## Requirements
 ### Requirement: System Base Agent (inbox)
 
 The system SHALL maintain a hardcoded system base agent called `inbox` for default session creation.
@@ -190,9 +191,7 @@ The system SHALL associate chat sessions with agents through the agent's slug.
 
 ---
 
-## MODIFIED Requirements
-
-### Requirement: SESSION_CONFIG_MAP constant
+### Requirement: SESSION_CONFIG_MAP Simplification
 
 The `SESSION_CONFIG_MAP` SHALL be simplified to only include the `inbox` configuration.
 
@@ -202,11 +201,3 @@ The `SESSION_CONFIG_MAP` SHALL be simplified to only include the `inbox` configu
 - **THEN** only `inbox` configuration SHALL be present
 - **AND** other configurations (like `marketInfo`) SHALL be removed
 
----
-
-## REMOVED Requirements
-
-### Requirement: Non-inbox hardcoded agents
-
-**Reason**: Non-inbox agent configurations (e.g., `market_information`) are migrated to database storage
-**Migration**: These agents are initialized via `instrumentation.ts` to `agent` table with `isBuiltin=true`

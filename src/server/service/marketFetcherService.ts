@@ -4,7 +4,6 @@ import {
   CrawlRequest,
   ManualInputRequest,
   DataSourceType,
-  ContentFormat,
 } from '@typings/market';
 import { WebCrawler } from '@/server/dataflows/market-fetcher/web-crawler';
 import { StorageService } from '@server/dataflows/market-fetcher/storage';

@@ -102,7 +102,7 @@
 - **THEN** 表 MUST 包含 `updated_at` 时间戳字段
 
 ### Requirement: 数据访问限制
-数据库操作 ONLY 可在 Server Components、Server Actions 或 API Routes 中执行。
+数据库操作 MUST 只能在 Server Components、Server Actions 或 API Routes 中执行。
 
 #### Scenario: 禁止客户端直接访问
 - **WHEN** 尝试在 Client Component 中导入数据库模块

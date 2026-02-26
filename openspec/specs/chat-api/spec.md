@@ -1,6 +1,9 @@
-# chat-api Spec Delta: DeepAgents.js Integration
+# chat-api Specification
 
-## ADDED Requirements
+## Purpose
+管理投资顾问聊天 API，支持通过 LangChain 或 DeepAgents.js 实现，提供流式 AI 响应。
+
+## Requirements
 
 ### Requirement: DeepAgents.js Support
 系统 MUST 支持使用 `deepagents` 作为投资顾问 Agent 的实现基础，提供与 LangChain 实现同等的功能能力，同时支持任务规划和分解。
@@ -104,12 +107,10 @@
 
 ---
 
-## MODIFIED Requirements
-
-### Requirement: Investment Advisor Chat Endpoint (MODIFIED)
+### Requirement: Investment Advisor Chat Endpoint
 系统 MUST 提供投资顾问聊天端点 `/api/chat`，支持 **通过 LangChain 或 DeepAgents.js** 实现，通过 SSE 流式返回 AI 响应。
 
-#### Scenario: 投资顾问基础对话 (MODIFIED)
+#### Scenario: 投资顾问基础对话
 - **GIVEN** 用户已登录并有有效账户
 - **WHEN** 用户发送聊天消息到 `/api/chat`
 - **THEN** 系统必须（MUST）验证用户身份并获取 accountId
@@ -120,7 +121,7 @@
 - **THEN** 系统必须（MUST）通过 SSE 流式返回响应
 - **THEN** 返回的格式必须是 AI SDK 兼容的 UIMessageChunk 格式（**与实现方式无关**）
 
-#### Scenario: 投资顾问流式响应 (MODIFIED)
+#### Scenario: 投资顾问流式响应
 - **GIVEN** 用户发起投资顾问对话请求
 - **WHEN** `chatService.chat()` 开始处理
 - **THEN** 系统必须（MUST）发送 `text-start` 事件标识响应开始
@@ -131,10 +132,10 @@
 
 ---
 
-### Requirement: Chat Service Integration (MODIFIED)
+### Requirement: Chat Service Integration
 系统 MUST 通过 `chatService` 提供统一的聊天服务抽象，根据不同 agent 类型和 **功能标志** 路由到相应的实现。
 
-#### Scenario: 投资顾问 Agent 调用 (MODIFIED)
+#### Scenario: 投资顾问 Agent 调用
 - **GIVEN** `agentId` 为 `investment_advisor`
 - **WHEN** 调用 `chatService.chat()`
 - **THEN** 系统必须（MUST）检查 `USE_DEEPAGENTS` 环境变量
@@ -143,100 +144,9 @@
 - **THEN** 两种实现必须（MUST）接受相同的输入参数
 - **THEN** 两种实现必须（MUST）返回相同的 SSE 输出格式
 
-#### Scenario: Simplified chatService (MODIFIED)
+#### Scenario: Simplified chatService
 - **GIVEN** 迁移到 DeepAgents.js
 - **WHEN** 调用投资顾问 Agent
 - **THEN** chatService 必须（MUST）直接调用 unified agent 的方法
 - **THEN** chatService 不得（MUST NOT）创建 Graph 实例或管理 Graph 状态
 - **THEN** 调用代码必须（MUST）简化为单一方法调用
-
----
-
-## RENAMED Requirements
-
-None.
-
----
-
-## REMOVED Requirements
-
-None.
-
----
-
-## Implementation Notes
-
-### Tool Integration
-
-DeepAgents.js directly supports LangChain tools without an adapter layer:
-
-```typescript
-import { createDeepAgent } from "deepagents";
-import {
-  stockSearchNewsTool,
-  stockGetPriceTool,
-  // ... other tools
-} from '../../tools';
-
-const investmentDeepAgent = createDeepAgent({
-  tools: [
-    stockSearchNewsTool,
-    stockGetPriceTool,
-    stockRecallMarketInfoTool,
-    stockRecallCompanyInfoTool,
-    noteQueryTool,
-    TravilySearchTool,
-  ],
-  systemPrompt: SYSTEM_PROMPT,
-});
-```
-
-### Stream Event Mapping
-
-| DeepAgents.js Event | OpenAI SSE Format |
-|---------------------|-------------------|
-| Text chunk | `delta: { content: text }` |
-| Tool call start | `delta: { tool_calls: [...] }` |
-| Stream end | `finish_reason: 'stop'` |
-
-### File Structure Changes
-
-**Added:**
-```
-src/server/core/deepagents/
-└── investmentAdvisorAgent.ts    # NEW: All-in-one file
-```
-
-**Deleted:**
-```
-src/server/core/graph/investmentAdvisorGraph/
-├── index.ts                     # DELETE
-└── investmentChatState.ts       # DELETE
-```
-
-**Updated:**
-```
-src/server/service/chatService.ts   # UPDATE: Simplified call
-```
-
-### Environment Configuration
-
-```bash
-# .env.local or environment configuration
-USE_DEEPAGENTS=true   # Enable DeepAgents.js implementation
-USE_DEEPAGENTS=false  # Use original LangChain implementation (default)
-```
-
-### Dependencies
-
-```json
-{
-  "deepagents": "^0.x.x"
-}
-```
-
-Existing dependencies remain unchanged:
-- `langchain`: Required for tool creation
-- `@langchain/openai`
-- `@langchain/tavily`
-- `zod`: Schema validation

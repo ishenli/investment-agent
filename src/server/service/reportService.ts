@@ -43,6 +43,7 @@ export type GenerateReportRequest = {
   type: ReportType;
   startDate?: Date;
   endDate?: Date;
+  modelSlug?: string; // 可选的模型标识，用于选择特定的 AI 模型
 };
 
 // 报告列表项类型
@@ -592,6 +593,7 @@ export class ReportService {
         request.accountId,
         startDate,
         endDate,
+        request.modelSlug,
       ).catch(async (error) => {
         logger.error('[ReportService] 报告生成失败', { reportId: reportRecord.id, error });
         // 更新报告状态为失败
@@ -616,12 +618,14 @@ export class ReportService {
    * @param accountId 账户ID
    * @param startDate 开始日期
    * @param endDate 结束日期
+   * @param modelSlug 可选的模型标识
    */
   private async processReportGeneration(
     reportId: string,
     accountId: string,
     startDate: Date,
     endDate: Date,
+    modelSlug?: string,
   ): Promise<void> {
     try {
       // 更新报告状态为处理中
@@ -634,7 +638,7 @@ export class ReportService {
       await analysisReportRepository.updateProgress(parseInt(reportId), 50, 'AI分析生成');
 
       // 生成AI报告内容
-      const reportContent = await this.generateAIReportContent(reportData);
+      const reportContent = await this.generateAIReportContent(reportData, modelSlug);
 
       // 更新报告内容和状态（标记为完成）
       await analysisReportRepository.updateContent(
@@ -741,16 +745,17 @@ export class ReportService {
   /**
    * 生成AI报告内容
    * @param reportData 报告数据
+   * @param modelSlug 可选的模型标识
    * @returns 生成的报告内容（Markdown格式）
    */
-  private async generateAIReportContent(reportData: WeeklyReportData): Promise<string> {
+  private async generateAIReportContent(reportData: WeeklyReportData, modelSlug?: string): Promise<string> {
     try {
       // 构建AI提示词
       const prompt = this.buildAIPrompt(reportData);
 
       recordPrompt(prompt, 'report-generate-prompt.md');
 
-      const llm = await chatModelOpenAI();
+      const llm = await chatModelOpenAI(modelSlug);
 
       // 创建一个 Agent
       const agent = createAgent({

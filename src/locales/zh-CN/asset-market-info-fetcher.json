@@ -89,6 +89,11 @@
       },
       "contentPreview": "内容预览",
       "description": "让AI总结和归纳内容",
+      "modelSelector": {
+        "label": "选择AI模型",
+        "loading": "加载模型列表...",
+        "placeholder": "选择要使用的AI模型"
+      },
       "title": "AI分析"
     },
     "step3": {

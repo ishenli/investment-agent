@@ -9,6 +9,9 @@
     "empty": "暂无报告",
     "emptyDescription": "您还没有生成过任何投资报告。点击上方按钮开始生成。",
     "generateButton": "生成报告",
+    "modelSelector": {
+      "placeholder": "选择AI模型"
+    },
     "status": {
       "completed": "已完成",
       "failed": "失败",

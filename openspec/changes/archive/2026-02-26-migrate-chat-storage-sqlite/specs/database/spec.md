@@ -2,7 +2,7 @@
 
 ## MODIFIED Requirements
 
-### Requirement: Table Schema (MODIFIED)
+### Requirement: Table Schema
 
 每个数据表 MUST 包含标准字段：id、created_at、updated_at。聊天相关表 MUST 使用 `chat_` 前缀命名。
 

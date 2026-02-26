@@ -84,11 +84,11 @@ const SummarizeContentRequestSchema = z.object({
   content: z.string().min(1, '内容不能为空'),
   title: z.string().optional(),
   language: z.string().optional().default('zh'),
+  modelSlug: z.string().optional(), // 可选的模型标识，用于选择特定的 AI 模型
 });
 
 export class MarketBizController extends BaseBizController {
   marketFetcherService: MarketFetcherService;
-  marketAIService: MarketAIService | null = null;
 
   constructor() {
     super();
@@ -96,13 +96,11 @@ export class MarketBizController extends BaseBizController {
   }
 
   /**
-   * Lazy initialization of MarketAIService
+   * Get MarketAIService instance with optional model slug
+   * @param modelSlug - Optional model slug to use a specific model
    */
-  private async getMarketAIService(): Promise<MarketAIService> {
-    if (!this.marketAIService) {
-      this.marketAIService = await MarketAIService.create();
-    }
-    return this.marketAIService;
+  private async getMarketAIService(modelSlug?: string): Promise<MarketAIService> {
+    return await MarketAIService.create(modelSlug);
   }
 
   @WithRequestContext()
@@ -210,9 +208,9 @@ export class MarketBizController extends BaseBizController {
         return this.responseValidateError(validationResult.error);
       }
 
-      const { content, title, language } = validationResult.data;
+      const { content, title, language, modelSlug } = validationResult.data;
 
-      const marketAIService = await this.getMarketAIService();
+      const marketAIService = await this.getMarketAIService(modelSlug);
       const summary = await marketAIService.summarizeContent(content, title, language);
 
       return this.success({
@@ -236,10 +234,10 @@ export class MarketBizController extends BaseBizController {
         return this.responseValidateError(validationResult.error);
       }
 
-      const { content, title, language } = validationResult.data;
+      const { content, title, language, modelSlug } = validationResult.data;
 
-      // 模拟 AI 分析内容的逻辑
-      const marketAIService = await this.getMarketAIService();
+      // 使用指定的模型或默认模型进行 AI 分析
+      const marketAIService = await this.getMarketAIService(modelSlug);
       const analysis = await marketAIService.analyzeContent(content, title, language);
 
       // 返回成功响应
