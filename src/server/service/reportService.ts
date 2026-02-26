@@ -803,7 +803,7 @@ export class ReportService {
 
       recordPrompt(prompt, 'report-generate-prompt.md');
 
-      const llm = await chatModelOpenAI(ModelMap['Kimi-K2.5']);
+      const llm = await chatModelOpenAI();
 
       // 创建一个 Agent
       const agent = createAgent({

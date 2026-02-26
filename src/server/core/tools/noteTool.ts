@@ -1,6 +1,6 @@
 import logger from '@server/base/logger';
 import noteService from '@server/service/noteService';
-import { tool } from '@langchain/core/tools';
+import { tool } from 'langchain';
 import z from 'zod';
 
 // 帮我实现一个 note 的 query 工具

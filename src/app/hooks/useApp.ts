@@ -85,9 +85,9 @@ export function useAppInitHook(options: AppInitOptions = {}) {
 
     try {
       // 1. 调用 initUserState 完成用户状态初始化
-      // 这会从 localStorage 加载偏好设置并设置 isUserStateInit = true
+      // 这会从 localStorage 加载偏好设置，从 SQLite 加载头像，并设置 isUserStateInit = true
       const { initUserState } = useUserStore.getState();
-      await initUserState({ avatar: '' });
+      await initUserState();
 
       // 2. 获取 store 中更新后的状态
       const { preference, updatePreference } = useUserStore.getState();

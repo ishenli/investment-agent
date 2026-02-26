@@ -5,7 +5,7 @@ import {
   CreateMessageSchema,
   UpdateMessageSchema,
   DeleteMessageSchema,
-} from '../schemas';
+} from '@typings/chat/schemas';
 import { WithRequestContextStatic } from '@/server/base/decorators';
 
 class MessageHttpController extends BaseController {

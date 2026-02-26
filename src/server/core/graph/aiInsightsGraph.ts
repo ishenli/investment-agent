@@ -1,6 +1,5 @@
 import { StateGraph, END, START, Annotation, CompiledStateGraph } from '@langchain/langgraph';
 import { ChatOpenAI } from '@langchain/openai';
-import { HumanMessage } from '@langchain/core/messages';
 import { AIInsight } from '@renderer/store/position/aiInsightsTypes';
 import { PositionAsset, Portfolio } from '@renderer/store/position/types';
 import { randomUUID } from 'node:crypto';
@@ -8,6 +7,7 @@ import { chatModelOpenAI, ModelMap } from '@server/core/provider/chatModel';
 import logger from '@/server/base/logger';
 import { recordPrompt } from '@/server/utils/file';
 import { createDeepAgent } from 'deepagents';
+import { HumanMessage } from 'langchain';
 
 // 定义状态类型
 export interface AIInsightsState {
@@ -56,7 +56,7 @@ export class AIInsightsGraph {
    * Async initialization - sets up LLM and graph
    */
   private async initialize(): Promise<void> {
-    this.llm = await chatModelOpenAI(ModelMap['Qwen3-Next-80B-A3B-Instruct']);
+    this.llm = await chatModelOpenAI();
     this.setupGraph();
   }
 
@@ -179,7 +179,7 @@ ${positions.map((pos) => `${pos.symbol}${pos.investmentMemo ? ` (${pos.investmen
         recordPrompt(prompt, 'ai-insights-opportunity-finder.md');
         // const response = await this.llm.invoke([new HumanMessage(prompt)]);
         const agent = createDeepAgent({
-          model: await chatModelOpenAI(ModelMap['Qwen3-Next-80B-A3B-Instruct']),
+          model: await chatModelOpenAI(),
           tools: [],
           systemPrompt: `你是一个投资机会发掘专家`,
         });

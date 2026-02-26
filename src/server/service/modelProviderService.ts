@@ -1,6 +1,8 @@
-import { db } from '@server/lib/db';
-import { modelProviders, providerModels, accounts } from '@/drizzle/schema';
-import { eq, and, desc, asc, count } from 'drizzle-orm';
+import {
+  modelProviderRepository,
+  providerModelRepository,
+  modelProviderCombinedRepository,
+} from '@server/repository/modelProviderRepository';
 import logger from '@server/base/logger';
 import {
   ModelProvider,
@@ -13,7 +15,7 @@ import {
 
 /**
  * Model Provider Service
- * Handles CRUD operations for model providers and their associated models
+ * Handles business logic for model providers and their associated models
  */
 export class ModelProviderService {
   /**
@@ -25,32 +27,22 @@ export class ModelProviderService {
   async createProvider(accountId: number, request: CreateModelProviderRequest): Promise<ModelProvider> {
     try {
       // Check for unique slug within account
-      const existing = await db.query.modelProviders.findFirst({
-        where: and(
-          eq(modelProviders.accountId, accountId),
-          eq(modelProviders.slug, request.slug),
-        ),
-      });
+      const existing = await modelProviderRepository.findByUserIdAndSlug(accountId, request.slug);
 
       if (existing) {
         throw new Error('Slug already exists in this account');
       }
 
-      const [newProvider] = await db
-        .insert(modelProviders)
-        .values({
-          accountId,
-          slug: request.slug,
-          name: request.name,
-          baseUrl: request.baseUrl,
-          apiKey: request.apiKey,
-          description: request.description,
-          isActive: request.isActive ?? true,
-          displayOrder: request.displayOrder ?? 0,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .returning();
+      const newProvider = await modelProviderRepository.create({
+        userId: accountId,
+        slug: request.slug,
+        name: request.name,
+        baseUrl: request.baseUrl,
+        apiKey: request.apiKey ?? null,
+        description: request.description ?? null,
+        isActive: request.isActive ?? true,
+        displayOrder: request.displayOrder ?? 0,
+      });
 
       logger.info(`Model provider created: ${newProvider.id} for account ${accountId}`);
 
@@ -68,12 +60,7 @@ export class ModelProviderService {
    */
   async getProvidersByAccountId(accountId: number): Promise<ModelProvider[]> {
     try {
-      const providers = await db.query.modelProviders.findMany({
-        where: eq(modelProviders.accountId, accountId),
-        orderBy: [asc(modelProviders.displayOrder), desc(modelProviders.createdAt)],
-      });
-
-      return providers;
+      return await modelProviderRepository.findByUserId(accountId);
     } catch (error) {
       logger.error(`Failed to get providers for account ${accountId}: ${error}`);
       return [];
@@ -87,11 +74,7 @@ export class ModelProviderService {
    */
   async getProviderById(providerId: number): Promise<ModelProvider | null> {
     try {
-      const provider = await db.query.modelProviders.findFirst({
-        where: eq(modelProviders.id, providerId),
-      });
-
-      return provider ?? null;
+      return await modelProviderRepository.findById(providerId);
     } catch (error) {
       logger.error(`Failed to get provider ${providerId}: ${error}`);
       return null;
@@ -112,36 +95,31 @@ export class ModelProviderService {
   ): Promise<ModelProvider | null> {
     try {
       // Verify provider belongs to account
-      const provider = await db.query.modelProviders.findFirst({
-        where: and(
-          eq(modelProviders.id, providerId),
-          eq(modelProviders.accountId, accountId),
-        ),
-      });
+      const hasOwnership = await modelProviderRepository.verifyOwnership(providerId, accountId);
+      if (!hasOwnership) {
+        return null;
+      }
 
+      const provider = await modelProviderRepository.findById(providerId);
       if (!provider) {
         return null;
       }
 
       // If slug is being changed, check for uniqueness
       if (request.slug && request.slug !== provider.slug) {
-        const existing = await db.query.modelProviders.findFirst({
-          where: and(
-            eq(modelProviders.accountId, accountId),
-            eq(modelProviders.slug, request.slug),
-            // Exclude current provider
-          ),
-        });
+        const exists = await modelProviderRepository.existsByUserIdAndSlug(
+          accountId,
+          request.slug,
+          providerId
+        );
 
-        if (existing && existing.id !== providerId) {
+        if (exists) {
           throw new Error('Slug already exists in this account');
         }
       }
 
       // Update only provided fields
-      const updateData: any = {
-        updatedAt: new Date(),
-      };
+      const updateData: Partial<UpdateModelProviderRequest> = {};
 
       if (request.name !== undefined) updateData.name = request.name;
       if (request.slug !== undefined) updateData.slug = request.slug;
@@ -151,12 +129,7 @@ export class ModelProviderService {
       if (request.isActive !== undefined) updateData.isActive = request.isActive;
       if (request.displayOrder !== undefined) updateData.displayOrder = request.displayOrder;
 
-      await db
-        .update(modelProviders)
-        .set(updateData)
-        .where(eq(modelProviders.id, providerId));
-
-      const updated = await this.getProviderById(providerId);
+      const updated = await modelProviderRepository.update(providerId, updateData);
 
       if (updated) {
         logger.info(`Model provider updated: ${providerId}`);
@@ -178,29 +151,13 @@ export class ModelProviderService {
   async deleteProvider(providerId: number, accountId: number): Promise<boolean> {
     try {
       // Verify provider belongs to account
-      const provider = await db.query.modelProviders.findFirst({
-        where: and(
-          eq(modelProviders.id, providerId),
-          eq(modelProviders.accountId, accountId),
-        ),
-      });
-
-      if (!provider) {
+      const hasOwnership = await modelProviderRepository.verifyOwnership(providerId, accountId);
+      if (!hasOwnership) {
         return false;
       }
 
-      await db
-        .delete(modelProviders)
-        .where(
-          and(
-            eq(modelProviders.id, providerId),
-            eq(modelProviders.accountId, accountId),
-          ),
-        );
-
-      logger.info(`Model provider deleted: ${providerId}`);
-
-      return true;
+      // Delete provider (models will be cascaded due to onDelete: 'cascade' in schema)
+      return await modelProviderRepository.delete(providerId);
     } catch (error) {
       logger.error(`Failed to delete provider ${providerId}: ${error}`);
       return false;
@@ -216,23 +173,19 @@ export class ModelProviderService {
    */
   async setProviderActive(providerId: number, accountId: number, isActive: boolean): Promise<boolean> {
     try {
-      const provider = await this.getProviderById(providerId);
-
-      if (!provider || provider.accountId !== accountId) {
+      const hasOwnership = await modelProviderRepository.verifyOwnership(providerId, accountId);
+      if (!hasOwnership) {
         return false;
       }
 
-      await db
-        .update(modelProviders)
-        .set({
-          isActive,
-          updatedAt: new Date(),
-        })
-        .where(eq(modelProviders.id, providerId));
+      const updated = await modelProviderRepository.toggleActive(providerId, isActive);
 
-      logger.info(`Model provider ${providerId} active status set to ${isActive}`);
+      if (updated) {
+        logger.info(`Model provider ${providerId} active status set to ${isActive}`);
+        return true;
+      }
 
-      return true;
+      return false;
     } catch (error) {
       logger.error(`Failed to set provider ${providerId} active status: ${error}`);
       return false;
@@ -248,38 +201,27 @@ export class ModelProviderService {
   async createModel(providerId: number, request: CreateProviderModelRequest): Promise<ProviderModel> {
     try {
       // Verify provider exists
-      const provider = await this.getProviderById(providerId);
+      const provider = await modelProviderRepository.findById(providerId);
       if (!provider) {
         throw new Error('Provider not found');
       }
 
       // Check for unique slug within provider
-      const existing = await db.query.providerModels.findFirst({
-        where: and(
-          eq(providerModels.providerId, providerId),
-          eq(providerModels.slug, request.slug),
-        ),
-      });
-
+      const existing = await providerModelRepository.findByProviderIdAndSlug(providerId, request.slug);
       if (existing) {
         throw new Error('Model slug already exists for this provider');
       }
 
-      const [newModel] = await db
-        .insert(providerModels)
-        .values({
-          providerId,
-          slug: request.slug,
-          name: request.name,
-          contextWindow: request.contextWindow,
-          supportsVision: request.supportsVision ?? false,
-          supportsFunctionCalling: request.supportsFunctionCalling ?? false,
-          isActive: request.isActive ?? true,
-          displayOrder: request.displayOrder ?? 0,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .returning();
+      const newModel = await providerModelRepository.create({
+        providerId,
+        slug: request.slug,
+        name: request.name,
+        contextWindow: request.contextWindow ?? null,
+        supportsVision: request.supportsVision ?? false,
+        supportsFunctionCalling: request.supportsFunctionCalling ?? false,
+        isActive: request.isActive ?? true,
+        displayOrder: request.displayOrder ?? 0,
+      });
 
       logger.info(`Provider model created: ${newModel.id} for provider ${providerId}`);
 
@@ -297,12 +239,7 @@ export class ModelProviderService {
    */
   async getModelsByProviderId(providerId: number): Promise<ProviderModel[]> {
     try {
-      const models = await db.query.providerModels.findMany({
-        where: eq(providerModels.providerId, providerId),
-        orderBy: [asc(providerModels.displayOrder), desc(providerModels.createdAt)],
-      });
-
-      return models;
+      return await providerModelRepository.findByProviderId(providerId);
     } catch (error) {
       logger.error(`Failed to get models for provider ${providerId}: ${error}`);
       return [];
@@ -316,11 +253,7 @@ export class ModelProviderService {
    */
   async getModelById(modelId: number): Promise<ProviderModel | null> {
     try {
-      const model = await db.query.providerModels.findFirst({
-        where: eq(providerModels.id, modelId),
-      });
-
-      return model ?? null;
+      return await providerModelRepository.findById(modelId);
     } catch (error) {
       logger.error(`Failed to get model ${modelId}: ${error}`);
       return null;
@@ -340,38 +273,32 @@ export class ModelProviderService {
     request: UpdateProviderModelRequest,
   ): Promise<ProviderModel | null> {
     try {
-      // Get model and verify provider belongs to account
-      const model = await db.query.providerModels.findFirst({
-        where: eq(providerModels.id, modelId),
-      });
-
-      if (!model) {
+      // Verify model belongs to user's provider
+      const hasOwnership = await modelProviderCombinedRepository.verifyModelOwnership(modelId, accountId);
+      if (!hasOwnership) {
         return null;
       }
 
-      const provider = await this.getProviderById(model.providerId);
-      if (!provider || provider.accountId !== accountId) {
+      const model = await providerModelRepository.findById(modelId);
+      if (!model) {
         return null;
       }
 
       // If slug is being changed, check for uniqueness
       if (request.slug && request.slug !== model.slug) {
-        const existing = await db.query.providerModels.findFirst({
-          where: and(
-            eq(providerModels.providerId, model.providerId),
-            eq(providerModels.slug, request.slug),
-          ),
-        });
+        const exists = await providerModelRepository.existsByProviderIdAndSlug(
+          model.providerId,
+          request.slug,
+          modelId
+        );
 
-        if (existing && existing.id !== modelId) {
+        if (exists) {
           throw new Error('Model slug already exists for this provider');
         }
       }
 
       // Update only provided fields
-      const updateData: any = {
-        updatedAt: new Date(),
-      };
+      const updateData: Partial<UpdateProviderModelRequest> = {};
 
       if (request.slug !== undefined) updateData.slug = request.slug;
       if (request.name !== undefined) updateData.name = request.name;
@@ -381,12 +308,7 @@ export class ModelProviderService {
       if (request.isActive !== undefined) updateData.isActive = request.isActive;
       if (request.displayOrder !== undefined) updateData.displayOrder = request.displayOrder;
 
-      await db
-        .update(providerModels)
-        .set(updateData)
-        .where(eq(providerModels.id, modelId));
-
-      const updated = await this.getModelById(modelId);
+      const updated = await providerModelRepository.update(modelId, updateData);
 
       if (updated) {
         logger.info(`Provider model updated: ${modelId}`);
@@ -407,25 +329,19 @@ export class ModelProviderService {
    */
   async deleteModel(modelId: number, accountId: number): Promise<boolean> {
     try {
-      // Get model and verify provider belongs to account
-      const model = await db.query.providerModels.findFirst({
-        where: eq(providerModels.id, modelId),
-      });
-
-      if (!model) {
+      // Verify model belongs to user's provider
+      const hasOwnership = await modelProviderCombinedRepository.verifyModelOwnership(modelId, accountId);
+      if (!hasOwnership) {
         return false;
       }
 
-      const provider = await this.getProviderById(model.providerId);
-      if (!provider || provider.accountId !== accountId) {
-        return false;
+      const success = await providerModelRepository.delete(modelId);
+
+      if (success) {
+        logger.info(`Provider model deleted: ${modelId}`);
       }
 
-      await db.delete(providerModels).where(eq(providerModels.id, modelId));
-
-      logger.info(`Provider model deleted: ${modelId}`);
-
-      return true;
+      return success;
     } catch (error) {
       logger.error(`Failed to delete model ${modelId}: ${error}`);
       return false;

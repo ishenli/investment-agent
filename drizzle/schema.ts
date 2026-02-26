@@ -237,12 +237,11 @@ export const agent = sqliteTable('agent', {
   description: text('description'),
   systemRole: text('system_role'),
   logo: text('logo'),
-  apiKey: text('api_key').notNull(),
-  apiUrl: text('api_url').notNull(),
   openingQuestions: text('opening_questions', { mode: 'json' }).notNull().default([]),
   type: text('type', { enum: ['LOCAL', 'LINGXI'] })
     .notNull()
     .default('LOCAL'),
+  isBuiltin: integer('is_builtin', { mode: 'boolean' }).notNull().default(false),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
 });
@@ -263,9 +262,9 @@ export const notes = sqliteTable('notes', {
 // 一个设置的数据表，能够管理每个账户的配置项
 export const settings = sqliteTable('settings', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  accountId: integer('account_id')
+  userId: integer('user_id')
     .notNull()
-    .references(() => accounts.id),
+    .references(() => users.id),
   key: text('key').notNull(),
   value: text('value').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
@@ -275,9 +274,9 @@ export const settings = sqliteTable('settings', {
 // 模型服务商表：存储 AI 模型服务提供商配置
 export const modelProviders = sqliteTable('model_providers', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  accountId: integer('account_id')
+  userId: integer('user_id')
     .notNull()
-    .references(() => accounts.id),
+    .references(() => users.id),
   slug: text('slug').notNull().unique(),
   name: text('name').notNull(),
   baseUrl: text('base_url').notNull(),

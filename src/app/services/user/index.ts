@@ -24,8 +24,11 @@ export class UserService implements IUserService {
     const messageCount = await MessageModel.count();
     const sessionCount = await SessionModel.count();
 
+    // 从 settings API 获取头像
+    const avatar = await this.getAvatar();
+
     return {
-      avatar: user.avatar,
+      avatar,
       canEnablePWAGuide: messageCount >= 4,
       canEnableTrace: messageCount >= 4,
       hasConversation: messageCount > 0 || sessionCount > 0,
@@ -54,8 +57,39 @@ export class UserService implements IUserService {
     return UserModel.resetSettings();
   };
 
+  /**
+   * 获取用户头像
+   * 从 SQLite settings 表中获取
+   */
+  async getAvatar(): Promise<string> {
+    try {
+      const response = await fetch('/api/setting');
+      const result = await response.json();
+      if (result.success && result.data?.AVATAR) {
+        return result.data.AVATAR;
+      }
+      return '';
+    } catch {
+      return '';
+    }
+  }
+
+  /**
+   * 更新用户头像
+   * 存储到 SQLite settings 表中
+   */
   async updateAvatar(avatar: string) {
-    await UserModel.updateAvatar(avatar);
+    const response = await fetch('/api/setting', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ key: 'AVATAR', value: avatar }),
+    });
+    const result = await response.json();
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to update avatar');
+    }
   }
 
   async updatePreference(preference: Partial<UserPreference>) {

@@ -53,9 +53,11 @@ export const CreateSessionSchema = z.object({
   type: z.enum(['agent', 'group']),
   groupId: z.string().optional(),
   pinned: z.boolean().optional(),
-  config: AgentConfigSchema,
-  meta: SessionMetaSchema,
+  config: AgentConfigSchema.optional(),
+  meta: SessionMetaSchema.optional(),
   agentId: z.string().optional(),
+  // 新增：从 Agent 创建 Session
+  agentSlug: z.string().optional(),
 });
 
 export const UpdateSessionSchema = z.object({

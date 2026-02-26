@@ -5,7 +5,7 @@ import {
   CreateTopicSchema,
   UpdateTopicSchema,
   DeleteTopicSchema,
-} from '../schemas';
+} from '@typings/chat/schemas';
 import { WithRequestContextStatic } from '@/server/base/decorators';
 
 class TopicHttpController extends BaseController {

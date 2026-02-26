@@ -18,6 +18,7 @@ import { chainSummaryTitle } from '@renderer/prompts/summaryTitle';
 import { chatSelectors } from '../message/selectors';
 import { ChatTopicDispatch, topicReducer } from './reducer';
 import { topicSelectors } from './selectors';
+import { DEFAULT_MODEL } from '@/app/const/settings';
 
 const SWR_USE_FETCH_TOPIC = 'SWR_USE_FETCH_TOPIC';
 const SWR_USE_SEARCH_TOPIC = 'SWR_USE_SEARCH_TOPIC';
@@ -56,7 +57,6 @@ export const chatTopic: StateCreator<
 > = (set, get) => ({
   // create
   openNewTopicOrSaveTopic: async () => {
-    debugger;
     const { switchTopic, saveToTopic, refreshMessages, activeTopicId } = get();
     const hasTopic = !!activeTopicId;
 
@@ -144,7 +144,7 @@ export const chatTopic: StateCreator<
 
     // Get current agent for topic
     const topicConfig = {
-      model: 'Qwen3-30B-A3B-Instruct-2507',
+      model:  DEFAULT_MODEL,
     };
 
     // Automatically summarize the topic title

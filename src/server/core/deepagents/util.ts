@@ -1,3 +1,5 @@
+import logger from "@/server/base/logger";
+
 export const extractContent = (content: unknown): string => {
   if (typeof content === 'string') return content;
   if (Array.isArray(content)) {
@@ -68,5 +70,5 @@ export const getToolMessageMeta = (
 };
 
 export const appendLog = (entry: unknown): void => {
-  // console.log(entry);
+  // logger.debug('[deepagent#log]', entry)
 };

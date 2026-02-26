@@ -12,7 +12,6 @@ import { useTranslation } from 'react-i18next';
 // 定义允许的设置键
 const ALLOWED_KEYS = [
   'FINNHUB_API_KEY',
-  'LANGSMITH_API_KEY',
   'FINANCIAL_DATASETS_KEY',
   'TAVILY_API_KEY',
 ] as const;
@@ -36,7 +35,6 @@ export default function ToolSettings({
   const { t } = useTranslation('setting');
   const [settings, setSettings] = useState<Record<SettingKey, string>>({
     FINNHUB_API_KEY: '',
-    LANGSMITH_API_KEY: '',
     FINANCIAL_DATASETS_KEY: '',
     TAVILY_API_KEY: '',
   });
@@ -148,7 +146,6 @@ export default function ToolSettings({
   const getSettingDescription = (key: SettingKey): string => {
     const descriptions: Record<SettingKey, string> = {
       FINNHUB_API_KEY: t('tool.descriptions.FINNHUB_API_KEY', 'Finnhub API密钥'),
-      LANGSMITH_API_KEY: t('tool.descriptions.LANGSMITH_API_KEY', 'LangSmith API密钥'),
       FINANCIAL_DATASETS_KEY: t('tool.descriptions.FINANCIAL_DATASETS_KEY', 'Financial Datasets密钥'),
       TAVILY_API_KEY: t('tool.descriptions.TAVILY_API_KEY', 'Tavily API密钥'),
     };
@@ -160,7 +157,6 @@ export default function ToolSettings({
   const getSettingDetail = (key: SettingKey): string => {
     const details: Record<SettingKey, string> = {
       FINNHUB_API_KEY: t('tool.details.FINNHUB_API_KEY', '用于获取实时股票市场数据和分析报告'),
-      LANGSMITH_API_KEY: t('tool.details.LANGSMITH_API_KEY', 'LangSmith 提供的 API 密钥，用于追踪和管理模型调用'),
       FINANCIAL_DATASETS_KEY: t('tool.details.FINANCIAL_DATASETS_KEY', '访问金融数据集的身份验证密钥'),
       TAVILY_API_KEY: t('tool.details.TAVILY_API_KEY', 'Tavily 搜索引擎的 API 密钥，用于高级搜索功能'),
     };

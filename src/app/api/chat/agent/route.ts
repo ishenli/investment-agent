@@ -20,7 +20,7 @@ const ChatAgentRequestSchema = z.object({
       createdAt: z.number().optional(),
     }),
   ),
-  model: z.string().optional().default('Qwen3-Next-80B-A3B-Instruct'),
+  model: z.string()
 });
 
 class InvestmentAgentController extends BaseController {

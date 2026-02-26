@@ -1,6 +1,5 @@
 import logger from '@server/base/logger';
 import assetCompanyInfoService from '@server/service/assetCompanyInfoService';
-import assetMarketInfoService from '@server/service/assetMarketInfoService';
 import { tool } from 'langchain';
 import z from 'zod';
 

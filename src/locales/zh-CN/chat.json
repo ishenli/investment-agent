@@ -10,6 +10,10 @@
   "cancelPin": "[to be translated]:Cancel Pin",
   "clearChatMessages": "[to be translated]:Clear Chat Messages",
   "clearHistory": "清空历史",
+  "confirm": {
+    "deleteSessionSuccess": "删除成功",
+    "deleteSessionTitle": "即将删除该会话，删除后将不可恢复，请谨慎操作。"
+  },
   "continue": "继续生成",
   "conversation": {
     "delete": "删除对话",
@@ -23,12 +27,39 @@
   "copySuccess": "复制成功",
   "defaultAgent": "默认助手",
   "delete": "删除",
+  "deleteAndRegenerate": "删除并重新生成",
   "edit": "编辑",
   "errorOccurred": "发生错误",
   "exportChat": "导出对话",
+  "feedback": {
+    "betterAnswer": {
+      "placeholder": "请输入",
+      "title": "您认为更理想的回答是什么？"
+    },
+    "cancel": "取消",
+    "misunderstanding": {
+      "answerNotRelevant": "答非所问",
+      "cannotUnderstandContext": "无法理解上下文",
+      "missedProblem": "未发现问题做的错误",
+      "noUnderstandInstruction": "没有理解指令",
+      "title": "理解问题有误"
+    },
+    "poorAnswer": {
+      "formatError": "答案格式错误",
+      "logicalConfusion": "回答逻辑混乱",
+      "repetitiveAnswer": "回答有重复",
+      "title": "回答不佳"
+    },
+    "submit": "提交",
+    "title": "进一步反馈"
+  },
   "historySummary": "历史记录",
   "imageFormat": "图片格式化",
   "importChat": "导入对话",
+  "inbox": {
+    "description": "投资研究综合分析",
+    "title": "投研综合分析智能体"
+  },
   "includeTool": "包含工具",
   "includeUser": "包含用户",
   "input": {
@@ -52,6 +83,10 @@
     "system": "系统",
     "user": "用户"
   },
+  "agent": {
+    "builtin": "内置",
+    "switchAgent": "切换智能体"
+  },
   "model": "模型",
   "newChat": "新对话",
   "noMessages": "暂无消息",
@@ -74,6 +109,12 @@
   "send": "发送",
   "sendWithCmdEnter": "使用 Cmd + Enter 发送",
   "sendWithEnter": "使用 Enter 发送",
+  "sessionConfig": {
+    "defaultDescription": "开启大脑集群，激发思维火花。你的智能助理，在这里与你交流一切",
+    "defaultTitle": "通用助手",
+    "inboxDescription": "开启大脑集群，激发思维火花。你的智能助理，在这里与你交流一切",
+    "inboxTitle": "随便聊聊"
+  },
   "shareTitle": "分享",
   "stop": "停止生成",
   "systemPrompt": "系统提示词",

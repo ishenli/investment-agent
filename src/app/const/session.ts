@@ -18,37 +18,19 @@ export const DEFAULT_AGENT_LOBE_SESSION: LobeAgentSession = {
   agentId: '',
 };
 
-// Session 初始化配置在下方基于 SESSION_CONFIG_MAP 的键定义
+// ============================================================
+// Inbox Session Configuration
+// inbox 是系统基础 Agent，保留硬编码配置
+// 其他 Agent 从数据库 agent 表读取
+// ============================================================
 
-// 预定义的会话配置
 export const INBOX_SESSION_CONFIG: SessionCreateConfig = {
   slug: 'inbox',
   agentId: 'investment_advisor',
-  title: '投研综合分析智能体',
-  description: '投资研究综合分析',
+  title: 'Investment Advisor',
+  description: 'Investment Research Analysis',
   includeCreatedAt: true,
   avatar: DEFAULT_INBOX_AVATAR,
-  backgroundColor: 'rgba(0,0,0,0)',
-};
-
-export const XIAOJIN_BIZ_SESSION_CONFIG: SessionCreateConfig = {
-  slug: 'market_information',
-  agentId: 'market_information',
-  title: '信息收集智能体',
-  description: '收集市场上的最新消息',
-  includeCreatedAt: false,
-  avatar:
-    'https://mdn.alipayobjects.com/huamei_ptvnul/afts/img/A*WUn6R7s9EiAAAAAASiAAAAgAeg-GAQ/original',
-  backgroundColor: 'rgba(0,0,0,0)',
-};
-
-export const APP_BIZ_SESSION_CONFIG: SessionCreateConfig = {
-  slug: 'app_create',
-  agentId: 'app_create',
-  title: '应用创建智能体',
-  description: '创建各类应用',
-  includeCreatedAt: false,
-  avatar: '⚒️',
   backgroundColor: 'rgba(0,0,0,0)',
 };
 
@@ -58,26 +40,12 @@ const createAgentConfig = (overrides: Partial<LobeAgentConfig> = {}) => ({
   ...overrides,
 });
 
-// 统一的会话配置映射，实际会根据这个走生产，如果已经存入DB，就不管了
+// 统一的会话配置映射，只包含 inbox
+// 其他 Agent（如 market_information）从数据库 agent 表读取
 export const SESSION_CONFIG_MAP = {
   inbox: {
     sessionConfig: INBOX_SESSION_CONFIG,
     agentConfig: createAgentConfig({}),
-    defaultEnabled: true,
-  },
-  xiaojinBiz: {
-    sessionConfig: XIAOJIN_BIZ_SESSION_CONFIG,
-    agentConfig: createAgentConfig({
-      openingQuestions: ['特斯拉的最新消息?', '最近AI的重点消息有哪些?'],
-    }),
-    defaultEnabled: true,
-  },
-  appBiz: {
-    sessionConfig: APP_BIZ_SESSION_CONFIG,
-    agentConfig: createAgentConfig({
-      openingQuestions: ['如何创建一个应用?', '如何创建一个网站?'],
-      systemRole: '你是一个应用创建专家，帮助用户创建各种应用。',
-    }),
     defaultEnabled: true,
   },
 } as const;

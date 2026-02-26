@@ -8,16 +8,18 @@ import { getStockData } from '@server/service/stockDataService';
 import dayjs from 'dayjs';
 import type { MarketType as AssetMarketType } from '@typings/asset';
 
-// 定义市场类型常量
+// 定义市场类型常量（支持中英文）
 const MarketTypeConstant = {
   CHINA_A: 'A股',
+  CHINA_A_EN: 'A Share',
   HONG_KONG: '港股',
+  HONG_KONG_EN: 'HK Stock',
   US: '美股',
+  US_EN: 'US Stock',
   AUTO: 'auto',
   UNKNOWN: '未知',
 } as const;
 
-type ValidatorMarketType = (typeof MarketTypeConstant)[keyof typeof MarketTypeConstant];
 
 // 定义数据准备结果类
 export class StockDataPreparationResult {
@@ -250,16 +252,27 @@ export class StockDataPreparer {
    * @param analysisDate 分析日期
    * @returns 数据准备结果
    */
+  private normalizeMarketType(marketType: string): string {
+    const normalized = marketType.trim();
+    // 将英文映射到中文常量
+    if (normalized === MarketTypeConstant.US_EN) return MarketTypeConstant.US;
+    if (normalized === MarketTypeConstant.HONG_KONG_EN) return MarketTypeConstant.HONG_KONG;
+    if (normalized === MarketTypeConstant.CHINA_A_EN) return MarketTypeConstant.CHINA_A;
+    return normalized;
+  }
+
   private async prepareDataByMarket(
     stockCode: string,
     marketType: string,
     periodDays: number,
     analysisDate: string,
   ): Promise<StockDataPreparationResult> {
-    this.logger.debug(`📊 [数据准备] 开始为${marketType}股票${stockCode}准备数据`);
+    // 标准化市场类型（处理中英文）
+    const normalizedMarketType = this.normalizeMarketType(marketType);
+    this.logger.debug(`📊 [数据准备] 开始为${normalizedMarketType}股票${stockCode}准备数据`);
 
     try {
-      switch (marketType) {
+      switch (normalizedMarketType) {
         case MarketTypeConstant.CHINA_A:
           return await this.prepareChinaStockData(stockCode, periodDays, analysisDate);
         case MarketTypeConstant.HONG_KONG:
@@ -470,7 +483,7 @@ export class StockDataPreparer {
     periodDays: number,
     analysisDate: string,
   ): Promise<StockDataPreparationResult> {
-    console.log('prepareHkStockData', stockCode, periodDays, analysisDate);
+    this.logger.info('[StockDataPreparer]prepareHkStockData', stockCode, periodDays, analysisDate);
     // 实现港股数据准备逻辑
     // 这里需要根据实际需求实现
     return new StockDataPreparationResult({
@@ -478,8 +491,8 @@ export class StockDataPreparer {
       stock_code: stockCode,
       market_type: MarketTypeConstant.HONG_KONG,
       stock_name: '',
-      error_message: '港股数据准备功能尚未实现',
-      suggestion: '请实现港股数据准备逻辑',
+      error_message: 'Hong Kong stock data preparation is not implemented',
+      suggestion: 'Please implement Hong Kong stock data preparation logic',
     });
   }
 
@@ -489,7 +502,7 @@ export class StockDataPreparer {
     analysisDate: string,
   ): Promise<StockDataPreparationResult> {
     // 实现美股数据准备逻辑
-    this.logger.info(`📊 [美股数据] 开始准备${stockCode}的数据 (时长: ${periodDays}天)`);
+    this.logger.info(`📊 [StockDataPreparer] prepareUsStockData 开始准备${stockCode}的数据 (时长: ${periodDays}天)`);
 
     const formatted_code = stockCode.toUpperCase();
 

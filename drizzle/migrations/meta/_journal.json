@@ -187,15 +187,15 @@
     {
       "idx": 26,
       "version": "6",
-      "when": 1771690553472,
-      "tag": "0026_lumpy_terrax",
+      "when": 1771736833528,
+      "tag": "0027_striped_white_tiger",
       "breakpoints": true
     },
     {
       "idx": 27,
       "version": "6",
-      "when": 1771736833528,
-      "tag": "0027_striped_white_tiger",
+      "when": 1772067162689,
+      "tag": "0027_calm_the_leader",
       "breakpoints": true
     }
   ]

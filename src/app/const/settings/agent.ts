@@ -1,9 +1,9 @@
 import { LobeAgentChatConfig, LobeAgentConfig, LobeAgentTTSConfig } from '@typings/agent';
 import { QueryRewriteSystemAgent, SystemAgentItem, UserSystemAgentConfig } from '@typings/llm';
 
-export const DEFAULT_MODEL = 'Qwen3-30B-A3B-Instruct-2507';
+export const DEFAULT_MODEL = '';
 
-export const DEFAULT_PROVIDER = 'ANT';
+export const DEFAULT_PROVIDER = '';
 
 export const DEFAULT_TRANSITION_MODE: 'smooth' | 'fadeIn' | 'none' = 'smooth';
 

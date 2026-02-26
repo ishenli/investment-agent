@@ -1,5 +1,3 @@
-import type { DefaultConfigType } from '@shared/config/config.default';
-
 export interface MemoryItem {
   situation: string;
   recommendation: string;
@@ -9,11 +7,9 @@ export interface MemoryItem {
 
 export class FinancialSituationMemory {
   name: string;
-  config: Partial<DefaultConfigType>;
 
-  constructor(name: string, config: Partial<DefaultConfigType>) {
+  constructor(name: string) {
     this.name = name;
-    this.config = config;
   }
 
   // Fixed: Added parameter types and used the parameters to avoid TS6133

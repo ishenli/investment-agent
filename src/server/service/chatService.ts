@@ -1,5 +1,5 @@
 import { SSEEmitter } from '@server/base/sseEmitter';
-import { investmentAdvisorAgent } from '@server/core/deepagents/investmentAdvisorAgent';
+import { investmentAdvisorAgent } from '@/server/core/deepagents/investmentAdvisorAgent';
 import { MarketInformationGraph } from '@server/core/graph/marketInformationGraph';
 import { ScenarioAnalyzerGraph } from '@server/core/graph/scenarioAnalyzerGraph';
 import { DiversificationGraph } from '@server/core/graph/diversificationGraph';
@@ -10,7 +10,7 @@ import portfolioAnalysisService from '@server/service/portfolioAnalysisService';
 import type { Logger } from '@server/base/logger';
 import type { PositionAsset, Portfolio } from '@renderer/store/position/types';
 import { chatModelOpenAI, ModelNameType } from '@server/core/provider/chatModel';
-import { BaseMessage, HumanMessage } from '@langchain/core/messages';
+import { BaseMessage, HumanMessage } from 'langchain';
 
 // 定义支持的 Graph 类型
 export type GraphType =
@@ -80,18 +80,6 @@ export class ChatService {
           await this.handleMarketInformationChat(request, emitter);
           break;
 
-        case 'scenario_analyzer':
-          await this.handleScenarioAnalyzerChat(request, emitter, accountId);
-          break;
-
-        case 'diversification':
-          await this.handleDiversificationChat(request, emitter, accountId);
-          break;
-
-        case 'ai_insights':
-          await this.handleAIInsightsChat(request, emitter, accountId);
-          break;
-
         default:
           await this.handleDefaultChat(request, emitter);
       }
@@ -132,7 +120,7 @@ export class ChatService {
       // 创建市场信息图实例
       const marketInfoGraph = new MarketInformationGraph({
         logger: this.logger,
-        modelCode: request.model || 'Kimi-K2-Instruct',
+        modelCode: request.model,
       });
 
       // 初始化图（异步初始化 LLM）
@@ -360,9 +348,8 @@ export class ChatService {
   private async handleDefaultChat(request: ChatRequest, emitter: SSEEmitter): Promise<void> {
     logger.info('[ChatService] 处理默认聊天请求: model=%s', request.model);
     try {
-      // 初始化模型 - 现在支持用户自定义的模型提供商
-      const modelSlug = request.model || 'Qwen3-Next-80B-A3B-Instruct';
-      const llm = await chatModelOpenAI(modelSlug);
+      // 初始化模型 - 使用前端传入的模型或默认模型
+      const llm = await chatModelOpenAI(request.model || undefined);
 
       // 创建消息
       const messages = request.messages || [new HumanMessage(request.query)];

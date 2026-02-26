@@ -6,9 +6,8 @@ export interface AgentType {
   description: string | null;
   systemRole: string | null;
   logo: string | null;
-  apiKey: string;
-  apiUrl: string;
   openingQuestions: string[];
+  isBuiltin: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -21,9 +20,8 @@ export interface AgentTypeResponse {
   description: string | null;
   systemRole: string | null;
   logo: string | null;
-  apiKey: string;
-  apiUrl: string;
   openingQuestions: string[];
+  isBuiltin: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -35,8 +33,6 @@ export interface CreateAgentRequestType {
   description?: string | null;
   systemRole?: string | null;
   logo?: string | null;
-  apiKey: string;
-  apiUrl: string;
   openingQuestions?: string[];
 }
 
@@ -47,7 +43,5 @@ export interface UpdateAgentRequestType {
   description?: string | null;
   systemRole?: string | null;
   logo?: string | null;
-  apiKey?: string;
-  apiUrl?: string;
   openingQuestions?: string[];
 }

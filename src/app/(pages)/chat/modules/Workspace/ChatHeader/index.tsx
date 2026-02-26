@@ -14,6 +14,11 @@ const Header = () => {
         position: 'initial',
         zIndex: 11,
         backgroundColor: 'var(--antd-bg-color-container)',
+        // @ts-expect-error - WebkitAppRegion is not a standard CSS property
+        WebkitAppRegion: 'drag',
+        appRegion: 'drag',
+        WebkitUserSelect: 'none',
+        userSelect: 'none',
       }}
     />
   );

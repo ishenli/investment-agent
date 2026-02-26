@@ -4,7 +4,7 @@ import {
   CreateSessionSchema,
   UpdateSessionSchema,
   DeleteSessionSchema,
-} from '../schemas';
+} from '@typings/chat/schemas';
 import { WithRequestContextStatic } from '@/server/base/decorators';
 
 class SessionHttpController extends BaseController {

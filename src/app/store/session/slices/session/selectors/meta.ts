@@ -6,11 +6,7 @@ import {
 import { SessionStore } from '@renderer/store/session';
 import { MetaData } from '@typings/meta';
 import { merge } from 'lodash';
-
-import {
-  SESSION_CONFIG_DESCRIPTION,
-  SESSION_CONFIG_TITLE,
-} from '@renderer/const/text/sessionConfig';
+import { t } from 'i18next';
 import { sessionSelectors } from './list';
 
 // ==========   Meta   ============== //
@@ -20,8 +16,8 @@ const currentAgentMeta = (s: SessionStore): MetaData => {
   const defaultMeta = {
     avatar: isInbox ? DEFAULT_INBOX_AVATAR : DEFAULT_AVATAR,
     backgroundColor: DEFAULT_BACKGROUND_COLOR,
-    description: isInbox ? SESSION_CONFIG_DESCRIPTION.INBOX : undefined,
-    title: isInbox ? SESSION_CONFIG_TITLE.INBOX : SESSION_CONFIG_TITLE.DEFAULT,
+    description: isInbox ? t('chat:sessionConfig.inboxDescription') : undefined,
+    title: isInbox ? t('chat:sessionConfig.inboxTitle') : t('chat:sessionConfig.defaultTitle'),
   };
 
   const session = sessionSelectors.currentSession(s);

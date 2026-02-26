@@ -4,13 +4,13 @@ import { z } from 'zod';
  * 股票分析请求参数类型
  */
 export const StockAnalysisRequestSchema = z.object({
-  stockSymbol: z.string().min(1, '股票代码不能为空'), // 股票代码
-  analysisDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '日期格式应为 YYYY-MM-DD'), // 分析日期
+  stockSymbol: z.string().min(1, 'Stock symbol cannot be empty'), // 股票代码
+  analysisDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date format should be YYYY-MM-DD'), // 分析日期
   analysts: z.array(z.string()), // 分析师列表
   researchDepth: z.number().min(1).max(10).default(3), // 研究深度
   llmProvider: z.enum(['dashsscope', 'deepseek', 'google', 'ant']).default('ant'), // LLM提供商
   llmModel: z.string().default('Kimi-K2-Instruct'), // LM 大模型名称
-  marketType: z.enum(['美股', '港股', 'A股']).default('美股'),
+  marketType: z.enum(['美股', '港股', 'A股', 'US Stock', 'HK Stock', 'A Share']).default('美股'),
 });
 
 export type StockAnalysisRequestType = z.infer<typeof StockAnalysisRequestSchema>;

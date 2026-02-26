@@ -238,6 +238,11 @@ export class DatabaseManager {
 
     try {
 
+      if (isDev()) { // 新流程，默认 dev 执行 push，不执行 migrate
+        logger.warn('Database migration is only available in Electron production environments');
+        return;
+      }
+
       // 动态导入迁移模块
       if (!this.db) {
         throw new Error('Database not initialized');

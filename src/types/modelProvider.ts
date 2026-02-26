@@ -5,7 +5,7 @@
 // Database types (from Drizzle schema)
 export interface ModelProvider {
   id: number;
-  accountId: number;
+  userId: number;
   slug: string;
   name: string;
   baseUrl: string;

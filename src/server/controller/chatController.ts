@@ -8,6 +8,7 @@ import { WithRequestContext } from '../base/decorators';
 import logger from '../base/logger';
 import authService from '../service/authService';
 import { chatStorageService } from '../service/chatStorageService';
+import agentService from '../service/agentService';
 import { BaseBizController } from './base';
 
 /**
@@ -73,6 +74,12 @@ export class ChatController extends BaseBizController {
         return this.error('用户未登录', 'unauthorized');
       }
 
+      // 支持通过 agentSlug 从 Agent 创建 Session
+      if (body.agentSlug) {
+        return await this.createSessionFromAgent(userId, body.agentSlug, body);
+      }
+
+      // 传统方式：直接传入 config 和 meta
       if (!body.slug || !body.type || !body.config || !body.meta) {
         return this.error('缺少必要参数', 'validation_error');
       }
@@ -90,6 +97,50 @@ export class ChatController extends BaseBizController {
       logger.error('[ChatController] createSession error', error);
       return this.error('创建会话失败', 'create_session_error');
     }
+  }
+
+  /**
+   * 从 Agent 创建 Session
+   */
+  private async createSessionFromAgent(userId: number, agentSlug: string, body: any) {
+    // 获取 Agent 配置
+    const agent = await agentService.getAgentBySlug(agentSlug);
+
+    // 如果不是数据库中的 Agent，检查是否为 inbox
+    if (!agent) {
+      if (agentSlug === 'inbox') {
+        // inbox 是系统内置 Agent，使用默认配置
+        const id = await chatStorageService.createSession(userId, {
+          slug: body.slug || `inbox-${Date.now()}`,
+          type: 'agent',
+          agentId: 'inbox',
+          config: body.config || {},
+          meta: body.meta || { title: 'Investment Advisor' },
+        });
+        return this.success({ id, message: '会话创建成功' });
+      }
+      return this.error(`Agent "${agentSlug}" 不存在`, 'agent_not_found');
+    }
+
+    // 从 Agent 配置构建 Session 数据
+    const sessionData = {
+      slug: body.slug || `${agentSlug}-${Date.now()}`,
+      type: 'agent' as const,
+      agentId: agentSlug,
+      config: {
+        ...body.config,
+        systemRole: agent.systemRole || body.config?.systemRole,
+        openingQuestions: agent.openingQuestions?.length > 0 ? agent.openingQuestions : body.config?.openingQuestions,
+      },
+      meta: body.meta || {
+        title: agent.name,
+        description: agent.description,
+        avatar: agent.logo,
+      },
+    };
+
+    const id = await chatStorageService.createSession(userId, sessionData);
+    return this.success({ id, message: '会话创建成功' });
   }
 
   @WithRequestContext()

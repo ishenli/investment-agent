@@ -36,10 +36,20 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # 4️⃣ 检查
+      # 4️⃣ 检查数据库迁移
+      - name: Check database migrations
+        run: |
+          # 创建临时数据库并执行迁移
+          INVESTMENT_AGENT_DATA_DIR=./ pnpm db:migrate
+          # 验证迁移后的 schema 与当前定义一致
+          INVESTMENT_AGENT_DATA_DIR=./ pnpm drizzle-kit push --force
+        env:
+          NODE_ENV: test
+
+      # 5️⃣ 类型检查
       - name: Run type checking
         run: pnpm types:check
 
-      # 5️⃣ 测试
+      # 6️⃣ 测试
       - name: Run tests
         run: pnpm test
