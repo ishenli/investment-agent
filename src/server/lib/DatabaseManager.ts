@@ -29,8 +29,12 @@ type DatabaseType = LibSQLDatabase<typeof schema>;
  * - 开发环境中直接从项目目录读取迁移文件
  * - 生产环境中从资源目录或用户数据目录读取迁移文件
  */
+// 使用 globalThis 存储单例，避免 HMR 热重载导致静态属性丢失
+const globalForDb = globalThis as unknown as {
+  __databaseManagerInstance: DatabaseManager | undefined;
+};
+
 export class DatabaseManager {
-  private static instance: DatabaseManager;
   private db: DatabaseType | null = null;
   private client: any = null;
   private dbPath: string = '';
@@ -67,10 +71,10 @@ export class DatabaseManager {
   public static getInstance(options?: {
     userDataPath?: string;
   }): DatabaseManager {
-    if (!DatabaseManager.instance) {
-      DatabaseManager.instance = new DatabaseManager(options || {});
+    if (!globalForDb.__databaseManagerInstance) {
+      globalForDb.__databaseManagerInstance = new DatabaseManager(options || {});
     }
-    return DatabaseManager.instance;
+    return globalForDb.__databaseManagerInstance;
   }
 
   /**

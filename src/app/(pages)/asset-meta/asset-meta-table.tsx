@@ -254,15 +254,6 @@ export function AssetMetaTable() {
             {filteredAssetMetas.map((assetMeta) => (
               <TableRow
                 key={assetMeta.id}
-                className={
-                  assetMeta.market === 'US'
-                    ? 'bg-blue-50/50 hover:bg-blue-100/50'
-                    : assetMeta.market === 'HK'
-                      ? 'bg-purple-50/50 hover:bg-purple-100/50'
-                      : assetMeta.market === 'CN'
-                        ? 'bg-green-50/50 hover:bg-green-100/50'
-                        : ''
-                }
               >
                 <TableCell className="font-medium">
                   <div className="flex items-center">
