@@ -30,7 +30,8 @@
       "Bash(git push:*)",
       "Bash(openspec --help:*)",
       "Bash(pnpm tsc:*)",
-      "Bash(head:*)"
+      "Bash(head:*)",
+      "Bash(pnpm openspec:*)"
     ]
   }
 }

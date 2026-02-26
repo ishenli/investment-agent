@@ -10,6 +10,7 @@ export class ReportController extends BaseBizController {
     type: 'weekly' | 'monthly';
     startDate?: string;
     endDate?: string;
+    modelSlug?: string; // 可选的模型标识，用于选择特定的 AI 模型
   }) {
     try {
       // 获取当前用户ID
@@ -32,6 +33,7 @@ export class ReportController extends BaseBizController {
         type: param.type,
         startDate: param.startDate ? new Date(param.startDate) : undefined,
         endDate: param.endDate ? new Date(param.endDate) : undefined,
+        modelSlug: param.modelSlug,
       });
 
       return this.success(result);

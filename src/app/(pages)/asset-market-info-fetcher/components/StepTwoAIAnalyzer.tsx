@@ -1,11 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { IconLoader2 } from '@tabler/icons-react';
 import { MarketInformation } from '@typings/market';
-import { put } from '@/app/lib/request/index';
+import { put, get } from '@/app/lib/request/index';
 import { useTranslation } from 'react-i18next';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@renderer/components/ui/select';
+import { ProviderModel } from '@/types/modelProvider';
 
 interface StepTwoAIAnalyzerProps {
   marketInfo: MarketInformation;
@@ -27,6 +35,38 @@ export function StepTwoAIAnalyzer({
     analysisResult,
   );
 
+  // 模型选择相关状态
+  const [availableModels, setAvailableModels] = useState<ProviderModel[]>([]);
+  const [modelsLoading, setModelsLoading] = useState(true);
+  const [selectedModelSlug, setSelectedModelSlug] = useState<string | null>(null);
+
+  // 获取可用模型列表
+  useEffect(() => {
+    const fetchAvailableModels = async () => {
+      try {
+        setModelsLoading(true);
+        const response = await get('/api/model-providers/models/available');
+        if (response.success && response.data?.models) {
+          const models = response.data.models as ProviderModel[];
+          setAvailableModels(models);
+          // 默认选中用户的默认模型，如果没有则选中第一个
+          const defaultModel = response.data.defaultModel;
+          if (defaultModel) {
+            setSelectedModelSlug(defaultModel);
+          } else if (models.length > 0) {
+            setSelectedModelSlug(models[0].slug);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch available models:', error);
+      } finally {
+        setModelsLoading(false);
+      }
+    };
+
+    fetchAvailableModels();
+  }, []);
+
   // 处理AI分析
   const handleAnalyze = async () => {
     if (!marketInfo) return;
@@ -35,11 +75,12 @@ export function StepTwoAIAnalyzer({
     setAnalysisError(null);
 
     try {
-      // 调用AI分析API
+      // 调用AI分析API，传递选中的模型
       const result = await put('/api/market-fetcher/ai', {
         content: marketInfo.content,
         title: marketInfo.metadata?.extractedData?.title,
         language: 'zh',
+        modelSlug: selectedModelSlug,
       });
 
       if (result.success) {
@@ -145,11 +186,35 @@ export function StepTwoAIAnalyzer({
             </div>
           </div>
 
+          {/* 模型选择器 */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">{t('steps.step2.modelSelector.label')}</label>
+            <Select
+              value={selectedModelSlug || undefined}
+              onValueChange={setSelectedModelSlug}
+              disabled={modelsLoading || availableModels.length === 0}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t('steps.step2.modelSelector.placeholder')} />
+              </SelectTrigger>
+              <SelectContent>
+                {availableModels.map((model) => (
+                  <SelectItem key={model.id} value={model.slug}>
+                    {model.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {modelsLoading && (
+              <p className="text-sm text-muted-foreground">{t('steps.step2.modelSelector.loading')}</p>
+            )}
+          </div>
+
           <div className="flex justify-between">
             <Button variant="outline" onClick={onBack}>
               {t('steps.step2.actions.back')}
             </Button>
-            <Button onClick={handleAnalyze} disabled={isAnalyzing}>
+            <Button onClick={handleAnalyze} disabled={isAnalyzing || !selectedModelSlug}>
               {isAnalyzing ? (
                 <>
                   <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />

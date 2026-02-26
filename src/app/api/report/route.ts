@@ -9,6 +9,7 @@ const GenerateReportSchema = z.object({
   type: z.enum(['weekly', 'monthly']),
   startDate: z.string().datetime().optional(),
   endDate: z.string().datetime().optional(),
+  modelSlug: z.string().optional(), // 可选的模型标识，用于选择特定的 AI 模型
 });
 
 const ListReportsSchema = z.object({

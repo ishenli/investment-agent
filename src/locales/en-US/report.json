@@ -9,6 +9,9 @@
     "empty": "No Reports",
     "emptyDescription": "You haven't generated any investment reports yet. Click the button above to start generating.",
     "generateButton": "Generate Report",
+    "modelSelector": {
+      "placeholder": "Select AI Model"
+    },
     "status": {
       "completed": "Completed",
       "failed": "Failed",

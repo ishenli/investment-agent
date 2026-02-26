@@ -89,6 +89,11 @@
       },
       "contentPreview": "Content Preview",
       "description": "Let AI summarize and categorize content",
+      "modelSelector": {
+        "label": "Select AI Model",
+        "loading": "Loading model list...",
+        "placeholder": "Select an AI model to use"
+      },
       "title": "AI Analysis"
     },
     "step3": {

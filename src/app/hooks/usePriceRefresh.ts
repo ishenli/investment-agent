@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 interface PriceUpdateResult {
   success: boolean;
   message: string;
-  stats?: {
+  data: {
+    stats?: {
     total: number;
     succeeded: number;
     failed: Array<{
@@ -19,6 +20,7 @@ interface PriceUpdateResult {
     };
     completeTime: string;
   };
+  }
 }
 
 export function usePriceRefresh() {
@@ -31,14 +33,14 @@ export function usePriceRefresh() {
       const response = await fetch('/api/asset/init');
       const result: PriceUpdateResult = await response.json();
 
-      if (result.success && result.stats) {
+      if (result.success && result.data.stats) {
         // 显示成功消息
-        if (result.stats.failed.length === 0) {
-          message.success(t('priceRefresh.success', { count: result.stats.succeeded }));
+        if (result.data.stats.failed.length === 0) {
+          message.success(t('priceRefresh.success', { count: result.data.stats.succeeded }));
         } else {
           message.info(t('priceRefresh.partialSuccess', {
-            succeeded: result.stats.succeeded,
-            failed: result.stats.failed.length
+            succeeded: result.data.stats.succeeded,
+            failed: result.data.stats.failed.length
           }));
         }
 
@@ -51,7 +53,7 @@ export function usePriceRefresh() {
           queryClient.invalidateQueries({ queryKey: ['assets'] }),
         ]);
 
-        console.log('价格更新和缓存刷新完成:', result.stats);
+        console.log('价格更新和缓存刷新完成:', result.data.stats);
       } else {
         message.error(t('priceRefresh.failed'));
       }

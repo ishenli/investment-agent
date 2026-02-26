@@ -2,6 +2,7 @@ import { ChatOpenAI } from '@langchain/openai';
 import logger from '@server/base/logger';
 import { chatModelOpenAI } from '../core/provider/chatModel';
 import { HumanMessage, SystemMessage } from 'langchain';
+import { recordPrompt } from '../utils/file';
 
 /**
  * 市场AI服务接口
@@ -35,15 +36,19 @@ export interface IMarketAIService {
  */
 export class MarketAIService implements IMarketAIService {
   private chatModel!: ChatOpenAI;
+  private modelSlug?: string;
 
-  private constructor() {}
+  private constructor(modelSlug?: string) {
+    this.modelSlug = modelSlug;
+  }
 
   /**
    * Factory method to create and initialize MarketAIService asynchronously
+   * @param modelSlug - Optional model slug to use a specific model
    */
-  static async create(): Promise<MarketAIService> {
-    const instance = new MarketAIService();
-    instance.chatModel = await chatModelOpenAI();
+  static async create(modelSlug?: string): Promise<MarketAIService> {
+    const instance = new MarketAIService(modelSlug);
+    instance.chatModel = await chatModelOpenAI(modelSlug);
     return instance;
   }
 
@@ -109,6 +114,8 @@ export class MarketAIService implements IMarketAIService {
       // 构建用户提示
       const userPrompt = this.buildAnalysisUserPrompt(content, title);
 
+      // 打印用户提示词
+      recordPrompt(systemPrompt + '\n\n' + userPrompt, 'market-info-generate-prompt.md');
       // 调用LangChain模型
       const response = await this.chatModel.invoke([
         new SystemMessage(systemPrompt),
