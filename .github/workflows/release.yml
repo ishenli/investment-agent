@@ -61,12 +61,15 @@ jobs:
       - name: Build Next.js and Electron
         env:
           BUILD_TARGET: electron  # 在这里统一设置
+          MODEL_PROVIDER_URL: "xx.xx.xx.xx"
+          MODEL_PROVIDER_API_KEY: "xx.xx.xx.xx"
         run: pnpm electron:build
 
       - name: Pack for Mac
         if: matrix.os == 'macos-latest'
         run: pnpm electron:pack:mac
         env:
+          BUILD_TARGET: electron  # 在这里统一设置
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # - name: Pack for Windows
