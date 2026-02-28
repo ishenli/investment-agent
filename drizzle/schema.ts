@@ -409,6 +409,29 @@ export const portfolioSnapshots = sqliteTable('portfolio_snapshots', {
   index('idx_portfolio_snapshots_date').on(table.snapshotDate),
 ]);
 
+// 技能表：管理用户的 AI 技能配置
+export const skills = sqliteTable('skills', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  slug: text('slug').notNull(),
+  name: text('name').notNull(),
+  description: text('description').notNull(),
+  category: text('category').notNull(),
+  source: text('source').notNull(),
+  isEnabled: integer('is_enabled', { mode: 'boolean' }).notNull().default(true),
+  icon: text('icon'),
+  config: text('config', { mode: 'json' }),
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+}, (table) => [
+  // 索引：按用户 ID 查询
+  index('idx_skills_user_id').on(table.userId),
+  // 唯一索引：每个用户的 slug 必须唯一
+  uniqueIndex('idx_skills_user_slug_unique').on(table.userId, table.slug),
+]);
+
 // ============== Chat Storage Tables ==============
 // 聊天存储相关表，从 drizzle/schema/chat.ts 导入
 export {
