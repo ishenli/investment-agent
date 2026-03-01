@@ -2,7 +2,7 @@ import { TransactionRecordType, TransactionType } from '@typings/transaction';
 import logger from '@server/base/logger';
 import positionService from './positionService';
 import { AssetType } from '@typings/asset';
-import { transactionRepository, type CreateTransactionData, type UpdateTransactionData } from '../repository/transactionRepository';
+import { transactionRepository, type UpdateTransactionData } from '../repository/transactionRepository';
 import { accountFundRepository } from '../repository/accountFundRepository';
 
 export class TransactionService {
@@ -503,6 +503,46 @@ export class TransactionService {
       return 0;
     }
   }
+
+  /**
+   * 生成交易记录概要的 Markdown 格式内容
+   *
+   * @param accountId -账 ID
+   * @param limit - 限制返回的交易记录数量（默认 50）
+   * @returns Markdown 格式的交易记录概要字符串
+   */
+  async getTransactionSummaryMarkdown(accountId: string, limit: number = 50): Promise<string> {
+    const { transactions } = await this.getTransactionHistory(accountId, limit);
+
+    if (transactions.length === 0) {
+      return '## 交易记录概要\n\n*当前无交易记录*\n';
+    }
+
+    const sections: string[] = [];
+
+    sections.push('## 交易记录概要', '');
+    sections.push(`最近 ${transactions.length}条记录`, '');
+
+    // 交易记录表格
+    sections.push('| 日期 | 类型 |代码 | 数量 | 价格 | 金额 |');
+    sections.push('|------|------|----------|------|------|------|');
+
+    transactions.forEach((transaction) => {
+      const date = transaction.createdAt ? new Date(transaction.createdAt).toLocaleDateString('zh-CN') : 'N/A';
+      const type = transaction.type || 'N/A';
+      const symbol = transaction.symbol || 'N/A';
+      const quantity = transaction.quantity !== undefined ? transaction.quantity.toString() : 'N/A';
+      const price = transaction.price !== undefined ? `$${transaction.price.toFixed(2)}` : 'N/A';
+      const amount = transaction.amount !== undefined ? `$${transaction.amount.toFixed(2)}` : 'N/A';
+
+      sections.push(
+        `| ${date} | ${type} | ${symbol} | ${quantity} | ${price} | ${amount} |`,
+      );
+    });
+
+    return sections.join('\n');
+  }
+
 }
 
 const transactionService = new TransactionService();

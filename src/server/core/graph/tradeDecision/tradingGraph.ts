@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { chatModelOpenAI } from '../../provider/chatModel';
 import { ChatOpenAI } from '@langchain/openai';
-import { StockMarketDataUnifiedTool } from '../../tools/stock/stockGetPrice';
 import { ConditionalLogic } from './conditionalLogic';
 import { type AnalystType, GraphSetup } from './setup';
 import { FinancialSituationMemory } from '../../memory/index';
-import { stockSearchNewsTool } from '../../tools/index';
+import { stockGetPriceTool, stockSearchNewsTool } from '../../tools/index';
 import { Propagator } from './propagation';
 import { Reflector } from './reflection';
 import { CompiledStateGraph } from '@langchain/langgraph';
@@ -15,7 +14,6 @@ import fs from 'fs-extra';
 import type { Logger } from '@server/base/logger';
 import { RISK_MANAGER_NODE } from '../../agents/managers/risk_manager';
 import { SSEEmitter } from '@server/base/sseEmitter';
-import { StructuredTool, Tool } from 'langchain';
 
 export type TradingGraphOptionsType = {
   logger: Logger;
@@ -96,7 +94,7 @@ export class TradingAgentsGraph {
   }
   createToolNodes() {
     return {
-      market: new StockMarketDataUnifiedTool(this.logger),
+      market: stockGetPriceTool,
       news: stockSearchNewsTool,
     };
   }
@@ -140,22 +138,27 @@ export class TradingAgentsGraph {
 
     this.dumpGraphArgs(graphArgs);
 
+    let nodeIndex = 0;
     let final_state: Record<string, object> = {};
     for await (const state of await this.graph.stream(graphArgs, {
       recursionLimit: 50,
     })) {
-      emitter.send(state);
+      // AgentStreamEvent: status - 反映节点推进进度
+      const nodeNames = Object.keys(state);
+      const nodeName = nodeNames[0] ?? `step_${nodeIndex}`;
+      emitter.sendStatus(`执行节点: ${nodeName}`, { step: nodeName });
       final_state = state;
+      nodeIndex++;
     }
-
+    
     const risk_manager_state = final_state[RISK_MANAGER_NODE] as Record<string, object>;
     const decision = await this.process_signal(
       risk_manager_state['final_trade_decision'],
       company_name,
     );
-    emitter.send({
-      Trade_Decision_Maker: decision,
-    });
+    // AgentStreamEvent: result - 最终交易决策
+    emitter.sendResult(company_name, { decision, state: final_state });
+    emitter.sendDone();
     return [final_state, decision];
   }
 

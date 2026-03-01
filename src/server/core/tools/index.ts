@@ -5,3 +5,4 @@ export * from './stock/stockSearchNews';
 export * from './assetTool';
 export * from './noteTool';
 export * from './searchTool';
+export * from './dbQueryTool';

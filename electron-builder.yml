@@ -2,6 +2,11 @@ appId: com.ig.app
 productName: ig
 directories:
   output: release
+publish:
+  - provider: github
+    owner: ishenli
+    repo: investment-agent
+    releaseType: release
 files:
   - dist-electron/**/*
   - node_modules/@libsql/**/* # 必须包含，否则 asarUnpack 没东西可抽离

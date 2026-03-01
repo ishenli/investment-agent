@@ -2,6 +2,7 @@ import type { PartialDeep } from 'type-fest';
 
 import { DEFAULT_AGENT_CONFIG } from '@renderer/const/settings';
 import { LobeAgentConfig } from '@typings/agent';
+import { INBOX_SESSION_ID } from '@/app/const/session';
 
 export interface AgentState {
   activeAgentId?: string;
@@ -17,7 +18,7 @@ export interface AgentState {
 }
 
 export const initialAgentChatState: AgentState = {
-  activeId: 'inbox',
+  activeId: INBOX_SESSION_ID,
   agentConfigInitMap: {},
   agentMap: {},
   defaultAgentConfig: DEFAULT_AGENT_CONFIG,

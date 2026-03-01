@@ -7,10 +7,10 @@ import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 
 import { FORM_STYLE } from '@renderer/const/layoutTokens';
-import { useAgentStore } from '@renderer/store/agent';
-import { agentSelectors } from '@renderer/store/agent/selectors';
 import { useChatStore } from '@renderer/store/chat';
 import { chatSelectors, topicSelectors } from '@renderer/store/chat/selectors';
+import { useSessionStore } from '@renderer/store/session';
+import { sessionSelectors } from '@renderer/store/session/selectors';
 
 import React from 'react';
 import { useStyles } from '../style';
@@ -65,7 +65,8 @@ const ShareText = memo(() => {
     },
   ];
 
-  const [systemRole] = useAgentStore((s) => [agentSelectors.currentAgentSystemRole(s)]);
+  // 从 SessionStore 读取当前会话的 systemRole
+  const systemRole = useSessionStore(sessionSelectors.currentSessionSystemRole);
   const messages = useChatStore(chatSelectors.activeBaseChats, isEqual);
   const topic = useChatStore(topicSelectors.currentActiveTopic, isEqual);
 

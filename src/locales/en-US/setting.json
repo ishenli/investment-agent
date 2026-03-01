@@ -45,6 +45,27 @@
     "thanks": "Acknowledgements",
     "thanksText": "Thank you to all developers and users who have contributed to this project. We will continue to work hard to provide better products and services.",
     "title": "About",
+    "update": {
+      "available": "New version available",
+      "cancel": "Cancel",
+      "checkButton": "Check for Updates",
+      "checking": "Checking...",
+      "confirm": "Update Now",
+      "confirmContent": "The application will restart to complete the update. Your data has been saved automatically. Do you want to update now?",
+      "confirmTitle": "Confirm Update",
+      "currentVersion": "Current Version",
+      "dataSafety": "All your data (database, configuration, etc.) is stored in a separate user data directory and will not be affected by the update.",
+      "description": "Check and install the latest version",
+      "downloadAndInstall": "Download and Install",
+      "downloading": "Downloading...",
+      "error": "Update failed",
+      "latestVersion": "Latest Version",
+      "noReleaseNotes": "No release notes available",
+      "progress": "Download Progress",
+      "releaseNotes": "Release Notes",
+      "title": "Software Update",
+      "upToDate": "Already up to date"
+    },
     "version": "Version"
   },
   "account": {

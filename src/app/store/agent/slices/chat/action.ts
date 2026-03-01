@@ -3,6 +3,7 @@ import { INBOX_SESSION_ID } from '@renderer/const/session';
 import { agentService } from '@renderer/services/agent';
 import { sessionService } from '@renderer/services/session';
 import { useSessionStore } from '@renderer/store/session';
+import { sessionSelectors } from '@renderer/store/session/selectors';
 import { LobeAgentChatConfig, LobeAgentConfig } from '@typings/agent';
 import { useClientDataSWR, useOnlyFetchOnceSWR } from '@renderer/lib/utils/swr';
 import { isEqual } from 'lodash';
@@ -112,7 +113,8 @@ export const createChatSlice: StateCreator<
     await internal_refreshAgentConfig(get().activeId);
   },
   togglePlugin: async (id, open) => {
-    const originConfig = agentSelectors.currentAgentConfig(get());
+    // 从 SessionStore 获取当前 session 的配置
+    const originConfig = sessionSelectors.currentSessionConfig(useSessionStore.getState());
 
     const config = produce(originConfig, (draft) => {
       draft.plugins = produce(draft.plugins || [], (plugins) => {
@@ -168,7 +170,8 @@ export const createChatSlice: StateCreator<
   },
 
   internal_updateAgentConfig: async (id, data, signal) => {
-    const prevModel = agentSelectors.currentAgentModel(get());
+    // 从 SessionStore 获取当前 session 的模型
+    const prevModel = sessionSelectors.currentSessionModel(useSessionStore.getState());
     // optimistic update at frontend
     get().internal_dispatchAgentMap(id, data, 'optimistic_updateAgentConfig');
 

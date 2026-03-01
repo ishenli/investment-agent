@@ -417,6 +417,76 @@ export class PositionService {
       unrealizedPnL,
     };
   }
+
+  /**
+   * 生成持仓概要的 Markdown 格式内容
+   *
+   * @param accountId - 账户 ID
+   * @returns Markdown 格式的持仓概要字符串
+   */
+  async getPositionSummaryMarkdown(accountId: string): Promise<string> {
+    const positions = await this.getCurrentPositions(accountId);
+
+    if (positions.length === 0) {
+      return '## 持仓概要\n\n*当前无持仓*\n';
+    }
+
+    const sections: string[] = [];
+
+    sections.push('## 持仓概要', '');
+
+    // 计算总览数据
+    const stockAccountValue = positions.reduce(
+      (sum, pos) => new Decimal(sum).plus(pos.marketValue || 0).toNumber(),
+      0,
+    );
+
+    const totalInvestment = positions.reduce(
+      (sum, pos) =>
+        new Decimal(sum).plus(new Decimal(pos.quantity).mul(pos.averageCost)).toNumber(),
+      0,
+    );
+
+    const unrealizedPnL = positions.reduce(
+      (sum, pos) => new Decimal(sum).plus(pos.unrealizedPnL).toNumber(),
+      0,
+    );
+
+    const unrealizedPnLPercent =
+      totalInvestment > 0 ? ((unrealizedPnL / totalInvestment) * 100).toFixed(2) : '0.00';
+
+    // 总览表格
+    sections.push('### 账户总览', '');
+    sections.push('| 指标 | 数值 |');
+    sections.push('|------|------|');
+    sections.push(`| 总市值 | $${stockAccountValue.toFixed(2)} |`);
+    sections.push(`| 总投资额 | $${totalInvestment.toFixed(2)} |`);
+    sections.push(`| 未实现盈亏 | $${unrealizedPnL.toFixed(2)} |`);
+    sections.push(`| 盈亏比例 | ${unrealizedPnLPercent}% |`);
+    sections.push('');
+
+    // 持仓明细表格
+    sections.push('### 持仓明细', '');
+    sections.push('| 股票代码 | 数量 | 成本价 | 现价 | 市值 | 未实现盈亏 | 盈亏% |');
+    sections.push('|----------|------|--------|------|------|------------|-------|');
+
+    positions.forEach((pos) => {
+      const costPrice = pos.averageCost.toFixed(2);
+      const currentPrice = pos.currentPrice ? pos.currentPrice.toFixed(2) : 'N/A';
+      const marketValue = (pos.marketValue || 0).toFixed(2);
+      const unrealizedPnL = pos.unrealizedPnL.toFixed(2);
+      const pnlPercent =
+        pos.averageCost > 0
+          ? (((pos.currentPrice || 0) - pos.averageCost) / pos.averageCost * 100).toFixed(2)
+          : '0.00';
+
+      sections.push(
+        `| ${pos.symbol} | ${pos.quantity} | $${costPrice} | $${currentPrice} | $${marketValue} | $${unrealizedPnL} | ${pnlPercent}% |`,
+      );
+    });
+
+    return sections.join('\n');
+  }
 }
 
 const positionService = new PositionService();

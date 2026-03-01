@@ -131,24 +131,6 @@ export interface ChatCompletionTool {
   type: 'function';
 }
 
-export interface ChatCompletionChunk {
-  id: string;
-  choices: Choice[];
-}
-
-export interface Choice {
-  delta: Delta;
-  finish_reason: 'stop' | 'length' | 'tool_calls' | 'content_filter' | 'function_call' | null;
-  index: number;
-}
-
-interface Delta {
-  content?: string | null;
-  function_call?: FunctionCall;
-  refusal?: string | null;
-  role?: 'developer' | 'system' | 'user' | 'assistant' | 'tool';
-  tool_calls?: Array<ToolCall>;
-}
 
 interface FunctionCall {
   arguments?: string;

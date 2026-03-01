@@ -1,3 +1,4 @@
+import { INBOX_SESSION_ID } from '@/app/const/session';
 import { LobeAgentSession } from '@typings/session';
 
 export interface SessionState {
@@ -20,7 +21,7 @@ export interface SessionState {
 }
 
 export const initialSessionState: SessionState = {
-  activeId: 'inbox',
+  activeId: INBOX_SESSION_ID,
   defaultSessions: [],
   isSearching: false,
   isSessionsFirstFetchFinished: false,

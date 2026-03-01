@@ -1,9 +1,10 @@
-import { app, BrowserWindow, nativeImage, dialog, session, utilityProcess } from 'electron';
+import { app, BrowserWindow, nativeImage, dialog, session, utilityProcess, ipcMain } from 'electron';
 import path from 'path';
 import { execFileSync } from 'child_process';
 import fs from 'fs';
 import net from 'net';
 import os from 'os';
+import { updateManager } from './updater';
 
 let mainWindow: BrowserWindow | null = null;
 let serverProcess: Electron.UtilityProcess | null = null;
@@ -293,6 +294,15 @@ app.whenReady().then(async () => {
 
   // Verify native module ABI compatibility before starting the server
   checkNativeModuleABI();
+  
+  // 注册更新相关的 IPC 处理器
+  ipcMain.handle('check-for-updates', async () => {
+    await updateManager.checkForUpdates();
+  });
+  
+  ipcMain.handle('quit-and-install', () => {
+    updateManager.quitAndInstall();
+  });
 
   // Clear cache on version upgrade
   const currentVersion = app.getVersion();
@@ -336,6 +346,12 @@ app.whenReady().then(async () => {
 
     serverPort = port;
     createWindow(port);
+    
+    // 设置自动更新（仅在打包环境下）
+    if (!isDev && mainWindow) {
+      updateManager.setMainWindow(mainWindow);
+      updateManager.setupPeriodicCheck(); // 启动后30秒首次检查，之后每小时检查一次
+    }
   } catch (err) {
     console.error('Failed to start:', err);
     dialog.showErrorBox(
@@ -377,6 +393,11 @@ app.on('activate', async () => {
       }
       
       createWindow(serverPort);
+      
+      // 重新设置自动更新
+      if (!isDev && mainWindow) {
+        updateManager.setMainWindow(mainWindow);
+      }
     } catch (err) {
       console.error('Failed to restart server:', err);
       dialog.showErrorBox(

@@ -10,12 +10,13 @@ import React from 'react';
 import { DefaultMessage } from '../Default';
 import IntentUnderstanding from './IntentUnderstanding';
 import Reasoning from './Reasoning';
+import PermissionRequestCard from './PermissionRequestCard';
 
 export const AssistantMessage = memo<
   ChatMessage & {
     editableContent: ReactNode;
   }
->(({ id, tools, content, chunksList, search, imageList, ...props }) => {
+>(({ id, tools, content, chunksList, search, imageList, permissionRequest, ...props }) => {
   const editing = useChatStore(chatSelectors.isMessageEditing(id));
   const generating = useChatStore(chatSelectors.isMessageGenerating(id));
 
@@ -56,6 +57,8 @@ export const AssistantMessage = memo<
           />
         )
       )}
+      {/* 权限请求卡片 - 独立显示在消息下方 */}
+      {permissionRequest && <PermissionRequestCard data={permissionRequest} />}
     </Flexbox>
   );
 });

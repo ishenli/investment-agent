@@ -1,4 +1,5 @@
 import Clear from './Clear';
+import Engine from './Engine';
 // import History from './History';
 // import Knowledge from './Knowledge';
 import Model from './Model';
@@ -11,6 +12,7 @@ import Tools from './Tools';
 
 export const actionMap = {
   clear: Clear,
+  engine: Engine,
   //   fileUpload: Upload,
   //   history: History,
   //   knowledgeBase: Knowledge,

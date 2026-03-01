@@ -4,8 +4,9 @@ import { memo } from 'react';
 import { Center, Flexbox } from 'react-layout-kit';
 
 import ModelSwitchPanel from '@renderer/(pages)/chat/features/ModelSwitchPanel';
-import { useAgentStore } from '@renderer/store/agent';
-import { agentSelectors } from '@renderer/store/agent/selectors';
+import { useSessionStore } from '@renderer/store/session';
+import { sessionSelectors } from '@renderer/store/session/selectors';
+
 
 import React from 'react';
 
@@ -51,7 +52,8 @@ const useStyles = createStyles(({ css, token, cx }) => ({
 const ModelSwitch = memo(() => {
   const { styles, cx } = useStyles();
 
-  const [model] = useAgentStore((s) => [agentSelectors.currentAgentModel(s)]);
+  // 从 SessionStore 读取当前会话的模型
+  const model = useSessionStore(sessionSelectors.currentSessionModel);
 
   return (
     <Flexbox align={'center'} className={styles.container} horizontal>

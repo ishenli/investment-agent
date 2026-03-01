@@ -38,6 +38,7 @@ export class ModelProviderService {
         slug: request.slug,
         name: request.name,
         baseUrl: request.baseUrl,
+        anthropicUrl: request.anthropicUrl ?? request.baseUrl, // 默认使用 baseUrl，如果未提供 anthropicUrl
         apiKey: request.apiKey ?? null,
         description: request.description ?? null,
         isActive: request.isActive ?? true,
@@ -119,11 +120,12 @@ export class ModelProviderService {
       }
 
       // Update only provided fields
-      const updateData: Partial<UpdateModelProviderRequest> = {};
+      const updateData: any = {};
 
       if (request.name !== undefined) updateData.name = request.name;
       if (request.slug !== undefined) updateData.slug = request.slug;
       if (request.baseUrl !== undefined) updateData.baseUrl = request.baseUrl;
+      if (request.anthropicUrl !== undefined) updateData.anthropicUrl = request.anthropicUrl;
       if (request.apiKey !== undefined) updateData.apiKey = request.apiKey;
       if (request.description !== undefined) updateData.description = request.description;
       if (request.isActive !== undefined) updateData.isActive = request.isActive;

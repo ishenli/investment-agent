@@ -147,6 +147,11 @@ export default function ProviderSettings(
     } else if (!/^https:\/\//.test(draftProvider.baseUrl)) {
       errors.baseUrl = t('provider.form.fields.baseUrl.invalid', 'URL必须使用https协议');
     }
+    
+    // 验证 anthropicUrl (如果提供了的话)
+    if (draftProvider.anthropicUrl && !/^https:\/\//.test(draftProvider.anthropicUrl)) {
+      errors.anthropicUrl = t('provider.form.fields.anthropicUrl.invalid', 'Anthropic URL必须使用https协议');
+    }
 
     if (Object.keys(errors).length > 0) {
       Object.entries(errors).forEach(([field, error]) => setFormError(field, error));
@@ -397,6 +402,12 @@ export default function ProviderSettings(
                       <Label>{t('provider.details.baseUrl', 'Base URL')}</Label>
                       <div className="mt-1 text-sm break-all">{activeProvider.baseUrl}</div>
                     </div>
+                    {activeProvider.anthropicUrl && activeProvider.anthropicUrl !== activeProvider.baseUrl && (
+                      <div>
+                        <Label>{t('provider.details.anthropicUrl', 'Anthropic URL')}</Label>
+                        <div className="mt-1 text-sm break-all">{activeProvider.anthropicUrl}</div>
+                      </div>
+                    )}
                     <div>
                       <Label>{t('provider.details.apiKey', 'API Key')}</Label>
                       <div className="mt-2 p-3 bg-muted/50 rounded-lg border border-muted">
@@ -590,6 +601,16 @@ export default function ProviderSettings(
               {errors.baseUrl && <p className="text-sm text-destructive">{errors.baseUrl}</p>}
             </div>
             <div className="grid gap-2">
+              <Label htmlFor="anthropicUrl">{t('provider.form.fields.anthropicUrl.label', 'Anthropic URL')}</Label>
+              <Input
+                id="anthropicUrl"
+                value={draftProvider.anthropicUrl || ''}
+                onChange={(e) => setDraftProvider({ anthropicUrl: e.target.value })}
+                placeholder={t('provider.form.fields.anthropicUrl.placeholder', 'https://api.anthropic.com/v1')}
+              />
+              <p className="text-xs text-muted-foreground">{t('provider.form.fields.anthropicUrl.note', '可选的 Claude 专用 API 地址，如果不填则使用 Base URL')}</p>
+            </div>
+            <div className="grid gap-2">
               <Label htmlFor="apiKey">{t('provider.form.fields.apiKey.label', 'API Key')}</Label>
               <Input
                 id="apiKey"
@@ -600,6 +621,7 @@ export default function ProviderSettings(
               />
               <p className="text-xs text-muted-foreground">{t('provider.form.fields.apiKey.note', '留空则保持原密钥不变（编辑时）')}</p>
             </div>
+            
             <div className="grid gap-2">
               <Label htmlFor="description">{t('provider.details.description', '描述')}</Label>
               <Textarea

@@ -25,8 +25,10 @@ import { StepOneContentFetcher } from './StepOneContentFetcher';
 import { StepTwoAIAnalyzer } from './StepTwoAIAnalyzer';
 import { StepThreeDataSaver } from './StepThreeDataSaver';
 import { useTranslation } from 'react-i18next';
+import { useRouter } from 'next/router';
 
 export function CombinedStepperMarketFetcher() {
+  const router = useRouter();
   const { t } = useTranslation('asset-market-info-fetcher');
   const [activeStep, setActiveStep] = useState(1);
   const [inputMode, setInputMode] = useState<'url' | 'manual' | null>(null);
@@ -77,6 +79,8 @@ export function CombinedStepperMarketFetcher() {
   const handleStepThreeComplete = () => {
     setFinalSaveResult(getCurrentMarketInfo());
     resetForms();
+    // 跳转到 asset-market-info
+    router.push('/asset-market-info');
   };
 
   // 控制步骤切换的函数

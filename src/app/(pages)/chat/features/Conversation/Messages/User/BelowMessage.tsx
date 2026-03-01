@@ -5,8 +5,6 @@ import { RotateCwIcon, Trash2 } from 'lucide-react';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
-
-import { useChatStore } from '@renderer/store/chat';
 import { ChatMessage } from '@typings/message';
 
 const useStyles = createStyles(({ css, cx }) => ({

@@ -322,6 +322,7 @@ export const modelProviders = sqliteTable('model_providers', {
   slug: text('slug').notNull(),
   name: text('name').notNull(),
   baseUrl: text('base_url').notNull(),
+  anthropicUrl: text('anthropic_url'),
   apiKey: text('api_key'),
   isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
   displayOrder: integer('display_order').notNull().default(0),

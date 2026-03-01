@@ -1,3 +1,4 @@
+import { INBOX_SESSION_ID } from '@/app/const/session';
 import { ChatMessage } from '@typings/message';
 
 export interface ChatMessageState {
@@ -24,7 +25,7 @@ export interface ChatMessageState {
 }
 
 export const initialMessageState: ChatMessageState = {
-  activeId: 'inbox',
+  activeId: INBOX_SESSION_ID,
   isCreatingMessage: false,
   messageEditingIds: [],
   messageLoadingIds: [],

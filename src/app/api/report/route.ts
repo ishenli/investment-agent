@@ -10,6 +10,7 @@ const GenerateReportSchema = z.object({
   startDate: z.string().datetime().optional(),
   endDate: z.string().datetime().optional(),
   modelSlug: z.string().optional(), // 可选的模型标识，用于选择特定的 AI 模型
+  agentType: z.enum(['claude-sdk', 'langchain']).optional(), // 可选的 Agent 类型，默认使用 claude-sdk
 });
 
 const ListReportsSchema = z.object({

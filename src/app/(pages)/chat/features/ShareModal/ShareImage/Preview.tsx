@@ -4,10 +4,9 @@ import { ChatHeaderTitle } from '@lobehub/ui/chat';
 import { memo } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
-import { useAgentStore } from '@renderer/store/agent';
-import { agentSelectors } from '@renderer/store/agent/selectors';
 import { useSessionStore } from '@renderer/store/session';
 import { sessionMetaSelectors, sessionSelectors } from '@renderer/store/session/selectors';
+
 
 import { useTranslation } from 'react-i18next';
 import React from 'react';
@@ -19,10 +18,11 @@ import { FieldType } from './type';
 const Preview = memo<FieldType & { title?: string }>(
   ({ title, withSystemRole, withBackground, withFooter }) => {
     const { t } = useTranslation(['common', 'chat']);
-    const [model, plugins, systemRole] = useAgentStore((s) => [
-      agentSelectors.currentAgentModel(s),
-      agentSelectors.currentAgentPlugins(s),
-      agentSelectors.currentAgentSystemRole(s),
+    // 从 SessionStore 读取当前会话的 model, plugins, systemRole
+    const [model, plugins, systemRole] = useSessionStore((s) => [
+      sessionSelectors.currentSessionModel(s),
+      sessionSelectors.currentSessionPlugins(s),
+      sessionSelectors.currentSessionSystemRole(s),
     ]);
     const [isInbox, description, avatar, backgroundColor] = useSessionStore((s) => [
       sessionSelectors.isInboxSession(s),

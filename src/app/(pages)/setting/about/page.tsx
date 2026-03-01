@@ -1,9 +1,14 @@
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@renderer/components/ui/card';
-import { Package, Heart, Code, Zap, Shield, Info } from 'lucide-react';
+import { Package, Heart, Code, Zap, Shield, Info, Download, CheckCircle2, AlertCircle, Loader2, RefreshCw } from 'lucide-react';
 import { Separator } from '@renderer/components/ui/separator';
+import { Button } from '@renderer/components/ui/button';
+import { Progress } from '@renderer/components/ui/progress';
+import { Alert, AlertDescription } from '@renderer/components/ui/alert';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
+import { useAutoUpdate } from '@/app/hooks/useAutoUpdate';
+import { Modal } from 'antd';
 
 interface AboutInfo {
   version: string;
@@ -29,6 +34,17 @@ export default function AboutPage() {
     developer: '-',
   });
   const [loading, setLoading] = useState(true);
+  
+  // 集成自动更新功能
+  const {
+    status: updateStatus,
+    updateInfo,
+    downloadProgress,
+    error: updateError,
+    isElectron,
+    checkForUpdates,
+    installUpdate,
+  } = useAutoUpdate();
 
   useEffect(() => {
     fetchAboutInfo()
@@ -38,6 +54,64 @@ export default function AboutPage() {
       })
       .finally(() => setLoading(false));
   }, []);
+  
+  // 处理检查更新按钮点击
+  const handleCheckUpdate = async () => {
+    await checkForUpdates();
+  };
+  
+  // 处理安装更新按钮点击
+  const handleInstallUpdate = () => {
+    Modal.confirm({
+      title: t('about.update.confirmTitle', '确认更新'),
+      content: t('about.update.confirmContent', '应用将重启以完成更新。您的数据已自动保存，无需担心数据丢失。确定要立即更新吗？'),
+      okText: t('about.update.confirm', '立即更新'),
+      cancelText: t('about.update.cancel', '取消'),
+      onOk: () => {
+        installUpdate();
+      },
+    });
+  };
+  
+  // 获取更新状态的显示文本和图标
+  const getUpdateStatusDisplay = () => {
+    switch (updateStatus) {
+      case 'checking':
+        return {
+          icon: <Loader2 className="h-4 w-4 animate-spin text-blue-500" />,
+          text: t('about.update.checking', '检查中...'),
+          type: 'info' as const,
+        };
+      case 'available':
+        return {
+          icon: <Download className="h-4 w-4 text-orange-500" />,
+          text: t('about.update.available', '有新版本可用'),
+          type: 'warning' as const,
+        };
+      case 'downloading':
+        return {
+          icon: <Loader2 className="h-4 w-4 animate-spin text-blue-500" />,
+          text: t('about.update.downloading', '下载中...'),
+          type: 'info' as const,
+        };
+      case 'up-to-date':
+        return {
+          icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
+          text: t('about.update.upToDate', '已是最新版本'),
+          type: 'success' as const,
+        };
+      case 'error':
+        return {
+          icon: <AlertCircle className="h-4 w-4 text-red-500" />,
+          text: t('about.update.error', '更新失败'),
+          type: 'error' as const,
+        };
+      default:
+        return null;
+    }
+  };
+  
+  const statusDisplay = getUpdateStatusDisplay();
 
   return (
     <div className="flex-1 flex flex-col gap-6">
@@ -92,6 +166,119 @@ export default function AboutPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* 自动更新部分 - 仅在 Electron 环境中显示 */}
+      {isElectron && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <RefreshCw className="h-4 w-4 text-primary" />
+                  {t('about.update.title', '软件更新')}
+                </CardTitle>
+                <CardDescription className="mt-1">
+                  {t('about.update.description', '检查并安装最新版本')}
+                </CardDescription>
+              </div>
+              <Button
+                onClick={handleCheckUpdate}
+                disabled={updateStatus === 'checking' || updateStatus === 'downloading'}
+                variant="outline"
+                size="sm"
+              >
+                {updateStatus === 'checking' ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {t('about.update.checking', '检查中')}
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    {t('about.update.checkButton', '检查更新')}
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* 当前版本信息 */}
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">{t('about.update.currentVersion', '当前版本')}</p>
+                <p className="text-xs text-muted-foreground">{aboutInfo.version}</p>
+              </div>
+              {updateInfo && (
+                <div className="space-y-1 text-right">
+                  <p className="text-sm font-medium">{t('about.update.latestVersion', '最新版本')}</p>
+                  <p className="text-xs text-primary font-semibold">{updateInfo.version}</p>
+                </div>
+              )}
+            </div>
+
+            {/* 更新状态显示 */}
+            {statusDisplay && (
+              <Alert>
+                <div className="flex items-center gap-2">
+                  {statusDisplay.icon}
+                  <AlertDescription>{statusDisplay.text}</AlertDescription>
+                </div>
+              </Alert>
+            )}
+
+            {/* 下载进度条 */}
+            {updateStatus === 'downloading' && downloadProgress && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{t('about.update.progress', '下载进度')}</span>
+                  <span className="font-medium">{downloadProgress.percent.toFixed(1)}%</span>
+                </div>
+                <Progress value={downloadProgress.percent} className="h-2" />
+                <p className="text-xs text-muted-foreground text-right">
+                  {(downloadProgress.transferred / 1024 / 1024).toFixed(2)} MB / {(downloadProgress.total / 1024 / 1024).toFixed(2)} MB
+                </p>
+              </div>
+            )}
+
+            {/* 错误信息 */}
+            {updateError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{updateError.message}</AlertDescription>
+              </Alert>
+            )}
+
+            {/* 更新详情 */}
+            {updateInfo && updateStatus === 'available' && (
+              <div className="space-y-3">
+                <Separator />
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">{t('about.update.releaseNotes', '更新内容')}</p>
+                  <div className="text-xs text-muted-foreground whitespace-pre-wrap p-3 bg-muted/50 rounded-lg max-h-32 overflow-y-auto">
+                    {updateInfo.releaseNotes || t('about.update.noReleaseNotes', '暂无更新说明')}
+                  </div>
+                </div>
+                <Button
+                  onClick={handleInstallUpdate}
+                  className="w-full"
+                  size="sm"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  {t('about.update.downloadAndInstall', '下载并安装')}
+                </Button>
+              </div>
+            )}
+
+            {/* 数据安全提示 */}
+            <div className="text-xs text-muted-foreground p-3 bg-muted/30 rounded-lg">
+              <p className="flex items-start gap-2">
+                <Shield className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                <span>{t('about.update.dataSafety', '您的所有数据（数据库、配置等）都存储在独立的用户数据目录中，更新不会影响这些数据。')}</span>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Features */}
       <div className="grid gap-4 md:grid-cols-2">

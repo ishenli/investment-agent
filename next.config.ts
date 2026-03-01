@@ -9,7 +9,7 @@ const isElectron = process.env.BUILD_TARGET === 'electron';
 const nextConfig: NextConfig = {
   // Configure allowed development origins for cross-origin requests
   output: isElectron ? 'standalone' : undefined,
-  serverExternalPackages: ['better-sqlite3'],
+  serverExternalPackages: isElectron ? undefined : ['@libsql/client'],
   env: {
     NEXT_PUBLIC_APP_VERSION: pkg.version,
   },

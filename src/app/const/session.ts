@@ -25,7 +25,7 @@ export const DEFAULT_AGENT_LOBE_SESSION: LobeAgentSession = {
 // ============================================================
 
 export const INBOX_SESSION_CONFIG: SessionCreateConfig = {
-  slug: 'inbox',
+  slug: INBOX_SESSION_ID,
   agentId: 'investment_advisor',
   title: 'Investment Advisor',
   description: 'Investment Research Analysis',

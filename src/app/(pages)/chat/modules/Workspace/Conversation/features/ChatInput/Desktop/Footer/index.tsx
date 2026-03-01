@@ -1,5 +1,7 @@
 import StopLoadingIcon from '@renderer/(pages)/chat/components/StopLoading';
 import SaveTopic from '@renderer/(pages)/chat/features/ChatInput/Topic';
+import EngineSwitch from '@renderer/(pages)/chat/features/ChatInput/ActionBar/Engine';
+import ClaudeModeSwitch from '@renderer/(pages)/chat/features/ChatInput/ActionBar/ClaudeMode';
 import { useChatStore } from '@renderer/store/chat';
 import { chatSelectors } from '@renderer/store/chat/selectors';
 import { Button } from '@lobehub/ui';
@@ -68,7 +70,10 @@ const Footer = memo<FooterProps>(({ onExpandChange, expand }) => {
         horizontal
         paddingInline={16}
       >
-        <Flexbox align={'center'} gap={8} horizontal style={{ overflow: 'hidden' }}></Flexbox>
+        <Flexbox align={'center'} gap={8} horizontal style={{ overflow: 'hidden' }}>
+          <EngineSwitch />
+          <ClaudeModeSwitch />
+        </Flexbox>
         <Flexbox align={'center'} flex={'none'} gap={8} horizontal>
           <SaveTopic />
           <Flexbox style={{ minWidth: 92 }}>

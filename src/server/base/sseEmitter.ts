@@ -1,4 +1,4 @@
-import { ChatCompletionChunk } from '@typings/openai/chat';
+import { AgentStreamEvent } from '@typings/agentStream';
 import { UIMessageChunk } from 'ai';
 import {
   convertToOpenAICompatibleMessage,
@@ -40,6 +40,104 @@ export class SSEEmitter {
       this.handleError(error);
       return false;
     }
+  }
+
+  async sendAgentEvent(event: AgentStreamEvent): Promise<boolean> {
+    return this.send(event);
+  }
+
+  async sendStatus(
+    message: string,
+    extra?: {
+      id?: string;
+      level?: 'info' | 'debug' | 'warning' | 'error';
+      step?: string;
+      progress?: number;
+    },
+  ): Promise<boolean> {
+    const { id, level, step, progress } = extra || {};
+    return this.sendAgentEvent({
+      type: 'status',
+      message,
+      id,
+      level,
+      step,
+      progress,
+    });
+  }
+
+  async sendTextDelta(id: string, delta: string, isFinal?: boolean): Promise<boolean> {
+    return this.sendAgentEvent({
+      type: 'text',
+      id,
+      delta,
+      isFinal,
+    });
+  }
+
+  /**
+   * 发送思考链 token 增量
+   */
+  async sendReasoningDelta(id: string, delta: string): Promise<boolean> {
+    return this.sendAgentEvent({ type: 'reasoning', id, delta });
+  }
+
+  /**
+   * 发送搜索基底信息
+   */
+  async sendGrounding(citations: unknown[], searchQueries?: string[]): Promise<boolean> {
+    return this.sendAgentEvent({ type: 'grounding', citations, searchQueries });
+  }
+
+  /**
+   * 发送相关建议问题
+   */
+  async sendRelated(items: string[]): Promise<boolean> {
+    return this.sendAgentEvent({ type: 'related', items });
+  }
+
+  async sendToolUseEvent(
+    id: string,
+    toolName: string,
+    toolArgs: Record<string, unknown>,
+  ): Promise<boolean> {
+    return this.sendAgentEvent({
+      type: 'tool_use',
+      id,
+      toolName,
+      arguments: toolArgs,
+    });
+  }
+
+  async sendResult(
+    id: string,
+    content: unknown,
+    tokens?: {
+      input?: number;
+      output?: number;
+      total?: number;
+      costUsd?: number;
+    },
+  ): Promise<boolean> {
+    return this.sendAgentEvent({
+      type: 'result',
+      id,
+      content,
+      tokens,
+    });
+  }
+
+  async sendAgentError(message: string, code?: string, details?: unknown): Promise<boolean> {
+    return this.sendAgentEvent({
+      type: 'error',
+      message,
+      code,
+      details,
+    });
+  }
+
+  async sendDone(): Promise<boolean> {
+    return this.sendAgentEvent({ type: 'done' });
   }
 
   /**
@@ -127,78 +225,7 @@ export class SSEEmitter {
     }
   }
 
-  /**
-   * 发送普通消息（包含 content 的消息）
-   * @param id 消息ID
-   * @param content 文本内容
-   * @param finishReason 结束原因
-   * @returns 是否发送成功
-   */
-  async sendMessage(
-    id: string,
-    content: string | null,
-    finishReason: 'stop' | 'tool_calls' | null = null,
-  ): Promise<boolean> {
-    return this.send({
-      id,
-      choices: [
-        {
-          index: 0,
-          finish_reason: finishReason,
-          delta: {
-            role: 'assistant',
-            content,
-          },
-        },
-      ],
-    });
-  }
-
-  /**
-   * 发送工具调用消息
-   * @param id 消息ID
-   * @param toolName 工具名称
-   * @param toolArgs 工具参数
-   * @param toolIndex 工具索引
-   * @returns 是否发送成功
-   */
-  async sendToolCall(
-    id: string,
-    toolName: string,
-    toolArgs: Record<string, unknown>,
-    toolIndex = 0,
-  ): Promise<boolean> {
-    const success = await this.send({
-      id,
-      choices: [
-        {
-          index: 0,
-          finish_reason: 'tool_calls',
-          delta: {
-            role: 'assistant',
-            tool_calls: [
-              {
-                id,
-                index: toolIndex,
-                function: {
-                  name: toolName,
-                  arguments: toolArgs,
-                },
-                type: 'function',
-              },
-            ],
-          },
-        },
-      ],
-    });
-
-    // 工具调用后发送换行符
-    if (success) {
-      await this.sendMessage(id, '\n', null);
-    }
-
-    return success;
-  }
+  
 
   /**
    * 获取可读流

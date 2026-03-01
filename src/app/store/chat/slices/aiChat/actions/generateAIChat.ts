@@ -2,7 +2,7 @@ import { LOADING_FLAT, MESSAGE_CANCEL_FLAT } from '@renderer/const/message';
 import { chatService, onFinishContext } from '@renderer/services/chat';
 import { messageService } from '@renderer/services/message';
 import { getAgentStoreState } from '@renderer/store/agent';
-import { agentChatConfigSelectors, agentSelectors } from '@renderer/store/agent/selectors';
+import { agentChatConfigSelectors } from '@renderer/store/agent/selectors';
 import { chatHelpers } from '@renderer/store/chat/helpers';
 import { chatSelectors, topicSelectors } from '@renderer/store/chat/selectors';
 import { ChatStore } from '@renderer/store/chat/store';
@@ -20,6 +20,7 @@ import { copyToClipboard } from '@lobehub/ui';
 import { produce } from 'immer';
 import { StateCreator } from 'zustand';
 import { messageMapKey } from '../../message/selectors';
+import { LobeAgentConfig } from '@/types/agent';
 
 export type Action =
   | string
@@ -304,7 +305,13 @@ export const generateAIChat: StateCreator<
     const messages = [...originalMessages];
 
     const agentStoreState = getAgentStoreState();
-    const { model, provider, chatConfig } = agentSelectors.currentAgentConfig(agentStoreState);
+    const sessionStoreState = getSessionStoreState();
+    // 从 SessionStore 读取 model 和 provider，从 AgentStore 读取 chatConfig
+    const { model, provider, chatConfig } = sessionSelectors.currentSession(sessionStoreState)?.config || {};
+
+    if (!model || !provider) {
+      throw new Error('Model or provider not found');
+    };
 
     // 2. Add an empty message to place the AI response
     const assistantMessage: CreateMessageParams = {
@@ -341,7 +348,7 @@ export const generateAIChat: StateCreator<
 
     if (
       agentChatConfigSelectors.enableHistoryCount(agentStoreState) &&
-      chatConfig.enableCompressHistory &&
+      chatConfig?.enableCompressHistory &&
       originalMessages.length > historyCount
     ) {
       // after generation: [u1,a1,u2,a2,u3,a3]
@@ -401,7 +408,14 @@ export const generateAIChat: StateCreator<
     //   },
     //   plugins: [],
     // };
-    const agentConfig = agentSelectors.currentAgentConfig(getAgentStoreState());
+    const sessionStoreState = getSessionStoreState();
+    const sessionConfig = sessionSelectors.currentSession(sessionStoreState)?.config || {} as LobeAgentConfig;
+    // 组合 sessionConfig 和 agentStoreState 的配置
+    const agentConfig = {
+      ...sessionConfig,
+      plugins: sessionConfig?.plugins || [],
+      params: sessionConfig?.params || {},
+    };
     const chatConfig = agentChatConfigSelectors.currentChatConfig(getAgentStoreState());
 
     // ================================== //
@@ -455,6 +469,8 @@ export const generateAIChat: StateCreator<
         provider,
         agentId: currentSession?.agentId || '',
         plugins: agentConfig.plugins,
+        engineType: currentSession?.config?.engineType,
+        mode: currentSession?.config?.claudeMode,
         ...agentConfig.params,
       },
       historySummary: historySummary?.content,
@@ -484,7 +500,7 @@ export const generateAIChat: StateCreator<
         let parsedToolCalls = toolCalls;
         if (parsedToolCalls && parsedToolCalls.length > 0) {
           internal_toggleToolCallingStreaming(messageId, undefined);
-          // @ts-ignore
+          // @ts-expect-error - function.arguments may be undefined
           parsedToolCalls = parsedToolCalls.map((item: { function: { arguments: any } }) => ({
             ...item,
             function: {
@@ -576,11 +592,23 @@ export const generateAIChat: StateCreator<
           }
 
           case 'thoughtChain': {
-            internal_dispatchMessage({
-              id: messageId,
-              type: 'updateMessage',
-              value: { thoughtChain: chunk.thoughtChain },
-            });
+            // 如果是权限请求,保存到 permissionRequest 字段
+            if (chunk.thoughtChain.type === 'PERMISSION') {
+              internal_dispatchMessage({
+                id: messageId,
+                type: 'updateMessage',
+                value: { 
+                  thoughtChain: chunk.thoughtChain,
+                  permissionRequest: chunk.thoughtChain.content,
+                },
+              });
+            } else {
+              internal_dispatchMessage({
+                id: messageId,
+                type: 'updateMessage',
+                value: { thoughtChain: chunk.thoughtChain },
+              });
+            }
             break;
           }
           // case 'tool_calls': {

@@ -9,6 +9,7 @@ export interface ModelProvider {
   slug: string;
   name: string;
   baseUrl: string;
+  anthropicUrl: string;
   apiKey: string | null;
   isActive: boolean;
   displayOrder: number;
@@ -36,6 +37,7 @@ export interface CreateModelProviderRequest {
   name: string;
   slug: string;
   baseUrl: string;
+  anthropicUrl?: string;
   apiKey?: string;
   description?: string;
   isActive?: boolean;
@@ -47,6 +49,7 @@ export interface UpdateModelProviderRequest {
   name?: string;
   slug?: string;
   baseUrl?: string;
+  anthropicUrl?: string;
   apiKey?: string;
   description?: string;
   isActive?: boolean;

@@ -24,6 +24,18 @@ export interface LobeAgentConfig {
   model: string;
 
   /**
+   * AI 引擎类型
+   * @default deepagents
+   */
+  engineType?: 'deepagents' | 'claude';
+
+  /**
+   * Claude SDK 模式
+   * @default code
+   */
+  claudeMode?: 'code' | 'plan' | 'ask';
+
+  /**
    * 开场白
    */
   openingMessage?: string;

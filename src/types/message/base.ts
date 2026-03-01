@@ -17,7 +17,7 @@ export interface ModelReasoning {
 
 export interface ModelThoughtChain {
   content: any;
-  type: 'TOOL' | 'MCP' | 'THOUGHT' | 'END' | 'KNOWLEDGE';
+  type: 'TOOL' | 'MCP' | 'THOUGHT' | 'END' | 'KNOWLEDGE' | 'PERMISSION';
   title: string;
 }
 

@@ -1,5 +1,6 @@
 import { ModelThoughtChain } from '@typings/message/base';
 import React from 'react';
+
 export default function ThoughtChain({
   thoughtChain,
   id,

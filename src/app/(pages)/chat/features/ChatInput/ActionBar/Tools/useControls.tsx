@@ -5,7 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { useCheckPluginsIsInstalled } from '@renderer/hooks/useCheckPluginsIsInstalled';
 import { useFetchInstalledPlugins } from '@renderer/hooks/useFetchInstalledPlugins';
 import { useAgentStore } from '@renderer/store/agent';
-import { agentSelectors } from '@renderer/store/agent/selectors';
+import { useSessionStore } from '@renderer/store/session';
+import { sessionSelectors } from '@renderer/store/session/selectors';
 import { useToolStore } from '@renderer/store/tool';
 import { builtinToolSelectors } from '@renderer/store/tool/selectors';
 
@@ -14,12 +15,13 @@ import ToolItem from './ToolItem';
 export const useControls = ({ setUpdating }: { setUpdating: (updating: boolean) => void }) => {
   const { t } = useTranslation('chat');
   const { showDalle } = { showDalle: false };
-  const [checked, togglePlugin] = useAgentStore((s) => [
-    agentSelectors.currentAgentPlugins(s),
-    s.togglePlugin,
-  ]);
+
+  // 从 SessionStore 读取 plugins，从 AgentStore 读取 togglePlugin
+  const checked = useSessionStore(sessionSelectors.currentSessionPlugins);
+  const togglePlugin = useAgentStore((s) => s.togglePlugin);
+  const plugins = useSessionStore(sessionSelectors.currentSessionPlugins);
+
   const builtinList = useToolStore(builtinToolSelectors.metaList(showDalle), isEqual);
-  const plugins = useAgentStore((s) => agentSelectors.currentAgentPlugins(s));
 
   useFetchInstalledPlugins();
   useCheckPluginsIsInstalled(plugins);

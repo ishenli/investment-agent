@@ -1,5 +1,6 @@
 import { LobeSessions } from '@typings/session/agentSession';
 import { LobeSessionGroups, SessionGroupId } from '@typings/session/sessionGroup';
+import { LobeAgentConfig } from '@typings/agent';
 
 export * from './agentSession';
 export * from './sessionGroup';
@@ -10,10 +11,11 @@ export interface ChatSessionList {
 }
 
 export interface UpdateSessionParams {
+  config?: Partial<LobeAgentConfig>;
   group?: SessionGroupId;
   meta?: any;
   pinned?: boolean;
-  updatedAt: Date;
+  updatedAt?: Date;
 }
 
 export interface SessionRankItem {

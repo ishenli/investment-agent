@@ -6,8 +6,6 @@ import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 // import { ProductLogo } from '@renderer/components/Branding';
 import { ChatItem } from '@renderer/(pages)/chat/features/Conversation';
-import { useAgentStore } from '@renderer/store/agent';
-import { agentSelectors } from '@renderer/store/agent/selectors';
 import { useSessionStore } from '@renderer/store/session';
 import { sessionMetaSelectors, sessionSelectors } from '@renderer/store/session/selectors';
 import { ChatMessage } from '@typings/message';
@@ -24,9 +22,10 @@ interface PreviewProps extends FieldType {
 
 const Preview = memo<PreviewProps>(
   ({ title, withBackground, withFooter, message, previewId = 'preview' }) => {
-    const [model, plugins] = useAgentStore((s) => [
-      agentSelectors.currentAgentModel(s),
-      agentSelectors.currentAgentPlugins(s),
+    // 从 SessionStore 读取当前会话的 model, plugins
+    const [model, plugins] = useSessionStore((s) => [
+      sessionSelectors.currentSessionModel(s),
+      sessionSelectors.currentSessionPlugins(s),
     ]);
 
     const [isInbox, description, avatar, backgroundColor] = useSessionStore((s) => [
