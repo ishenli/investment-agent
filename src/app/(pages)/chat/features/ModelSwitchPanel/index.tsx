@@ -1,8 +1,8 @@
 import { ModelItemRender, ProviderItemRender } from '@renderer/(pages)/chat/components/ModelSelect';
-import { DEFAULT_PROVIDER } from '@renderer/const/settings';
 import ActionDropdown from '@renderer/(pages)/chat/features/ChatInput/ActionBar/components/ActionDropdown';
 import { useAgentStore } from '@renderer/store/agent';
-import { agentSelectors } from '@renderer/store/agent/slices/chat';
+import { useSessionStore } from '@renderer/store/session';
+import { sessionSelectors } from '@renderer/store/session';
 import { useAiInfraStore } from '@renderer/store/aiInfra';
 import { EnabledProviderWithModels } from '@typings/aiProvider';
 import { isEqual } from 'lodash';
@@ -47,22 +47,22 @@ interface IProps {
 const ModelSwitchPanel = memo<IProps>(({ children, onOpenChange, open }) => {
   const router = useRouter();
   const { styles, theme } = useStyles();
-  const [model, updateAgentConfig] = useAgentStore((s) => [
-    agentSelectors.currentAgentModel(s),
-    s.updateAgentConfig,
-  ]);
+  const updateAgentConfig = useAgentStore((s) => s.updateAgentConfig);
 
-  const provider = DEFAULT_PROVIDER;
+  // 从 SessionStore 读取当前会话的 model 和 provider
+  const currentSession = useSessionStore(sessionSelectors.currentSession);
+  const model = currentSession?.config?.model || '';
+  const provider = currentSession?.config?.provider || '';
 
   const enabledList = useAiInfraStore((s) => s.enabledChatModelList, isEqual);
 
   const items = useMemo<ItemType[]>(() => {
-    const getModelItems = (provider: EnabledProviderWithModels) => {
-      const items = provider.children.map((model) => ({
-        key: menuKey(provider.id, model.id),
-        label: <ModelItemRender {...model} {...model.abilities} />,
+    const getModelItems = (providerItem: EnabledProviderWithModels) => {
+      const items = providerItem.children.map((item) => ({
+        key: menuKey(providerItem.id, item.id),
+        label: <ModelItemRender {...item} {...item.abilities} />,
         onClick: async () => {
-          await updateAgentConfig({ model: model.id, provider: provider.id });
+          await updateAgentConfig({ model: item.id, provider: providerItem.id });
         },
       }));
 
@@ -70,7 +70,7 @@ const ModelSwitchPanel = memo<IProps>(({ children, onOpenChange, open }) => {
       if (items.length === 0)
         return [
           {
-            key: `${provider.id}-empty`,
+            key: `${providerItem.id}-empty`,
             label: (
               <Flexbox gap={8} horizontal style={{ color: theme.colorTextTertiary }}>
                 {'ModelSwitchPanel.emptyModel'}
@@ -103,16 +103,16 @@ const ModelSwitchPanel = memo<IProps>(({ children, onOpenChange, open }) => {
       ];
     }
     // otherwise show with provider group
-    return enabledList.map((provider) => ({
-      children: getModelItems(provider),
-      key: provider.id,
+    return enabledList.map((providerItem) => ({
+      children: getModelItems(providerItem),
+      key: providerItem.id,
       label: (
         <Flexbox horizontal justify="space-between">
           <ProviderItemRender
-            logo={provider.logo}
-            name={provider.name}
-            provider={provider.id}
-            source={provider.source}
+            logo={providerItem.logo}
+            name={providerItem.name}
+            provider={providerItem.id}
+            source={providerItem.source}
           />
         </Flexbox>
       ),

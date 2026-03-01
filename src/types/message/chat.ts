@@ -95,6 +95,17 @@ export interface ChatMessage {
   reasoning?: ModelReasoning | null;
   thoughtChain?: ModelThoughtChain | null;
   /**
+   * permission request from Claude SDK
+   */
+  permissionRequest?: {
+    permissionRequestId: string;
+    toolName: string;
+    toolInput: Record<string, unknown>;
+    decisionReason?: string;
+    blockedPath?: string;
+    description?: string;
+  } | null;
+  /**
    * message role type
    */
   role: MessageRoleType;

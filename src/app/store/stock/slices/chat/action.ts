@@ -1,10 +1,12 @@
 import { StateCreator } from 'zustand';
 import { StockStore } from '../../store';
-import { requestSSE } from '@/app/lib/request/index';
+import { connectAgentStream } from '@/app/lib/agentStreamClient';
+import type { AgentStreamEvent } from '@/types/agentStream';
 import { StockAnalyst } from '@/types';
 import { produce } from 'immer';
 import { StateAnnotation } from '@server/core/graph/tradeDecision/agentState';
 import { ChatMessage } from '@lobehub/ui/chat';
+import type { AgentStatusEntry } from './initialState';
 
 export interface StockChatAction {
   generateImageFromPrompts: (items: string[], messageId: string) => Promise<void>;
@@ -183,40 +185,89 @@ export const createStockChatSlice: StateCreator<
   generateImageFromPrompts: async (items, messageId) => {},
   analyzeStock: async (body) => {
     const abortController = new AbortController();
-    set({
-      requestAbortController: abortController,
-      loading: true,
-    });
-    const isCompleted = false;
-    await requestSSE({
+    set({ requestAbortController: abortController, loading: true, statusLog: [], messages: [] });
+
+    await connectAgentStream({
       api: '/api/stock',
       body,
       method: 'POST',
       signal: abortController.signal,
-      onBeforeProcess: () => {
-        // 处理开始前的回调
-        console.log('processing started');
-      },
-      onProcessChunk: (jsonData: string) => {
-        try {
-          const event = JSON.parse(jsonData);
-          const message = eventToMessage(event);
-          if (message) {
+      onEvent: (event: AgentStreamEvent) => {
+        switch (event.type) {
+          case 'status': {
+            // 将 Agent 进度写入 statusLog
+            const entry: AgentStatusEntry = {
+              message: event.message,
+              step: event.step,
+              progress: event.progress,
+              timestamp: Date.now(),
+            };
             set(
               produce((draft) => {
-                draft.messages.push(message);
+                draft.statusLog.push(entry);
               }),
             );
+            break;
           }
-        } catch (e) {
-          console.warn('Failed to parse SSE progress data:', jsonData, e);
+
+          case 'result': {
+            // 最终決策结果卡片
+            const content = event.content as { decision?: unknown; state?: unknown };
+            const decisionMessage: ChatMessage = {
+              id: event.id || Date.now().toString(),
+              content:
+                typeof content.decision === 'string'
+                  ? content.decision
+                  : JSON.stringify(content.decision ?? content, null, 2),
+              role: 'assistant',
+              extra: {},
+              meta: {
+                title: '交易决策',
+                avatar: 'https://pic.616pic.com/ys_bnew_img/00/04/44/cgqCG3yYGS.jpg',
+              },
+              updateAt: Date.now(),
+              createAt: Date.now(),
+            };
+            set(
+              produce((draft) => {
+                draft.messages.push(decisionMessage);
+              }),
+            );
+            break;
+          }
+
+          case 'error': {
+            console.error('[StockStore] Agent 流错误:', event.message, event.details);
+            set({ loading: false });
+            break;
+          }
+
+          case 'done': {
+            set({ loading: false });
+            break;
+          }
+
+          default: {
+            // 将未知事件当作旧格式的原始状态对象处理（后向兼容）
+            const rawEvent = event as Record<string, unknown>;
+            const message = eventToMessage(rawEvent as Record<string, object>);
+            if (message) {
+              set(
+                produce((draft) => {
+                  draft.messages.push(message);
+                }),
+              );
+            }
+            break;
+          }
         }
       },
-      onAfterProcess: () => {
+      onError: (error) => {
+        console.error('[StockStore] SSE 连接错误:', error);
         set({ loading: false });
-        // 处理完成后的回调
-        if (!isCompleted) {
-        }
+      },
+      onDone: () => {
+        set({ loading: false });
       },
     });
   },

@@ -20,6 +20,11 @@ const ModelProviderSchema = z.object({
     .url('无效的URL格式')
     .max(500, 'URL不能超过500个字符')
     .refine(val => val.startsWith('https://'), 'URL必须使用https协议'),
+  anthropicUrl: z.string()
+    .url('无效的URL格式')
+    .max(500, 'URL不能超过500个字符')
+    .refine(val => val.startsWith('https://'), 'URL必须使用https协议')
+    .optional(),
   apiKey: z.string().optional(),
   description: z.string()
     .max(500, '描述不能超过500个字符')
@@ -43,6 +48,11 @@ const UpdateModelProviderSchema = z.object({
     .regex(/^[a-zA-Z0-9_.-]+$/, 'Slug只能包含字母、数字、连字符、下划线和点')
     .optional(),
   baseUrl: z.string()
+    .url('无效的URL格式')
+    .max(500, 'URL不能超过500个字符')
+    .refine(val => val.startsWith('https://'), 'URL必须使用https协议')
+    .optional(),
+  anthropicUrl: z.string()
     .url('无效的URL格式')
     .max(500, 'URL不能超过500个字符')
     .refine(val => val.startsWith('https://'), 'URL必须使用https协议')

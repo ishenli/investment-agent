@@ -113,7 +113,8 @@
     "defaultDescription": "Activate brain cluster, spark thinking. Your AI assistant, communicating with you here",
     "defaultTitle": "General Assistant",
     "inboxDescription": "Activate brain cluster, spark thinking. Your AI assistant, communicating with you here",
-    "inboxTitle": "Just Chat"
+    "inboxTitle": "Just Chat",
+    "selectModelMessage": "Please select a model"
   },
   "shareTitle": "Share",
   "stop": "Stop",

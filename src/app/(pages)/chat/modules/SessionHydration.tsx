@@ -8,6 +8,7 @@ import { createStoreUpdater } from 'zustand-utils';
 import { useAgentStore } from '@renderer/store/agent';
 import { useChatStore } from '@renderer/store/chat';
 import { useSessionStore } from '@renderer/store/session';
+import { INBOX_SESSION_ID } from '@/app/const/session';
 
 // sync outside state to useSessionStore
 const SessionHydration = memo(() => {
@@ -19,7 +20,7 @@ const SessionHydration = memo(() => {
   // two-way bindings the url and session store
   const [session, setSession] = useQueryState(
     'session',
-    parseAsString.withDefault('inbox').withOptions({ history: 'replace', throttleMs: 50 }),
+    parseAsString.withDefault(INBOX_SESSION_ID).withOptions({ history: 'replace', throttleMs: 50 }),
   );
   useStoreUpdater('activeId', session);
   useAgentStoreUpdater('activeId', session);

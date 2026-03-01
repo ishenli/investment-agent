@@ -1,0 +1,1 @@
+ALTER TABLE `model_providers` ADD `anthropic_url` text;

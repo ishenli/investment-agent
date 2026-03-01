@@ -25,6 +25,7 @@ import {
   type CreatePluginParams,
 } from '@server/repository/chat';
 import type { ChatMessage } from '@drizzle/schema/chat';
+import { INBOX_SESSION_ID } from '@/app/const/session';
 
 export class ChatStorageService {
   // ============== Session Operations ==============
@@ -48,8 +49,8 @@ export class ChatStorageService {
    * 如果 id 是 'inbox'，则使用 slug 查询对应的会话
    */
   async getSession(id: string) {
-    if (id === 'inbox') {
-      return sessionRepository.findBySlug('inbox');
+    if (id === INBOX_SESSION_ID) {
+      return sessionRepository.findBySlug(INBOX_SESSION_ID);
     }
     return sessionRepository.findById(id);
   }

@@ -1,17 +1,17 @@
 import logger from '@server/base/logger';
-import transactionService from './transactionService';
-import noteService from './noteService';
-import assetMarketInfoService from './assetMarketInfoService';
-import assetMetaService from './assetMetaService';
-import positionService from './positionService';
-import authService from './authService';
-import portfolioSnapshotService from './portfolioSnapshotService';
-import { transactionRepository, type CashFlow } from '../repository/transactionRepository';
-import { accountRepository } from '../repository/accountRepository';
-import { analysisReportRepository, type AnalysisReportEntity } from '../repository/analysisReportRepository';
-import { unifiedPriceService, type QuoteResponse } from './unifiedPriceService';
+import transactionService from '../transactionService';
+import noteService from '../noteService';
+import assetMarketInfoService from '../assetMarketInfoService';
+import assetMetaService from '../assetMetaService';
+import positionService from '../positionService';
+import authService from '../authService';
+import portfolioSnapshotService from '../portfolioSnapshotService';
+import { transactionRepository, type CashFlow } from '../../repository/transactionRepository';
+import { accountRepository } from '../../repository/accountRepository';
+import { analysisReportRepository, type AnalysisReportEntity } from '../../repository/analysisReportRepository';
+import { unifiedPriceService, type QuoteResponse } from '../unifiedPriceService';
 import { AssetMarketInfoType } from '@/types/marketInfo';
-import { NoteType } from './noteService';
+import { NoteType } from '../noteService';
 import { PositionType } from '@typings/position';
 import { AssetMetaType } from '@/types/assetMeta';
 import {
@@ -20,16 +20,64 @@ import {
   DataSourceSummary,
   DataSource,
 } from '@/types/report';
+import { recordPrompt } from '../../utils/file';
+import { nanoid } from 'nanoid';
+import { reportWorkspaceManager } from '@/server/service/reportService/reportWorkspace';
+import { modelProviderResolver } from '../modelProviderResolver';
+import { claudeService } from '../claudeService';
+import type { ApiProvider } from '@/types';
+// LangChain imports for fallback implementation
 import { chatModelOpenAI } from '@server/core/provider/chatModel';
 import { SystemMessage, HumanMessage } from 'langchain';
-import { recordPrompt } from '../utils/file';
 import { createAgent } from 'langchain';
 import {
   noteQueryTool,
   stockRecallCompanyInfoTool,
   stockSearchNewsTool,
   TravilySearchTool,
-} from '../core/tools';
+} from '../../core/tools';
+
+// ============== Claude Agent SDK Configuration ==============
+
+/**
+ * Model configuration for Claude Agent SDK
+ */
+interface ClaudeAgentConfig {
+  modelSlug: string;
+  env: Record<string, string | undefined>;
+}
+
+/**
+ * System prompt for report generation agent
+ */
+const REPORT_SYSTEM_PROMPT = `你是一位专业的投资顾问，负责分析投资数据并生成周报。
+
+## 数据来源
+- context.md: 账户业绩和持仓摘要
+- positions.json: 持仓明细（含实时行情）
+- transactions.json: 本周交易记录
+- notes.json: 用户投资笔记
+- market-events.json: 本周市场关键事件
+
+## 工具使用指南
+- Read: 读取数据文件
+- Glob: 查找文件
+- Grep: 搜索笔记中的关键词
+- WebSearch: 搜索最新市场新闻和公司信息
+
+## 分析原则
+- 数据驱动：基于提供的持仓、交易、业绩数据
+- 客观中立：不做主观推测，仅基于事实分析
+- 风险提示：标注潜在风险和不确定性
+
+## 输出要求
+生成 Markdown 格式的报告，包含以下章节：
+1. **市场与账户概览**：本周收益率、与基准对比
+2. **持仓异动分析**：各持仓盈亏情况、风险变化
+3. **信息与笔记回顾**：关键市场事件和用户笔记
+4. **下周展望与建议**：投资策略建议
+
+语气专业、客观。如果数据时效性分数低于 0.5，请在报告中提示。`.trim();
 
 // 报告类型枚举
 export type ReportType = 'weekly' | 'monthly' | 'emergency';
@@ -44,6 +92,7 @@ export type GenerateReportRequest = {
   startDate?: Date;
   endDate?: Date;
   modelSlug?: string; // 可选的模型标识，用于选择特定的 AI 模型
+  agentType?: 'claude-sdk' | 'langchain'; // 可选的 Agent 类型，默认使用 claude-sdk
 };
 
 // 报告列表项类型
@@ -113,6 +162,27 @@ export type WeeklyReportData = {
 export class ReportService {
   constructor() {
     // 数据库连接已经在 db.ts 中初始化
+  }
+
+  /**
+   * Get model configuration for Claude Agent SDK
+   * Now uses ClaudeService for unified configuration management
+   *
+   * Reuses modelProviderResolver logic to get API credentials.
+   * Note: The SDK uses ANTHROPIC_API_KEY environment variable.
+   * For custom providers, we set ANTHROPIC_API_KEY and ANTHROPIC_BASE_URL.
+   *
+   * @param modelSlug - Optional model slug to use
+   * @returns Model configuration with environment variables
+   */
+  private async getModelConfig(modelSlug?: string): Promise<ClaudeAgentConfig> {
+    const account = await authService.getCurrentUserAccount();
+    if (!account) {
+      throw new Error('User not authenticated');
+    }
+
+    const accountId = parseInt(account.id);
+    return claudeService.getEnvConfig(accountId, modelSlug);
   }
 
   /**
@@ -310,7 +380,7 @@ export class ReportService {
 
       // Get snapshots for a dummy account to access benchmark data
       // This is a simplified approach - ideally we'd have a dedicated benchmark service
-      const priceService = (await import('./priceService')).default;
+      const priceService = (await import('../priceService')).default;
 
       const startPrice = await priceService.getLatestPrice(symbol);
       const endPrice = await priceService.getLatestPrice(symbol);
@@ -594,6 +664,7 @@ export class ReportService {
         startDate,
         endDate,
         request.modelSlug,
+        request.agentType,
       ).catch(async (error) => {
         logger.error('[ReportService] 报告生成失败', { reportId: reportRecord.id, error });
         // 更新报告状态为失败
@@ -619,6 +690,7 @@ export class ReportService {
    * @param startDate 开始日期
    * @param endDate 结束日期
    * @param modelSlug 可选的模型标识
+   * @param agentType 可选的 Agent 类型
    */
   private async processReportGeneration(
     reportId: string,
@@ -626,6 +698,7 @@ export class ReportService {
     startDate: Date,
     endDate: Date,
     modelSlug?: string,
+    agentType?: 'claude-sdk' | 'langchain',
   ): Promise<void> {
     try {
       // 更新报告状态为处理中
@@ -638,7 +711,7 @@ export class ReportService {
       await analysisReportRepository.updateProgress(parseInt(reportId), 50, 'AI分析生成');
 
       // 生成AI报告内容
-      const reportContent = await this.generateAIReportContent(reportData, modelSlug);
+      const reportContent = await this.generateAIReportContent(reportData, modelSlug, agentType);
 
       // 更新报告内容和状态（标记为完成）
       await analysisReportRepository.updateContent(
@@ -744,11 +817,199 @@ export class ReportService {
 
   /**
    * 生成AI报告内容
+   *
+   * 根据 agentType 参数选择使用 Claude Agent SDK 或 LangChain 实现。
+   * 默认使用 Claude Agent SDK。
+   *
+   * @param reportData 报告数据
+   * @param modelSlug 可选的模型标识
+   * @param agentType Agent 类型，默认使用 'claude-sdk'
+   * @returns 生成的报告内容（Markdown格式）
+   */
+  private async generateAIReportContent(
+    reportData: WeeklyReportData,
+    modelSlug?: string,
+    agentType?: 'claude-sdk' | 'langchain',
+  ): Promise<string> {
+    // Default to claude-sdk if not specified
+    const useAgentType = agentType || 'claude-sdk';
+
+    logger.info(`[ReportService] Using agent type: ${useAgentType}`);
+
+    if (useAgentType === 'langchain') {
+      return this.generateAIReportContentWithLangChain(reportData, modelSlug);
+    }
+
+    return this.generateAIReportContentWithClaudeSDK(reportData, modelSlug);
+  }
+
+  /**
+   * 使用 Claude Agent SDK 生成AI报告内容
+   *
+   * @param reportData 报告数据
+   * @param modelSlug 可选的模型标识
+   * @returns 生成的报告内容(Markdown格式)
+   */
+  private async generateAIReportContentWithClaudeSDK(
+    reportData: WeeklyReportData,
+    modelSlug?: string,
+  ): Promise<string> {
+    // Generate unique workspace ID and session ID
+    const workspaceId = nanoid();
+    const sessionId = `report-${workspaceId}`;
+    let workDir: string | null = null;
+
+    try {
+      // 1. Get model configuration
+      const modelConfig = await this.getModelConfig(modelSlug);
+      logger.info('[ReportService] Model config obtained', {
+        modelSlug: modelConfig.modelSlug,
+        hasApiKey: !!modelConfig.env.ANTHROPIC_API_KEY,
+        hasBaseUrl: !!modelConfig.env.ANTHROPIC_BASE_URL,
+      });
+
+      // 2. Create workspace with report data
+      workDir = await reportWorkspaceManager.createWorkspace(workspaceId, reportData);
+      logger.info('[ReportService] Workspace created', { workDir });
+
+      // 3. Build the prompt (keep it simple - the agent reads context.md for details)
+      const prompt = `请阅读当前目录下的 context.md 和相关数据文件,生成投资周报。
+
+数据文件列表:
+- context.md: 账户业绩和持仓摘要(请优先阅读)
+- positions.json: 持仓明细
+- transactions.json: 交易记录
+- notes.json: 用户笔记
+- market-events.json: 市场事件
+
+请生成完整的周报内容。`;
+
+      // Record prompt for debugging
+      recordPrompt(prompt, 'report-generate-prompt.md');
+
+      // 4. Prepare provider configuration for streamClaude
+      const provider: ApiProvider = {
+        id: 'report-generation',
+        name: 'Report Generation Provider',
+        provider_type: 'anthropic',
+        base_url: modelConfig.env.ANTHROPIC_BASE_URL || '',
+        api_key: modelConfig.env.ANTHROPIC_API_KEY || '',
+        is_active: 1,
+        sort_order: 0,
+        extra_env: '{}',
+        notes: 'Auto-generated for report generation',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // 5. Execute Claude Agent SDK via streamClaude
+      const abortController = new AbortController();
+      
+      // Import streamClaude dynamically to avoid circular dependencies
+      const { streamClaude } = await import('@/server/core/claude/claudeClient');
+      
+      const stream = streamClaude({
+        prompt,
+        sessionId,
+        sdkSessionId: undefined, // No session resume for report generation
+        model: modelConfig.modelSlug,
+        systemPrompt: REPORT_SYSTEM_PROMPT,
+        workingDirectory: workDir,
+        abortController,
+        permissionMode: 'acceptEdits',
+        toolTimeoutSeconds: 600, // 10 minutes timeout
+        provider,
+        settings: {},
+        updateSdkSessionId: () => {
+          // No-op: report generation doesn't need session persistence
+        },
+      });
+
+      // 6. Consume the stream and collect the result
+      const reader = stream.getReader();
+      let finalResult = '';
+      let executionError: string | null = null;
+      
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          // Parse SSE events
+          const lines = value.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const event = JSON.parse(line.slice(6));
+                
+                if (event.type === 'text') {
+                  // Accumulate text content
+                  finalResult += event.data;
+                } else if (event.type === 'error') {
+                  executionError = event.data;
+                  logger.error('[ReportService] Stream error event', { error: event.data });
+                } else if (event.type === 'result') {
+                  // Log completion info
+                  const resultData = JSON.parse(event.data);
+                  logger.info('[ReportService] Agent completed', {
+                    turns: resultData.num_turns,
+                    usage: resultData.usage,
+                  });
+                } else if (event.type === 'tool_use') {
+                  // Log tool usage for debugging
+                  const toolData = JSON.parse(event.data);
+                  logger.debug('[ReportService] Tool use', { tool: toolData.name });
+                }
+              } catch (parseError) {
+                // Skip malformed lines
+                logger.debug('[ReportService] Failed to parse SSE line', { line });
+              }
+            }
+          }
+        }
+      } finally {
+        reader.releaseLock();
+      }
+
+      // 7. If no result, throw error
+      if (!finalResult && executionError) {
+        throw new Error(`报告生成失败: ${executionError}`);
+      }
+
+      if (!finalResult || finalResult.trim().length === 0) {
+        throw new Error('报告生成失败: Agent 未返回有效结果');
+      }
+
+      logger.info('[ReportService] Report content generated successfully', {
+        contentLength: finalResult.length,
+      });
+
+      return finalResult.trim();
+    } catch (error) {
+      logger.error('[ReportService] 生成AI报告内容失败', { error });
+      throw new Error(
+        `生成AI报告内容失败: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    } finally {
+      // 8. Always cleanup workspace
+      logger.info('[ReportService] Cleaning up workspace', { workspaceId });
+      if (workDir) {
+        await reportWorkspaceManager.cleanup(workspaceId);
+      }
+    }
+  }
+
+  /**
+   * 使用 LangChain Agent 生成AI报告内容
+   *
    * @param reportData 报告数据
    * @param modelSlug 可选的模型标识
    * @returns 生成的报告内容（Markdown格式）
    */
-  private async generateAIReportContent(reportData: WeeklyReportData, modelSlug?: string): Promise<string> {
+  private async generateAIReportContentWithLangChain(
+    reportData: WeeklyReportData,
+    modelSlug?: string,
+  ): Promise<string> {
     try {
       // 构建AI提示词
       const prompt = this.buildAIPrompt(reportData);
@@ -781,7 +1042,7 @@ export class ReportService {
 
       return '';
     } catch (error) {
-      logger.error('[ReportService] 生成AI报告内容失败', { error });
+      logger.error('[ReportService] 生成AI报告内容失败 (LangChain)', { error });
       throw new Error(
         `生成AI报告内容失败: ${error instanceof Error ? error.message : String(error)}`,
       );

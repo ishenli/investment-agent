@@ -1,6 +1,5 @@
 import qs from 'query-string';
-
-export const INBOX_SESSION_ID = 'inbox';
+import { INBOX_SESSION_ID } from './session';
 
 export const SESSION_CHAT_URL = (id: string = INBOX_SESSION_ID, mobile?: boolean) =>
   qs.stringifyUrl({

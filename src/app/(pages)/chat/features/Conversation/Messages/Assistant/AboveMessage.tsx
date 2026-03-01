@@ -38,6 +38,7 @@ export const thinkImg = {
     'https://mdn.alipayobjects.com/huamei_35zehm/afts/img/A*nZDDTbsUkA4AAAAAAAAAAAAADjCDAQ/original',
   MCP: 'https://mdn.alipayobjects.com/huamei_35zehm/afts/img/A*EYi7SpEZPpUAAAAAAAAAAAAADjCDAQ/original', // 处理
   END: 'https://mdn.alipayobjects.com/huamei_35zehm/afts/img/A*6TlqTYb3RNoAAAAAAAAAAAAADjCDAQ/original',
+  PERMISSION: 'https://mdn.alipayobjects.com/huamei_35zehm/afts/img/A*yRWIS51p-Q0AAAAAAAAAAAAADjCDAQ/original', // 权限请求 - 使用工具图标
 };
 
 const ThoughtBelowMessage = memo<ChatMessage>(({ thoughtChain }) => {

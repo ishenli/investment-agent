@@ -110,6 +110,14 @@ export class DatabaseManager {
     logger.info('isDev:' + isDev());
 
     try {
+      // 检查必要的依赖是否存在
+      try {
+        await import('@libsql/client');
+        await import('drizzle-orm/libsql');
+      } catch (importError) {
+        logger.error('DatabaseManager: Required dependencies not found:', importError);
+        throw new Error(`Missing required database dependencies. Please ensure @libsql/client and drizzle-orm are installed. Error: ${importError}`);
+      }
       // 在生产环境中，将数据库存储在用户数据目录中
       // 这样可以确保即使应用更新或重新安装，用户数据也不会丢失
       let projectDir: string;

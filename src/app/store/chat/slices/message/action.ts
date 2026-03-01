@@ -78,6 +78,14 @@ export interface ChatMessageAction {
       chatId?: string;
       sessionId?: string;
       traceId?: string;
+      permissionRequest?: {
+        permissionRequestId: string;
+        toolName: string;
+        toolInput: Record<string, unknown>;
+        decisionReason?: string;
+        blockedPath?: string;
+        description?: string;
+      };
     },
   ) => Promise<void>;
 
@@ -268,7 +276,12 @@ export const chatMessage: StateCreator<
     internal_dispatchMessage({
       id,
       type: 'updateMessage',
-      value: { content, related: extra?.related, traceId: extra?.traceId },
+      value: { 
+        content, 
+        related: extra?.related, 
+        traceId: extra?.traceId,
+        permissionRequest: extra?.permissionRequest,
+      },
     });
 
     // 保存到 DB

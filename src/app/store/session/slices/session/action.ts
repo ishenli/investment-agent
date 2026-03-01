@@ -16,6 +16,7 @@ import { LobeSessionGroups } from '@typings/session/sessionGroup';
 import { useClientDataSWR } from '@renderer/lib/utils/swr';
 import { isEqual } from 'lodash';
 import { SessionDispatch } from './reducers';
+import { INBOX_SESSION_ID } from '@/app/const/session';
 
 const FETCH_SESSIONS_KEY = 'fetchSessions';
 const SEARCH_SESSIONS_KEY = 'searchSessions';
@@ -139,7 +140,7 @@ export const createSessionSlice: StateCreator<
 
   updateSessionMeta: async (meta) => {
     const activeId = get().activeId;
-    if (activeId && activeId !== 'inbox') {
+    if (activeId && activeId !== INBOX_SESSION_ID) {
       await get().internal_updateSession(activeId, { meta });
     }
   },
@@ -159,7 +160,7 @@ export const createSessionSlice: StateCreator<
 
     // 如果删除的是当前活跃会话，切换到收件箱
     if (sessionId === get().activeId) {
-      get().switchSession('inbox');
+      get().switchSession(INBOX_SESSION_ID);
     }
   },
 
@@ -196,7 +197,7 @@ export const createSessionSlice: StateCreator<
   },
 
   internal_processSessions: (allSessions, sessionGroups) => {
-    const sessions = allSessions.filter((item) => item.slug !== 'inbox');
+    const sessions = allSessions.filter((item) => item.slug !== INBOX_SESSION_ID);
 
     const customGroups = sessionGroups.map((item) => ({
       ...item,

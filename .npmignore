@@ -77,3 +77,4 @@ yarn.lock
 coverage/
 build/
 out/
+dist-electron

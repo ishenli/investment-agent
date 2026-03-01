@@ -14,7 +14,7 @@ import { uuid } from '@renderer/lib/utils/uuid';
 import { recordPrompt } from '@/server/utils/file';
 import logger from '@/server/base/logger';
 import { chatModelOpenAI } from '../../provider/chatModel';
-import { extractAssistantChunkText, extractChunkId } from '@/server/utils/stream';
+import { extractAssistantChunkText, extractChunkId, extractAssistantReasoningText, splitThinkTagContent } from '@/server/utils/stream';
 import {
   getMessageRole,
   getMessageId,
@@ -114,7 +114,6 @@ export const investmentAdvisorAgent = {
     // Record prompt for debugging
     recordPrompt(contextPrompt, 'deepagents-investment-prompt.md');
 
-    const id = '';
     try {
       // Create the DeepAgent instance with all tools
       const investmentDeepAgent = createDeepAgent({
@@ -142,6 +141,9 @@ export const investmentAdvisorAgent = {
       let lastAssistant = '';
       const seenMessageIds = new Set<string>();
       const seenToolCallIds = new Set<string>();
+      /** 跨 chunk 追踪是否处于 <think> 标签块内 */
+      let inThinkBlock = false;
+
       for await (const chunk of response) {
         const [mode, data] = chunk as [string, unknown];
 
@@ -219,26 +221,49 @@ export const investmentAdvisorAgent = {
 
           if (type === 'ai') {
             const id = extractChunkId(data);
-            const content = extractAssistantChunkText(data);
+            const rawContent = extractAssistantChunkText(data);
+            const reasoningContent = extractAssistantReasoningText(data);
+
             if (!id) continue;
-            emitter.sendMessage(id, content, null);
+
+            // Case 1: 模型通过 additional_kwargs.reasoning_content 输出 thinking tokens
+            if (reasoningContent) {
+              emitter.sendReasoningDelta(id, reasoningContent);
+            }
+
+            if (rawContent) {
+              // Case 2: 模型通过 <think>...</think> 标签嵌入 thinking（如 DeepSeek-R1）
+              const { reasoning, text, inThinkBlock: nextState } = splitThinkTagContent(
+                rawContent,
+                inThinkBlock,
+              );
+              inThinkBlock = nextState;
+
+              if (reasoning) {
+                emitter.sendReasoningDelta(id, reasoning);
+              }
+              if (text) {
+                emitter.sendTextDelta(id, text);
+              }
+            } else if (!reasoningContent) {
+              // 两种来源均无内容，跳过
+              continue;
+            }
           } else if (type === 'tool') {
             const meta = getToolMessageMeta(chunk);
-            emitter.sendToolCall(
+            emitter.sendToolUseEvent(
               meta.toolCallId as string,
               meta.toolName as string,
               meta.toolArgs || {},
-              0,
             );
           }
         }
-        // Send final stop message
-        emitter.sendMessage(id, null, 'stop');
       }
+      emitter.sendDone();
     } catch (error) {
-      // Send error message with 'stop' finish_reason (OpenAI compatible)
+      // Send error as AgentStreamEvent
       logger.error('investmentAdvisorAgent error', error);
-      emitter.sendMessage(uuid(), '抱歉，生成过程中出现问题。请稍后再试。', 'stop');
+      emitter.sendAgentError('抱歉，生成过程中出现问题。请稍后再试。');
     }
   },
 };

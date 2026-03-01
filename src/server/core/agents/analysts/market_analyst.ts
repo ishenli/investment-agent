@@ -59,7 +59,7 @@ export function create_market_analyst(llm: ChatOpenAI, logger: Logger) {
 
 请使用中文，基于真实数据进行分析。确保在分析中正确使用公司名称"${company_name}"和股票代码"${ticker}".`;
 
-    const tools = [new toolkit.StockMarketDataUnifiedTool(logger)];
+    const tools = [toolkit.stockGetPriceTool];
     const tool_names = [];
 
     for (const tool of tools) {

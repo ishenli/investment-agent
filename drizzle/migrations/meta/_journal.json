@@ -225,6 +225,13 @@
       "when": 1772104323080,
       "tag": "0031_equal_gambit",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "6",
+      "when": 1772340808168,
+      "tag": "0032_rainy_red_wolf",
+      "breakpoints": true
     }
   ]
 }

@@ -47,6 +47,7 @@ export default function StockAnalysisPage() {
   const analyzeStock = useStockStore((state) => state.analyzeStock);
   const messages = useStockStore((state) => stockChatSelectors.currentMessage(state));
   const loading = useStockStore((state) => stockChatSelectors.isLoading(state));
+  const statusLog = useStockStore((state) => stockChatSelectors.currentStatusLog(state));
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
@@ -263,9 +264,21 @@ export default function StockAnalysisPage() {
           {/* Right content - flexible width */}
           <div className="grow">
             <ScrollArea className="h-[calc(100vh-200px)]">
-              {loading && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mb-8">
-                  <h3 className="text-blue-800 font-medium">{t('loading.analyzing')}</h3>
+              {(loading || statusLog.length > 0) && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                  <h3 className="text-blue-800 font-medium mb-2">
+                    {loading ? t('loading.analyzing') : t('loading.done', '分析完成')}
+                  </h3>
+                  {statusLog.length > 0 && (
+                    <ul className="space-y-1 max-h-40 overflow-y-auto">
+                      {statusLog.map((entry, idx) => (
+                        <li key={idx} className="flex items-center gap-2 text-sm text-blue-700">
+                          <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0" />
+                          <span>{entry.step ?? entry.message}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               )}
               {error && (

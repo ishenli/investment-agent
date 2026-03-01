@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useReports, useGenerateReport, ReportType } from '@/app/hooks/useReport';
+import { useReports, useGenerateReport, ReportType, AgentType } from '@/app/hooks/useReport';
 import { Card, CardContent, CardHeader, CardTitle } from '@renderer/components/ui/card';
 import { Badge } from '@renderer/components/ui/badge';
 import { Button } from '@renderer/components/ui/button';
@@ -26,6 +26,7 @@ export function ReportList() {
   const { t } = useTranslation('report');
   const router = useRouter();
   const [reportType, setReportType] = useState<ReportType>('weekly');
+  const [agentType, setAgentType] = useState<AgentType>('claude-sdk');
   const { data, isLoading, error } = useReports(undefined, 20, 0);
   const generateMutation = useGenerateReport();
 
@@ -63,7 +64,7 @@ export function ReportList() {
 
   const handleGenerate = () => {
     generateMutation.mutate(
-      { type: reportType, modelSlug: selectedModelSlug || undefined },
+      { type: reportType, modelSlug: selectedModelSlug || undefined, agentType },
       {
         onSuccess: (data) => {
           toast.success(t('detail.generateSuccess'));
@@ -128,13 +129,24 @@ export function ReportList() {
         <h2 className="text-2xl font-bold tracking-tight">{t('list.title')}</h2>
 
         <div className="flex items-center gap-2">
+          {/* Agent 类型选择器 */}
+          <Select value={agentType} onValueChange={(v) => setAgentType(v as AgentType)}>
+            <SelectTrigger className="w-[160]">
+              <SelectValue placeholder="Agent 类型" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="claude-sdk">Claude SDK</SelectItem>
+              <SelectItem value="langchain">LangChain</SelectItem>
+            </SelectContent>
+          </Select>
+
           {/* 模型选择器 */}
           <Select
             value={selectedModelSlug || undefined}
             onValueChange={setSelectedModelSlug}
             disabled={modelsLoading || availableModels.length === 0}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180]">
               <SelectValue placeholder={t('list.modelSelector.placeholder')} />
             </SelectTrigger>
             <SelectContent>

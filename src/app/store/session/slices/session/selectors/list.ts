@@ -2,6 +2,8 @@ import { DEFAULT_AGENT_LOBE_SESSION, INBOX_SESSION_ID } from '@renderer/const/se
 import { sessionHelpers } from '@renderer/store/session/slices/session/helpers';
 import { MetaData } from '@typings/meta';
 import { CustomSessionGroup, LobeAgentSession, LobeSessions } from '@typings/session';
+import { LobeAgentConfig } from '@typings/agent';
+import { DEFAULT_MODEL } from '@renderer/const/settings';
 
 import { SessionStore } from '../../../store';
 
@@ -39,6 +41,82 @@ const currentSessionSafe = (s: SessionStore): LobeAgentSession => {
   return currentSession(s) || DEFAULT_AGENT_LOBE_SESSION;
 };
 
+// ==========   Config Selectors   ============== //
+
+/**
+ * 获取当前 Session 的完整配置
+ */
+const currentSessionConfig = (s: SessionStore): LobeAgentConfig => {
+  const session = currentSession(s);
+  return session?.config || {} as LobeAgentConfig;
+};
+
+/**
+ * 获取指定 Session 的配置
+ */
+const getSessionConfigById =
+  (id: string) =>
+  (s: SessionStore): LobeAgentConfig => {
+    const session = getSessionById(id)(s);
+    return session?.config || {};
+  };
+
+/**
+ * 获取当前 Session 使用的模型名称
+ */
+const currentSessionModel = (s: SessionStore): string => {
+  return currentSessionConfig(s).model || DEFAULT_MODEL;
+};
+
+/**
+ * 获取当前 Session 使用的 Provider
+ */
+const currentSessionProvider = (s: SessionStore): string => {
+  return currentSessionConfig(s).provider || '';
+};
+
+/**
+ * 获取当前 Session 使用的 Engine 类型
+ */
+const currentSessionEngineType = (s: SessionStore): 'deepagents' | 'claude' => {
+  return currentSessionConfig(s).engineType || 'deepagents';
+};
+
+/**
+ * 获取当前 Session 的 systemRole
+ */
+const currentSessionSystemRole = (s: SessionStore): string => {
+  return currentSessionConfig(s).systemRole || '';
+};
+
+/**
+ * 获取当前 Session 的插件列表
+ */
+const currentSessionPlugins = (s: SessionStore): string[] => {
+  return currentSessionConfig(s).plugins || [];
+};
+
+/**
+ * 判断当前 Session 是否有 systemRole
+ */
+const hasSystemRole = (s: SessionStore): boolean => {
+  return !!currentSessionConfig(s).systemRole;
+};
+
+/**
+ * 获取当前 Session 的开场问题列表
+ */
+const openingQuestions = (s: SessionStore): string[] => {
+  return currentSessionConfig(s).openingQuestions || [];
+};
+
+/**
+ * 获取当前 Session 的开场消息
+ */
+const openingMessage = (s: SessionStore): string => {
+  return currentSessionConfig(s).openingMessage || '';
+};
+
 const hasCustomAgents = (s: SessionStore) => defaultSessions(s).length > 0;
 
 const isInboxSession = (s: SessionStore) => s.activeId === INBOX_SESSION_ID;
@@ -60,4 +138,15 @@ export const sessionSelectors = {
   isSessionListInit,
   isSomeSessionActive,
   pinnedSessions,
+  // Config selectors
+  currentSessionConfig,
+  getSessionConfigById,
+  currentSessionModel,
+  currentSessionProvider,
+  currentSessionEngineType,
+  currentSessionSystemRole,
+  currentSessionPlugins,
+  hasSystemRole,
+  openingQuestions,
+  openingMessage,
 };

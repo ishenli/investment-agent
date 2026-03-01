@@ -2,6 +2,7 @@ import {
   ChatImageChunk,
   ChatMessage,
   ChatMessageError,
+  CitationItem,
   MessageGroundingChunk,
   MessageReasoningChunk,
   MessageRelatedChunk,
@@ -15,15 +16,14 @@ import {
   ModelTokensUsage,
 } from '@typings/message';
 import {
-  ChatCompletionChunk,
   ChatStreamPayload,
   OpenAIChatMessage,
   UserMessageContentPart,
 } from '@typings/openai/chat';
 import { GroundingSearch } from '@typings/search';
-import { transformOpenAIStream } from '@renderer/lib/utils/stream/openai';
 import { get, isEmpty, merge } from 'lodash';
-import { post, requestSSE } from '../lib/request';
+import { post } from '../lib/request';
+import { connectAgentStream } from '@/app/lib/agentStreamClient';
 import { DEFAULT_AGENT_CONFIG } from '../const/settings/agent';
 import { getAgentStoreState } from '../store/agent';
 import { agentChatConfigSelectors } from '../store/agent/slices/chat';
@@ -35,6 +35,7 @@ import { toolSelectors } from '../store/tool/selectors';
 import { produce } from 'immer';
 import { getToolStoreState } from '../store/tool';
 import { BuiltinSystemRolePrompts } from '../prompts/systemRole';
+import { t } from 'i18next';
 
 type SSEFinishType = 'done' | 'error' | 'abort';
 
@@ -42,6 +43,8 @@ interface GetChatCompletionPayload extends Partial<Omit<ChatStreamPayload, 'mess
   messages: ChatMessage[];
   sessionId?: string;
   agentId: string;
+  engineType?: 'deepagents' | 'claude';
+  mode?: 'code' | 'plan' | 'ask';
 }
 
 type ContentType = 'stream' | 'text' | 'thought' | 'tool' | 'image' | 'file' | 'error';
@@ -242,6 +245,7 @@ interface BaiLingParams {
   stream: boolean;
   tools: string[];
   agentId: string;
+  engineType?: 'deepagents' | 'claude';
 }
 
 interface BailingAgentStreamParams {
@@ -404,6 +408,7 @@ class ChatService {
           messages: oaiMessages,
           stream: true,
           tools: pluginIds,
+          engineType: params.engineType,
         },
         abortController,
         onMessageHandle,
@@ -580,11 +585,37 @@ class ChatService {
     thinkingController,
     onMessageHandle,
   }: BailingLLMStreamParams) => {
-    const streamContext = {};
     let textFinal = '';
     let reasonTextFinal = '';
-    await requestSSE({
-      api: '/api/chat/agent',
+
+    // 拦截逻辑：当 model 参数为空时，直接返回提示消息
+    if (!params.model || params.model.trim() === '') {
+      const promptMessage = t('chat:sessionConfig.selectModelMessage');
+      textController.pushToQueue(promptMessage);
+      textController.startAnimation();
+      
+      // 等待动画完成后调用 onFinish
+      setTimeout(() => {
+        onFinish?.(promptMessage, {
+          toolCalls: [],
+          related: [],
+          reasoning: { content: '' },
+          grounding: { citations: [], searchQueries: [] },
+          usage: {},
+          speed: {},
+          type: 'done',
+        });
+      }, 100);
+      
+      return;
+    }
+
+    // 根据 engineType 选择不同的 API 端点
+    const engineType = params.engineType || 'deepagents';
+    const apiEndpoint = engineType === 'claude' ? '/api/chat/claude' : '/api/chat/agent';
+
+    await connectAgentStream({
+      api: apiEndpoint,
       body: {
         sessionId: params.sessionId || 'default-session',
         agentId: params.agentId || '',
@@ -593,35 +624,95 @@ class ChatService {
         messages: params.messages,
       },
       signal: abortController?.signal,
-      onProcessChunk: (value: string) => {
-        const chunk = JSON.parse(value) as ChatCompletionChunk;
-
-        const chunkAfterTransform = transformOpenAIStream(chunk, streamContext);
-        if (Array.isArray(chunkAfterTransform)) {
-          return Promise.resolve();
-        } else if (chunkAfterTransform.data) {
-          const text = chunkAfterTransform.data;
-          if (chunkAfterTransform.type === 'text') {
-            textFinal += text || '';
-            textController.pushToQueue(text);
-            if (!textController.isAnimationActive) textController.startAnimation();
-          } else if (chunkAfterTransform.type === 'reasoning') {
-            reasonTextFinal += chunkAfterTransform.data;
-            thinkingController.pushToQueue(chunkAfterTransform.data);
-            if (!thinkingController.isAnimationActive) thinkingController.startAnimation();
-          } else if (chunkAfterTransform.type === 'tool_calls') {
+      onEvent: (event) => {
+        switch (event.type) {
+          case 'text': {
+            textFinal += event.delta;
+            textController.pushToQueue(event.delta);
+            textController.startAnimation();
+            break;
+          }
+          case 'reasoning': {
+            reasonTextFinal += event.delta;
+            thinkingController.pushToQueue(event.delta);
+            thinkingController.startAnimation();
+            break;
+          }
+          case 'grounding': {
+            if (event.citations && event.citations.length > 0) {
+              onMessageHandle?.({
+                type: 'grounding',
+                grounding: {
+                  citations: event.citations as CitationItem[],
+                  searchQueries: event.searchQueries,
+                },
+              });
+            }
+            break;
+          }
+          case 'related': {
+            if (event.items && event.items.length > 0) {
+              onMessageHandle?.({
+                type: 'related',
+                related: event.items,
+              });
+            }
+            break;
+          }
+          case 'tool_use': {
             onMessageHandle?.({
               type: 'thoughtChain',
               thoughtChain: {
-                title: chunkAfterTransform.data[0].function.name,
+                title: event.toolName,
                 type: 'TOOL',
-                content: chunkAfterTransform.data[0].function.arguments,
+                content:
+                  typeof event.arguments === 'string'
+                    ? event.arguments
+                    : JSON.stringify(event.arguments),
               },
             });
+            break;
           }
+          case 'permission_request': {
+            // 处理权限请求,保存到消息的 permissionRequest 字段
+            onMessageHandle?.({
+              type: 'thoughtChain',
+              thoughtChain: {
+                title: `⚠️ 权限请求: ${event.toolName}`,
+                type: 'PERMISSION',
+                content: {
+                  permissionRequestId: event.permissionRequestId,
+                  toolName: event.toolName,
+                  toolInput: event.toolInput,
+                  decisionReason: event.decisionReason,
+                  blockedPath: event.blockedPath,
+                  description: event.description || `工具 ${event.toolName} 需要您的授权才能继续`,
+                },
+              },
+            });
+            break;
+          }
+          case 'error': {
+            // 错误在 onError 回调中处理
+            break;
+          }
+          default:
+            break;
         }
       },
-      onAfterProcess: () => {
+      onError: (_error) => {
+        // AbortError 或网络错误：流已结束，直接上报最终结果
+        onFinish?.(textFinal, {
+          toolCalls: [],
+          related: [],
+          reasoning: { content: reasonTextFinal },
+          grounding: { citations: [], searchQueries: [] },
+          usage: {},
+          speed: {},
+          type: 'abort',
+        });
+      },
+      onDone: () => {
         onFinish?.(textFinal, {
           toolCalls: [],
           related: [],

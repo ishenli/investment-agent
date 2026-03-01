@@ -1,5 +1,8 @@
 import { useAgentStore } from '@renderer/store/agent';
-import { agentChatConfigSelectors, agentSelectors } from '@renderer/store/agent/selectors';
+import { agentChatConfigSelectors } from '@renderer/store/agent/selectors';
+import { useSessionStore } from '@renderer/store/session';
+import { sessionSelectors } from '@renderer/store/session/selectors';
+
 import { Skeleton } from 'antd';
 import { memo } from 'react';
 import { Flexbox } from 'react-layout-kit';
@@ -9,17 +12,12 @@ import React from 'react';
 import HistoryLimitTags from './HistoryLimitTags';
 
 const TitleTags = memo(() => {
-  const [model, isLoading] = useAgentStore((s) => [
-    agentSelectors.currentAgentModel(s),
-    // agentSelectors.isAgentConfigLoading(s),
-    false,
-  ]);
+  // 从 SessionStore 读取当前会话的模型
+  const model = useSessionStore(sessionSelectors.currentSessionModel);
 
   const enableHistoryCount = useAgentStore(agentChatConfigSelectors.enableHistoryCount);
 
-  return isLoading ? (
-    <Skeleton.Button active size={'small'} style={{ height: 20 }} />
-  ) : (
+  return (
     <Flexbox align={'center'} gap={4} horizontal>
       <ModelTag model={model} />
       {/* {isAgentEnableSearch && <SearchTags />} */}

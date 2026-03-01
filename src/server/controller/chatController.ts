@@ -10,6 +10,8 @@ import authService from '../service/authService';
 import { chatStorageService } from '../service/chatStorageService';
 import agentService from '../service/agentService';
 import { BaseBizController } from './base';
+import { INBOX_SESSION_ID } from '@/app/const/session';
+import { merge } from 'lodash';
 
 /**
  * 获取当前用户ID（数字类型）
@@ -165,7 +167,8 @@ export class ChatController extends BaseBizController {
       }
 
       const { id, ...updateData } = body;
-      const result = await chatStorageService.updateSession(session.id, updateData);
+      const finalSession = merge(session, updateData);
+      const result = await chatStorageService.updateSession(session.id, finalSession);
 
       if (!result) {
         return this.error('更新会话失败', 'update_session_error');
