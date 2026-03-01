@@ -15,14 +15,14 @@ importers:
         specifier: ^1.3.0
         version: 1.3.0(@ant-design/cssinjs@2.1.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(antd@6.3.1(date-fns@4.1.0)(luxon@3.7.2)(moment@2.30.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.0)(babel-plugin-macros@3.1.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       '@ant-design/x':
-        specifier: ^2.2.2
-        version: 2.2.2(antd@6.3.1(date-fns@4.1.0)(luxon@3.7.2)(moment@2.30.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        specifier: ^2.3.0
+        version: 2.3.0(antd@6.3.1(date-fns@4.1.0)(luxon@3.7.2)(moment@2.30.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       '@ant-design/x-sdk':
-        specifier: ^2.2.2
-        version: 2.2.2(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        specifier: ^2.3.0
+        version: 2.3.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       '@anthropic-ai/claude-agent-sdk':
-        specifier: ^0.2.62
-        version: 0.2.62(zod@4.3.6)
+        specifier: ^0.2.63
+        version: 0.2.63(zod@4.3.6)
       '@block-kit/variable':
         specifier: ^1.0.21
         version: 1.0.21(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -51,28 +51,14 @@ importers:
         specifier: ^1.1.29
         version: 1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))
       '@langchain/langgraph':
-<<<<<<< HEAD
         specifier: ^1.2.0
-        version: 1.2.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.24.6(zod@4.3.6))(zod@4.3.6)
-=======
-        specifier: ^1.1.5
-        version: 1.1.5(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6)
->>>>>>> fece58c (✨ feat(ai): integrate Claude Agent SDK for enhanced agent capabilities)
+        version: 1.2.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6)
       '@langchain/openai':
         specifier: ^1.2.11
         version: 1.2.11(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(ws@8.19.0)
       '@libsql/client':
         specifier: ^0.17.0
         version: 0.17.0(encoding@0.1.13)
-<<<<<<< HEAD
-=======
-      '@libsql/client-wasm':
-        specifier: ^0.17.0
-        version: 0.17.0
-      '@libsql/darwin-arm64':
-        specifier: ^0.5.22
-        version: 0.5.22
->>>>>>> fece58c (✨ feat(ai): integrate Claude Agent SDK for enhanced agent capabilities)
       '@lobehub/chat-plugin-sdk':
         specifier: ^1.32.4
         version: 1.32.4(debug@4.4.3)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -167,8 +153,8 @@ importers:
         specifier: ^3.7.1
         version: 3.7.1(@types/react@19.2.2)(antd@6.3.1(date-fns@4.1.0)(luxon@3.7.2)(moment@2.30.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       axios:
-        specifier: ^1.13.5
-        version: 1.13.5(debug@4.4.3)
+        specifier: ^1.13.6
+        version: 1.13.6(debug@4.4.3)
       bcryptjs:
         specifier: ^3.0.3
         version: 3.0.3
@@ -200,13 +186,8 @@ importers:
         specifier: ^10.6.0
         version: 10.6.0
       deepagents:
-<<<<<<< HEAD
         specifier: ^1.8.1
-        version: 1.8.1(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.24.6(zod@4.3.6))
-=======
-        specifier: ^1.8.0
-        version: 1.8.0(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))
->>>>>>> fece58c (✨ feat(ai): integrate Claude Agent SDK for enhanced agent capabilities)
+        version: 1.8.1(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))
       dexie:
         specifier: ^4.3.0
         version: 4.3.0
@@ -216,6 +197,12 @@ importers:
       drizzle-orm:
         specifier: ^0.44.7
         version: 0.44.7(@libsql/client-wasm@0.17.0)(@libsql/client@0.17.0(encoding@0.1.13))(@opentelemetry/api@1.9.0)(@types/better-sqlite3@7.6.13)(better-sqlite3@12.6.2)
+      electron-log:
+        specifier: ^5.4.3
+        version: 5.4.3
+      electron-updater:
+        specifier: ^6.8.3
+        version: 6.8.3
       embla-carousel-react:
         specifier: ^8.6.0
         version: 8.6.0(react@19.2.0)
@@ -241,13 +228,8 @@ importers:
         specifier: ^9.0.3
         version: 9.0.3
       langchain:
-<<<<<<< HEAD
         specifier: ^1.2.28
-        version: 1.2.28(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.24.6(zod@4.3.6))
-=======
-        specifier: ^1.2.26
-        version: 1.2.26(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6)))(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))
->>>>>>> fece58c (✨ feat(ai): integrate Claude Agent SDK for enhanced agent capabilities)
+        version: 1.2.28(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))
       lodash:
         specifier: ^4.17.23
         version: 4.17.23
@@ -276,8 +258,8 @@ importers:
         specifier: ^2.0.6
         version: 2.0.6
       nuqs:
-        specifier: ^2.8.8
-        version: 2.8.8(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.0)(babel-plugin-macros@3.1.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react@19.2.0)
+        specifier: ^2.8.9
+        version: 2.8.9(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.0)(babel-plugin-macros@3.1.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react@19.2.0)
       p-map:
         specifier: ^7.0.4
         version: 7.0.4
@@ -342,8 +324,8 @@ importers:
         specifier: ^1.6.11
         version: 1.6.11(@types/mdast@4.0.4)(micromark-util-types@2.0.2)(micromark@4.0.2)(react@19.2.0)
       swr:
-        specifier: ^2.4.0
-        version: 2.4.0(react@19.2.0)
+        specifier: ^2.4.1
+        version: 2.4.1(react@19.2.0)
       tailwind-merge:
         specifier: ^3.5.0
         version: 3.5.0
@@ -400,13 +382,8 @@ importers:
         version: 2.1.1(react@19.2.0)(zustand@5.0.11(@types/react@19.2.2)(immer@10.2.0)(react@19.2.0)(use-sync-external-store@1.6.0(react@19.2.0)))
     devDependencies:
       '@langchain/langgraph-cli':
-<<<<<<< HEAD
         specifier: ^1.1.14
-        version: 1.1.14(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(@langchain/langgraph-checkpoint@1.0.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))))(@langchain/langgraph-sdk@1.6.5(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(@langchain/langgraph@1.2.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.24.6(zod@4.3.6))(zod@4.3.6))(@opentelemetry/api@1.9.0)(babel-plugin-macros@3.1.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))(typescript@5.9.3)
-=======
-        specifier: ^1.1.13
-        version: 1.1.13(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6)))(@langchain/langgraph-checkpoint@1.0.0(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6))))(@langchain/langgraph@1.1.5(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6))(@opentelemetry/api@1.9.0)(babel-plugin-macros@3.1.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6))(typescript@5.9.3)
->>>>>>> fece58c (✨ feat(ai): integrate Claude Agent SDK for enhanced agent capabilities)
+        version: 1.1.14(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(@langchain/langgraph-checkpoint@1.0.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))))(@langchain/langgraph-sdk@1.6.5(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(@langchain/langgraph@1.2.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6))(@opentelemetry/api@1.9.0)(babel-plugin-macros@3.1.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))(typescript@5.9.3)
       '@tailwindcss/postcss':
         specifier: ^4.2.1
         version: 4.2.1
@@ -592,14 +569,14 @@ packages:
       react: ^0.14.0 || ^15.0.1 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
       react-dom: ^0.14.0 || ^15.0.1 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
-  '@ant-design/x-sdk@2.2.2':
-    resolution: {integrity: sha512-u9t33iOPe/Ckvaec8tBhCxXqr4KwDY+gIXJuBgTMEk2JE0MM1p8HHNf0fRcKFEBC/gZsiXFexoAjdCupuchRUQ==}
+  '@ant-design/x-sdk@2.3.0':
+    resolution: {integrity: sha512-KoCrSE6ZNNHWNY4jDwsmzfiLT/DAjWryEXhlVc5waB+mIykIm29C2m/DgXsUCPEyUrJS7ZFvSZmnp0TZJvDZRQ==}
     peerDependencies:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
 
-  '@ant-design/x@2.2.2':
-    resolution: {integrity: sha512-fNXMfCKBT3goPUHgm3DE863IgWlFe233EAeR4CZKChVVc/oUdj19uRURNMV6LL1l535FToNZAiaCz7BXSxxZZg==}
+  '@ant-design/x@2.3.0':
+    resolution: {integrity: sha512-kH711bo0PIizzYlhkGVD0/oNtEehP0AUktX55gtTFCM3cRbXIKTLwcxlragLWaCXPtT1O/T8F6SAYCxLtg76IA==}
     peerDependencies:
       antd: ^6.1.1
       react: '>=18.0.0'
@@ -608,8 +585,8 @@ packages:
   '@antfu/install-pkg@1.1.0':
     resolution: {integrity: sha512-MGQsmw10ZyI+EJo45CdSER4zEb+p31LpDAFp2Z3gkSd1yqVZGi0Ebx++YTEMonJy4oChEMLsxZ64j8FH6sSqtQ==}
 
-  '@anthropic-ai/claude-agent-sdk@0.2.62':
-    resolution: {integrity: sha512-exRJ2djKP6erRpUrtnVf5iXzqeS9dAie9d1ghODZVVXdLqieSqCpaAhZhe0hL1yvP33OL0J5CgT9RAyPzhYY9A==}
+  '@anthropic-ai/claude-agent-sdk@0.2.63':
+    resolution: {integrity: sha512-ZNiaQb/v6xkbrGt3dtq5J0DGY+AaOhoehUyposa3msvlAlkTHWNGR+NhbCcTE0ML1U91xhPqMAAwZIUqrlkKyQ==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       zod: ^4.0.0
@@ -754,20 +731,20 @@ packages:
   '@cfworker/json-schema@4.1.1':
     resolution: {integrity: sha512-gAmrUZSGtKc3AiBL71iNWxDsyUC5uMaKKGdvzYsBoTW/xi42JQHl7eKV2OYzCUqvc+D2RCcf7EXY2iCyFIk6og==}
 
-  '@chevrotain/cst-dts-gen@11.1.1':
-    resolution: {integrity: sha512-fRHyv6/f542qQqiRGalrfJl/evD39mAvbJLCekPazhiextEatq1Jx1K/i9gSd5NNO0ds03ek0Cbo/4uVKmOBcw==}
+  '@chevrotain/cst-dts-gen@11.1.2':
+    resolution: {integrity: sha512-XTsjvDVB5nDZBQB8o0o/0ozNelQtn2KrUVteIHSlPd2VAV2utEb6JzyCJaJ8tGxACR4RiBNWy5uYUHX2eji88Q==}
 
-  '@chevrotain/gast@11.1.1':
-    resolution: {integrity: sha512-Ko/5vPEYy1vn5CbCjjvnSO4U7GgxyGm+dfUZZJIWTlQFkXkyym0jFYrWEU10hyCjrA7rQtiHtBr0EaZqvHFZvg==}
+  '@chevrotain/gast@11.1.2':
+    resolution: {integrity: sha512-Z9zfXR5jNZb1Hlsd/p+4XWeUFugrHirq36bKzPWDSIacV+GPSVXdk+ahVWZTwjhNwofAWg/sZg58fyucKSQx5g==}
 
-  '@chevrotain/regexp-to-ast@11.1.1':
-    resolution: {integrity: sha512-ctRw1OKSXkOrR8VTvOxrQ5USEc4sNrfwXHa1NuTcR7wre4YbjPcKw+82C2uylg/TEwFRgwLmbhlln4qkmDyteg==}
+  '@chevrotain/regexp-to-ast@11.1.2':
+    resolution: {integrity: sha512-nMU3Uj8naWer7xpZTYJdxbAs6RIv/dxYzkYU8GSwgUtcAAlzjcPfX1w+RKRcYG8POlzMeayOQ/znfwxEGo5ulw==}
 
-  '@chevrotain/types@11.1.1':
-    resolution: {integrity: sha512-wb2ToxG8LkgPYnKe9FH8oGn3TMCBdnwiuNC5l5y+CtlaVRbCytU0kbVsk6CGrqTL4ZN4ksJa0TXOYbxpbthtqw==}
+  '@chevrotain/types@11.1.2':
+    resolution: {integrity: sha512-U+HFai5+zmJCkK86QsaJtoITlboZHBqrVketcO2ROv865xfCMSFpELQoz1GkX5GzME8pTa+3kbKrZHQtI0gdbw==}
 
-  '@chevrotain/utils@11.1.1':
-    resolution: {integrity: sha512-71eTYMzYXYSFPrbg/ZwftSaSDld7UYlS8OQa3lNnn9jzNtpFbaReRRyghzqS7rI3CDaorqpPJJcXGHK+FE1TVQ==}
+  '@chevrotain/utils@11.1.2':
+    resolution: {integrity: sha512-4mudFAQ6H+MqBTfqLmU7G1ZwRzCLfJEooL/fsF6rCX5eePMbGhoy5n4g+G4vlh2muDcsCTJtL+uKbOzWxs5LHA==}
 
   '@clack/core@0.4.1':
     resolution: {integrity: sha512-Pxhij4UXg8KSr7rPek6Zowm+5M22rbd2g1nfojHJkxp5YkFqiZ2+YLEM/XGVIzvGOcM0nqjIFxrpDwWRZYWYjA==}
@@ -1558,8 +1535,8 @@ packages:
     peerDependencies:
       react: ^16.13 || ^17 || ^18 || ^19
 
-  '@img/colour@1.0.0':
-    resolution: {integrity: sha512-A5P/LfWGFSl6nsckYtjw9da+19jB8hkJ6ACTGcDfEJ0aE+l2n2El7dsVM7UVHZQ9s2lmYMWlrS21YLy2IR1LUw==}
+  '@img/colour@1.1.0':
+    resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
     engines: {node: '>=18'}
 
   '@img/sharp-darwin-arm64@0.34.5':
@@ -3335,104 +3312,113 @@ packages:
     peerDependencies:
       react: '>= 16.3.0'
 
-  '@swagger-api/apidom-ast@1.5.1':
-    resolution: {integrity: sha512-BtaUaWXE0zzosuy6d1UFZp8wQZlqXapolTNF5f/3kzzZPLdDDWZeFyvvGww3Jt0Bwcw5rzavqD/lrTZp3j2qTQ==}
+  '@swagger-api/apidom-ast@1.6.0':
+    resolution: {integrity: sha512-ez1KnBdAzoh5a6ijDXzu5nADkVZXlnL1RkLl8n2u2tjiNg9597xxmFdEHLVa31Vxr1yYj0WtYGLA5e2Kp0KNrQ==}
 
-  '@swagger-api/apidom-core@1.5.1':
-    resolution: {integrity: sha512-vjP+HhbIN2D+Z8qsq57Ab2z0CpxCTD177Zd8mbUEKpOFYtc9qoizv6bAXTmhZGfVLxBsw+iGzFVH/z6DvuD3ag==}
+  '@swagger-api/apidom-core@1.6.0':
+    resolution: {integrity: sha512-gA1MVoXe19sjFLKGkWxp5VvSw3Tk0CSChfItJjFeFHpLSGrfm+LlXp37TmNSns53Ky0F7x7TB/5kAX5I/TO4xw==}
 
-  '@swagger-api/apidom-error@1.5.1':
-    resolution: {integrity: sha512-R0BSvVgKVNNxnC8S4uJVf4JwWCFNI1ktpLbML6UbzXBPquHfM0gjv+WQgKApMAYw809rtaVIF9ADoUtL/c6+uQ==}
+  '@swagger-api/apidom-error@1.6.0':
+    resolution: {integrity: sha512-xp/cQ1xQ/4Vd/hhQfONK7ea9oVc3JUXAYyfRzvDR0lxISly/SyD2jMcqXzHtrylBAnv7V2HSsbC1BWo7ZJDLSQ==}
 
-  '@swagger-api/apidom-json-pointer@1.5.1':
-    resolution: {integrity: sha512-EFJzHgHbs5AIPSRowuc02WjbQY5bbFvijQuFIkHSKCsPOQ8VX+h8xOe3dxRjgnCAJ33nk+VOYiaZTy48BK2bfw==}
+  '@swagger-api/apidom-json-pointer@1.6.0':
+    resolution: {integrity: sha512-RO6P5Gt64AnthGXKeqIFjQCLVFbAJvLYAb67TkvRQ9US4lNixFtFsYJnhLCC4ymz4dTT1hacG0cmTRGcEHF9ig==}
 
-  '@swagger-api/apidom-ns-api-design-systems@1.5.1':
-    resolution: {integrity: sha512-YQJdNb6TJQ8lNa1o8ThfT0P7DY/cGhnI4Se8YiGIsdTPSBOiPtTY72+lfsM1O+3bOeAy7n/MvWRXrJuiKGf7Pg==}
+  '@swagger-api/apidom-ns-api-design-systems@1.6.0':
+    resolution: {integrity: sha512-EYJfQ4JYuUo2J4QiiLnA/8LmM1k7AQcf1XVE+NrIpZ1160GIzqE+W5uOXkhAOImkP2Cb7EZZdE2cFE/tMYxNvw==}
 
-  '@swagger-api/apidom-ns-arazzo-1@1.5.1':
-    resolution: {integrity: sha512-hC/AD9TG3DMex+UAlYmg3fKcbmgrLGyZ3Fm2KqJfaC3CkiYE6SdVtfCBK9mPOcArPVa2RfzSgU4aRYzClDmvNQ==}
+  '@swagger-api/apidom-ns-arazzo-1@1.6.0':
+    resolution: {integrity: sha512-5rF8PyBiIHh6NfC5Y0WypW11X6hQIWr88EKNOQbBuT/nnzAsOznrUCfQ99FYGLucwdOHaMIBn/b/n4ejGBto/A==}
 
-  '@swagger-api/apidom-ns-asyncapi-2@1.5.1':
-    resolution: {integrity: sha512-9k97IdvSde7OaGwE8opX9psjmhsRYkuKm5eCmM3n6WOZkwdJFD73bCtYVqCuDCVRzJwT9xMras4fVG5Zn1Vhcw==}
+  '@swagger-api/apidom-ns-asyncapi-2@1.6.0':
+    resolution: {integrity: sha512-tOodfX+o7lonEAnSAxet7nCayW+EqtKPegT06WXt7Llq1LS9eYZ9YzXdFgIwCm8UzfEpZdVLqtxbdLX9vuUtSg==}
 
-  '@swagger-api/apidom-ns-asyncapi-3@1.5.1':
-    resolution: {integrity: sha512-EQGnSP93yB8ZDhaESqtavnynySH/hjkdkb4tInRoKYN3j3WU+in6Bvxwq2qCkyH9ACaSbW2HFlT2qIRBcLW+oA==}
+  '@swagger-api/apidom-ns-asyncapi-3@1.6.0':
+    resolution: {integrity: sha512-lRMvwTdtuPcwJEYLTX/UGtECpHi9UNYeT9rmWMw3LiKZrZzYc2L8q4ipPbpWwH8t7QfsF2u0iggCODU99lXCnw==}
 
-  '@swagger-api/apidom-ns-json-schema-2019-09@1.5.1':
-    resolution: {integrity: sha512-peszjtx5OPUYsvl/t4XTRVt0vY0WfR7jBpcmq3/ioqAaddhfbnb4i3PPWWhAIzzeKAiFHc/m4E5HCMMdDF2wDA==}
+  '@swagger-api/apidom-ns-json-schema-2019-09@1.6.0':
+    resolution: {integrity: sha512-dee1i8wcAFgDEOzTsyoCzQhFLZ2JKzkK5KkRuryabvwS0hG2mKlogToFc8cO2MkkiLSpERm7DREALwSTFVHa0w==}
 
-  '@swagger-api/apidom-ns-json-schema-2020-12@1.5.1':
-    resolution: {integrity: sha512-4L6X5SxkXCD4W7O0KI8e3kc0Q8TkVg0kPSNOWYosGAHOk9g5KyMIbACDjZhJ2q+uPlyLFCLAPY93aOVaVZ+nsA==}
+  '@swagger-api/apidom-ns-json-schema-2020-12@1.6.0':
+    resolution: {integrity: sha512-ldTxSnnIXskwpN6yCJkasqs32pJXwoXyad95crKT0xjZZr4fTrcAXXIyzdjBubiY9tK6elSrQGQxinJcV7ivWw==}
 
-  '@swagger-api/apidom-ns-json-schema-draft-4@1.5.1':
-    resolution: {integrity: sha512-vdc+vVLwf4JwDeK4mPfZqyVHG5gJc766GkqH522VRTh1XWJPlW674lIJuhqo5HLzXLm4zV4alI/QJMR3fRWFIQ==}
+  '@swagger-api/apidom-ns-json-schema-draft-4@1.6.0':
+    resolution: {integrity: sha512-t9HvHwrevEG7usosO6AdXmC8oYqje5nxHpUmODr72tUtCeAeGEGEb9lgqx7fBhjc3BYsRzOL1hX56m1gjEyCog==}
 
-  '@swagger-api/apidom-ns-json-schema-draft-6@1.5.1':
-    resolution: {integrity: sha512-sNRDQybpzl16HwktI0by0nWj85Rpmx/K1Qc6e4uQRmpPeozJTi8hAdyxw9ays1WJI+Bao9YEz+xJNAqNIE5xlg==}
+  '@swagger-api/apidom-ns-json-schema-draft-6@1.6.0':
+    resolution: {integrity: sha512-aoyvQWgAOcZGTe5OfJ3r24DvXHHbrkKtAnxTOEdZzV/uOm6/cbuT8m02+aMOqWPxei1naC3ZHW9iHrETtfgV3w==}
 
-  '@swagger-api/apidom-ns-json-schema-draft-7@1.5.1':
-    resolution: {integrity: sha512-hdgYjOzZCN866F/BP5tuReZmVTZF2NTNykOwILhR/uoDR2YvgvwvHbnifsywLhreZOkhf3HIbfvCkQnIopkluw==}
+  '@swagger-api/apidom-ns-json-schema-draft-7@1.6.0':
+    resolution: {integrity: sha512-GjmC4+AHQh22fRZOmV+jSYMJTXh243XvdACfIQ//39kQu7gQsimF4PVSY2IgWSvS/I1ukWdPBYmDvOKryBPGrw==}
 
-  '@swagger-api/apidom-ns-openapi-2@1.5.1':
-    resolution: {integrity: sha512-KnFYGqvlHBeczLs5P1R1dCfDGW3O7LaLu/AmFLRvt0ya8AXwkF4gd5gHsXKn0lXBeAc3kEwHAValtg6WNR8keQ==}
+  '@swagger-api/apidom-ns-openapi-2@1.6.0':
+    resolution: {integrity: sha512-xbmYzagnB8rO7sYwNGVyxYbNBkjCWnMhlnMrxkPtfQ/2u2ANAmTnCB/S/cMswX5XofiRJbznKAjLDSKBS+mLpQ==}
 
-  '@swagger-api/apidom-ns-openapi-3-0@1.5.1':
-    resolution: {integrity: sha512-n3KaIh7dVkINDC7g8osBpxvYCZnsDHHg8rOvOYy1kKlZHi7xd3Ui83rDnKCsOsdsKlFdIdd6isBcBEBQazgwPA==}
+  '@swagger-api/apidom-ns-openapi-3-0@1.6.0':
+    resolution: {integrity: sha512-AOvW7a2H27inepcTBAWaBMjJLrCh5IPWD4nTU+gysULC7IW6gphO8hj3iUuTmFBcGh9be89GBbvv2y/EGAfx9w==}
 
-  '@swagger-api/apidom-ns-openapi-3-1@1.5.1':
-    resolution: {integrity: sha512-rJPZH969I67snT6ux3Dve5QXaHCfm/phv20kAojR50fW5FPbR+nn4a9FIi59F3OrD69zQascKUrJb24ieFVHIw==}
+  '@swagger-api/apidom-ns-openapi-3-1@1.6.0':
+    resolution: {integrity: sha512-jCVypc8503zDSxAQlyV8j1vzwc75VBdWHtE2O0F+q5j9qNtGxw/ekbDkgrydYRaGBl92mf16dtPjtp5LwJD0Hw==}
 
-  '@swagger-api/apidom-parser-adapter-api-design-systems-json@1.5.1':
-    resolution: {integrity: sha512-XomzUhgy+w1toxJMjN1mXKITl88QPiug4e9eyNWSEQkoCD1ko0MEVZYA6/6mjwlTW2DQ4qg+XF+TFmOPlkQWeA==}
+  '@swagger-api/apidom-ns-openapi-3-2@1.6.0':
+    resolution: {integrity: sha512-QcFAUucaPaWiOKOEaaGqSfK3OtjeGJodWZLsuBQ0vrHaHkWyQ7jwsM1DJbc1Y8geOBeD2wIwdrdRjoulmqU1SA==}
 
-  '@swagger-api/apidom-parser-adapter-api-design-systems-yaml@1.5.1':
-    resolution: {integrity: sha512-pfa+iQwMLhDcE4CYi4pUHraAOUUo2DNeRRWZGhregWZoZPo5gVZ8w9NwSowLE19zf922A9RfzBkouI969j27QQ==}
+  '@swagger-api/apidom-parser-adapter-api-design-systems-json@1.6.0':
+    resolution: {integrity: sha512-vz/9k0X/kh6mLm+Fi+LGNk/yyFq28wxI29ZVLW+b7ulcODikv+NaDnyN2n2kLKCvIchPATzAEvqMvVMuuQwWlg==}
 
-  '@swagger-api/apidom-parser-adapter-arazzo-json-1@1.5.1':
-    resolution: {integrity: sha512-pJrlCospvJDvh8mqLjyb0ILRPuD3rYaZlTRs340W2ADgn6m+ClrDBQwXCod5QrKmcjYqAhtLZXwnwSuZStaj+Q==}
+  '@swagger-api/apidom-parser-adapter-api-design-systems-yaml@1.6.0':
+    resolution: {integrity: sha512-QAq4H6YzRtysSpvLtlJ8WZ22/1Mht+/iarrUOijxDZQPAGfYeUoIicnCqxkVZYSea85sQl+3kiCCB3nhSH+L0g==}
 
-  '@swagger-api/apidom-parser-adapter-arazzo-yaml-1@1.5.1':
-    resolution: {integrity: sha512-Q/EZ9BGnBlj4TiEQ+Q4k/pdgZ/Le+/ppZSfcc22umnKujDNyBLGB5L0sSfTOEjANRYNo+UtPYnkctwTkJu3/ZQ==}
+  '@swagger-api/apidom-parser-adapter-arazzo-json-1@1.6.0':
+    resolution: {integrity: sha512-syKPG3a9IGRvlGhXIEUzWhwbEuFbj+UwwtqaKu8zu771V+DRtH+wxyOkX54vKAIlApz/FgeUbmlWA1ZtYBlSIQ==}
 
-  '@swagger-api/apidom-parser-adapter-asyncapi-json-2@1.5.1':
-    resolution: {integrity: sha512-GRM5iCz9eRMiTSV4iAlpuWM6q3SBndSmEMhgjDuclWiC3HF78CCNuT9KwYNFMAx1bEe5Fr8c8Gs8KNckdeCU4g==}
+  '@swagger-api/apidom-parser-adapter-arazzo-yaml-1@1.6.0':
+    resolution: {integrity: sha512-IVVLn+a8Q1iQcQsm4tXiAPghHJuJSB1rhIlDyHe3tSQgt9HOSiVpbnJDpwE/JBxxDxSAkeT6Ovo+fi2T5AmHYg==}
 
-  '@swagger-api/apidom-parser-adapter-asyncapi-json-3@1.5.1':
-    resolution: {integrity: sha512-TCMm7Ce9PwzTQw2SnRYR0smCnrE6bmGbVsjqVz4d+tQy8h6ZNkfjAqOtBasKr/KpEywpLCRgWC2YRNAHGKLndw==}
+  '@swagger-api/apidom-parser-adapter-asyncapi-json-2@1.6.0':
+    resolution: {integrity: sha512-aSUi22ELTDvdCLA3nIUOehuNBcHSeCqU7S7YNiHP/mwE4Q07pwQrYXijH2PROfCdjlZNNN34m6Ptakd92jliJQ==}
 
-  '@swagger-api/apidom-parser-adapter-asyncapi-yaml-2@1.5.1':
-    resolution: {integrity: sha512-sZQ/7kOs7+apKq22uyhF3jmhPTzt7y8Xy8cGPIp1b0PnQhbm7rT1/rrOl9qh9MqCdUip2Dx0Y+WTyyET0faZ4g==}
+  '@swagger-api/apidom-parser-adapter-asyncapi-json-3@1.6.0':
+    resolution: {integrity: sha512-Ic53vcFF9zniDyCXOGSwwuAdEBUn5lFEAa0m2i30R36cQFHBCCuvbzbMQjWdr+oML0Aw4XoqOwZCQgkJJICpPA==}
 
-  '@swagger-api/apidom-parser-adapter-asyncapi-yaml-3@1.5.1':
-    resolution: {integrity: sha512-bYoyX/qP9SmGF6DKohPO1Fguz8/8uHF8ieSo04jrQblHbEeDVcTBG6oTFVNcpG2ZxnqaoNF2/KY4/fUSKMH/4g==}
+  '@swagger-api/apidom-parser-adapter-asyncapi-yaml-2@1.6.0':
+    resolution: {integrity: sha512-d/w7X+T4vT+KPqb+8xUm6n4pbHsGB28jdxE9rNVbxhu6D3owny2uxfglwaFh4fJG6FQMavCwl/QzfB4newdoKQ==}
 
-  '@swagger-api/apidom-parser-adapter-json@1.5.1':
-    resolution: {integrity: sha512-zYXchiHC5wsvCImr4lgrhwuLWDH3EDz4L4KJbp8ltO1Y+3PRwPYNruKVppHdIC6d+eTBy4e110a4629rl6LQTg==}
+  '@swagger-api/apidom-parser-adapter-asyncapi-yaml-3@1.6.0':
+    resolution: {integrity: sha512-Wmf0LY59TZxQhqrJU2pcnUikcChVB4IqGPgjtOFLUoqPpz8FSwYbJ/SPnSMSl+QuncxROheSFsgZ6Tupv0sPHw==}
 
-  '@swagger-api/apidom-parser-adapter-openapi-json-2@1.5.1':
-    resolution: {integrity: sha512-05SXfF5ate18FKlPBg4YEfyS6Sr4lmu+gppxMQ202x172ejBQjAU37iZeSKfKw1egXngAmm6OZqWGKn36WD/fw==}
+  '@swagger-api/apidom-parser-adapter-json@1.6.0':
+    resolution: {integrity: sha512-WdAS+dBAB2t18HuUgSZy5b8JM7uXfn1RlPymJNRMUsrKYCTtPrQ/0q3YfnBjPhtjSSNCp+p1wajxHAFS7cj2VA==}
 
-  '@swagger-api/apidom-parser-adapter-openapi-json-3-0@1.5.1':
-    resolution: {integrity: sha512-AG68rFxilJwQuwgYUlbSX89j96CzFwm7MLsMbd1Pe2k8bsZJF41bxYEWLck08hQ0v8HikZ7igJLGvkwm9Fk6EQ==}
+  '@swagger-api/apidom-parser-adapter-openapi-json-2@1.6.0':
+    resolution: {integrity: sha512-Q36W1FzdVaY7Oh98533dzCUghwb8k3ZMdlnV37V1H13FlUkj3tVZiWaeaCLwIakzQ7XXYaQTOP+VrRhDRjzhUA==}
 
-  '@swagger-api/apidom-parser-adapter-openapi-json-3-1@1.5.1':
-    resolution: {integrity: sha512-UYuaUegcqsR8DbqUS9gJnzdV/g7P61HfgjO620soSHwvDRlHCdgxd71dnaBZWT22+as8vuZABAzjQuKrtiej2g==}
+  '@swagger-api/apidom-parser-adapter-openapi-json-3-0@1.6.0':
+    resolution: {integrity: sha512-UY+obOLTPHJvnXscdMY9XwZyuqcnBe6cu9TURjJgkO/QpOpPDqqZoRyurKZgRrX0Pv9B1zR3EIzhl01u/jeUaw==}
 
-  '@swagger-api/apidom-parser-adapter-openapi-yaml-2@1.5.1':
-    resolution: {integrity: sha512-d64JVYhBa5O6Kz2H/Wr1gLf5la0T1gZ22XIf2ABPTHga8fKQjEFDhFifxVS65NX9cOglcXQo9sRvD4AZkRMEkQ==}
+  '@swagger-api/apidom-parser-adapter-openapi-json-3-1@1.6.0':
+    resolution: {integrity: sha512-4ch04/96lYMXQu6odqa6H0aJmV8UefnBJKX1CPuL4qcPSPMFCurcXHGpPHrwMu1p/4Q9H+yRVlYeNQV10xvM0w==}
 
-  '@swagger-api/apidom-parser-adapter-openapi-yaml-3-0@1.5.1':
-    resolution: {integrity: sha512-MgyCo6rz+jH1cR5CpKleT1HOXOLoK2LuP7CrEGsuRNCA4nR6w/H4T75XYxUCWO/9T3870vkxDM8hp8IRW5xtQg==}
+  '@swagger-api/apidom-parser-adapter-openapi-json-3-2@1.6.0':
+    resolution: {integrity: sha512-fWR2gjMQg00QIimcXQMSVeLnCH/2iuDD/Dx8TzVHmKV/IKlu+TnmIVosdlDfRmOB+4duwU6/yfoA79IEhFeZdw==}
 
-  '@swagger-api/apidom-parser-adapter-openapi-yaml-3-1@1.5.1':
-    resolution: {integrity: sha512-9ED9pmYqCfKqfeeDtGrXU7+gISjt6bh93XO5qCexwfHCbzrTdjiMcWMTCnaRjXvgv819LAKUDIDnnn88EGpUNg==}
+  '@swagger-api/apidom-parser-adapter-openapi-yaml-2@1.6.0':
+    resolution: {integrity: sha512-dkEh1Rw9uvuIAOTfKjWRX2rLWP+xJ/Eqdkqeo0I0BWFKXX49YcDpHJV4XHpmd5FbsjJ9vBYr0hAmkbl32TtR4g==}
 
-  '@swagger-api/apidom-parser-adapter-yaml-1-2@1.5.1':
-    resolution: {integrity: sha512-jMZUwbS7P2n/3BG+w0Mg+G2m6tY1zuDCACTpVh3UjIMl15k+6VIyB49kKIs1q9BZRX8rbnJmmzpYcjhjDOgaqA==}
+  '@swagger-api/apidom-parser-adapter-openapi-yaml-3-0@1.6.0':
+    resolution: {integrity: sha512-6azq5YonWdzHcO9llK9zn1a+rGxlTz2Uf8p8NWDQnl2AZ56neDLYEL3mNDlrMXAy8dSJIHw+u9VF1OOzdslIHQ==}
 
-  '@swagger-api/apidom-reference@1.5.1':
-    resolution: {integrity: sha512-KppyiuQ8EY1vnhb2RsCty60DKYP1jszmxNKHAAGaMgKOmTcoGCvPNDl0Fn6IPlEfXsy3yqYn1CsEePC3BcGtHg==}
+  '@swagger-api/apidom-parser-adapter-openapi-yaml-3-1@1.6.0':
+    resolution: {integrity: sha512-g2tGCXyIAC0IA6JjA0HVxHWyCovyfAxDQ+pMAJ6qm4PfrZHB+oXKWKZHNNmQaFiKdc/SVdMQq6Up0mXOQs7IOQ==}
+
+  '@swagger-api/apidom-parser-adapter-openapi-yaml-3-2@1.6.0':
+    resolution: {integrity: sha512-NGkdG9X5Svi89ZBluNseyUBNdgB9MkbTTNmerVKKOmCCHaVbzIb6UFPXf1MifSFyT+wTeGZk6WZLgRIDsTAZ5Q==}
+
+  '@swagger-api/apidom-parser-adapter-yaml-1-2@1.6.0':
+    resolution: {integrity: sha512-UwSE5pPUJ+ag7ZCbesgx/SJ8zUD3Sx+2U4AD3/1G1EJ+0gb7FMYgihuOT8ujmBfZVGGm3HMIEIa1w3zha08v2g==}
+
+  '@swagger-api/apidom-reference@1.6.0':
+    resolution: {integrity: sha512-gYTDfWQM1heqrCCrCsZH+EWDyAkIGqEJnSJcVWKngwOkXJKeUwat8p1TOW4q3rkaTT+fBaYbrjTr9SkFtVbdMg==}
 
   '@swaggerexpert/cookie@2.0.2':
     resolution: {integrity: sha512-DPI8YJ0Vznk4CT+ekn3rcFNq1uQwvUHZhH6WvTSPD0YKBIlMS9ur2RYKghXuxxOiqOam/i4lHJH4xTIiTgs3Mg==}
@@ -3784,8 +3770,8 @@ packages:
   '@types/node@20.19.35':
     resolution: {integrity: sha512-Uarfe6J91b9HAUXxjvSOdiO2UPOKLm07Q1oh0JHxoZ1y8HoqxDAu3gVrsrOHeiio0kSsoVBt4wFrKOm0dKxVPQ==}
 
-  '@types/node@24.10.15':
-    resolution: {integrity: sha512-BgjLoRuSr0MTI5wA6gMw9Xy0sFudAaUuvrnjgGx9wZ522fYYLA5SYJ+1Y30vTcJEG+DRCyDHx/gzQVfofYzSdg==}
+  '@types/node@24.11.0':
+    resolution: {integrity: sha512-fPxQqz4VTgPI/IQ+lj9r0h+fDR66bzoeMGHp8ASee+32OSGIkeASsoZuJixsQoVef1QJbeubcPBxKk22QVoWdw==}
 
   '@types/numeral@2.0.5':
     resolution: {integrity: sha512-kH8I7OSSwQu9DS9JYdFWbuvhVzvFRoCPCkGxNwoGgaPeDfEPJlcxNvEOypZhQ3XXHsGbfIuYcxcJxKUfJHnRfw==}
@@ -4347,8 +4333,8 @@ packages:
     resolution: {integrity: sha512-BASOg+YwO2C+346x3LZOeoovTIoTrRqEsqMa6fmfAV0P+U9mFr9NsyOEpiYvFjbc64NMrSswhV50WdXzdb/Z5A==}
     engines: {node: '>=4'}
 
-  axios@1.13.5:
-    resolution: {integrity: sha512-cz4ur7Vb0xS4/KUN0tPWe44eqxrIu31me+fbang3ijiNscE129POzipJJA6zniq2C/Z6sJCjMimjS8Lc/GAs8Q==}
+  axios@1.13.6:
+    resolution: {integrity: sha512-ChTCHMouEe2kn713WHbQGcuYrr6fXTBiu460OTwWrWob16g1bXn4vtz07Ope7ewMozJAnEquLk5lWQWtBig9DQ==}
 
   axobject-query@4.1.0:
     resolution: {integrity: sha512-qIj0G9wZbMGNLjLmg1PT6v2mE9AH2zlnADJD/2tC6E00hgmhUOfEB6greHPAfLRSufHqROIUTkw6E+M3lH0PTQ==}
@@ -4422,8 +4408,8 @@ packages:
   brace-expansion@2.0.2:
     resolution: {integrity: sha512-Jt0vHyM+jmUBqojB7E1NIYadt0vI0Qxjxd2TErW94wDz+E2LAm5vKMXXwg6ZZBTHPuUlDgQHKXvjGBdfcF1ZDQ==}
 
-  brace-expansion@5.0.3:
-    resolution: {integrity: sha512-fy6KJm2RawA5RcHkLa1z/ScpBeA762UF9KmZQxwIbDtRJrgLzM10depAiEQ+CXYcoiqW1/m96OAAoke2nE9EeA==}
+  brace-expansion@5.0.4:
+    resolution: {integrity: sha512-h+DEnpVvxmfVefa4jFbCf5HdH5YMDXRsmKflpf1pILZWRFlTbJpxeU55nJl4Smt5HQaGzg1o6RHFPJaOqnmBDg==}
     engines: {node: 18 || 20 || >=22}
 
   braces@3.0.3:
@@ -4507,8 +4493,8 @@ packages:
     resolution: {integrity: sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==}
     engines: {node: '>=10'}
 
-  caniuse-lite@1.0.30001774:
-    resolution: {integrity: sha512-DDdwPGz99nmIEv216hKSgLD+D4ikHQHjBC/seF98N9CPqRX4M5mSxT9eTV6oyisnJcuzxtZy4n17yKKQYmYQOA==}
+  caniuse-lite@1.0.30001775:
+    resolution: {integrity: sha512-s3Qv7Lht9zbVKE9XoTyRG6wVDCKdtOFIjBGg3+Yhn6JaytuNKPIjBMTMIY1AnOH3seL5mvF+x33oGAyK3hVt3A==}
 
   ccount@2.0.1:
     resolution: {integrity: sha512-eyrF0jiFpY+3drT6383f1qhkbGsLSifNAjA61IUjZjmLCWjItY6LB9ft9YhoDgwfmclB2zhu51Lc7+95b8NRAg==}
@@ -4553,8 +4539,8 @@ packages:
     peerDependencies:
       chevrotain: ^11.0.0
 
-  chevrotain@11.1.1:
-    resolution: {integrity: sha512-f0yv5CPKaFxfsPTBzX7vGuim4oIC1/gcS7LUGdBSwl2dU6+FON6LVUksdOo1qJjoUvXNn45urgh8C+0a24pACQ==}
+  chevrotain@11.1.2:
+    resolution: {integrity: sha512-opLQzEVriiH1uUQ4Kctsd49bRoFDXGGSC4GUqj7pGyxM3RehRhvTlZJc1FL/Flew2p5uwxa1tUDWKzI4wNM8pg==}
 
   chokidar@3.6.0:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
@@ -5303,6 +5289,10 @@ packages:
     engines: {node: '>=14.0.0'}
     hasBin: true
 
+  electron-log@5.4.3:
+    resolution: {integrity: sha512-sOUsM3LjZdugatazSQ/XTyNcw8dfvH1SYhXWiJyfYodAAKOZdHs0txPiLDXFzOZbhXgAgshQkshH2ccq0feyLQ==}
+    engines: {node: '>= 14'}
+
   electron-publish@26.6.0:
     resolution: {integrity: sha512-LsyHMMqbvJ2vsOvuWJ19OezgF2ANdCiHpIucDHNiLhuI+/F3eW98ouzWSRmXXi82ZOPZXC07jnIravY4YYwCLQ==}
 
@@ -5317,6 +5307,9 @@ packages:
 
   electron-to-chromium@1.5.302:
     resolution: {integrity: sha512-sM6HAN2LyK82IyPBpznDRqlTQAtuSaO+ShzFiWTvoMJLHyZ+Y39r8VMfHzwbU8MVBzQ4Wdn85+wlZl2TLGIlwg==}
+
+  electron-updater@6.8.3:
+    resolution: {integrity: sha512-Z6sgw3jgbikWKXei1ENdqFOxBP0WlXg3TtKfz0rgw2vIZFJUyI4pD7ZN7jrkm7EoMK+tcm/qTnPUdqfZukBlBQ==}
 
   electron-winstaller@5.4.0:
     resolution: {integrity: sha512-bO3y10YikuUwUuDUQRM4KfwNkKhnpVO7IPdbsrejwN9/AABJzzTQ4GeHwyzNSrVO+tEH3/Np255a3sVZpZDjvg==}
@@ -5361,8 +5354,8 @@ packages:
   end-of-stream@1.4.5:
     resolution: {integrity: sha512-ooEGc6HP26xXq/N+GCGOT0JKCLDGrq2bQUZrQ7gyrJiZANJ/8YDTxTpQBXGMn+WbIQXNVpyWymm7KYVICQnyOg==}
 
-  enhanced-resolve@5.19.0:
-    resolution: {integrity: sha512-phv3E1Xl4tQOShqSte26C7Fl84EwUdZsyOuSSk9qtAGyyQs2s3jJzComh+Abf4g187lUUAvH+H26omrqia2aGg==}
+  enhanced-resolve@5.20.0:
+    resolution: {integrity: sha512-/ce7+jQ1PQ6rVXwe+jKEg5hW5ciicHwIQUagZkp6IufBoY3YDgdTTY1azVs0qoRgVmvsNB+rbjLJxDAeHHtwsQ==}
     engines: {node: '>=10.13.0'}
 
   entities@2.2.0:
@@ -5437,8 +5430,8 @@ packages:
   esast-util-from-js@2.0.1:
     resolution: {integrity: sha512-8Ja+rNJ0Lt56Pcf3TAmpBZjmx8ZcK5Ts4cAzIOjsjevg9oSXJnl6SUQ2EevU8tv3h6ZLWmoKL5H4fgWvdvfETw==}
 
-  esbuild-plugin-tailwindcss@2.1.0:
-    resolution: {integrity: sha512-Mqd9Dko8fHGOWVhN53wXefAZZ45i5sZVY3XvyFN5ZKhOPpxXrducAcDPE5iqFw0aJoEm6MG1V9x4Kz6TiQV9kQ==}
+  esbuild-plugin-tailwindcss@2.2.0:
+    resolution: {integrity: sha512-xzLRHuDZfbDAld+PlQkY028juyfMrYaMRsB4yLfvF3hKBna/cq3bWAHNKz2WQ2YbwbYwYh3B33N1oqBUoX7aww==}
 
   esbuild-register@3.6.0:
     resolution: {integrity: sha512-H2/S7Pm8a9CL1uhp9OvjwrBh5Pvx0H8qVOxNu8Wed9Y7qv56MPtq+GGM8RJpq6glYJn9Wspr8uw7l55uyinNeg==}
@@ -6830,11 +6823,18 @@ packages:
   lodash.debounce@4.0.8:
     resolution: {integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==}
 
+  lodash.escaperegexp@4.1.2:
+    resolution: {integrity: sha512-TM9YBvyC84ZxE3rgfefxUWiQKLilstD6k7PTGt6wfbtXF8ixIJLOL3VYyV/z+ZiPLsVxAsKAFVwWlWeb2Y8Yyw==}
+
   lodash.includes@4.3.0:
     resolution: {integrity: sha512-W3Bx6mdkRTGtlJISOvVD/lbqjTlPPUDTMnlXZFnVwi9NKJ6tiAk6LVdlhZMm17VZisqhKcgzpO5Wz91PCt5b0w==}
 
   lodash.isboolean@3.0.3:
     resolution: {integrity: sha512-Bz5mupy2SVbPHURB98VAcw+aHh4vRV5IPNhILUCsOzRmsTmSQ17jIuqopAentWoehktxGd9e/hbIXq980/1QJg==}
+
+  lodash.isequal@4.5.0:
+    resolution: {integrity: sha512-pDo3lu8Jhfjqls6GkMgpahsF9kCyayhgykjyLMNFTKWrpVdAQtYyB4muAMWozBB4ig/dtWAmsMxLEI8wuz+DYQ==}
+    deprecated: This package is deprecated. Use require('node:util').isDeepStrictEqual instead.
 
   lodash.isinteger@4.0.4:
     resolution: {integrity: sha512-DBwtEWN2caHQ9/imiNeEA5ys1JoRtRfY3d7V9wkqtbycnAmTvRRmbHKDV4a0EYc678/dia0jrte4tjYwVBaZUA==}
@@ -7416,8 +7416,8 @@ packages:
   node-addon-api@3.2.1:
     resolution: {integrity: sha512-mmcei9JghVNDYydghQmeDX8KoAm0FAiYyIcUt/N4nhyAipB17pllZQDOJD2fotxABnt4Mdz+dKTO7eftLg4d0A==}
 
-  node-addon-api@8.5.0:
-    resolution: {integrity: sha512-/bRZty2mXUIFY/xU5HLvveNHlswNJej+RnxBjOMkidWfwZzgTbPG1E3K5TOxRLOR+5hX7bSofy8yf1hZevMS8A==}
+  node-addon-api@8.6.0:
+    resolution: {integrity: sha512-gBVjCaqDlRUk0EwoPNKzIr9KkS9041G/q31IBShPs1Xz6UTA+EXdZADbzqAJQrpDRq71CIMnOP5VMut3SL0z5Q==}
     engines: {node: ^18 || ^20 || >= 21}
 
   node-api-version@0.1.4:
@@ -7502,8 +7502,8 @@ packages:
   numeral@2.0.6:
     resolution: {integrity: sha512-qaKRmtYPZ5qdw4jWJD6bxEf1FJEqllJrwxCLIm0sQU/A7v2/czigzOb+C2uSiFsa9lBUzeH7M1oK+Q+OLxL3kA==}
 
-  nuqs@2.8.8:
-    resolution: {integrity: sha512-LF5sw9nWpHyPWzMMu9oho3r9C5DvkpmBIg4LQN78sexIzGaeRx8DWr0uy3YiFx5i2QGZN1Qqcb+OAtEVRa2bnA==}
+  nuqs@2.8.9:
+    resolution: {integrity: sha512-8ou6AEwsxMWSYo2qkfZtYFVzngwbKmg4c00HVxC1fF6CEJv3Fwm6eoZmfVPALB+vw8Udo7KL5uy96PFcYe1BIQ==}
     peerDependencies:
       '@remix-run/react': '>=2'
       '@tanstack/react-router': ^1
@@ -7905,8 +7905,8 @@ packages:
   proxy-from-env@1.1.0:
     resolution: {integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==}
 
-  pump@3.0.3:
-    resolution: {integrity: sha512-todwxLMY7/heScKmntwQG8CXVkWUOdYxIvY2s0VWAAMh/nd8SoYiRaKjlr7+iCs984f2P8zvrfWcDDYVb73NfA==}
+  pump@3.0.4:
+    resolution: {integrity: sha512-VS7sjc6KR7e1ukRFhQSY5LM2uBWAUPiOPa/A3mkKmiMwSmRFUITt0xuj+/lesgnCv+dPIEYlkzrcyXgquIHMcA==}
 
   punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
@@ -8823,11 +8823,11 @@ packages:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
 
-  swagger-client@3.36.2:
-    resolution: {integrity: sha512-M+m0TpZTWtVMvd0Qiq5W2ABLmY6w8PnnqnMIKgT/nYS/w6hZ4s1sBCCS/w4SOjmAyy0QT/kl3tNh2jPWIkaI3A==}
+  swagger-client@3.37.0:
+    resolution: {integrity: sha512-pzU+B+DkUbrSwlj4/E8sGeP1w84/CFgDJAt80fHu650TxnOHbqFLGQjiE6luvpRxTPdfK2zRHJP7I6CgUkI8yA==}
 
-  swr@2.4.0:
-    resolution: {integrity: sha512-sUlC20T8EOt1pHmDiqueUWMmRRX03W7w5YxovWX7VR2KHEPCTMly85x05vpkP5i6Bu4h44ePSMD9Tc+G2MItFw==}
+  swr@2.4.1:
+    resolution: {integrity: sha512-2CC6CiKQtEwaEeNiqWTAw9PGykW8SR5zZX8MZk6TeAvEAnVS7Visz8WzphqgtQ8v2xz/4Q5K+j+SeMaKXeeQIA==}
     peerDependencies:
       react: ^16.11.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
@@ -8883,6 +8883,9 @@ packages:
 
   tiny-invariant@1.3.3:
     resolution: {integrity: sha512-+FbBPE1o9QAYvviau/qC5SE3caw21q3xkvWKBtja5vgqOWIHHJ3ioaq1VPfn/Szqctz2bU/oYeKd9/z5BL+PVg==}
+
+  tiny-typed-emitter@2.1.0:
+    resolution: {integrity: sha512-qVtvMxeXbVej0cQWKqVSSAHmKZEHAvxdF8HEUBFWts8h+xEo5m/lEiPakuyZ3BnCBjOD8i24kzNOiOLLgsSxhA==}
 
   tinybench@2.9.0:
     resolution: {integrity: sha512-0+DUvqWMValLmha6lr4kD8iAMK1HzV0/aKnCtWb9v9641TnP/MFb7Pc2bxoxQjTXAErryXVgUOfv2YqNllqGeg==}
@@ -9662,13 +9665,13 @@ snapshots:
       react-dom: 19.2.0(react@19.2.0)
       throttle-debounce: 5.0.2
 
-  '@ant-design/x-sdk@2.2.2(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+  '@ant-design/x-sdk@2.3.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
     dependencies:
       '@rc-component/util': 1.9.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       react: 19.2.0
       react-dom: 19.2.0(react@19.2.0)
 
-  '@ant-design/x@2.2.2(antd@6.3.1(date-fns@4.1.0)(luxon@3.7.2)(moment@2.30.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+  '@ant-design/x@2.3.0(antd@6.3.1(date-fns@4.1.0)(luxon@3.7.2)(moment@2.30.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
     dependencies:
       '@ant-design/colors': 8.0.1
       '@ant-design/cssinjs': 2.1.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -9692,7 +9695,7 @@ snapshots:
       package-manager-detector: 1.6.0
       tinyexec: 1.0.2
 
-  '@anthropic-ai/claude-agent-sdk@0.2.62(zod@4.3.6)':
+  '@anthropic-ai/claude-agent-sdk@0.2.63(zod@4.3.6)':
     dependencies:
       zod: 4.3.6
     optionalDependencies:
@@ -9907,22 +9910,22 @@ snapshots:
 
   '@cfworker/json-schema@4.1.1': {}
 
-  '@chevrotain/cst-dts-gen@11.1.1':
+  '@chevrotain/cst-dts-gen@11.1.2':
     dependencies:
-      '@chevrotain/gast': 11.1.1
-      '@chevrotain/types': 11.1.1
+      '@chevrotain/gast': 11.1.2
+      '@chevrotain/types': 11.1.2
       lodash-es: 4.17.23
 
-  '@chevrotain/gast@11.1.1':
+  '@chevrotain/gast@11.1.2':
     dependencies:
-      '@chevrotain/types': 11.1.1
+      '@chevrotain/types': 11.1.2
       lodash-es: 4.17.23
 
-  '@chevrotain/regexp-to-ast@11.1.1': {}
+  '@chevrotain/regexp-to-ast@11.1.2': {}
 
-  '@chevrotain/types@11.1.1': {}
+  '@chevrotain/types@11.1.2': {}
 
-  '@chevrotain/utils@11.1.1': {}
+  '@chevrotain/utils@11.1.2': {}
 
   '@clack/core@0.4.1':
     dependencies:
@@ -10663,7 +10666,7 @@ snapshots:
     dependencies:
       react: 19.2.0
 
-  '@img/colour@1.0.0':
+  '@img/colour@1.1.0':
     optional: true
 
   '@img/sharp-darwin-arm64@0.34.5':
@@ -10829,27 +10832,15 @@ snapshots:
       - '@opentelemetry/sdk-trace-base'
       - openai
 
-<<<<<<< HEAD
-  '@langchain/langgraph-api@1.1.14(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(@langchain/langgraph-checkpoint@1.0.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))))(@langchain/langgraph-sdk@1.6.5(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(@langchain/langgraph@1.2.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.24.6(zod@4.3.6))(zod@4.3.6))(@opentelemetry/api@1.9.0)(babel-plugin-macros@3.1.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))(typescript@5.9.3)':
+  '@langchain/langgraph-api@1.1.14(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(@langchain/langgraph-checkpoint@1.0.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))))(@langchain/langgraph-sdk@1.6.5(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(@langchain/langgraph@1.2.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6))(@opentelemetry/api@1.9.0)(babel-plugin-macros@3.1.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))(typescript@5.9.3)':
     dependencies:
       '@babel/code-frame': 7.29.0
       '@hono/node-server': 1.19.9(hono@4.12.3)
       '@hono/zod-validator': 0.7.6(hono@4.12.3)(zod@4.3.6)
       '@langchain/core': 1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))
-      '@langchain/langgraph': 1.2.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.24.6(zod@4.3.6))(zod@4.3.6)
+      '@langchain/langgraph': 1.2.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6)
       '@langchain/langgraph-checkpoint': 1.0.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))
       '@langchain/langgraph-ui': 1.1.14
-=======
-  '@langchain/langgraph-api@1.1.13(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6)))(@langchain/langgraph-checkpoint@1.0.0(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6))))(@langchain/langgraph@1.1.5(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6))(@opentelemetry/api@1.9.0)(babel-plugin-macros@3.1.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6))(typescript@5.9.3)':
-    dependencies:
-      '@babel/code-frame': 7.29.0
-      '@hono/node-server': 1.19.9(hono@4.12.2)
-      '@hono/zod-validator': 0.7.6(hono@4.12.2)(zod@4.3.6)
-      '@langchain/core': 1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6))
-      '@langchain/langgraph': 1.1.5(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6)
-      '@langchain/langgraph-checkpoint': 1.0.0(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6)))
-      '@langchain/langgraph-ui': 1.1.13
->>>>>>> fece58c (✨ feat(ai): integrate Claude Agent SDK for enhanced agent capabilities)
       '@types/json-schema': 7.0.15
       '@typescript/vfs': 1.6.4(typescript@5.9.3)
       dedent: 1.7.1(babel-plugin-macros@3.1.0)
@@ -10882,19 +10873,11 @@ snapshots:
       '@langchain/core': 1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))
       uuid: 10.0.0
 
-<<<<<<< HEAD
-  '@langchain/langgraph-cli@1.1.14(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(@langchain/langgraph-checkpoint@1.0.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))))(@langchain/langgraph-sdk@1.6.5(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(@langchain/langgraph@1.2.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.24.6(zod@4.3.6))(zod@4.3.6))(@opentelemetry/api@1.9.0)(babel-plugin-macros@3.1.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))(typescript@5.9.3)':
+  '@langchain/langgraph-cli@1.1.14(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(@langchain/langgraph-checkpoint@1.0.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))))(@langchain/langgraph-sdk@1.6.5(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(@langchain/langgraph@1.2.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6))(@opentelemetry/api@1.9.0)(babel-plugin-macros@3.1.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))(typescript@5.9.3)':
     dependencies:
       '@babel/code-frame': 7.29.0
       '@commander-js/extra-typings': 13.1.0(commander@13.1.0)
-      '@langchain/langgraph-api': 1.1.14(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(@langchain/langgraph-checkpoint@1.0.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))))(@langchain/langgraph-sdk@1.6.5(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(@langchain/langgraph@1.2.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.24.6(zod@4.3.6))(zod@4.3.6))(@opentelemetry/api@1.9.0)(babel-plugin-macros@3.1.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))(typescript@5.9.3)
-=======
-  '@langchain/langgraph-cli@1.1.13(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6)))(@langchain/langgraph-checkpoint@1.0.0(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6))))(@langchain/langgraph@1.1.5(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6))(@opentelemetry/api@1.9.0)(babel-plugin-macros@3.1.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6))(typescript@5.9.3)':
-    dependencies:
-      '@babel/code-frame': 7.29.0
-      '@commander-js/extra-typings': 13.1.0(commander@13.1.0)
-      '@langchain/langgraph-api': 1.1.13(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6)))(@langchain/langgraph-checkpoint@1.0.0(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6))))(@langchain/langgraph@1.1.5(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6))(@opentelemetry/api@1.9.0)(babel-plugin-macros@3.1.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6))(typescript@5.9.3)
->>>>>>> fece58c (✨ feat(ai): integrate Claude Agent SDK for enhanced agent capabilities)
+      '@langchain/langgraph-api': 1.1.14(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(@langchain/langgraph-checkpoint@1.0.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))))(@langchain/langgraph-sdk@1.6.5(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(@langchain/langgraph@1.2.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6))(@opentelemetry/api@1.9.0)(babel-plugin-macros@3.1.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))(typescript@5.9.3)
       chokidar: 4.0.3
       commander: 13.1.0
       create-langgraph: 1.1.5(babel-plugin-macros@3.1.0)
@@ -10941,14 +10924,10 @@ snapshots:
       '@commander-js/extra-typings': 13.1.0(commander@13.1.0)
       commander: 13.1.0
       esbuild: 0.25.12
-      esbuild-plugin-tailwindcss: 2.1.0
+      esbuild-plugin-tailwindcss: 2.2.0
       zod: 4.3.6
 
-<<<<<<< HEAD
-  '@langchain/langgraph@1.2.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.24.6(zod@4.3.6))(zod@4.3.6)':
-=======
-  '@langchain/langgraph@1.1.5(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6)':
->>>>>>> fece58c (✨ feat(ai): integrate Claude Agent SDK for enhanced agent capabilities)
+  '@langchain/langgraph@1.2.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6)':
     dependencies:
       '@langchain/core': 1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))
       '@langchain/langgraph-checkpoint': 1.0.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))
@@ -11003,6 +10982,7 @@ snapshots:
     dependencies:
       '@libsql/core': 0.17.0
       js-base64: 3.7.8
+    optional: true
 
   '@libsql/client@0.17.0(encoding@0.1.13)':
     dependencies:
@@ -11081,7 +11061,7 @@ snapshots:
       openapi-types: 12.1.3
       react: 19.2.0
       react-dom: 19.2.0(react@19.2.0)
-      swagger-client: 3.36.2(debug@4.4.3)
+      swagger-client: 3.37.0(debug@4.4.3)
       zod: 3.25.76
     transitivePeerDependencies:
       - debug
@@ -11199,7 +11179,7 @@ snapshots:
       remark-math: 6.0.0
       shiki: 3.23.0
       shiki-stream: 0.1.4(react@19.2.0)
-      swr: 2.4.0(react@19.2.0)
+      swr: 2.4.1(react@19.2.0)
       ts-md5: 2.0.1
       unified: 11.0.5
       url-join: 5.0.0
@@ -12710,20 +12690,20 @@ snapshots:
     dependencies:
       react: 19.2.0
 
-  '@swagger-api/apidom-ast@1.5.1':
+  '@swagger-api/apidom-ast@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-error': 1.5.1
+      '@swagger-api/apidom-error': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
       unraw: 3.0.0
 
-  '@swagger-api/apidom-core@1.5.1':
+  '@swagger-api/apidom-core@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-ast': 1.5.1
-      '@swagger-api/apidom-error': 1.5.1
+      '@swagger-api/apidom-ast': 1.6.0
+      '@swagger-api/apidom-error': 1.6.0
       '@types/ramda': 0.30.2
       minim: 0.23.8
       ramda: 0.30.1
@@ -12731,246 +12711,260 @@ snapshots:
       short-unique-id: 5.3.2
       ts-mixer: 6.0.4
 
-  '@swagger-api/apidom-error@1.5.1':
+  '@swagger-api/apidom-error@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
 
-  '@swagger-api/apidom-json-pointer@1.5.1':
+  '@swagger-api/apidom-json-pointer@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-error': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-error': 1.6.0
       '@swaggerexpert/json-pointer': 2.10.2
 
-  '@swagger-api/apidom-ns-api-design-systems@1.5.1':
+  '@swagger-api/apidom-ns-api-design-systems@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-error': 1.5.1
-      '@swagger-api/apidom-ns-openapi-3-1': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-error': 1.6.0
+      '@swagger-api/apidom-ns-openapi-3-1': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
       ts-mixer: 6.0.4
     optional: true
 
-  '@swagger-api/apidom-ns-arazzo-1@1.5.1':
+  '@swagger-api/apidom-ns-arazzo-1@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-ns-json-schema-2020-12': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-ns-json-schema-2020-12': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
       ts-mixer: 6.0.4
     optional: true
 
-  '@swagger-api/apidom-ns-asyncapi-2@1.5.1':
+  '@swagger-api/apidom-ns-asyncapi-2@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-ns-json-schema-draft-7': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-ns-json-schema-draft-7': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
       ts-mixer: 6.0.4
     optional: true
 
-  '@swagger-api/apidom-ns-asyncapi-3@1.5.1':
+  '@swagger-api/apidom-ns-asyncapi-3@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-ns-asyncapi-2': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-ns-asyncapi-2': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
       ts-mixer: 6.0.4
     optional: true
 
-  '@swagger-api/apidom-ns-json-schema-2019-09@1.5.1':
+  '@swagger-api/apidom-ns-json-schema-2019-09@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-error': 1.5.1
-      '@swagger-api/apidom-ns-json-schema-draft-7': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-error': 1.6.0
+      '@swagger-api/apidom-ns-json-schema-draft-7': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
       ts-mixer: 6.0.4
 
-  '@swagger-api/apidom-ns-json-schema-2020-12@1.5.1':
+  '@swagger-api/apidom-ns-json-schema-2020-12@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-error': 1.5.1
-      '@swagger-api/apidom-ns-json-schema-2019-09': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-error': 1.6.0
+      '@swagger-api/apidom-ns-json-schema-2019-09': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
       ts-mixer: 6.0.4
 
-  '@swagger-api/apidom-ns-json-schema-draft-4@1.5.1':
+  '@swagger-api/apidom-ns-json-schema-draft-4@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-ast': 1.5.1
-      '@swagger-api/apidom-core': 1.5.1
+      '@swagger-api/apidom-ast': 1.6.0
+      '@swagger-api/apidom-core': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
       ts-mixer: 6.0.4
 
-  '@swagger-api/apidom-ns-json-schema-draft-6@1.5.1':
+  '@swagger-api/apidom-ns-json-schema-draft-6@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-error': 1.5.1
-      '@swagger-api/apidom-ns-json-schema-draft-4': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-error': 1.6.0
+      '@swagger-api/apidom-ns-json-schema-draft-4': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
       ts-mixer: 6.0.4
 
-  '@swagger-api/apidom-ns-json-schema-draft-7@1.5.1':
+  '@swagger-api/apidom-ns-json-schema-draft-7@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-error': 1.5.1
-      '@swagger-api/apidom-ns-json-schema-draft-6': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-error': 1.6.0
+      '@swagger-api/apidom-ns-json-schema-draft-6': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
       ts-mixer: 6.0.4
 
-  '@swagger-api/apidom-ns-openapi-2@1.5.1':
+  '@swagger-api/apidom-ns-openapi-2@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-error': 1.5.1
-      '@swagger-api/apidom-ns-json-schema-draft-4': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-error': 1.6.0
+      '@swagger-api/apidom-ns-json-schema-draft-4': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
       ts-mixer: 6.0.4
     optional: true
 
-  '@swagger-api/apidom-ns-openapi-3-0@1.5.1':
+  '@swagger-api/apidom-ns-openapi-3-0@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-error': 1.5.1
-      '@swagger-api/apidom-ns-json-schema-draft-4': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-error': 1.6.0
+      '@swagger-api/apidom-ns-json-schema-draft-4': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
       ts-mixer: 6.0.4
 
-  '@swagger-api/apidom-ns-openapi-3-1@1.5.1':
+  '@swagger-api/apidom-ns-openapi-3-1@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-ast': 1.5.1
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-json-pointer': 1.5.1
-      '@swagger-api/apidom-ns-json-schema-2020-12': 1.5.1
-      '@swagger-api/apidom-ns-openapi-3-0': 1.5.1
+      '@swagger-api/apidom-ast': 1.6.0
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-json-pointer': 1.6.0
+      '@swagger-api/apidom-ns-json-schema-2020-12': 1.6.0
+      '@swagger-api/apidom-ns-openapi-3-0': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
       ts-mixer: 6.0.4
 
-  '@swagger-api/apidom-parser-adapter-api-design-systems-json@1.5.1':
+  '@swagger-api/apidom-ns-openapi-3-2@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-ns-api-design-systems': 1.5.1
-      '@swagger-api/apidom-parser-adapter-json': 1.5.1
+      '@swagger-api/apidom-ast': 1.6.0
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-json-pointer': 1.6.0
+      '@swagger-api/apidom-ns-json-schema-2020-12': 1.6.0
+      '@swagger-api/apidom-ns-openapi-3-0': 1.6.0
+      '@swagger-api/apidom-ns-openapi-3-1': 1.6.0
+      '@types/ramda': 0.30.2
+      ramda: 0.30.1
+      ramda-adjunct: 5.1.0(ramda@0.30.1)
+      ts-mixer: 6.0.4
+
+  '@swagger-api/apidom-parser-adapter-api-design-systems-json@1.6.0':
+    dependencies:
+      '@babel/runtime-corejs3': 7.29.0
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-ns-api-design-systems': 1.6.0
+      '@swagger-api/apidom-parser-adapter-json': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
     optional: true
 
-  '@swagger-api/apidom-parser-adapter-api-design-systems-yaml@1.5.1':
+  '@swagger-api/apidom-parser-adapter-api-design-systems-yaml@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-ns-api-design-systems': 1.5.1
-      '@swagger-api/apidom-parser-adapter-yaml-1-2': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-ns-api-design-systems': 1.6.0
+      '@swagger-api/apidom-parser-adapter-yaml-1-2': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
     optional: true
 
-  '@swagger-api/apidom-parser-adapter-arazzo-json-1@1.5.1':
+  '@swagger-api/apidom-parser-adapter-arazzo-json-1@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-ns-arazzo-1': 1.5.1
-      '@swagger-api/apidom-parser-adapter-json': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-ns-arazzo-1': 1.6.0
+      '@swagger-api/apidom-parser-adapter-json': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
     optional: true
 
-  '@swagger-api/apidom-parser-adapter-arazzo-yaml-1@1.5.1':
+  '@swagger-api/apidom-parser-adapter-arazzo-yaml-1@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-ns-arazzo-1': 1.5.1
-      '@swagger-api/apidom-parser-adapter-yaml-1-2': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-ns-arazzo-1': 1.6.0
+      '@swagger-api/apidom-parser-adapter-yaml-1-2': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
     optional: true
 
-  '@swagger-api/apidom-parser-adapter-asyncapi-json-2@1.5.1':
+  '@swagger-api/apidom-parser-adapter-asyncapi-json-2@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-ns-asyncapi-2': 1.5.1
-      '@swagger-api/apidom-parser-adapter-json': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-ns-asyncapi-2': 1.6.0
+      '@swagger-api/apidom-parser-adapter-json': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
     optional: true
 
-  '@swagger-api/apidom-parser-adapter-asyncapi-json-3@1.5.1':
+  '@swagger-api/apidom-parser-adapter-asyncapi-json-3@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-ns-asyncapi-3': 1.5.1
-      '@swagger-api/apidom-parser-adapter-json': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-ns-asyncapi-3': 1.6.0
+      '@swagger-api/apidom-parser-adapter-json': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
     optional: true
 
-  '@swagger-api/apidom-parser-adapter-asyncapi-yaml-2@1.5.1':
+  '@swagger-api/apidom-parser-adapter-asyncapi-yaml-2@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-ns-asyncapi-2': 1.5.1
-      '@swagger-api/apidom-parser-adapter-yaml-1-2': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-ns-asyncapi-2': 1.6.0
+      '@swagger-api/apidom-parser-adapter-yaml-1-2': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
     optional: true
 
-  '@swagger-api/apidom-parser-adapter-asyncapi-yaml-3@1.5.1':
+  '@swagger-api/apidom-parser-adapter-asyncapi-yaml-3@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-ns-asyncapi-3': 1.5.1
-      '@swagger-api/apidom-parser-adapter-yaml-1-2': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-ns-asyncapi-3': 1.6.0
+      '@swagger-api/apidom-parser-adapter-yaml-1-2': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
     optional: true
 
-  '@swagger-api/apidom-parser-adapter-json@1.5.1':
+  '@swagger-api/apidom-parser-adapter-json@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-ast': 1.5.1
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-error': 1.5.1
+      '@swagger-api/apidom-ast': 1.6.0
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-error': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
@@ -12979,78 +12973,100 @@ snapshots:
       web-tree-sitter: 0.24.5
     optional: true
 
-  '@swagger-api/apidom-parser-adapter-openapi-json-2@1.5.1':
+  '@swagger-api/apidom-parser-adapter-openapi-json-2@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-ns-openapi-2': 1.5.1
-      '@swagger-api/apidom-parser-adapter-json': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-ns-openapi-2': 1.6.0
+      '@swagger-api/apidom-parser-adapter-json': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
     optional: true
 
-  '@swagger-api/apidom-parser-adapter-openapi-json-3-0@1.5.1':
+  '@swagger-api/apidom-parser-adapter-openapi-json-3-0@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-ns-openapi-3-0': 1.5.1
-      '@swagger-api/apidom-parser-adapter-json': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-ns-openapi-3-0': 1.6.0
+      '@swagger-api/apidom-parser-adapter-json': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
     optional: true
 
-  '@swagger-api/apidom-parser-adapter-openapi-json-3-1@1.5.1':
+  '@swagger-api/apidom-parser-adapter-openapi-json-3-1@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-ns-openapi-3-1': 1.5.1
-      '@swagger-api/apidom-parser-adapter-json': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-ns-openapi-3-1': 1.6.0
+      '@swagger-api/apidom-parser-adapter-json': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
     optional: true
 
-  '@swagger-api/apidom-parser-adapter-openapi-yaml-2@1.5.1':
+  '@swagger-api/apidom-parser-adapter-openapi-json-3-2@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-ns-openapi-2': 1.5.1
-      '@swagger-api/apidom-parser-adapter-yaml-1-2': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-ns-openapi-3-2': 1.6.0
+      '@swagger-api/apidom-parser-adapter-json': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
     optional: true
 
-  '@swagger-api/apidom-parser-adapter-openapi-yaml-3-0@1.5.1':
+  '@swagger-api/apidom-parser-adapter-openapi-yaml-2@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-ns-openapi-3-0': 1.5.1
-      '@swagger-api/apidom-parser-adapter-yaml-1-2': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-ns-openapi-2': 1.6.0
+      '@swagger-api/apidom-parser-adapter-yaml-1-2': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
     optional: true
 
-  '@swagger-api/apidom-parser-adapter-openapi-yaml-3-1@1.5.1':
+  '@swagger-api/apidom-parser-adapter-openapi-yaml-3-0@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-ns-openapi-3-1': 1.5.1
-      '@swagger-api/apidom-parser-adapter-yaml-1-2': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-ns-openapi-3-0': 1.6.0
+      '@swagger-api/apidom-parser-adapter-yaml-1-2': 1.6.0
       '@types/ramda': 0.30.2
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
     optional: true
 
-  '@swagger-api/apidom-parser-adapter-yaml-1-2@1.5.1':
+  '@swagger-api/apidom-parser-adapter-openapi-yaml-3-1@1.6.0':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-ast': 1.5.1
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-error': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-ns-openapi-3-1': 1.6.0
+      '@swagger-api/apidom-parser-adapter-yaml-1-2': 1.6.0
+      '@types/ramda': 0.30.2
+      ramda: 0.30.1
+      ramda-adjunct: 5.1.0(ramda@0.30.1)
+    optional: true
+
+  '@swagger-api/apidom-parser-adapter-openapi-yaml-3-2@1.6.0':
+    dependencies:
+      '@babel/runtime-corejs3': 7.29.0
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-ns-openapi-3-2': 1.6.0
+      '@swagger-api/apidom-parser-adapter-yaml-1-2': 1.6.0
+      '@types/ramda': 0.30.2
+      ramda: 0.30.1
+      ramda-adjunct: 5.1.0(ramda@0.30.1)
+    optional: true
+
+  '@swagger-api/apidom-parser-adapter-yaml-1-2@1.6.0':
+    dependencies:
+      '@babel/runtime-corejs3': 7.29.0
+      '@swagger-api/apidom-ast': 1.6.0
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-error': 1.6.0
       '@tree-sitter-grammars/tree-sitter-yaml': 0.7.1(tree-sitter@0.22.4)
       '@types/ramda': 0.30.2
       ramda: 0.30.1
@@ -13059,39 +13075,42 @@ snapshots:
       web-tree-sitter: 0.24.5
     optional: true
 
-  '@swagger-api/apidom-reference@1.5.1(debug@4.4.3)':
+  '@swagger-api/apidom-reference@1.6.0(debug@4.4.3)':
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-error': 1.5.1
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-error': 1.6.0
       '@types/ramda': 0.30.2
-      axios: 1.13.5(debug@4.4.3)
+      axios: 1.13.6(debug@4.4.3)
       minimatch: 10.2.4
       ramda: 0.30.1
       ramda-adjunct: 5.1.0(ramda@0.30.1)
     optionalDependencies:
-      '@swagger-api/apidom-json-pointer': 1.5.1
-      '@swagger-api/apidom-ns-arazzo-1': 1.5.1
-      '@swagger-api/apidom-ns-asyncapi-2': 1.5.1
-      '@swagger-api/apidom-ns-openapi-2': 1.5.1
-      '@swagger-api/apidom-ns-openapi-3-0': 1.5.1
-      '@swagger-api/apidom-ns-openapi-3-1': 1.5.1
-      '@swagger-api/apidom-parser-adapter-api-design-systems-json': 1.5.1
-      '@swagger-api/apidom-parser-adapter-api-design-systems-yaml': 1.5.1
-      '@swagger-api/apidom-parser-adapter-arazzo-json-1': 1.5.1
-      '@swagger-api/apidom-parser-adapter-arazzo-yaml-1': 1.5.1
-      '@swagger-api/apidom-parser-adapter-asyncapi-json-2': 1.5.1
-      '@swagger-api/apidom-parser-adapter-asyncapi-json-3': 1.5.1
-      '@swagger-api/apidom-parser-adapter-asyncapi-yaml-2': 1.5.1
-      '@swagger-api/apidom-parser-adapter-asyncapi-yaml-3': 1.5.1
-      '@swagger-api/apidom-parser-adapter-json': 1.5.1
-      '@swagger-api/apidom-parser-adapter-openapi-json-2': 1.5.1
-      '@swagger-api/apidom-parser-adapter-openapi-json-3-0': 1.5.1
-      '@swagger-api/apidom-parser-adapter-openapi-json-3-1': 1.5.1
-      '@swagger-api/apidom-parser-adapter-openapi-yaml-2': 1.5.1
-      '@swagger-api/apidom-parser-adapter-openapi-yaml-3-0': 1.5.1
-      '@swagger-api/apidom-parser-adapter-openapi-yaml-3-1': 1.5.1
-      '@swagger-api/apidom-parser-adapter-yaml-1-2': 1.5.1
+      '@swagger-api/apidom-json-pointer': 1.6.0
+      '@swagger-api/apidom-ns-arazzo-1': 1.6.0
+      '@swagger-api/apidom-ns-asyncapi-2': 1.6.0
+      '@swagger-api/apidom-ns-openapi-2': 1.6.0
+      '@swagger-api/apidom-ns-openapi-3-0': 1.6.0
+      '@swagger-api/apidom-ns-openapi-3-1': 1.6.0
+      '@swagger-api/apidom-ns-openapi-3-2': 1.6.0
+      '@swagger-api/apidom-parser-adapter-api-design-systems-json': 1.6.0
+      '@swagger-api/apidom-parser-adapter-api-design-systems-yaml': 1.6.0
+      '@swagger-api/apidom-parser-adapter-arazzo-json-1': 1.6.0
+      '@swagger-api/apidom-parser-adapter-arazzo-yaml-1': 1.6.0
+      '@swagger-api/apidom-parser-adapter-asyncapi-json-2': 1.6.0
+      '@swagger-api/apidom-parser-adapter-asyncapi-json-3': 1.6.0
+      '@swagger-api/apidom-parser-adapter-asyncapi-yaml-2': 1.6.0
+      '@swagger-api/apidom-parser-adapter-asyncapi-yaml-3': 1.6.0
+      '@swagger-api/apidom-parser-adapter-json': 1.6.0
+      '@swagger-api/apidom-parser-adapter-openapi-json-2': 1.6.0
+      '@swagger-api/apidom-parser-adapter-openapi-json-3-0': 1.6.0
+      '@swagger-api/apidom-parser-adapter-openapi-json-3-1': 1.6.0
+      '@swagger-api/apidom-parser-adapter-openapi-json-3-2': 1.6.0
+      '@swagger-api/apidom-parser-adapter-openapi-yaml-2': 1.6.0
+      '@swagger-api/apidom-parser-adapter-openapi-yaml-3-0': 1.6.0
+      '@swagger-api/apidom-parser-adapter-openapi-yaml-3-1': 1.6.0
+      '@swagger-api/apidom-parser-adapter-openapi-yaml-3-2': 1.6.0
+      '@swagger-api/apidom-parser-adapter-yaml-1-2': 1.6.0
     transitivePeerDependencies:
       - debug
 
@@ -13123,7 +13142,7 @@ snapshots:
   '@tailwindcss/node@4.2.1':
     dependencies:
       '@jridgewell/remapping': 2.3.5
-      enhanced-resolve: 5.19.0
+      enhanced-resolve: 5.20.0
       jiti: 2.6.1
       lightningcss: 1.31.1
       magic-string: 0.30.21
@@ -13214,7 +13233,7 @@ snapshots:
 
   '@tavily/core@0.5.14(debug@4.4.3)':
     dependencies:
-      axios: 1.13.5(debug@4.4.3)
+      axios: 1.13.6(debug@4.4.3)
       https-proxy-agent: 7.0.6
       js-tiktoken: 1.0.21
     transitivePeerDependencies:
@@ -13240,7 +13259,7 @@ snapshots:
 
   '@tree-sitter-grammars/tree-sitter-yaml@0.7.1(tree-sitter@0.22.4)':
     dependencies:
-      node-addon-api: 8.5.0
+      node-addon-api: 8.6.0
       node-gyp-build: 4.8.4
     optionalDependencies:
       tree-sitter: 0.22.4
@@ -13463,7 +13482,7 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
-  '@types/node@24.10.15':
+  '@types/node@24.11.0':
     dependencies:
       undici-types: 7.16.0
 
@@ -14192,7 +14211,7 @@ snapshots:
   autoprefixer@10.4.27(postcss@8.5.6):
     dependencies:
       browserslist: 4.28.1
-      caniuse-lite: 1.0.30001774
+      caniuse-lite: 1.0.30001775
       fraction.js: 5.3.4
       picocolors: 1.1.1
       postcss: 8.5.6
@@ -14204,7 +14223,7 @@ snapshots:
 
   axe-core@4.11.1: {}
 
-  axios@1.13.5(debug@4.4.3):
+  axios@1.13.6(debug@4.4.3):
     dependencies:
       follow-redirects: 1.15.11(debug@4.4.3)
       form-data: 4.0.5
@@ -14288,7 +14307,7 @@ snapshots:
     dependencies:
       balanced-match: 1.0.2
 
-  brace-expansion@5.0.3:
+  brace-expansion@5.0.4:
     dependencies:
       balanced-match: 4.0.4
 
@@ -14299,7 +14318,7 @@ snapshots:
   browserslist@4.28.1:
     dependencies:
       baseline-browser-mapping: 2.10.0
-      caniuse-lite: 1.0.30001774
+      caniuse-lite: 1.0.30001775
       electron-to-chromium: 1.5.302
       node-releases: 2.0.27
       update-browserslist-db: 1.2.3(browserslist@4.28.1)
@@ -14448,7 +14467,7 @@ snapshots:
 
   camelcase@6.3.0: {}
 
-  caniuse-lite@1.0.30001774: {}
+  caniuse-lite@1.0.30001775: {}
 
   ccount@2.0.1: {}
 
@@ -14495,18 +14514,18 @@ snapshots:
       parse5-htmlparser2-tree-adapter: 6.0.1
       tslib: 2.8.1
 
-  chevrotain-allstar@0.3.1(chevrotain@11.1.1):
+  chevrotain-allstar@0.3.1(chevrotain@11.1.2):
     dependencies:
-      chevrotain: 11.1.1
+      chevrotain: 11.1.2
       lodash-es: 4.17.23
 
-  chevrotain@11.1.1:
+  chevrotain@11.1.2:
     dependencies:
-      '@chevrotain/cst-dts-gen': 11.1.1
-      '@chevrotain/gast': 11.1.1
-      '@chevrotain/regexp-to-ast': 11.1.1
-      '@chevrotain/types': 11.1.1
-      '@chevrotain/utils': 11.1.1
+      '@chevrotain/cst-dts-gen': 11.1.2
+      '@chevrotain/gast': 11.1.2
+      '@chevrotain/regexp-to-ast': 11.1.2
+      '@chevrotain/types': 11.1.2
+      '@chevrotain/utils': 11.1.2
       lodash-es: 4.17.23
 
   chokidar@3.6.0:
@@ -15008,21 +15027,12 @@ snapshots:
 
   deep-is@0.1.4: {}
 
-<<<<<<< HEAD
-  deepagents@1.8.1(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.24.6(zod@4.3.6)):
+  deepagents@1.8.1(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6)):
     dependencies:
       '@langchain/core': 1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))
-      '@langchain/langgraph': 1.2.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.24.6(zod@4.3.6))(zod@4.3.6)
+      '@langchain/langgraph': 1.2.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6)
       fast-glob: 3.3.3
-      langchain: 1.2.26(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.24.6(zod@4.3.6))
-=======
-  deepagents@1.8.0(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6)):
-    dependencies:
-      '@langchain/core': 1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6))
-      '@langchain/langgraph': 1.1.5(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6)
-      fast-glob: 3.3.3
-      langchain: 1.2.25(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6)))(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))
->>>>>>> fece58c (✨ feat(ai): integrate Claude Agent SDK for enhanced agent capabilities)
+      langchain: 1.2.26(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))
       micromatch: 4.0.8
       yaml: 2.8.2
       zod: 4.3.6
@@ -15222,6 +15232,8 @@ snapshots:
       - electron-builder-squirrel-windows
       - supports-color
 
+  electron-log@5.4.3: {}
+
   electron-publish@26.6.0:
     dependencies:
       '@types/fs-extra': 9.0.13
@@ -15270,6 +15282,19 @@ snapshots:
 
   electron-to-chromium@1.5.302: {}
 
+  electron-updater@6.8.3:
+    dependencies:
+      builder-util-runtime: 9.5.1
+      fs-extra: 10.1.0
+      js-yaml: 4.1.1
+      lazy-val: 1.0.5
+      lodash.escaperegexp: 4.1.2
+      lodash.isequal: 4.5.0
+      semver: 7.7.4
+      tiny-typed-emitter: 2.1.0
+    transitivePeerDependencies:
+      - supports-color
+
   electron-winstaller@5.4.0:
     dependencies:
       '@electron/asar': 3.4.1
@@ -15285,7 +15310,7 @@ snapshots:
   electron@40.6.1:
     dependencies:
       '@electron/get': 2.0.3
-      '@types/node': 24.10.15
+      '@types/node': 24.11.0
       extract-zip: 2.0.1
     transitivePeerDependencies:
       - supports-color
@@ -15321,7 +15346,7 @@ snapshots:
     dependencies:
       once: 1.4.0
 
-  enhanced-resolve@5.19.0:
+  enhanced-resolve@5.20.0:
     dependencies:
       graceful-fs: 4.2.11
       tapable: 2.3.0
@@ -15476,7 +15501,7 @@ snapshots:
       esast-util-from-estree: 2.0.0
       vfile-message: 4.0.3
 
-  esbuild-plugin-tailwindcss@2.1.0:
+  esbuild-plugin-tailwindcss@2.2.0:
     dependencies:
       '@tailwindcss/postcss': 4.2.1
       autoprefixer: 10.4.27(postcss@8.5.6)
@@ -16204,7 +16229,7 @@ snapshots:
 
   get-stream@5.2.0:
     dependencies:
-      pump: 3.0.3
+      pump: 3.0.4
 
   get-stream@9.0.1:
     dependencies:
@@ -16983,21 +17008,12 @@ snapshots:
 
   kuler@2.0.0: {}
 
-<<<<<<< HEAD
-  langchain@1.2.26(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.24.6(zod@4.3.6)):
+  langchain@1.2.26(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6)):
     dependencies:
       '@langchain/core': 1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))
-      '@langchain/langgraph': 1.2.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.24.6(zod@4.3.6))(zod@4.3.6)
+      '@langchain/langgraph': 1.2.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6)
       '@langchain/langgraph-checkpoint': 1.0.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))
       langsmith: 0.5.7(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))
-=======
-  langchain@1.2.25(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6)))(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6)):
-    dependencies:
-      '@langchain/core': 1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6))
-      '@langchain/langgraph': 1.1.5(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6)
-      '@langchain/langgraph-checkpoint': 1.0.0(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6)))
-      langsmith: 0.5.6(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6))
->>>>>>> fece58c (✨ feat(ai): integrate Claude Agent SDK for enhanced agent capabilities)
       uuid: 10.0.0
       zod: 4.3.6
     transitivePeerDependencies:
@@ -17009,23 +17025,13 @@ snapshots:
       - react-dom
       - zod-to-json-schema
 
-<<<<<<< HEAD
-  langchain@1.2.28(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.24.6(zod@4.3.6)):
+  langchain@1.2.28(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6)):
     dependencies:
       '@langchain/core': 1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))
-      '@langchain/langgraph': 1.2.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.24.6(zod@4.3.6))(zod@4.3.6)
+      '@langchain/langgraph': 1.2.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6)
       '@langchain/langgraph-checkpoint': 1.0.0(@langchain/core@1.1.29(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6)))
       langsmith: 0.5.7(@opentelemetry/api@1.9.0)(openai@6.25.0(ws@8.19.0)(zod@4.3.6))
       uuid: 11.1.0
-=======
-  langchain@1.2.26(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6)))(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6)):
-    dependencies:
-      '@langchain/core': 1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6))
-      '@langchain/langgraph': 1.1.5(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6)))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod-to-json-schema@3.25.1(zod@4.3.6))(zod@4.3.6)
-      '@langchain/langgraph-checkpoint': 1.0.0(@langchain/core@1.1.27(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6)))
-      langsmith: 0.5.6(@opentelemetry/api@1.9.0)(openai@6.24.0(ws@8.19.0)(zod@4.3.6))
-      uuid: 10.0.0
->>>>>>> fece58c (✨ feat(ai): integrate Claude Agent SDK for enhanced agent capabilities)
       zod: 4.3.6
     transitivePeerDependencies:
       - '@opentelemetry/api'
@@ -17038,8 +17044,8 @@ snapshots:
 
   langium@4.2.1:
     dependencies:
-      chevrotain: 11.1.1
-      chevrotain-allstar: 0.3.1(chevrotain@11.1.1)
+      chevrotain: 11.1.2
+      chevrotain-allstar: 0.3.1(chevrotain@11.1.2)
       vscode-languageserver: 9.0.1
       vscode-languageserver-textdocument: 1.0.12
       vscode-uri: 3.1.0
@@ -17200,9 +17206,13 @@ snapshots:
 
   lodash.debounce@4.0.8: {}
 
+  lodash.escaperegexp@4.1.2: {}
+
   lodash.includes@4.3.0: {}
 
   lodash.isboolean@3.0.3: {}
+
+  lodash.isequal@4.5.0: {}
 
   lodash.isinteger@4.0.4: {}
 
@@ -17897,7 +17907,7 @@ snapshots:
 
   minimatch@10.2.4:
     dependencies:
-      brace-expansion: 5.0.3
+      brace-expansion: 5.0.4
 
   minimatch@3.1.5:
     dependencies:
@@ -18039,7 +18049,7 @@ snapshots:
       '@next/env': 16.1.6
       '@swc/helpers': 0.5.15
       baseline-browser-mapping: 2.10.0
-      caniuse-lite: 1.0.30001774
+      caniuse-lite: 1.0.30001775
       postcss: 8.4.31
       react: 19.2.0
       react-dom: 19.2.0(react@19.2.0)
@@ -18075,7 +18085,7 @@ snapshots:
 
   node-addon-api@3.2.1: {}
 
-  node-addon-api@8.5.0:
+  node-addon-api@8.6.0:
     optional: true
 
   node-api-version@0.1.4:
@@ -18179,7 +18189,7 @@ snapshots:
 
   numeral@2.0.6: {}
 
-  nuqs@2.8.8(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.0)(babel-plugin-macros@3.1.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react@19.2.0):
+  nuqs@2.8.9(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.0)(babel-plugin-macros@3.1.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react@19.2.0):
     dependencies:
       '@standard-schema/spec': 1.0.0
       react: 19.2.0
@@ -18522,7 +18532,7 @@ snapshots:
       mkdirp-classic: 0.5.3
       napi-build-utils: 2.0.0
       node-abi: 3.87.0
-      pump: 3.0.3
+      pump: 3.0.4
       rc: 1.2.8
       simple-get: 4.0.1
       tar-fs: 2.1.4
@@ -18573,7 +18583,7 @@ snapshots:
 
   proxy-from-env@1.1.0: {}
 
-  pump@3.0.3:
+  pump@3.0.4:
     dependencies:
       end-of-stream: 1.4.5
       once: 1.4.0
@@ -19408,7 +19418,7 @@ snapshots:
 
   sharp@0.34.5:
     dependencies:
-      '@img/colour': 1.0.0
+      '@img/colour': 1.1.0
       detect-libc: 2.1.2
       semver: 7.7.4
     optionalDependencies:
@@ -19803,15 +19813,16 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
-  swagger-client@3.36.2(debug@4.4.3):
+  swagger-client@3.37.0(debug@4.4.3):
     dependencies:
       '@babel/runtime-corejs3': 7.29.0
       '@scarf/scarf': 1.4.0
-      '@swagger-api/apidom-core': 1.5.1
-      '@swagger-api/apidom-error': 1.5.1
-      '@swagger-api/apidom-json-pointer': 1.5.1
-      '@swagger-api/apidom-ns-openapi-3-1': 1.5.1
-      '@swagger-api/apidom-reference': 1.5.1(debug@4.4.3)
+      '@swagger-api/apidom-core': 1.6.0
+      '@swagger-api/apidom-error': 1.6.0
+      '@swagger-api/apidom-json-pointer': 1.6.0
+      '@swagger-api/apidom-ns-openapi-3-1': 1.6.0
+      '@swagger-api/apidom-ns-openapi-3-2': 1.6.0
+      '@swagger-api/apidom-reference': 1.6.0(debug@4.4.3)
       '@swaggerexpert/cookie': 2.0.2
       deepmerge: 4.3.1
       fast-json-patch: 3.1.1
@@ -19826,7 +19837,7 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  swr@2.4.0(react@19.2.0):
+  swr@2.4.1(react@19.2.0):
     dependencies:
       dequal: 2.0.3
       react: 19.2.0
@@ -19846,7 +19857,7 @@ snapshots:
     dependencies:
       chownr: 1.1.4
       mkdirp-classic: 0.5.3
-      pump: 3.0.3
+      pump: 3.0.4
       tar-stream: 2.2.0
 
   tar-stream@2.2.0:
@@ -19894,6 +19905,8 @@ snapshots:
 
   tiny-invariant@1.3.3: {}
 
+  tiny-typed-emitter@2.1.0: {}
+
   tinybench@2.9.0: {}
 
   tinyexec@0.3.2: {}
@@ -19938,7 +19951,7 @@ snapshots:
 
   tree-sitter-json@0.24.8(tree-sitter@0.21.1):
     dependencies:
-      node-addon-api: 8.5.0
+      node-addon-api: 8.6.0
       node-gyp-build: 4.8.4
     optionalDependencies:
       tree-sitter: 0.21.1
@@ -19946,13 +19959,13 @@ snapshots:
 
   tree-sitter@0.21.1:
     dependencies:
-      node-addon-api: 8.5.0
+      node-addon-api: 8.6.0
       node-gyp-build: 4.8.4
     optional: true
 
   tree-sitter@0.22.4:
     dependencies:
-      node-addon-api: 8.5.0
+      node-addon-api: 8.6.0
       node-gyp-build: 4.8.4
     optional: true
 
@@ -20407,7 +20420,7 @@ snapshots:
 
   wait-on@9.0.4(debug@4.4.3):
     dependencies:
-      axios: 1.13.5(debug@4.4.3)
+      axios: 1.13.6(debug@4.4.3)
       joi: 18.0.2
       lodash: 4.17.23
       minimist: 1.2.8

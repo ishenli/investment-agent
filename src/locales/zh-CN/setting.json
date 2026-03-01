@@ -45,6 +45,27 @@
     "thanks": "致谢",
     "thanksText": "感谢所有为本项目做出贡献的开发者和用户。我们将继续努力，提供更好的产品和服务。",
     "title": "关于",
+    "update": {
+      "available": "有新版本可用",
+      "cancel": "取消",
+      "checkButton": "检查更新",
+      "checking": "检查中...",
+      "confirm": "立即更新",
+      "confirmContent": "应用将重启以完成更新。您的数据已自动保存，无需担心数据丢失。确定要立即更新吗？",
+      "confirmTitle": "确认更新",
+      "currentVersion": "当前版本",
+      "dataSafety": "您的所有数据（数据库、配置等）都存储在独立的用户数据目录中，更新不会影响这些数据。",
+      "description": "检查并安装最新版本",
+      "downloadAndInstall": "下载并安装",
+      "downloading": "下载中...",
+      "error": "更新失败",
+      "latestVersion": "最新版本",
+      "noReleaseNotes": "暂无更新说明",
+      "progress": "下载进度",
+      "releaseNotes": "更新内容",
+      "title": "软件更新",
+      "upToDate": "已是最新版本"
+    },
     "version": "版本"
   },
   "account": {
