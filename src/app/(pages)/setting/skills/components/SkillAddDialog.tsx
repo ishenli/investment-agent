@@ -10,7 +10,6 @@ import { Label } from '@renderer/components/ui/label';
 import { useTranslation } from 'react-i18next';
 import { IconUpload, IconFolder, IconBrandGithub, IconFileZip, IconLink, IconAlertCircle } from '@tabler/icons-react';
 import { useSkillsStore } from '@/app/store/skills/store';
-import type { SkillCategory } from '@typings/skill';
 
 interface SkillAddDialogProps {
   open: boolean;
@@ -26,7 +25,7 @@ export function SkillAddDialog({ open, onOpenChange }: SkillAddDialogProps) {
   const [githubUrl, setGithubUrl] = useState('');
   const [skillName, setSkillName] = useState('');
   const [skillDescription, setSkillDescription] = useState('');
-  const [skillCategory, setSkillCategory] = useState<SkillCategory>('other');
+  const [skillPrompt, setSkillPrompt] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -37,7 +36,7 @@ export function SkillAddDialog({ open, onOpenChange }: SkillAddDialogProps) {
     setGithubUrl('');
     setSkillName('');
     setSkillDescription('');
-    setSkillCategory('other');
+    setSkillPrompt('');
     setError(null);
     setIsProcessing(false);
   };
@@ -56,7 +55,7 @@ export function SkillAddDialog({ open, onOpenChange }: SkillAddDialogProps) {
       setError(t('skills.addDialog.errors.nameRequired'));
       return false;
     }
-    
+
     if (!skillDescription.trim()) {
       setError(t('skills.addDialog.errors.descriptionRequired'));
       return false;
@@ -73,14 +72,14 @@ export function SkillAddDialog({ open, onOpenChange }: SkillAddDialogProps) {
           return false;
         }
         break;
-        
+
       case 'folder':
         if (folderFiles.length === 0) {
           setError(t('skills.addDialog.errors.folderRequired'));
           return false;
         }
         break;
-        
+
       case 'github':
         if (!githubUrl.trim()) {
           setError(t('skills.addDialog.errors.githubUrlRequired'));
@@ -92,7 +91,7 @@ export function SkillAddDialog({ open, onOpenChange }: SkillAddDialogProps) {
         }
         break;
     }
-    
+
     setError(null);
     return true;
   };
@@ -108,29 +107,63 @@ export function SkillAddDialog({ open, onOpenChange }: SkillAddDialogProps) {
   // 处理技能创建
   const handleCreateSkill = async () => {
     if (!validateForm() || isProcessing) return;
-    
+
     setIsProcessing(true);
     setError(null);
-    
+
     try {
       const slug = generateSlug(skillName);
-      
-      // 这里应该根据不同的上传方式处理文件
-      // 目前先创建一个基础的自定义技能
-      await createCustomSkill({
-        slug,
-        name: skillName,
-        description: skillDescription,
-        category: skillCategory,
-        icon: '⚡',
-        config: {
-          uploadMethod: activeTab,
-          ...(activeTab === 'zip' && zipFile ? { fileName: zipFile.name } : {}),
-          ...(activeTab === 'folder' && folderFiles.length > 0 ? { fileCount: folderFiles.length } : {}),
-          ...(activeTab === 'github' && githubUrl ? { githubUrl } : {}),
+
+      // 根据 activeTab 确定创建方式
+      if (activeTab === 'github' && githubUrl) {
+        // GitHub 安装：调用安装接口
+        const response = await fetch('/api/skills/install', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            source: githubUrl,
+            uploadMethod: 'github',
+            githubUrl,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(t('skills.addDialog.errors.createFailed' as any));
         }
-      });
-      
+      } else if (activeTab === 'zip' || activeTab === 'folder') {
+        // ZIP/Folder 安装：调用安装接口
+        // 注意：实际文件上传逻辑需要额外的 API 支持
+        const response = await fetch('/api/skills/install', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            source: '', // 由 upload 接口设置
+            uploadMethod: activeTab,
+            ...(activeTab === 'zip' && zipFile ? { fileName: zipFile.name } : {}),
+            ...(activeTab === 'folder' && folderFiles.length > 0 ? { fileCount: folderFiles.length } : {}),
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(t('skills.addDialog.errors.createFailed' as any));
+        }
+      } else {
+        // 手动创建自定义技能：必须有 prompt
+        if (!skillPrompt.trim()) {
+          setError(t('skills.addDialog.errors.zipRequired' as any)); // reuse existing key
+          setIsProcessing(false);
+          return;
+        }
+
+        await createCustomSkill({
+          slug,
+          name: skillName,
+          description: skillDescription,
+          prompt: skillPrompt,
+          icon: '⚡',
+        });
+      }
+
       // 成功后才关闭弹窗和重置表单
       resetForm();
       onOpenChange(false);
@@ -239,8 +272,8 @@ export function SkillAddDialog({ open, onOpenChange }: SkillAddDialogProps) {
                   className="hidden"
                   id="zip-upload"
                 />
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={triggerZipSelect}
                   className="cursor-pointer"
                 >
@@ -272,8 +305,8 @@ export function SkillAddDialog({ open, onOpenChange }: SkillAddDialogProps) {
                   // @ts-expect-error - webkitdirectory is not in standard types but supported by browsers
                   webkitdirectory=""
                 />
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={triggerFolderSelect}
                   className="cursor-pointer"
                 >
@@ -297,7 +330,7 @@ export function SkillAddDialog({ open, onOpenChange }: SkillAddDialogProps) {
                     {t('skills.addDialog.github.description')}
                   </p>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="github-url">{t('skills.addDialog.github.urlLabel')}</Label>
                   <div className="relative">
@@ -321,7 +354,7 @@ export function SkillAddDialog({ open, onOpenChange }: SkillAddDialogProps) {
           {/* 技能基本信息 */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium">{t('skills.addDialog.skillInfo')}</h3>
-            
+
             <div className="space-y-2">
               <Label htmlFor="skill-name">{t('skills.addDialog.fields.name')}</Label>
               <Input
@@ -347,31 +380,11 @@ export function SkillAddDialog({ open, onOpenChange }: SkillAddDialogProps) {
                 }}
               />
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="skill-category">{t('skills.addDialog.fields.category')}</Label>
-              <select
-                id="skill-category"
-                value={skillCategory}
-                onChange={(e) => setSkillCategory(e.target.value as SkillCategory)}
-                className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              >
-                <option value="brainstorming">{t('skills.categories.brainstorming')}</option>
-                <option value="debugging">{t('skills.categories.debugging')}</option>
-                <option value="tdd">{t('skills.categories.tdd')}</option>
-                <option value="code-review">{t('skills.categories.code-review')}</option>
-                <option value="testing">{t('skills.categories.testing')}</option>
-                <option value="documentation">{t('skills.categories.documentation')}</option>
-                <option value="optimization">{t('skills.categories.optimization')}</option>
-                <option value="refactoring">{t('skills.categories.refactoring')}</option>
-                <option value="other">{t('skills.categories.other')}</option>
-              </select>
-            </div>
           </div>
 
           {/* 错误信息 */}
           {error && (
-            <div 
+            <div
               data-testid="skill-error"
               className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-md text-destructive"
             >

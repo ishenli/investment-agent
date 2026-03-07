@@ -79,30 +79,27 @@ class ClaudeChatController extends BaseController {
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
-      const userIdNum = parseInt(userId, 10);
-
-      // T302/T403: 按需加载 skills prompt
-      // 仅当前端明确传递了非空 skills 数组时才查询并注入；
-      // 没有传递或为空数组则表示用户在会话中未选择任何技能，不注入
-      let skillsSystemPrompt: string | undefined;
-      if (requestedSkills && requestedSkills.length > 0) {
-        const requestedSet = new Set(requestedSkills);
-        // 仅从已启用的 skills 中过滤出用户实际选择的，确保安全边界
-        const activeSkills = await skillService.getEnabledSkills(userIdNum);
-        const selectedSkills = activeSkills.filter((s) => requestedSet.has(s.id));
-        if (selectedSkills.length > 0) {
-          skillsSystemPrompt = selectedSkills
-            .filter((s) => s.prompt)
-            .map((s) => `## Skill: ${s.name}\n\n${s.prompt}`)
-            .join('\n\n---\n\n') || undefined;
-        }
-      }
 
       // 3. 验证会话并获取真实的 session ID
       if (!sessionId) {
         return this.error('会话不存在', 'session_not_found');
       }
      
+      const userIdNum = parseInt(userId, 10);
+      // T302/T403: 按需加载 skills prompt
+      // 仅当前端明确传递了非空 skills 数组时才查询并注入。
+      // 使用 getSkillsBySlugs 而非 getEnabledSkills，因为用户在工具面板中明确选择了这些技能，
+      // 即使它们的全局 isEnabled=false 也应该被尊重。
+      let skillsSystemPrompt: string | undefined;
+      if (requestedSkills && requestedSkills.length > 0) {
+        const selectedSkills = await skillService.getSkillsBySlugs(userIdNum, requestedSkills);
+        if (selectedSkills.length > 0) {
+          skillsSystemPrompt = selectedSkills
+            .filter((s) => s.prompt)
+            .map((s) => `## Skill: ${s.name}\n\n${s.description}`)
+            .join('\n\n---\n\n') || undefined;
+        }
+      }
       // 使用真实的 session ID, "inbox_NU7XvF4aO3DEGlwJnGsD7"使用后半部分
       const realSessionId = sessionId.split('_')[1];
 

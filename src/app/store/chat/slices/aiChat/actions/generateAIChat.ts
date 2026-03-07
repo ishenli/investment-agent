@@ -7,6 +7,7 @@ import { chatHelpers } from '@renderer/store/chat/helpers';
 import { chatSelectors, topicSelectors } from '@renderer/store/chat/selectors';
 import { ChatStore } from '@renderer/store/chat/store';
 import { getSkillsStoreState } from '@/app/store/skills/store';
+import { skillsSelectors } from '@/app/store/skills/selectors';
 import {
   ChatMessage,
   ChatMessageError,
@@ -459,16 +460,7 @@ export const generateAIChat: StateCreator<
     const currentSession = sessionSelectors.currentSession(useSessionStore.getState());
 
     // 读取当前会话激活的 skill slugs（按需注入，仅 claude 引擎使用）
-    const sessionSkillSlugsForRequest = (() => {
-      const skillsState = getSkillsStoreState();
-      const sessionSlugs = skillsState.getSessionSkills(activeId);
-      if (sessionSlugs !== null) {
-        // 已有会话级覆盖：直接使用
-        return sessionSlugs;
-      }
-      // 尚未初始化：回退到全局 isEnabled 默认值
-      return skillsState.skills.filter((s) => s.isEnabled).map((s) => s.slug);
-    })();
+    const sessionSkillSlugsForRequest = skillsSelectors.sessionSkillSlugs(activeId)(getSkillsStoreState());
 
     await chatService.createAssistantMessageStream({
       params: {

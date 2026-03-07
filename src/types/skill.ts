@@ -9,6 +9,9 @@
  *   SkillPreference   — user preference record persisted in database
  *   ResolvedSkill     — merged runtime skill used by Agent/Chat (consumption side)
  *   SkillResponse     — API response shape (prompt excluded)
+ *
+ * Note: Database schema only stores user preferences (slug, source, isEnabled, icon).
+ * Content fields (name, description, category, prompt) come from SKILL.md files.
  */
 
 import { skills } from '@/drizzle/schema';
@@ -42,13 +45,19 @@ export type SkillCategory =
 /**
  * Skill entity type (inferred from database schema)
  * Represents a user preference record for a skill.
+ * Only contains preference fields; content comes from SKILL.md.
  */
 export type Skill = typeof skills.$inferSelect;
 
 /**
- * Type for creating a new skill (excludes auto-generated fields)
+ * Type for creating a new skill preference (excludes auto-generated fields)
  */
-export type CreateSkillData = Omit<Skill, 'id' | 'createdAt' | 'updatedAt'>;
+export type CreateSkillData = Omit<Skill, 'id' | 'updatedAt'> & {
+  // For custom skills, the content will be written to SKILL.md
+  name?: string;
+  description?: string;
+  prompt?: string;
+};
 
 // ============== Filesystem Types ==============
 
@@ -70,6 +79,7 @@ export interface ParsedSkill {
   /** Absolute path to SKILL.md */
   skillPath: string;
   version?: string;
+  category?: SkillCategory;
 }
 
 // ============== Resolved (Runtime) Types ==============
@@ -92,39 +102,37 @@ export interface ResolvedSkill extends ParsedSkill {
 
 /**
  * Request type for creating a new custom skill
+ * Creates a SKILL.md file and a DB preference record
  */
 export interface CreateSkillRequest {
   slug: string;
   name: string;
   description: string;
-  category: SkillCategory;
-  source?: SkillSource;
+  /** Prompt content (required for custom skills) */
+  prompt: string;
+  category?: SkillCategory;
   isEnabled?: boolean;
   icon?: string;
-  config?: Record<string, unknown>;
-  /** Prompt content (required for custom skills that have no SKILL.md) */
-  prompt?: string;
 }
 
 /**
  * Request type for updating an existing skill
+ * Uses slug as the identifier instead of ID
  */
 export interface UpdateSkillRequest {
-  id: number;
-  slug?: string;
+  slug: string;
   name?: string;
   description?: string;
-  category?: SkillCategory;
+  prompt?: string;
   isEnabled?: boolean;
   icon?: string;
-  config?: Record<string, unknown>;
 }
 
 /**
  * Request type for toggling a skill's enabled state
  */
 export interface ToggleSkillRequest {
-  id: number;
+  slug: string;
   isEnabled: boolean;
 }
 
@@ -153,17 +161,16 @@ export interface InstallSkillRequest {
 export interface SkillResponse {
   id: number;
   slug: string;
+  /** name, description, version come from SKILL.md */
   name: string;
   description: string;
-  category: SkillCategory;
+  version?: string;
   source: SkillSource;
   icon: string | null;
   isEnabled: boolean;
   isOfficial: boolean;
   isBuiltIn: boolean;
   skillPath: string;
-  version?: string;
-  createdAt: string;
   updatedAt: string;
   /** dbId is present when a database preference record exists */
   dbId?: number;
@@ -176,7 +183,6 @@ export interface SkillResponse {
  */
 export interface SkillSearchParams {
   search?: string;
-  category?: SkillCategory;
   source?: SkillSource;
   limit?: number;
   offset?: number;
@@ -200,7 +206,6 @@ export interface SkillsState {
   loading: boolean;
   error: string | null;
   searchQuery: string;
-  selectedCategory: SkillCategory | null;
   selectedSource: SkillSource | null;
   saving: boolean;
 }
@@ -211,15 +216,6 @@ export interface SkillsState {
  * Form mode for skill editing dialogs
  */
 export type SkillFormMode = 'create' | 'edit';
-
-/**
- * Skill category display metadata
- */
-export interface SkillCategoryDisplay {
-  value: SkillCategory;
-  label: string;
-  icon: string;
-}
 
 /**
  * Skill source display metadata

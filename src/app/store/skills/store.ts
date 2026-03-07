@@ -2,7 +2,7 @@ import { shallow } from 'zustand/shallow';
 import { createWithEqualityFn } from 'zustand/traditional';
 import { StateCreator } from 'zustand/vanilla';
 import { devtools } from 'zustand/middleware';
-import type { SkillCategory, SkillListResponse, SkillResponse, SkillSource } from '@typings/skill';
+import type { SkillListResponse, SkillResponse, SkillSource } from '@typings/skill';
 import { produce } from 'immer';
 
 // ============== State Types ==============
@@ -12,7 +12,6 @@ export interface SkillsState {
   loading: boolean;
   error: string | null;
   searchQuery: string;
-  selectedCategory: SkillCategory | null;
   selectedSource: SkillSource | null;
   saving: boolean;
   /**
@@ -30,7 +29,7 @@ export interface SkillsActions {
   fetchSkills: () => Promise<void>;
 
   // Global toggle (persisted to DB via /api/skills/[id])
-  toggleSkill: (skillId: number, isEnabled: boolean) => Promise<void>;
+  toggleSkill: (slug: string, isEnabled: boolean) => Promise<void>;
 
   /**
    * Toggle a skill for a specific chat session (client-side only, not persisted).
@@ -46,20 +45,17 @@ export interface SkillsActions {
     slug: string;
     name: string;
     description: string;
-    category: SkillCategory;
+    prompt: string;
     icon?: string;
-    config?: Record<string, unknown>;
   }) => Promise<void>;
-  deleteCustomSkill: (skillId: number) => Promise<void>;
+  deleteCustomSkill: (slug: string) => Promise<void>;
 
   // Search and filter
   setSearchQuery: (query: string) => void;
-  setSelectedCategory: (category: SkillCategory | null) => void;
   setSelectedSource: (source: SkillSource | null) => void;
 
   // Computed
   filteredSkills: () => SkillResponse[];
-  categories: () => { value: SkillCategory; count: number }[];
   sources: () => { value: SkillSource; count: number }[];
 
   // Error handling
@@ -74,7 +70,6 @@ const initialState: SkillsState = {
   loading: false,
   error: null,
   searchQuery: '',
-  selectedCategory: null,
   selectedSource: null,
   saving: false,
   sessionActiveSkills: {},
@@ -111,24 +106,24 @@ const createStore: StateCreator<SkillsStore, [['zustand/devtools', never]]> = (s
 
   /**
    * Toggle a skill's enabled state.
-   * Uses PATCH /api/skills/[id] — correct HTTP semantics for a partial update.
+   * Uses PATCH /api/skills/[slug] — slug-based identifier.
    */
-  toggleSkill: async (skillId: number, isEnabled: boolean) => {
+  toggleSkill: async (slug: string, isEnabled: boolean) => {
     set({ saving: true, error: null });
 
     // Optimistic update
     set(
       produce((state) => {
-        const skill = state.skills.find((s: SkillResponse) => s.id === skillId);
+        const skill = state.skills.find((s: SkillResponse) => s.slug === slug);
         if (skill) skill.isEnabled = isEnabled;
       }),
     );
 
     try {
-      const response = await fetch(`/api/skills/${skillId}`, {
+      const response = await fetch(`/api/skills/${slug}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: skillId, isEnabled }),
+        body: JSON.stringify({ slug, isEnabled }),
       });
 
       if (!response.ok) {
@@ -141,7 +136,7 @@ const createStore: StateCreator<SkillsStore, [['zustand/devtools', never]]> = (s
       // Reconcile with server response
       set(
         produce((state) => {
-          const index = state.skills.findIndex((s: SkillResponse) => s.id === skillId);
+          const index = state.skills.findIndex((s: SkillResponse) => s.slug === slug);
           if (index !== -1 && updatedSkill) {
             state.skills[index] = { ...state.skills[index], ...updatedSkill };
           }
@@ -153,7 +148,7 @@ const createStore: StateCreator<SkillsStore, [['zustand/devtools', never]]> = (s
       // Rollback optimistic update on failure
       set(
         produce((state) => {
-          const skill = state.skills.find((s: SkillResponse) => s.id === skillId);
+          const skill = state.skills.find((s: SkillResponse) => s.slug === slug);
           if (skill) skill.isEnabled = !isEnabled;
         }),
       );
@@ -173,7 +168,6 @@ const createStore: StateCreator<SkillsStore, [['zustand/devtools', never]]> = (s
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...data,
-          source: 'custom',
           isEnabled: true,
         }),
       });
@@ -198,11 +192,11 @@ const createStore: StateCreator<SkillsStore, [['zustand/devtools', never]]> = (s
     }
   },
 
-  deleteCustomSkill: async (skillId) => {
+  deleteCustomSkill: async (slug: string) => {
     set({ saving: true, error: null });
 
     try {
-      const response = await fetch(`/api/skills/${skillId}`, {
+      const response = await fetch(`/api/skills/${slug}`, {
         method: 'DELETE',
       });
 
@@ -212,7 +206,7 @@ const createStore: StateCreator<SkillsStore, [['zustand/devtools', never]]> = (s
 
       set(
         produce((state) => {
-          state.skills = state.skills.filter((s: SkillResponse) => s.id !== skillId);
+          state.skills = state.skills.filter((s: SkillResponse) => s.slug !== slug);
         }),
       );
 
@@ -254,14 +248,12 @@ const createStore: StateCreator<SkillsStore, [['zustand/devtools', never]]> = (s
 
   setSearchQuery: (query: string) => set({ searchQuery: query }),
 
-  setSelectedCategory: (category: SkillCategory | null) => set({ selectedCategory: category }),
-
   setSelectedSource: (source: SkillSource | null) => set({ selectedSource: source }),
 
   // ── Computed ───────────────────────────────────────────────────────────
 
   filteredSkills: () => {
-    const { skills, searchQuery, selectedCategory, selectedSource } = get();
+    const { skills, searchQuery, selectedSource } = get();
 
     return skills.filter((skill) => {
       if (searchQuery) {
@@ -273,28 +265,12 @@ const createStore: StateCreator<SkillsStore, [['zustand/devtools', never]]> = (s
         if (!matches) return false;
       }
 
-      if (selectedCategory && skill.category !== selectedCategory) {
-        return false;
-      }
-
       if (selectedSource && skill.source !== selectedSource) {
         return false;
       }
 
       return true;
     });
-  },
-
-  categories: () => {
-    const { skills } = get();
-    const categoryMap = new Map<SkillCategory, number>();
-
-    skills.forEach((skill) => {
-      const count = categoryMap.get(skill.category) || 0;
-      categoryMap.set(skill.category, count + 1);
-    });
-
-    return Array.from(categoryMap.entries()).map(([value, count]) => ({ value, count }));
   },
 
   sources: () => {

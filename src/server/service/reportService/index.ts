@@ -23,7 +23,6 @@ import {
 import { recordPrompt } from '../../utils/file';
 import { nanoid } from 'nanoid';
 import { reportWorkspaceManager } from '@/server/service/reportService/reportWorkspace';
-import { modelProviderResolver } from '../modelProviderResolver';
 import { claudeService } from '../claudeService';
 import type { ApiProvider } from '@/types';
 // LangChain imports for fallback implementation

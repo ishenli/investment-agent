@@ -7,6 +7,9 @@
  *   1. Filesystem (via SkillFileScanner) — source of truth for skill content/metadata
  *   2. Database (via skillRepository) — source of truth for user-specific enabled state
  *
+ * All content (name, description, category, prompt) comes from SKILL.md files.
+ * The database only stores user preferences: slug, source, isEnabled, icon.
+ *
  * Provides the consumption-side API: getSkills(), getEnabledSkills().
  * Supports in-memory cache invalidation after install/update operations.
  */
@@ -31,17 +34,15 @@ const toSkillResponse = (skill: ResolvedSkill): SkillResponse => ({
   slug: skill.id,
   name: skill.name,
   description: skill.description,
-  category: skill.category,
+  version: skill.version,
   source: skill.source,
   icon: skill.icon ?? null,
   isEnabled: skill.isEnabled,
   isOfficial: skill.isOfficial,
   isBuiltIn: skill.isBuiltIn,
   skillPath: skill.skillPath,
-  version: skill.version,
   dbId: skill.dbId,
-  // Timestamps: use filesystem mtime for file-based skills; DB record falls back to now
-  createdAt: new Date(skill.updatedAt).toISOString(),
+  // Timestamps: use filesystem mtime
   updatedAt: new Date(skill.updatedAt).toISOString(),
 });
 
@@ -73,6 +74,9 @@ export class SkillRegistry {
   /**
    * Build the resolved skill list for a user by merging filesystem data
    * with DB preference records (keyed by slug).
+   *
+   * All content comes from SKILL.md files; DB only provides user preferences.
+   * Skills without a SKILL.md file are not shown.
    */
   async resolve(userId: number): Promise<ResolvedSkill[]> {
     if (this.cache.has(userId)) {
@@ -86,46 +90,23 @@ export class SkillRegistry {
     const dbPreferences = await skillRepository.findByUserId(userId);
     const prefMap = new Map(dbPreferences.map((p) => [p.slug, p]));
 
-    // 3. Merge: filesystem is the authoritative source for content;
-    //    DB provides the user's enabled/disabled override.
+    // 3. Get defaults from skills.config.json
     const defaults = this.scanner.loadSkillsDefaults(this.scanner.getSkillRoots());
 
+    // 4. Merge: filesystem is the authoritative source for content;
+    //    DB provides the user's enabled/disabled override and icon.
     const resolved: ResolvedSkill[] = parsedSkills.map((parsed) => {
       const pref = prefMap.get(parsed.id);
       const defaultEnabled = defaults[parsed.id]?.enabled ?? true;
       return {
         ...parsed,
+        category: parsed.category ?? 'other',
         dbId: pref?.id,
         isEnabled: pref ? pref.isEnabled : defaultEnabled,
         source: this.resolveSource(parsed, pref?.source ?? null),
-        category: (pref?.category as SkillCategory | undefined) ?? 'other',
         icon: pref?.icon ?? null,
       };
     });
-
-    // 4. Also include pure custom skills that exist in DB but not on filesystem
-    for (const pref of dbPreferences) {
-      if (!parsedSkills.find((p) => p.id === pref.slug) && pref.source === 'custom') {
-        // Custom skill has no SKILL.md; reconstruct from DB record
-        const customSkill: ResolvedSkill = {
-          id: pref.slug,
-          name: pref.name,
-          description: pref.description,
-          prompt: (pref.config as Record<string, unknown> | null)?.prompt as string ?? '',
-          isOfficial: false,
-          isBuiltIn: false,
-          updatedAt: pref.updatedAt?.getTime() ?? Date.now(),
-          skillPath: '',
-          version: undefined,
-          dbId: pref.id,
-          isEnabled: pref.isEnabled,
-          source: 'custom',
-          category: pref.category as SkillCategory ?? 'other',
-          icon: pref.icon ?? null,
-        };
-        resolved.push(customSkill);
-      }
-    }
 
     this.cache.set(userId, resolved);
     return resolved;
@@ -135,9 +116,11 @@ export class SkillRegistry {
     parsed: ParsedSkill,
     dbSource: string | null,
   ): SkillSource {
+    // DB preference takes precedence
     if (dbSource === 'official' || dbSource === 'community' || dbSource === 'custom') {
       return dbSource;
     }
+    // Fallback to parsed metadata
     if (parsed.isOfficial) return 'official';
     if (parsed.isBuiltIn) return 'official';
     return 'custom';
@@ -150,7 +133,7 @@ export class SkillRegistry {
    * This is the list endpoint used by the management UI.
    */
   async getSkills(userId: number, params: SkillSearchParams = {}): Promise<SkillListResponse> {
-    const { search, category, source, limit = 100, offset = 0 } = params;
+    const { search, source, limit = 100, offset = 0 } = params;
     let skills = await this.resolve(userId);
 
     if (search) {
@@ -161,9 +144,6 @@ export class SkillRegistry {
           s.description.toLowerCase().includes(q) ||
           s.id.toLowerCase().includes(q),
       );
-    }
-    if (category) {
-      skills = skills.filter((s) => s.category === category);
     }
     if (source) {
       skills = skills.filter((s) => s.source === source);
@@ -196,23 +176,31 @@ export class SkillRegistry {
   }
 
   /**
+   * Get resolved skills by an explicit list of slugs, regardless of their global isEnabled state.
+   * Used for session-level skill activation where the user has explicitly chosen skills
+   * in the tool panel — bypassing the global on/off toggle.
+   */
+  async getSkillsBySlugs(userId: number, slugs: string[]): Promise<ResolvedSkill[]> {
+    if (slugs.length === 0) return [];
+    const skills = await this.resolve(userId);
+    const slugSet = new Set(slugs);
+    return skills.filter((s) => slugSet.has(s.id));
+  }
+
+  /**
    * Toggle a skill's enabled state.
-   * Uses (userId, slug) as the upsert key.
+   * Creates a DB preference record if one doesn't exist.
    */
   async toggle(userId: number, slug: string, isEnabled: boolean): Promise<void> {
-    // Find or create a DB preference record
     const existing = await skillRepository.findByUserIdAndSlug(userId, slug);
 
     if (existing) {
       await skillRepository.update(userId, existing.id, { isEnabled });
     } else {
-      // Get metadata from filesystem to populate required DB columns
+      // Determine source from filesystem
       const parsed = this.scanner.scan().find((s) => s.id === slug);
       await skillRepository.create({
         slug,
-        name: parsed?.name ?? slug,
-        description: parsed?.description ?? '',
-        category: 'other',
         source: parsed?.isOfficial ? 'official' : 'custom',
         isEnabled,
         userId,

@@ -9,6 +9,9 @@
  * All filesystem I/O is delegated to SkillInstaller / SkillFileScanner.
  * All state merging is handled by SkillRegistry.
  * This class is purely an orchestration / façade layer.
+ *
+ * Note: Database only stores user preferences (slug, source, isEnabled, icon).
+ * Content fields (name, description, category, prompt) come from SKILL.md files.
  */
 
 import logger from '@server/base/logger';
@@ -35,7 +38,7 @@ export class SkillService {
   /**
    * Get the skill list for the management UI.
    * Merges filesystem skills with the user's DB preference records.
-   * Supports search, category, source filtering and pagination.
+   * Supports search, source filtering and pagination.
    */
   async getSkills(userId: number, params: SkillSearchParams = {}): Promise<SkillListResponse> {
     try {
@@ -47,13 +50,12 @@ export class SkillService {
   }
 
   /**
-   * Get a single skill by its database ID.
-   * Returns the raw DB entity (used by the single-skill detail endpoint).
+   * Get a single skill by slug.
+   * Returns the resolved skill (merged from filesystem + DB).
    */
-  async getSkill(userId: number, skillId: number): Promise<Skill | null> {
+  async getSkill(userId: number, slug: string): Promise<ResolvedSkill | null> {
     try {
-      const skill = await skillRepository.findByUserIdAndId(userId, skillId);
-      return skill ?? null;
+      return await skillRegistry.getBySlug(userId, slug);
     } catch (error) {
       logger.error('[SkillService] Failed to get skill:', error);
       throw new Error('Failed to get skill');
@@ -74,24 +76,33 @@ export class SkillService {
   }
 
   /**
-   * Toggle a skill's enabled/disabled state.
-   * Accepts either an id (DB-based) or the newer slug-based approach.
-   * Uses slug as the canonical business key; falls back to id lookup if slug not supplied.
+   * Get resolved skills by an explicit list of slugs, ignoring global isEnabled state.
+   * Used for session-level skill activation: the user picked these slugs explicitly in
+   * the tool panel, so we must load them even if they are globally disabled.
+   */
+  async getSkillsBySlugs(userId: number, slugs: string[]): Promise<ResolvedSkill[]> {
+    try {
+      return await skillRegistry.getSkillsBySlugs(userId, slugs);
+    } catch (error) {
+      logger.error('[SkillService] Failed to get skills by slugs:', error);
+      throw new Error('Failed to get skills by slugs');
+    }
+  }
+
+  /**
+   * Toggle a skill's enabled/disabled state by slug.
    */
   async toggleSkill(userId: number, data: ToggleSkillRequest): Promise<Skill> {
     try {
-      // Find the skill to get its slug
-      const existing = await skillRepository.findByUserIdAndId(userId, data.id);
-      if (!existing) {
-        throw new Error('Skill not found');
-      }
-
       // Delegate state update to registry (upserts DB preference + invalidates cache)
-      await skillRegistry.toggle(userId, existing.slug, data.isEnabled);
+      await skillRegistry.toggle(userId, data.slug, data.isEnabled);
 
       // Return updated DB entity
-      const updated = await skillRepository.findByUserIdAndId(userId, data.id);
-      return updated!;
+      const updated = await skillRepository.findByUserIdAndSlug(userId, data.slug);
+      if (!updated) {
+        throw new Error('Failed to toggle skill');
+      }
+      return updated;
     } catch (error) {
       logger.error('[SkillService] Failed to toggle skill:', error);
       throw error instanceof Error ? error : new Error('Failed to toggle skill');
@@ -103,7 +114,8 @@ export class SkillService {
   // ─────────────────────────────────────────────────────────────────────────
 
   /**
-   * Create a custom skill (persisted only in the DB, no SKILL.md on disk).
+   * Create a custom skill.
+   * Creates a SKILL.md file on disk and a DB preference record.
    */
   async createSkill(userId: number, data: CreateSkillRequest): Promise<Skill> {
     try {
@@ -112,17 +124,18 @@ export class SkillService {
         throw new Error('Skill slug already exists');
       }
 
+      // Build SKILL.md content
+      const skillContent = this.buildSkillMarkdown(data);
+
+      // Write SKILL.md file
+      skillInstaller.createCustomSkill(data.slug, skillContent);
+
+      // Create DB preference record
       const skillData: CreateSkillData = {
         slug: data.slug,
-        name: data.name,
-        description: data.description,
-        category: data.category,
-        source: data.source ?? 'custom',
+        source: 'custom',
         isEnabled: data.isEnabled !== undefined ? data.isEnabled : true,
-        icon: data.icon,
-        config: data.prompt
-          ? { ...(data.config ?? {}), prompt: data.prompt }
-          : (data.config ?? null),
+        icon: data.icon ?? null,
         userId,
       };
 
@@ -137,32 +150,39 @@ export class SkillService {
 
   /**
    * Update an existing custom skill.
+   * For custom skills: updates SKILL.md content.
+   * For all skills: updates DB preference (isEnabled, icon).
    */
-  async updateSkill(userId: number, skillId: number, data: UpdateSkillRequest): Promise<Skill> {
+  async updateSkill(userId: number, slug: string, data: UpdateSkillRequest): Promise<Skill> {
     try {
-      const existingSkill = await skillRepository.findByUserIdAndId(userId, skillId);
+      const existingSkill = await skillRepository.findByUserIdAndSlug(userId, slug);
       if (!existingSkill) {
         throw new Error('Skill not found');
       }
 
-      if (data.slug && data.slug !== existingSkill.slug) {
-        const slugExists = await skillRepository.isSlugExists(userId, data.slug, skillId);
-        if (slugExists) {
-          throw new Error('Skill slug already exists');
+      // Update filesystem for custom skills
+      if (existingSkill.source === 'custom') {
+        if (data.name || data.description || data.prompt) {
+          try {
+            skillInstaller.updateCustomSkillFiles(slug, {
+              name: data.name,
+              description: data.description,
+              prompt: data.prompt,
+            });
+          } catch (error) {
+            logger.warn('[SkillService] Failed to update SKILL.md:', error);
+            // Continue to update DB preference even if file update fails
+          }
         }
       }
 
+      // Update DB preference
       const updateData: UpdateSkillData = {
-        slug: data.slug,
-        name: data.name,
-        description: data.description,
-        category: data.category,
         isEnabled: data.isEnabled,
         icon: data.icon,
-        config: data.config,
       };
 
-      const skill = await skillRepository.update(userId, skillId, updateData);
+      const skill = await skillRepository.updateBySlug(userId, slug, updateData);
       if (!skill) {
         throw new Error('Failed to update skill');
       }
@@ -179,9 +199,9 @@ export class SkillService {
    * Delete a custom skill.
    * Official skills cannot be deleted (only toggled off).
    */
-  async deleteSkill(userId: number, skillId: number): Promise<boolean> {
+  async deleteSkill(userId: number, slug: string): Promise<boolean> {
     try {
-      const skill = await skillRepository.findByUserIdAndId(userId, skillId);
+      const skill = await skillRepository.findByUserIdAndSlug(userId, slug);
       if (!skill) {
         throw new Error('Skill not found');
       }
@@ -189,7 +209,17 @@ export class SkillService {
         throw new Error('Cannot delete official skills');
       }
 
-      const result = await skillRepository.delete(userId, skillId);
+      // Delete SKILL.md files for custom skills
+      if (skill.source === 'custom') {
+        try {
+          skillInstaller.deleteCustomSkillFiles(slug);
+        } catch (error) {
+          logger.warn('[SkillService] Failed to delete SKILL.md:', error);
+          // Continue to delete DB record even if file deletion fails
+        }
+      }
+
+      const result = await skillRepository.deleteBySlug(userId, slug);
       skillRegistry.invalidate(userId);
       return result;
     } catch (error) {
@@ -251,88 +281,47 @@ export class SkillService {
   /**
    * Sync built-in (filesystem / bundled) skills into the user's DB preference table.
    *
-   * This method is the single entry point for keeping the DB metadata table in sync
-   * with the SKILL.md files on disk. It performs a three-way reconciliation:
+   * This method creates DB preference records for skills found on the filesystem
+   * that don't yet have a preference entry. It also prunes stale DB entries
+   * for skills no longer on the filesystem.
    *
-   *   1. CREATE — skills present on FS but missing from DB get a new DB row.
-   *   2. UPDATE — skills whose name / description / version have drifted in the FS
-   *               get their DB metadata refreshed (user's isEnabled state is preserved).
-   *   3. PRUNE  — DB rows whose slug no longer matches any file-based official/builtin
-   *               skill are deleted (prevents stale entries in the management UI).
+   * Custom skills are never touched by this sync.
    *
-   * Custom skills (source = 'custom') stored only in DB are never touched.
-   * The operation is idempotent — safe to call multiple times or on every startup.
-   *
-   * Returns a summary object with counts for each reconciliation action.
+   * Returns a summary object with counts for each action.
    */
-  async syncBuiltinSkills(userId: number): Promise<{ created: number; updated: number; pruned: number }> {
+  async syncBuiltinSkills(userId: number): Promise<{ created: number; pruned: number }> {
     try {
       const { skillFileScanner } = await import('../lib/skill/SkillFileScanner');
       const parsedSkills = skillFileScanner.scan();
 
-      // Build a set of slugs that are currently on the filesystem and are official/builtin
-      const fsOfficialSlugs = new Set(
-        parsedSkills
-          .filter((p) => p.isBuiltIn || p.isOfficial)
-          .map((p) => p.id),
-      );
+      // Build a set of slugs that are currently on the filesystem
+      const fsSlugs = new Set(parsedSkills.map((p) => p.id));
 
       let created = 0;
-      let updated = 0;
 
-      // ── Pass 1: create / update DB rows for every FS official skill ──────────
+      // Create DB preference records for skills without one
       for (const parsed of parsedSkills) {
-        if (!parsed.isBuiltIn && !parsed.isOfficial) continue;
-
         const existing = await skillRepository.findByUserIdAndSlug(userId, parsed.id);
 
         if (!existing) {
-          // Skill exists on FS but not in DB → create
           await skillRepository.create({
             slug: parsed.id,
-            name: parsed.name,
-            description: parsed.description,
-            category: 'other',
-            source: 'official',
+            source: parsed.isOfficial || parsed.isBuiltIn ? 'official' : 'custom',
             isEnabled: true,
             userId,
           });
           created++;
-          logger.debug(`[SkillService] syncBuiltinSkills: created "${parsed.id}"`);
-        } else {
-          // Skill exists in both places → refresh metadata if it has drifted
-          const nameChanged = existing.name !== parsed.name;
-          const descChanged = existing.description !== parsed.description;
-          const versionChanged =
-            parsed.version !== undefined &&
-            (existing.config as Record<string, unknown> | null)?.version !== parsed.version;
-
-          if (nameChanged || descChanged || versionChanged) {
-            const updatePayload: Record<string, unknown> = {};
-            if (nameChanged) updatePayload.name = parsed.name;
-            if (descChanged) updatePayload.description = parsed.description;
-            if (versionChanged) {
-              updatePayload.config = {
-                ...((existing.config as Record<string, unknown> | null) ?? {}),
-                version: parsed.version,
-              };
-            }
-
-            await skillRepository.update(userId, existing.id, updatePayload);
-            updated++;
-            logger.debug(`[SkillService] syncBuiltinSkills: updated metadata for "${parsed.id}"`);
-          }
+          logger.debug(`[SkillService] syncBuiltinSkills: created preference for "${parsed.id}"`);
         }
       }
 
-      // ── Pass 2: prune DB rows for official skills no longer on the filesystem ─
-      const dbOfficialSkills = (await skillRepository.findByUserId(userId)).filter(
-        (s) => s.source === 'official',
-      );
-
+      // Prune DB rows for official skills no longer on the filesystem
+      const dbSkills = await skillRepository.findByUserId(userId);
       let pruned = 0;
-      for (const dbSkill of dbOfficialSkills) {
-        if (!fsOfficialSlugs.has(dbSkill.slug)) {
+
+      for (const dbSkill of dbSkills) {
+        // Only prune official skills that are no longer on filesystem
+        if (dbSkill.source === 'official' && !fsSlugs.has(dbSkill.slug)) {
           await skillRepository.delete(userId, dbSkill.id);
           pruned++;
           logger.debug(`[SkillService] syncBuiltinSkills: pruned stale DB row for "${dbSkill.slug}"`);
@@ -341,14 +330,48 @@ export class SkillService {
 
       skillRegistry.invalidate(userId);
       logger.info(
-        `[SkillService] syncBuiltinSkills for user ${userId}: ` +
-          `created=${created}, updated=${updated}, pruned=${pruned}`,
+        `[SkillService] syncBuiltinSkills for user ${userId}: created=${created}, pruned=${pruned}`,
       );
-      return { created, updated, pruned };
+      return { created, pruned };
     } catch (error) {
       logger.error('[SkillService] Failed to sync builtin skills:', error);
       throw new Error('Failed to sync builtin skills');
     }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Private helpers
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Build SKILL.md content from CreateSkillRequest
+   */
+  private buildSkillMarkdown(data: CreateSkillRequest): string {
+    const frontmatter: Record<string, string> = {
+      name: data.name,
+      description: data.description,
+    };
+
+    const yamlLines = Object.entries(frontmatter)
+      .filter(([, v]) => v !== undefined)
+      .map(([k, v]) => `${k}: ${this.quoteIfNeeded(v)}`);
+
+    return `---
+${yamlLines.join('\n')}
+---
+
+${data.prompt.trim()}
+`;
+  }
+
+  /**
+   * Quote a string if it contains special YAML characters
+   */
+  private quoteIfNeeded(value: string): string {
+    if (value.includes(':') || value.includes('#') || value.includes('\n')) {
+      return `"${value.replace(/"/g, '\\"')}"`;
+    }
+    return value;
   }
 }
 

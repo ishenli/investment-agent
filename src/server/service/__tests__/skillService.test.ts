@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SkillService } from '../skillService';
 import { skillRepository } from '../../repository/skillRepository';
+import { skillRegistry } from '../../lib/skill/SkillRegistry';
+import { skillInstaller } from '../../lib/skill/SkillInstaller';
 
-// Mock skillRepository
+// Mock dependencies
 vi.mock('../../repository/skillRepository', () => ({
   skillRepository: {
     findByUserId: vi.fn(),
@@ -11,8 +13,38 @@ vi.mock('../../repository/skillRepository', () => ({
     countByUserId: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
+    updateBySlug: vi.fn(),
     delete: vi.fn(),
+    deleteBySlug: vi.fn(),
     isSlugExists: vi.fn(),
+  },
+}));
+
+vi.mock('../../lib/skill/SkillRegistry', () => ({
+  skillRegistry: {
+    getSkills: vi.fn(),
+    getBySlug: vi.fn(),
+    getEnabledSkills: vi.fn(),
+    getSkillsBySlugs: vi.fn(),
+    toggle: vi.fn(),
+    invalidate: vi.fn(),
+  },
+}));
+
+vi.mock('../../lib/skill/SkillInstaller', () => ({
+  skillInstaller: {
+    createCustomSkill: vi.fn(),
+    updateCustomSkillFiles: vi.fn(),
+    deleteCustomSkillFiles: vi.fn(),
+    install: vi.fn(),
+  },
+}));
+
+vi.mock('../../lib/skill/SkillFileScanner', () => ({
+  skillFileScanner: {
+    scan: vi.fn(() => []),
+    getSkillRoots: vi.fn(() => []),
+    loadSkillsDefaults: vi.fn(() => ({})),
   },
 }));
 
@@ -26,28 +58,29 @@ describe('SkillService', () => {
   });
 
   describe('getSkills', () => {
-    it('should return skills list with pagination', async () => {
+    it('should return skills list from registry', async () => {
       const mockSkills = [
         {
-          id: 1,
+          id: 0,
           slug: 'test-skill',
           name: 'Test Skill',
           description: 'A test skill',
-          category: 'testing',
+          version: '1.0.0',
           source: 'custom',
           isEnabled: true,
-          icon: '🧪',
-          config: {},
-          userId: mockUserId,
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          isOfficial: false,
+          isBuiltIn: false,
+          icon: null,
+          skillPath: '/path/to/skill',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+          dbId: 1,
         },
       ];
 
-      const mockCount = 1;
-
-      (skillRepository.findByUserId as jest.Mock).mockResolvedValue(mockSkills);
-      (skillRepository.countByUserId as jest.Mock).mockResolvedValue(mockCount);
+      (skillRegistry.getSkills as ReturnType<typeof vi.fn>).mockResolvedValue({
+        skills: mockSkills,
+        totalCount: 1,
+      });
 
       const result = await skillService.getSkills(mockUserId, {
         limit: 10,
@@ -55,144 +88,127 @@ describe('SkillService', () => {
       });
 
       expect(result).toEqual({
-        items: [
-          {
-            id: 1,
-            slug: 'test-skill',
-            name: 'Test Skill',
-            description: 'A test skill',
-            category: 'testing',
-            source: 'custom',
-            isEnabled: true,
-            icon: '🧪',
-            config: {},
-            createdAt: mockSkills[0].createdAt.toISOString(),
-            updatedAt: mockSkills[0].updatedAt.toISOString(),
-          },
-        ],
+        skills: mockSkills,
         totalCount: 1,
       });
-
-      expect(skillRepository.findByUserId).toHaveBeenCalledWith(mockUserId, {
+      expect(skillRegistry.getSkills).toHaveBeenCalledWith(mockUserId, {
         limit: 10,
         offset: 0,
       });
-      expect(skillRepository.countByUserId).toHaveBeenCalledWith(mockUserId, {});
     });
 
-    it('should handle search parameters', async () => {
-      const mockSkills = [];
-      const mockCount = 0;
-
-      (skillRepository.findByUserId as jest.Mock).mockResolvedValue(mockSkills);
-      (skillRepository.countByUserId as jest.Mock).mockResolvedValue(mockCount);
+    it('should pass search and source parameters to registry', async () => {
+      (skillRegistry.getSkills as ReturnType<typeof vi.fn>).mockResolvedValue({
+        skills: [],
+        totalCount: 0,
+      });
 
       await skillService.getSkills(mockUserId, {
         search: 'test',
-        category: 'testing',
         source: 'custom',
       });
 
-      expect(skillRepository.findByUserId).toHaveBeenCalledWith(mockUserId, {
+      expect(skillRegistry.getSkills).toHaveBeenCalledWith(mockUserId, {
         search: 'test',
-        category: 'testing',
-        source: 'custom',
-        limit: 100,
-        offset: 0,
-      });
-      expect(skillRepository.countByUserId).toHaveBeenCalledWith(mockUserId, {
-        search: 'test',
-        category: 'testing',
         source: 'custom',
       });
     });
   });
 
   describe('getSkill', () => {
-    it('should return a skill by id', async () => {
+    it('should return a skill by slug', async () => {
       const mockSkill = {
-        id: 1,
-        slug: 'test-skill',
+        id: 'test-skill',
         name: 'Test Skill',
         description: 'A test skill',
-        category: 'testing',
-        source: 'custom',
+        prompt: 'Test prompt',
+        isOfficial: false,
+        isBuiltIn: false,
+        updatedAt: Date.now(),
+        skillPath: '/path/to/skill',
+        dbId: 1,
         isEnabled: true,
-        icon: '🧪',
-        config: {},
-        userId: mockUserId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        source: 'custom',
+        category: 'other',
+        icon: null,
       };
 
-      (skillRepository.findByUserIdAndId as jest.Mock).mockResolvedValue(mockSkill);
+      (skillRegistry.getBySlug as ReturnType<typeof vi.fn>).mockResolvedValue(mockSkill);
 
-      const result = await skillService.getSkill(mockUserId, 1);
+      const result = await skillService.getSkill(mockUserId, 'test-skill');
 
-      expect(result).toEqual({
-        id: 1,
-        slug: 'test-skill',
-        name: 'Test Skill',
-        description: 'A test skill',
-        category: 'testing',
-        source: 'custom',
-        isEnabled: true,
-        icon: '🧪',
-        config: {},
-        userId: mockUserId,
-        createdAt: mockSkill.createdAt,
-        updatedAt: mockSkill.updatedAt,
-      });
-      expect(skillRepository.findByUserIdAndId).toHaveBeenCalledWith(mockUserId, 1);
+      expect(result).toEqual(mockSkill);
+      expect(skillRegistry.getBySlug).toHaveBeenCalledWith(mockUserId, 'test-skill');
     });
 
     it('should return null if skill not found', async () => {
-      (skillRepository.findByUserIdAndId as jest.Mock).mockResolvedValue(null);
+      (skillRegistry.getBySlug as ReturnType<typeof vi.fn>).mockResolvedValue(null);
 
-      const result = await skillService.getSkill(mockUserId, 999);
+      const result = await skillService.getSkill(mockUserId, 'nonexistent');
 
       expect(result).toBeNull();
     });
   });
 
+  describe('getEnabledSkills', () => {
+    it('should return enabled skills from registry', async () => {
+      const mockSkills = [
+        {
+          id: 'enabled-skill',
+          name: 'Enabled Skill',
+          description: 'An enabled skill',
+          prompt: 'Test prompt',
+          isEnabled: true,
+        },
+      ];
+
+      (skillRegistry.getEnabledSkills as ReturnType<typeof vi.fn>).mockResolvedValue(mockSkills);
+
+      const result = await skillService.getEnabledSkills(mockUserId);
+
+      expect(result).toEqual(mockSkills);
+      expect(skillRegistry.getEnabledSkills).toHaveBeenCalledWith(mockUserId);
+    });
+  });
+
   describe('createSkill', () => {
-    it('should create a new skill', async () => {
+    it('should create a new skill with SKILL.md', async () => {
       const createData = {
         slug: 'new-skill',
         name: 'New Skill',
         description: 'A new skill',
-        category: 'testing',
-        source: 'custom',
+        prompt: 'Test prompt',
         isEnabled: true,
         icon: '🆕',
-        config: { test: true },
       };
 
       const mockSkill = {
         id: 1,
-        ...createData,
+        slug: 'new-skill',
+        source: 'custom',
+        isEnabled: true,
+        icon: '🆕',
         userId: mockUserId,
-        createdAt: new Date(),
         updatedAt: new Date(),
       };
 
-      (skillRepository.isSlugExists as jest.Mock).mockResolvedValue(false);
-      (skillRepository.create as jest.Mock).mockResolvedValue(mockSkill);
+      (skillRepository.isSlugExists as ReturnType<typeof vi.fn>).mockResolvedValue(false);
+      (skillRepository.create as ReturnType<typeof vi.fn>).mockResolvedValue(mockSkill);
+      (skillInstaller.createCustomSkill as ReturnType<typeof vi.fn>).mockReturnValue('/path/to/skill');
 
       const result = await skillService.createSkill(mockUserId, createData);
 
-      expect(result).toEqual({
-        id: 1,
-        ...createData,
-        userId: mockUserId,
-        createdAt: mockSkill.createdAt,
-        updatedAt: mockSkill.updatedAt,
-      });
+      expect(result).toEqual(mockSkill);
       expect(skillRepository.isSlugExists).toHaveBeenCalledWith(mockUserId, 'new-skill');
+      expect(skillInstaller.createCustomSkill).toHaveBeenCalled();
       expect(skillRepository.create).toHaveBeenCalledWith({
-        ...createData,
+        slug: 'new-skill',
+        source: 'custom',
+        isEnabled: true,
+        icon: '🆕',
         userId: mockUserId,
       });
+      expect(skillRegistry.invalidate).toHaveBeenCalledWith(mockUserId);
     });
 
     it('should throw error if slug already exists', async () => {
@@ -200,11 +216,10 @@ describe('SkillService', () => {
         slug: 'existing-skill',
         name: 'Existing Skill',
         description: 'An existing skill',
-        category: 'testing',
-        source: 'custom',
+        prompt: 'Test prompt',
       };
 
-      (skillRepository.isSlugExists as jest.Mock).mockResolvedValue(true);
+      (skillRepository.isSlugExists as ReturnType<typeof vi.fn>).mockResolvedValue(true);
 
       await expect(skillService.createSkill(mockUserId, createData))
         .rejects
@@ -218,115 +233,67 @@ describe('SkillService', () => {
     it('should update an existing skill', async () => {
       const existingSkill = {
         id: 1,
-        slug: 'old-slug',
-        name: 'Old Name',
-        description: 'Old description',
-        category: 'testing',
+        slug: 'test-skill',
         source: 'custom',
         isEnabled: true,
-        icon: '옛',
-        config: {},
+        icon: null,
         userId: mockUserId,
-        createdAt: new Date(),
         updatedAt: new Date(),
       };
 
       const updateData = {
-        id: 1,
-        slug: 'new-slug',
-        name: 'New Name',
-        description: 'New description',
+        slug: 'test-skill',
+        name: 'Updated Name',
+        description: 'Updated description',
+        isEnabled: false,
       };
 
       const updatedSkill = {
         ...existingSkill,
-        ...updateData,
+        isEnabled: false,
         updatedAt: new Date(),
       };
 
-      (skillRepository.findByUserIdAndId as jest.Mock).mockResolvedValue(existingSkill);
-      (skillRepository.isSlugExists as jest.Mock).mockResolvedValue(false);
-      (skillRepository.update as jest.Mock).mockResolvedValue(updatedSkill);
+      (skillRepository.findByUserIdAndSlug as ReturnType<typeof vi.fn>).mockResolvedValue(existingSkill);
+      (skillRepository.updateBySlug as ReturnType<typeof vi.fn>).mockResolvedValue(updatedSkill);
 
-      const result = await skillService.updateSkill(mockUserId, 1, updateData);
+      const result = await skillService.updateSkill(mockUserId, 'test-skill', updateData);
 
-      expect(result).toEqual({
-        id: 1,
-        slug: 'new-slug',
-        name: 'New Name',
-        description: 'New description',
-        category: 'testing',
-        source: 'custom',
-        isEnabled: true,
-        icon: '옛',
-        config: {},
-        userId: mockUserId,
-        createdAt: existingSkill.createdAt,
-        updatedAt: updatedSkill.updatedAt,
-      });
+      expect(result).toEqual(updatedSkill);
+      expect(skillRegistry.invalidate).toHaveBeenCalledWith(mockUserId);
     });
 
     it('should throw error if skill not found', async () => {
-      const updateData = {
-        id: 999,
-        name: 'New Name',
-      };
+      (skillRepository.findByUserIdAndSlug as ReturnType<typeof vi.fn>).mockResolvedValue(null);
 
-      (skillRepository.findByUserIdAndId as jest.Mock).mockResolvedValue(null);
-
-      await expect(skillService.updateSkill(mockUserId, 999, updateData))
+      await expect(skillService.updateSkill(mockUserId, 'nonexistent', { slug: 'nonexistent' }))
         .rejects
         .toThrow('Skill not found');
     });
   });
 
   describe('toggleSkill', () => {
-    it('should toggle skill enabled state', async () => {
-      const existingSkill = {
+    it('should toggle skill enabled state by slug', async () => {
+      const mockSkill = {
         id: 1,
         slug: 'test-skill',
-        name: 'Test Skill',
-        description: 'A test skill',
-        category: 'testing',
         source: 'custom',
-        isEnabled: true,
-        icon: '🧪',
-        config: {},
-        userId: mockUserId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      const updatedSkill = {
-        ...existingSkill,
         isEnabled: false,
+        icon: null,
+        userId: mockUserId,
         updatedAt: new Date(),
       };
 
-      (skillRepository.update as jest.Mock).mockResolvedValue(updatedSkill);
+      (skillRegistry.toggle as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+      (skillRepository.findByUserIdAndSlug as ReturnType<typeof vi.fn>).mockResolvedValue(mockSkill);
 
       const result = await skillService.toggleSkill(mockUserId, {
-        id: 1,
+        slug: 'test-skill',
         isEnabled: false,
       });
 
-      expect(result).toEqual({
-        id: 1,
-        slug: 'test-skill',
-        name: 'Test Skill',
-        description: 'A test skill',
-        category: 'testing',
-        source: 'custom',
-        isEnabled: false,
-        icon: '🧪',
-        config: {},
-        userId: mockUserId,
-        createdAt: existingSkill.createdAt,
-        updatedAt: updatedSkill.updatedAt,
-      });
-      expect(skillRepository.update).toHaveBeenCalledWith(mockUserId, 1, {
-        isEnabled: false,
-      });
+      expect(result).toEqual(mockSkill);
+      expect(skillRegistry.toggle).toHaveBeenCalledWith(mockUserId, 'test-skill', false);
     });
   });
 
@@ -335,100 +302,66 @@ describe('SkillService', () => {
       const existingSkill = {
         id: 1,
         slug: 'test-skill',
-        name: 'Test Skill',
-        description: 'A test skill',
-        category: 'testing',
         source: 'custom',
         isEnabled: true,
-        icon: '🧪',
-        config: {},
+        icon: null,
         userId: mockUserId,
-        createdAt: new Date(),
         updatedAt: new Date(),
       };
 
-      (skillRepository.findByUserIdAndId as jest.Mock).mockResolvedValue(existingSkill);
-      (skillRepository.delete as jest.Mock).mockResolvedValue(true);
+      (skillRepository.findByUserIdAndSlug as ReturnType<typeof vi.fn>).mockResolvedValue(existingSkill);
+      (skillRepository.deleteBySlug as ReturnType<typeof vi.fn>).mockResolvedValue(true);
+      (skillInstaller.deleteCustomSkillFiles as ReturnType<typeof vi.fn>).mockReturnValue(undefined);
 
-      const result = await skillService.deleteSkill(mockUserId, 1);
+      const result = await skillService.deleteSkill(mockUserId, 'test-skill');
 
       expect(result).toBe(true);
-      expect(skillRepository.delete).toHaveBeenCalledWith(mockUserId, 1);
+      expect(skillInstaller.deleteCustomSkillFiles).toHaveBeenCalledWith('test-skill');
+      expect(skillRepository.deleteBySlug).toHaveBeenCalledWith(mockUserId, 'test-skill');
+      expect(skillRegistry.invalidate).toHaveBeenCalledWith(mockUserId);
     });
 
     it('should not delete official skills', async () => {
       const existingSkill = {
         id: 1,
         slug: 'official-skill',
-        name: 'Official Skill',
-        description: 'An official skill',
-        category: 'testing',
         source: 'official',
         isEnabled: true,
-        icon: '✅',
-        config: {},
+        icon: null,
         userId: mockUserId,
-        createdAt: new Date(),
         updatedAt: new Date(),
       };
 
-      (skillRepository.findByUserIdAndId as jest.Mock).mockResolvedValue(existingSkill);
+      (skillRepository.findByUserIdAndSlug as ReturnType<typeof vi.fn>).mockResolvedValue(existingSkill);
 
-      await expect(skillService.deleteSkill(mockUserId, 1))
+      await expect(skillService.deleteSkill(mockUserId, 'official-skill'))
         .rejects
         .toThrow('Cannot delete official skills');
 
-      expect(skillRepository.delete).not.toHaveBeenCalled();
+      expect(skillRepository.deleteBySlug).not.toHaveBeenCalled();
     });
   });
 
   describe('syncBuiltinSkills', () => {
-    it('should sync builtin skills', async () => {
-      const mockSkills = [
-        {
-          slug: 'market-analysis',
-          name: 'Market Analysis',
-          description: 'Analyze market trends',
-          category: 'brainstorming',
-          source: 'official',
-          icon: '📊',
-        },
-        {
-          slug: 'news-analysis',
-          name: 'News Analysis',
-          description: 'Analyze financial news',
-          category: 'brainstorming',
-          source: 'official',
-          icon: '📰',
-        },
-        {
-          slug: 'risk-assessment',
-          name: 'Risk Assessment',
-          description: 'Assess investment risks',
-          category: 'debugging',
-          source: 'official',
-          icon: '⚠️',
-        },
-        {
-          slug: 'portfolio-optimization',
-          name: 'Portfolio Optimization',
-          description: 'Optimize portfolio allocation',
-          category: 'optimization',
-          source: 'official',
-          icon: '📈',
-        },
+    it('should sync skills from filesystem', async () => {
+      // Mock filesystem skills
+      const mockParsedSkills = [
+        { id: 'skill-1', name: 'Skill 1', description: 'Desc 1', isOfficial: true, isBuiltIn: true },
+        { id: 'skill-2', name: 'Skill 2', description: 'Desc 2', isOfficial: true, isBuiltIn: true },
       ];
 
-      // Mock that all skills don't exist initially
-      (skillRepository.findByUserIdAndSlug as jest.Mock).mockResolvedValue(null);
-      
-      // Mock create to return something
-      (skillRepository.create as jest.Mock).mockResolvedValue({});
+      const { skillFileScanner } = await import('../../lib/skill/SkillFileScanner');
+      vi.mocked(skillFileScanner.scan).mockReturnValue(mockParsedSkills as any);
+
+      // Mock no existing preferences
+      (skillRepository.findByUserIdAndSlug as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      (skillRepository.findByUserId as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+      (skillRepository.create as ReturnType<typeof vi.fn>).mockResolvedValue({});
 
       const result = await skillService.syncBuiltinSkills(mockUserId);
 
-      expect(result).toBe(5); // All 5 skills should be created
-      expect(skillRepository.create).toHaveBeenCalledTimes(5);
+      expect(result.created).toBe(2);
+      expect(result.pruned).toBe(0);
     });
   });
 });

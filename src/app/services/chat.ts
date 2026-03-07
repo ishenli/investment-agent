@@ -415,6 +415,8 @@ class ChatService {
           stream: true,
           tools: pluginIds,
           engineType: params.engineType,
+          mode: params.mode,
+          skills: params.skills,
         },
         abortController,
         onMessageHandle,

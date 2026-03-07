@@ -409,21 +409,18 @@ export const portfolioSnapshots = sqliteTable('portfolio_snapshots', {
   index('idx_portfolio_snapshots_date').on(table.snapshotDate),
 ]);
 
-// 技能表：管理用户的 AI 技能配置
+// 技能表：管理用户的 AI 技能偏好设置
+// 说明：name, description, category, config 等内容字段由文件系统 (SKILL.md) 管理
+// 数据库仅存储用户偏好：启用状态、自定义图标等
 export const skills = sqliteTable('skills', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  slug: text('slug').notNull(),
-  name: text('name').notNull(),
-  description: text('description').notNull(),
-  category: text('category').notNull(),
-  source: text('source').notNull(),
+  slug: text('slug').notNull(), // 业务主键，对应 SKILL.md 目录名
+  source: text('source').notNull(), // official | community | custom
   isEnabled: integer('is_enabled', { mode: 'boolean' }).notNull().default(true),
-  icon: text('icon'),
-  config: text('config', { mode: 'json' }),
+  icon: text('icon'), // 用户自定义图标
   userId: integer('user_id')
     .notNull()
     .references(() => users.id),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 }, (table) => [
   // 索引：按用户 ID 查询

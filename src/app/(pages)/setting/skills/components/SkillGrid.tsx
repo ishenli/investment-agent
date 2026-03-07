@@ -8,14 +8,14 @@ import { useTranslation } from 'react-i18next';
 
 interface SkillGridProps {
   skills: SkillResponse[];
-  onToggle: (skillId: number, isEnabled: boolean) => void;
-  onDelete?: (skillId: number) => void;
+  onToggle: (slug: string, isEnabled: boolean) => void;
+  onDelete?: (slug: string) => void;
 }
 
 export function SkillGrid({ skills, onToggle, onDelete }: SkillGridProps) {
   const { saving } = useSkillsStore();
   const { t } = useTranslation('setting');
-  
+
   if (skills.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
@@ -27,10 +27,10 @@ export function SkillGrid({ skills, onToggle, onDelete }: SkillGridProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-6">
       {skills.map((skill) => (
         <SkillCard
-          key={skill.id}
+          key={skill.slug}
           skill={skill}
           onToggle={onToggle}
           onDelete={onDelete}

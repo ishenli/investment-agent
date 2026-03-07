@@ -6,27 +6,15 @@ import { Badge } from '@renderer/components/ui/badge';
 import { Switch } from '@renderer/components/ui/switch';
 import { Button } from '@renderer/components/ui/button';
 import { IconTrash, IconLock, IconSettings } from '@tabler/icons-react';
-import type { SkillResponse, SkillCategory, SkillSource } from '@typings/skill';
+import type { SkillResponse, SkillSource } from '@typings/skill';
 import { useTranslation } from 'react-i18next';
 
 interface SkillCardProps {
   skill: SkillResponse;
-  onToggle: (skillId: number, isEnabled: boolean) => void;
-  onDelete?: (skillId: number) => void;
+  onToggle: (slug: string, isEnabled: boolean) => void;
+  onDelete?: (slug: string) => void;
   saving?: boolean;
 }
-
-const categoryColors: Record<SkillCategory, string> = {
-  brainstorming: 'bg-blue-100 text-blue-800',
-  debugging: 'bg-red-100 text-red-800',
-  tdd: 'bg-green-100 text-green-800',
-  'code-review': 'bg-purple-100 text-purple-800',
-  testing: 'bg-indigo-100 text-indigo-800',
-  documentation: 'bg-yellow-100 text-yellow-800',
-  optimization: 'bg-teal-100 text-teal-800',
-  refactoring: 'bg-pink-100 text-pink-800',
-  other: 'bg-gray-100 text-gray-800',
-};
 
 const sourceColors: Record<SkillSource, string> = {
   official: 'bg-green-100 text-green-800',
@@ -50,13 +38,6 @@ export function SkillCard({ skill, onToggle, onDelete, saving = false }: SkillCa
               </CardTitle>
 
               <div className="flex flex-wrap gap-2 mt-2">
-                <Badge
-                  className={
-                    categoryColors[skill.category as SkillCategory] || categoryColors.other
-                  }
-                >
-                  {t(`skills.categories.${skill.category}` as any) || skill.category}
-                </Badge>
                 <Badge className={sourceColors[skill.source as SkillSource] || sourceColors.custom}>
                   {t(`skills.sources.${skill.source}` as any) || skill.source}
                 </Badge>
@@ -75,7 +56,7 @@ export function SkillCard({ skill, onToggle, onDelete, saving = false }: SkillCa
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onDelete(skill.id)}
+                onClick={() => onDelete(skill.slug)}
                 disabled={saving}
                 className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
               >
@@ -85,7 +66,7 @@ export function SkillCard({ skill, onToggle, onDelete, saving = false }: SkillCa
 
             <Switch
               checked={skill.isEnabled}
-              onCheckedChange={(checked) => onToggle(skill.id, checked)}
+              onCheckedChange={(checked) => onToggle(skill.slug, checked)}
               disabled={saving}
             />
           </div>
@@ -94,6 +75,9 @@ export function SkillCard({ skill, onToggle, onDelete, saving = false }: SkillCa
 
       <CardContent className="pt-0">
         <p className="text-sm leading-relaxed">{skill.description}</p>
+        <p className="flex items-center gap-2 mt-4">
+        {skill.skillPath}
+        </p>
       </CardContent>
     </Card>
   );

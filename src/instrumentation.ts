@@ -62,7 +62,7 @@ export async function register() {
             const result = await skillService.syncBuiltinSkills(user.id);
             logger.info(
               `[Instrumentation] Skills synced for user ${user.id}: ` +
-                `created=${result.created}, updated=${result.updated}, pruned=${result.pruned}`,
+                `created=${result.created}, pruned=${result.pruned}`,
             );
           } catch (err) {
             logger.warn(`[Instrumentation] Skills sync failed for user ${user.id}:`, err);

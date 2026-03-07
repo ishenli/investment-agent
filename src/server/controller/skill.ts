@@ -10,77 +10,47 @@ import authService from '../service/authService';
 import { skillService } from '../service/skillService';
 import { BaseBizController } from './base';
 import { z } from 'zod';
-import type { SkillCategory, SkillSource } from '@typings/skill';
+import type { SkillSource } from '@typings/skill';
 import logger from '../base/logger';
 
 // ─── Validation schemas ───────────────────────────────────────────────────────
 
 export const GetSkillsSchema = z.object({
   search: z.string().optional(),
-  category: z.string().optional(),
   source: z.string().optional(),
   limit: z.number().optional().default(100),
   offset: z.number().optional().default(0),
 });
 
-export const GetSkillByIdSchema = z.object({
-  id: z
-    .union([z.string(), z.number()])
-    .transform((val) => {
-      const n = typeof val === 'string' ? parseInt(val, 10) : val;
-      return n;
-    })
-    .refine((val) => !isNaN(val), { message: 'Invalid ID format' }),
+export const GetSkillBySlugSchema = z.object({
+  slug: z.string().min(1, 'Slug is required'),
 });
 
 export const CreateSkillSchema = z.object({
   slug: z.string().min(1, 'Slug is required'),
   name: z.string().min(1, 'Name is required'),
-  prompt: z.string().optional(),
+  prompt: z.string().min(1, 'Prompt is required'),
   description: z.string().min(1, 'Description is required'),
-  category: z.enum([
-    'brainstorming',
-    'debugging',
-    'tdd',
-    'code-review',
-    'testing',
-    'documentation',
-    'optimization',
-    'refactoring',
-    'other',
-  ]),
-  source: z.enum(['official', 'community', 'custom']).optional(),
   isEnabled: z.boolean().optional(),
   icon: z.string().optional(),
-  config: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const UpdateSkillSchema = z.object({
-  id: z.number(),
-  slug: z.string().optional(),
+  slug: z.string().min(1, 'Slug is required'),
   name: z.string().optional(),
   description: z.string().optional(),
-  category: z
-    .enum([
-      'brainstorming',
-      'debugging',
-      'tdd',
-      'code-review',
-      'testing',
-      'documentation',
-      'optimization',
-      'refactoring',
-      'other',
-    ])
-    .optional(),
+  prompt: z.string().optional(),
   isEnabled: z.boolean().optional(),
   icon: z.string().optional(),
-  config: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const ToggleSkillSchema = z.object({
-  id: z.number(),
+  slug: z.string().min(1, 'Slug is required'),
   isEnabled: z.boolean(),
+});
+
+export const DeleteSkillSchema = z.object({
+  slug: z.string().min(1, 'Slug is required'),
 });
 
 /**
@@ -111,7 +81,6 @@ export class SkillController extends BaseBizController {
 
       const result = await skillService.getSkills(parseInt(userId), {
         search: parsed.search,
-        category: parsed.category as SkillCategory | undefined,
         source: parsed.source as SkillSource | undefined,
         limit: parsed.limit,
         offset: parsed.offset,
@@ -125,13 +94,13 @@ export class SkillController extends BaseBizController {
   }
 
   @WithRequestContext()
-  async getSkillById(param: z.infer<typeof GetSkillByIdSchema>) {
+  async getSkillBySlug(param: z.infer<typeof GetSkillBySlugSchema>) {
     try {
       const userId = await authService.getCurrentUserId();
       if (!userId) return this.error('用户未登录', 'unauthorized');
 
-      const parsed = await this.validateParams(param, GetSkillByIdSchema);
-      const skill = await skillService.getSkill(parseInt(userId), parsed.id);
+      const parsed = await this.validateParams(param, GetSkillBySlugSchema);
+      const skill = await skillService.getSkill(parseInt(userId), parsed.slug);
 
       if (!skill) return this.error('技能不存在', 'skill_not_found');
 
@@ -171,7 +140,7 @@ export class SkillController extends BaseBizController {
       if (!userId) return this.error('用户未登录', 'unauthorized');
 
       const parsed = await this.validateParams(body, UpdateSkillSchema);
-      const skill = await skillService.updateSkill(parseInt(userId), parsed.id, parsed);
+      const skill = await skillService.updateSkill(parseInt(userId), parsed.slug, parsed);
 
       if (!skill) return this.error('技能不存在', 'skill_not_found');
 
@@ -186,13 +155,13 @@ export class SkillController extends BaseBizController {
   }
 
   @WithRequestContext()
-  async deleteSkill(body: z.infer<typeof GetSkillByIdSchema>) {
+  async deleteSkill(body: z.infer<typeof DeleteSkillSchema>) {
     try {
       const userId = await authService.getCurrentUserId();
       if (!userId) return this.error('用户未登录', 'unauthorized');
 
-      const parsed = await this.validateParams(body, GetSkillByIdSchema);
-      const result = await skillService.deleteSkill(parseInt(userId), parsed.id);
+      const parsed = await this.validateParams(body, DeleteSkillSchema);
+      const result = await skillService.deleteSkill(parseInt(userId), parsed.slug);
 
       if (!result) return this.error('技能不存在或无法删除', 'skill_not_found');
 

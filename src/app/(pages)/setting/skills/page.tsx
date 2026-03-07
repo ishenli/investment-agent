@@ -9,69 +9,53 @@ import { IconSearch, IconPlus, IconRefresh } from '@tabler/icons-react';
 import { SkillGrid } from './components/SkillGrid';
 import { SkillAddDialog } from './components/SkillAddDialog';
 import { useSkillsStore } from '@/app/store/skills/store';
-import type { SkillCategory } from '@typings/skill';
+import type { SkillSource } from '@typings/skill';
 import { useTranslation } from 'react-i18next';
 
 export default function SkillsPage() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const { t } = useTranslation('setting');
-  
+
   const {
     // skills,
     loading,
     saving,
     // error,
     searchQuery,
-    selectedCategory,
+    selectedSource,
     filteredSkills,
-    categories,
+    sources,
     fetchSkills,
     toggleSkill,
     createCustomSkill,
     deleteCustomSkill,
     setSearchQuery,
-    setSelectedCategory,
+    setSelectedSource,
     // setError,
     // clearError,
   } = useSkillsStore();
-  
+
   // 页面加载时获取技能
   useEffect(() => {
     fetchSkills();
   }, [fetchSkills]);
 
-  const handleToggle = async (skillId: number, isEnabled: boolean) => {
+  const handleToggle = async (slug: string, isEnabled: boolean) => {
     try {
-      await toggleSkill(skillId, isEnabled);
+      await toggleSkill(slug, isEnabled);
       // 的成功提示
       console.log(isEnabled ? t('skills.toggle.enabled') : t('skills.toggle.disabled'));
     } catch (error) {
       console.error(t('skills.toggle.failed'), error);
     }
   };
-  
-  const handleDelete = async (skillId: number) => {
+
+  const handleDelete = async (slug: string) => {
     try {
-      await deleteCustomSkill(skillId);
+      await deleteCustomSkill(slug);
       console.log(t('skills.delete.success'));
     } catch (error) {
       console.error(t('skills.delete.failed'), error);
-    }
-  };
-  
-  const handleAddSkill = async (data: {
-    slug: string;
-    name: string;
-    description: string;
-    category: SkillCategory;
-    icon?: string;
-  }) => {
-    try {
-      await createCustomSkill(data);
-      setShowAddDialog(false);
-      console.log(t('skills.create.success'));
-    } catch (error) {
-      console.error(t('skills.create.failed'), error);
     }
   };
 
@@ -79,33 +63,33 @@ export default function SkillsPage() {
     setSearchQuery(value);
   };
 
-  const handleCategoryChange = (value: string) => {
-    setSelectedCategory(value === 'all' ? null : value as SkillCategory);
+  const handleSourceChange = (value: string) => {
+    setSelectedSource(value === 'all' ? null : value as SkillSource);
   };
 
   const handleRefresh = () => {
     fetchSkills();
   };
 
-  const categoryTabs = [
-    { value: 'all', label: t('skills.categories.all') },
-    ...categories().map(cat => ({
-      value: cat.value,
-      label: `${t(`skills.categories.${cat.value}`) || cat.value} (${cat.count})`,
+  const sourceTabs = [
+    { value: 'all', label: t('skills.all' as any) || 'All' },
+    ...sources().map(src => ({
+      value: src.value,
+      label: `${t(`skills.sources.${src.value}` as any) || src.value} (${src.count})`,
     })),
   ];
 
   return (
     <div className="container mx-auto px-2 max-w-7xl">
-      <SkillAddDialog 
-        open={showAddDialog} 
-        onOpenChange={setShowAddDialog} 
+      <SkillAddDialog
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
       />
       <div className="mb-8">
         <h1 className="text-2xl font-bold mb-2">{t('skills.title')}</h1>
         <p className="">{t('skills.description')}</p>
       </div>
-  
+
       {/* 搜索和筛选区域 */}
       <div className="mb-6 space-y-4">
         <div className="flex flex-col sm:flex-row gap-4">
@@ -118,8 +102,8 @@ export default function SkillsPage() {
               className="pl-10"
             />
           </div>
-            
-          <Button 
+
+          <Button
             onClick={handleRefresh}
             disabled={loading || saving}
             variant="outline"
@@ -128,8 +112,8 @@ export default function SkillsPage() {
             <IconRefresh size={16} className={loading ? 'animate-spin' : ''} />
             {t('skills.refresh')}
           </Button>
-            
-          <Button 
+
+          <Button
             onClick={() => setShowAddDialog(true)}
             className="flex items-center gap-2"
           >
@@ -137,15 +121,15 @@ export default function SkillsPage() {
             {t('skills.addSkill')}
           </Button>
         </div>
-  
-        {/* 分类标签 */}
-        <Tabs 
-          value={selectedCategory || 'all'} 
-          onValueChange={handleCategoryChange}
+
+        {/* 来源标签 */}
+        <Tabs
+          value={selectedSource || 'all'}
+          onValueChange={handleSourceChange}
           className="w-full"
         >
-          <TabsList className="grid w-full grid-cols-5">
-            {categoryTabs.map((tab) => (
+          <TabsList className="grid w-full grid-cols-4">
+            {sourceTabs.map((tab) => (
               <TabsTrigger key={tab.value} value={tab.value}>
                 {tab.label}
               </TabsTrigger>
@@ -153,7 +137,7 @@ export default function SkillsPage() {
           </TabsList>
         </Tabs>
       </div>
-  
+
       {/* 技能列表 */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
@@ -164,14 +148,14 @@ export default function SkillsPage() {
             <div className="text-sm">{t('skills.loading')}</div>
           )}
         </div>
-  
+
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground"></div>
           </div>
         ) : (
-          <SkillGrid 
-            skills={filteredSkills()} 
+          <SkillGrid
+            skills={filteredSkills()}
             onToggle={handleToggle}
             onDelete={handleDelete}
           />

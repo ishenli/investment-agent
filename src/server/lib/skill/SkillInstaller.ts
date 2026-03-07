@@ -29,6 +29,7 @@ import {
   SKILLS_CONFIG_FILE,
   listSkillDirs,
   collectSkillDirsFromSource,
+  parseFrontmatter,
 } from './SkillFileScanner';
 import type { InstallResult } from '@/types/skill';
 
@@ -91,6 +92,120 @@ export class SkillInstaller {
 
   constructor(scanner?: SkillFileScanner) {
     this.scanner = scanner ?? new SkillFileScanner();
+  }
+
+  // ── Custom skill creation ─────────────────────────────────────────────────
+
+  /**
+   * Create a custom skill by writing a SKILL.md file.
+   * @param slug Skill directory name (used as identifier)
+   * @param content SKILL.md content with frontmatter
+   * @returns Path to created skill directory
+   */
+  createCustomSkill(slug: string, content: string): string {
+    const root = this.scanner.ensureSkillsRoot();
+    const skillDir = resolveWithin(root, slug);
+
+    // Check if skill already exists
+    if (fs.existsSync(skillDir)) {
+      throw new Error(`Skill "${slug}" already exists`);
+    }
+
+    // Create directory and SKILL.md file
+    fs.mkdirSync(skillDir, { recursive: true });
+    const skillPath = path.join(skillDir, SKILL_FILE_NAME);
+    fs.writeFileSync(skillPath, content, 'utf-8');
+
+    logger.info(`[SkillInstaller] Created custom skill: ${slug}`);
+    return skillDir;
+  }
+
+  /**
+   * Update an existing custom skill's SKILL.md file.
+   * @param slug Skill directory name
+   * @param updates Updates to apply (name, description, prompt, etc.)
+   */
+  updateCustomSkillFiles(slug: string, updates: {
+    name?: string;
+    description?: string;
+    prompt?: string;
+  }): void {
+    const root = this.scanner.getSkillsRoot();
+    const skillDir = resolveWithin(root, slug);
+    const skillPath = path.join(skillDir, SKILL_FILE_NAME);
+
+    if (!fs.existsSync(skillPath)) {
+      throw new Error(`Skill "${slug}" not found on filesystem`);
+    }
+
+    // Read existing content
+    const raw = fs.readFileSync(skillPath, 'utf-8');
+    const { frontmatter, content } = parseFrontmatter(raw);
+
+    // Update frontmatter if provided
+    if (updates.name !== undefined) {
+      frontmatter.name = updates.name;
+    }
+    if (updates.description !== undefined) {
+      frontmatter.description = updates.description;
+    }
+
+    // Reconstruct SKILL.md
+    const newPrompt = updates.prompt !== undefined ? updates.prompt : content;
+    const newContent = this.buildSkillMarkdown(frontmatter, newPrompt);
+
+    fs.writeFileSync(skillPath, newContent, 'utf-8');
+    logger.info(`[SkillInstaller] Updated custom skill: ${slug}`);
+  }
+
+  /**
+   * Delete a custom skill's files from filesystem.
+   * @param slug Skill directory name
+   */
+  deleteCustomSkillFiles(slug: string): void {
+    const root = this.scanner.getSkillsRoot();
+    const skillDir = resolveWithin(root, slug);
+
+    if (!fs.existsSync(skillDir)) {
+      throw new Error(`Skill "${slug}" not found on filesystem`);
+    }
+
+    fs.rmSync(skillDir, { recursive: true, force: true });
+    logger.info(`[SkillInstaller] Deleted custom skill files: ${slug}`);
+  }
+
+  /**
+   * Build SKILL.md content from frontmatter and prompt.
+   */
+  private buildSkillMarkdown(frontmatter: Record<string, unknown>, prompt: string): string {
+    const yamlContent = Object.keys(frontmatter).length > 0
+      ? `---\n${this.toYaml(frontmatter)}\n---\n`
+      : '';
+    return `${yamlContent}${prompt.trim()}\n`;
+  }
+
+  /**
+   * Simple YAML serializer for frontmatter.
+   */
+  private toYaml(obj: Record<string, unknown>, indent = 0): string {
+    const spaces = '  '.repeat(indent);
+    const lines: string[] = [];
+
+    for (const [key, value] of Object.entries(obj)) {
+      if (value === undefined) continue;
+
+      if (typeof value === 'string') {
+        // Quote strings that might need it
+        const needsQuote = value.includes(':') || value.includes('#') || value.includes('\n');
+        lines.push(`${spaces}${key}: ${needsQuote ? `"${value.replace(/"/g, '\\"')}"` : value}`);
+      } else if (typeof value === 'number' || typeof value === 'boolean') {
+        lines.push(`${spaces}${key}: ${value}`);
+      } else if (value === null) {
+        lines.push(`${spaces}${key}: null`);
+      }
+    }
+
+    return lines.join('\n');
   }
 
   // ── Git source normalization ─────────────────────────────────────────────

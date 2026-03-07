@@ -1,22 +1,26 @@
 /**
  * /api/skills/[id]
  *
- * GET    — get single skill by id
+ * GET    — get single skill by slug
  * PUT    — update skill metadata
  * PATCH  — toggle skill enabled state
  * DELETE — delete skill (custom only)
+ *
+ * Note: The path parameter is named [id] for backward compatibility,
+ * but it actually expects a skill slug.
  */
 
 import { WithRequestContextStatic } from '@server/base/decorators';
 import { BaseController } from '../../../api/base/baseController';
-import { SkillController, UpdateSkillSchema, ToggleSkillSchema } from '@/server/controller/skill';
+import { SkillController, UpdateSkillSchema, ToggleSkillSchema, DeleteSkillSchema } from '@/server/controller/skill';
+import logger from '@/server/base/logger';
 
 class SkillDetailHttpController extends BaseController {
   @WithRequestContextStatic()
   static async GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
+    const { id: slug } = await params;
     const controller = new SkillController();
-    return Response.json(await controller.getSkillById({ id: parseInt(id, 10) }));
+    return Response.json(await controller.getSkillBySlug({ slug }));
   }
 
   @WithRequestContextStatic()
@@ -24,9 +28,9 @@ class SkillDetailHttpController extends BaseController {
     try {
       const controller = new SkillController();
       const body = await super.getBody(request);
-      const { id } = await params;
+      const { id: slug } = await params;
       const validatedBody = await this.validateBody(
-        { ...body, id: parseInt(id, 10) },
+        { ...body, slug },
         UpdateSkillSchema,
       );
       return Response.json(await controller.updateSkill(validatedBody));
@@ -47,16 +51,13 @@ class SkillDetailHttpController extends BaseController {
     try {
       const controller = new SkillController();
       const body = await super.getBody(request);
-      const { id } = await params;
-      const validatedBody = await this.validateBody(
-        { ...body, id: parseInt(id, 10) },
-        ToggleSkillSchema,
-      );
-      return Response.json(await controller.toggleSkill(validatedBody));
+      const { id: slug } = await params;
+      return Response.json(await controller.toggleSkill({ ...body, slug }));
     } catch (error) {
       if (error instanceof Error && error.message.includes('Validation')) {
         return this.responseValidateError(JSON.parse(error.message));
       }
+      logger.error('[SkillHttpController]Toggle skill error', error);
       return this.error('切换技能状态失败', 'TOGGLE_SKILL_ERROR');
     }
   }
@@ -64,8 +65,8 @@ class SkillDetailHttpController extends BaseController {
   @WithRequestContextStatic()
   static async DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const controller = new SkillController();
-    const { id } = await params;
-    return Response.json(await controller.deleteSkill({ id: parseInt(id, 10) }));
+    const { id: slug } = await params;
+    return Response.json(await controller.deleteSkill({ slug }));
   }
 }
 
