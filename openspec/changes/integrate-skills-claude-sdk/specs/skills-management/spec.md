@@ -22,36 +22,60 @@ The system SHALL provide built-in plugin capabilities (Artifacts, Local System) 
 
 ---
 
-### Requirement: SkillStorageManager Singleton
-The system SHALL provide a `SkillStorageManager` singleton that serves as the canonical path-management and content-reading façade for Skills, following the `DatabaseManager` design pattern.
+### Requirement: SkillRegistry Content Merging
+The system SHALL merge filesystem content with database preferences in SkillRegistry.
 
-#### Scenario: Skills root path resolution
-- **WHEN** `skillStorageManager.getSkillsRoot()` is called
-- **THEN** it MUST return the resolved absolute path to the `SKILLs/` directory
-- **AND** the path MUST be correct in both Electron and Web environments
+#### Scenario: Resolve skill from FS and DB
+- **WHEN** `SkillRegistry.resolve(userId)` is called
+- **THEN** scan all SKILL.md files from filesystem
+- **AND** load all preference records from database for the user
+- **AND** merge by slug: content from FS, preference (isEnabled, icon) from DB
 
-#### Scenario: Read skills content by slugs
-- **WHEN** `skillStorageManager.readSkillsContent(['lobe-artifacts', 'lobe-local-system'])` is called
-- **THEN** it MUST return an array of prompt strings in the same order as the input slugs
-- **AND** slugs that do not correspond to any discovered skill MUST be skipped (not throw)
+#### Scenario: Skill without preference record
+- **WHEN** a skill exists on filesystem but has no DB preference
+- **THEN** use default `isEnabled` from `skills.config.json` or `true`
+- **AND** return skill without `dbId`
 
-#### Scenario: Singleton pattern enforcement
-- **WHEN** `SkillStorageManager.getInstance()` is called multiple times
-- **THEN** the same instance MUST be returned each time
+#### Scenario: Custom skill requires SKILL.md
+- **WHEN** a skill has `source='custom'` in DB but no SKILL.md file
+- **THEN** the skill MUST NOT appear in the resolved list
+- **AND** a warning SHOULD be logged
+
+---
+
+### Requirement: SkillInstaller FS Operations
+The system SHALL provide SKILL.md file operations via SkillInstaller for custom skills.
+
+#### Scenario: Create custom skill files
+- **WHEN** `skillInstaller.createCustomSkill(slug, content)` is called
+- **THEN** create directory `{skillsRoot}/{slug}/`
+- **AND** write SKILL.md file with frontmatter and prompt content
+- **AND** return the path to created skill directory
+
+#### Scenario: Update custom skill files
+- **WHEN** `skillInstaller.updateCustomSkillFiles(slug, updates)` is called
+- **THEN** read existing SKILL.md
+- **AND** update frontmatter fields if provided (name, description)
+- **AND** update prompt content if provided
+- **AND** write updated SKILL.md back to filesystem
+
+#### Scenario: Delete custom skill files
+- **WHEN** `skillInstaller.deleteCustomSkillFiles(slug)` is called
+- **THEN** remove the entire skill directory `{skillsRoot}/{slug}/`
+- **AND** log success message
 
 ---
 
 ## MODIFIED Requirements
 
 ### Requirement: Skills Data Storage
-The system SHALL store skill configurations in a `skills` table with fields: id, slug, name, description, category, source, isEnabled, icon, config, userId, createdAt, updatedAt.
+The system SHALL store skill user preferences in a `skills` table with fields: id, slug, source, isEnabled, icon, userId, createdAt, updatedAt, deletedAt. Content data (name, description, prompt, category) SHALL be stored in SKILL.md files.
 
-#### Scenario: Persist skill on create
-- **WHEN** a new skill is created
-- **THEN** insert a new record into the skills table
-- **AND** generate auto-increment id
+#### Scenario: Persist skill preference on create
+- **WHEN** a new custom skill is created
+- **THEN** create SKILL.md file with frontmatter and prompt
+- **AND** insert a preference record into the skills table
 - **AND** set createdAt and updatedAt timestamps
-- **AND** associate with the authenticated user's userId
 
 #### Scenario: Update skill on toggle
 - **WHEN** skill enable status is toggled
@@ -61,6 +85,7 @@ The system SHALL store skill configurations in a `skills` table with fields: id,
 #### Scenario: Auto-sync built-in skills on initialisation
 - **WHEN** the application initialises for an authenticated user
 - **THEN** the system MUST call `skillService.syncBuiltinSkills(userId)`
-- **AND** built-in SKILL.md files (e.g. `lobe-artifacts`, `lobe-local-system`) MUST have corresponding DB rows created if not already present
+- **AND** built-in SKILL.md files MUST have corresponding DB preference rows created if not already present
 - **AND** the sync operation MUST be idempotent (safe to call multiple times)
 - **AND** synced skills MUST have `source = 'official'` and `isEnabled = true` by default
+- **AND** stale DB rows (skills no longer on FS) MUST be pruned

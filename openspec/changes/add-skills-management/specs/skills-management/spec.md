@@ -1,12 +1,12 @@
 ## ADDED Requirements
 
 ### Requirement: Skills List Display
-The system SHALL provide a view of all available AI skills for the current user, displaying skill name, description, category badge, source badge, and enable/disable toggle switch.
+The system SHALL provide a view of all available AI skills for the current user, displaying skill name, description, source badge, and enable/disable toggle switch.
 
 #### Scenario: View all skills
 - **WHEN** user navigates to `/setting/skills`
 - **THEN** display all skills belonging to the authenticated user
-- **AND** show skill name, description, category, source, and enable status for each skill
+- **AND** show skill name, description, source, and enable status for each skill
 - **AND** display skills in a responsive grid layout
 
 #### Scenario: Lazy load skills on page mount
@@ -21,13 +21,13 @@ The system SHALL allow users to enable or disable skills via a toggle switch, wi
 
 #### Scenario: Enable a skill
 - **WHEN** user clicks the toggle on a disabled skill
-- **THEN** send PUT request to `/api/skills` with updated isEnabled=true
+- **THEN** send PATCH request to `/api/skills/{slug}` with updated isEnabled=true
 - **AND** persist the change to the database
 - **AND** update the UI to show the skill as enabled
 
 #### Scenario: Disable a skill
 - **WHEN** user clicks the toggle on an enabled skill
-- **THEN** send PUT request to `/api/skills` with updated isEnabled=false
+- **THEN** send PATCH request to `/api/skills/{slug}` with updated isEnabled=false
 - **AND** persist the change to the database
 - **AND** update the UI to show the skill as disabled
 
@@ -52,27 +52,28 @@ The system SHALL provide a search input to filter skills by name, description, o
 
 ---
 
-### Requirement: Skills Category Filter
-The system SHALL provide category-based filtering using tabs or dropdown (all, brainstorming, debugging, tdd, etc.).
+### Requirement: Skills Source Filter
+The system SHALL provide source-based filtering using tabs (all, official, community, custom).
 
-#### Scenario: Filter by category
-- **WHEN** user selects a category tab
-- **THEN** display only skills matching the selected category
-- **AND** highlight the active category tab
+#### Scenario: Filter by source
+- **WHEN** user selects a source tab
+- **THEN** display only skills matching the selected source
+- **AND** highlight the active source tab
 
-#### Scenario: Show all categories
-- **WHEN** user selects "all" or clears category filter
-- **THEN** display all skills regardless of category
+#### Scenario: Show all sources
+- **WHEN** user selects "all" or clears source filter
+- **THEN** display all skills regardless of source
 
 ---
 
 ### Requirement: Custom Skills Creation
-The system SHALL allow users to create custom skills with name, slug, description, category, and optional icon.
+The system SHALL allow users to create custom skills with name, slug, description, and prompt content.
 
 #### Scenario: Create custom skill
-- **WHEN** user fills the "Add Skill" form with valid data
+- **WHEN** user fills the "Add Skill" form with valid data including prompt
 - **THEN** send POST request to `/api/skills` with the skill data
-- **AND** persist the new skill to database with source='custom'
+- **AND** create a SKILL.md file on the filesystem with frontmatter and prompt content
+- **AND** create a database preference record with source='custom'
 - **AND** prepend the new skill to the displayed list
 - **AND** show success toast
 
@@ -93,8 +94,9 @@ The system SHALL allow users to delete custom skills, with protection for offici
 #### Scenario: Delete custom skill
 - **WHEN** user clicks delete button on a custom skill
 - **THEN** show confirmation dialog
-- **IF** user confirms, send DELETE request to `/api/skills`
-- **AND** remove the skill from the database
+- **IF** user confirms, send DELETE request to `/api/skills/{slug}`
+- **AND** remove the SKILL.md file from filesystem
+- **AND** remove the skill preference record from database
 - **AND** remove the skill from the displayed list
 - **AND** show success toast
 
@@ -106,54 +108,81 @@ The system SHALL allow users to delete custom skills, with protection for offici
 ---
 
 ### Requirement: Skills Data Storage
-The system SHALL store skill configurations in a `skills` table with fields: id, slug, name, description, category, source, isEnabled, icon, config, userId, createdAt, updatedAt.
+The system SHALL store skill user preferences in a `skills` table with fields: id, slug, source, isEnabled, icon, userId, createdAt, updatedAt, deletedAt. Content data (name, description, prompt, category) SHALL be stored in SKILL.md files on the filesystem.
 
-#### Scenario: Persist skill on create
-- **WHEN** a new skill is created
-- **THEN** insert a new record into the skills table
+#### Scenario: Persist skill preference on create
+- **WHEN** a new custom skill is created
+- **THEN** create a SKILL.md file with frontmatter (name, description) and prompt content
+- **AND** insert a preference record into the skills table with slug, source, isEnabled, icon, userId
 - **AND** generate auto-increment id
 - **AND** set createdAt and updatedAt timestamps
-- **AND** associate with the authenticated user's userId
 
-#### Scenario: Update skill on toggle
+#### Scenario: Update skill preference on toggle
 - **WHEN** skill enable status is toggled
 - **THEN** update the isEnabled field in the skills table
 - **AND** update the updatedAt timestamp
 
+#### Scenario: Content from filesystem
+- **WHEN** skills are listed or retrieved
+- **THEN** read name, description, prompt, and category from SKILL.md frontmatter
+- **AND** merge with user preference (isEnabled, icon) from database
+
+---
+
+### Requirement: SKILL.md File Format
+The system SHALL use a standardized SKILL.md file format with YAML frontmatter and Markdown content.
+
+#### Scenario: SKILL.md structure
+- **WHEN** a SKILL.md file is created or read
+- **THEN** the file MUST start with YAML frontmatter delimited by `---`
+- **AND** the frontmatter MUST include `name` and `description` fields
+- **AND** the frontmatter MAY include `version`, `category`, and `official` fields
+- **AND** the content after frontmatter is the skill prompt
+
+#### Scenario: Parse SKILL.md frontmatter
+- **WHEN** `SkillFileScanner.parseSkillDir()` reads a SKILL.md
+- **THEN** extract frontmatter fields as metadata
+- **AND** extract content as prompt
+- **AND** set `isOfficial` based on frontmatter `official` field
+
 ---
 
 ### Requirement: Skills API Routes
-The system SHALL provide REST API endpoints for skills CRUD operations: GET (list), POST (create), PUT (update), DELETE (delete), optionally POST `/api/skills/sync` (sync builtin).
+The system SHALL provide REST API endpoints for skills CRUD operations using slug as the identifier: GET (list), POST (create), PATCH (toggle/update), DELETE (delete).
 
 #### Scenario: GET /api/skills
 - **WHEN** authenticated user makes GET request to `/api/skills`
-- **THEN** return all skills belonging to the user
-- **AND** include skill metadata (id, slug, name, description, category, source, isEnabled, icon)
+- **THEN** merge filesystem skills with database preferences
+- **AND** return all skills visible to the user
+- **AND** include merged data (name, description from FS; isEnabled, icon from DB)
 
 #### Scenario: POST /api/skills
 - **WHEN** authenticated user sends POST request with skill data
 - **THEN** validate the request body (required fields, slug uniqueness)
-- **AND** create the skill if valid
+- **AND** create SKILL.md file on filesystem
+- **AND** create database preference record
 - **AND** return the created skill object
 - **OR** return 400 error if validation fails
 
-#### Scenario: PUT /api/skills
-- **WHEN** authenticated user sends PUT request with skill updates
-- **THEN** update the skill if it belongs to the user
+#### Scenario: PATCH /api/skills/{slug}
+- **WHEN** authenticated user sends PATCH request with skill updates
+- **THEN** update the skill preference if it belongs to the user
+- **AND** update SKILL.md content for custom skills if name/description/prompt changed
 - **AND** return the updated skill object
 - **OR** return 404 if skill not found
-- **OR** return 403 if attempting to modify another user's skill
 
-#### Scenario: DELETE /api/skills
-- **WHEN** authenticated user sends DELETE request with skillId
+#### Scenario: DELETE /api/skills/{slug}
+- **WHEN** authenticated user sends DELETE request with skill slug
 - **THEN** delete the skill if it belongs to user and is not official
+- **AND** remove SKILL.md file for custom skills
+- **AND** remove database preference record
 - **AND** return success status
 - **OR** return 403 if attempting to delete official skill
 
 ---
 
 ### Requirement: Skills State Management
-The system SHALL use Zustand store to manage skills state, including actions: fetchSkills, toggleSkill, searchSkills, filterByCategory, createCustomSkill, deleteCustomSkill.
+The system SHALL use Zustand store to manage skills state, using slug as the primary identifier for operations.
 
 #### Scenario: Fetch skills on store initialization
 - **WHEN** the skills store is first accessed
@@ -162,15 +191,29 @@ The system SHALL use Zustand store to manage skills state, including actions: fe
 - **AND** set loading state to false
 
 #### Scenario: Toggle skill via store action
-- **WHEN** store action toggleSkill(skillId) is called
+- **WHEN** store action toggleSkill(slug, isEnabled) is called
 - **THEN** call API to update the skill
 - **AND** update the local skills state if successful
 - **OR** revert on error
 
 #### Scenario: Search and filter as computed state
-- **WHEN** searchQuery or selectedCategory changes
+- **WHEN** searchQuery or selectedSource changes
 - **THEN** compute filteredSkills from the skills list
 - **AND** update components automatically via reactivity
+
+---
+
+### Requirement: Session-Level Skill Activation
+The system SHALL allow session-level skill activation that overrides global enabled state.
+
+#### Scenario: Toggle skill for specific session
+- **WHEN** user toggles a skill in the chat tool panel
+- **THEN** store the selection per session without persisting to database
+- **AND** use session selection when making chat requests
+
+#### Scenario: Session skills override global state
+- **WHEN** chat request includes skills parameter
+- **THEN** load skills by slug regardless of global isEnabled state
 
 ---
 
@@ -196,7 +239,7 @@ The system SHALL provide internationalization support for Skills Management UI i
 #### Scenario: Display localized text
 - **WHEN** user's language preference is set
 - **THEN** display all Skills Management text in the selected language
-- **AND** include skill categories, actions, and messages
+- **AND** include source labels, actions, and messages
 
 #### Scenario: Support new languages
 - **WHEN** a new language is added to the project
