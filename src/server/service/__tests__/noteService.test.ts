@@ -72,6 +72,7 @@ describe('NoteService', () => {
         title: 'New Note',
         content: 'Note content',
         tags: ['development', 'test'],
+        deletedAt: null,
       });
     });
 
