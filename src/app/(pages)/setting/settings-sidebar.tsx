@@ -8,6 +8,7 @@ import {
   IconPalette,
   IconAdjustments,
   IconInbox,
+  IconBulb,
   type Icon,
 } from '@tabler/icons-react';
 import {
@@ -19,7 +20,7 @@ import {
 import { usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
-export type SettingsCategory = 'provider' | 'tool' | 'agent' | 'theme' | 'general' | 'about';
+export type SettingsCategory = 'provider' | 'tool' | 'agent' | 'theme' | 'general' | 'about' | 'skills';
 
 const settingsItems: {
   id: SettingsCategory;
@@ -64,6 +65,13 @@ const settingsItems: {
     description: '切换界面主题',
   },
   
+  {
+    id: 'skills',
+    title: '技能管理',
+    icon: IconBulb,
+    url: '/setting/skills',
+    description: '管理 AI技能配置',
+  },
   {
     id: 'about',
     title: '关于',

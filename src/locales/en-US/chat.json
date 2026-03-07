@@ -127,6 +127,9 @@
   "tools": {
     "plugins": {
       "groupName": "Built-in Plugins"
+    },
+    "skills": {
+      "groupName": "Skills"
     }
   },
   "typing": "Typing...",

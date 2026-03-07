@@ -2,13 +2,11 @@ import React, { memo, useMemo, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
 import { shallow } from 'zustand/shallow';
 
-import { useAgentStore } from '@renderer/store/agent';
-import { agentSelectors } from '@renderer/store/agent/selectors';
 import { useChatStore } from '@renderer/store/chat';
 import { chatSelectors } from '@renderer/store/chat/selectors';
 import { useSessionStore } from '@renderer/store/session';
 import { sessionHelpers } from '@renderer/store/session/helpers';
-import { sessionMetaSelectors, sessionSelectors } from '@renderer/store/session/selectors';
+import { agentSelectors, sessionMetaSelectors, sessionSelectors } from '@renderer/store/session/selectors';
 
 import ListItem from '../../ListItem';
 import CreateGroupModal from '../../Modals/CreateGroupModal';
@@ -22,7 +20,7 @@ interface SessionItemProps {
 const SessionItem = memo<SessionItemProps>(({ id, agentCode }) => {
   const [open, setOpen] = useState(false);
   const [createGroupModalOpen, setCreateGroupModalOpen] = useState(false);
-  const [defaultModel] = useAgentStore((s) => [agentSelectors.inboxAgentModel(s)]);
+  const [defaultModel] = useSessionStore((s) => [agentSelectors.inboxAgentModel(s)]);
 
   const [active] = useSessionStore((s) => [s.activeId === id]);
   const [loading] = useChatStore((s) => [chatSelectors.isAIGenerating(s) && id === s.activeId]);
@@ -57,7 +55,7 @@ const SessionItem = memo<SessionItemProps>(({ id, agentCode }) => {
         setOpen={setOpen}
       />
     ),
-    [group, id],
+    [group, id, agentCode],
   );
 
   const addon = useMemo(

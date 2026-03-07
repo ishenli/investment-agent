@@ -102,7 +102,13 @@ export class ChatService {
     try {
       // 使用 DeepAgents 处理投资顾问聊天
       this.logger.info('[ChatService] 使用 DeepAgents 处理投资顾问聊天');
-      await investmentAdvisorAgent.chat({ userQuery: request.query, accountId, emitter, model: request.model });
+      await investmentAdvisorAgent.chat({
+        messages: request.messages || [],
+        userQuery: request.query,
+        accountId,
+        emitter,
+        model: request.model,
+      });
     } catch (error) {
       this.logger.error('[ChatService] 投资顾问聊天处理失败:', error);
       throw error;

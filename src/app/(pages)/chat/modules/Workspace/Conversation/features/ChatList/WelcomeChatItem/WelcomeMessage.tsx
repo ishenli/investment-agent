@@ -5,18 +5,16 @@ import { useTranslation } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 
 import ChatItem from '@renderer/(pages)/chat/features/ChatItem';
-import { useAgentStore } from '@renderer/store/agent';
-import { agentChatConfigSelectors, agentSelectors } from '@renderer/store/agent/selectors';
 import { useChatStore } from '@renderer/store/chat';
 import { useSessionStore } from '@renderer/store/session';
-import { sessionMetaSelectors } from '@renderer/store/session/selectors';
+import { agentChatConfigSelectors, agentSelectors, sessionMetaSelectors } from '@renderer/store/session/selectors';
 import OpeningQuestions from './OpeningQuestions';
 
 const WelcomeMessage = () => {
   const { t } = useTranslation('chat');
-  const type = useAgentStore(agentChatConfigSelectors.displayMode);
-  const openingMessage = useAgentStore(agentSelectors.openingMessage);
-  const openingQuestions = useAgentStore(agentSelectors.openingQuestions);
+  const type = useSessionStore(agentChatConfigSelectors.displayMode);
+  const openingMessage = useSessionStore(agentSelectors.openingMessage);
+  const openingQuestions = useSessionStore(agentSelectors.openingQuestions);
 
   const meta = useSessionStore(sessionMetaSelectors.currentAgentMeta, isEqual);
   const { isAgentEditable } = { isAgentEditable: false };

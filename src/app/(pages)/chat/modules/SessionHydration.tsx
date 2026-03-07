@@ -5,7 +5,6 @@ import { parseAsString } from 'nuqs/server';
 import { memo, useEffect } from 'react';
 import { createStoreUpdater } from 'zustand-utils';
 
-import { useAgentStore } from '@renderer/store/agent';
 import { useChatStore } from '@renderer/store/chat';
 import { useSessionStore } from '@renderer/store/session';
 import { INBOX_SESSION_ID } from '@/app/const/session';
@@ -13,7 +12,6 @@ import { INBOX_SESSION_ID } from '@/app/const/session';
 // sync outside state to useSessionStore
 const SessionHydration = memo(() => {
   const useStoreUpdater = createStoreUpdater(useSessionStore);
-  const useAgentStoreUpdater = createStoreUpdater(useAgentStore);
   const useChatStoreUpdater = createStoreUpdater(useChatStore);
   const [switchTopic] = useChatStore((s) => [s.switchTopic]);
 
@@ -23,7 +21,6 @@ const SessionHydration = memo(() => {
     parseAsString.withDefault(INBOX_SESSION_ID).withOptions({ history: 'replace', throttleMs: 50 }),
   );
   useStoreUpdater('activeId', session);
-  useAgentStoreUpdater('activeId', session);
   useChatStoreUpdater('activeId', session);
 
   useEffect(() => {

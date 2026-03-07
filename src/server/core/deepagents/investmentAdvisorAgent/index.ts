@@ -1,5 +1,5 @@
 import { createDeepAgent } from 'deepagents';
-import { HumanMessage } from 'langchain';
+import { BaseMessage, HumanMessage } from 'langchain';
 import {
   stockSearchNewsTool,
   stockGetPriceTool,
@@ -95,7 +95,7 @@ export const investmentAdvisorAgent = {
    * @param send - SSE send function for streaming responses
    * @param model - Chat model to use
    */
-  async chat({ userQuery, accountId, emitter, model }: { userQuery: string; accountId: string; emitter: SSEEmitter; model: string }): Promise<void> {
+  async chat({ messages, userQuery, accountId, emitter, model }: { messages: BaseMessage[]; userQuery: string; accountId: string; emitter: SSEEmitter; model: string }): Promise<void> {
     // 1. Get user's portfolio context
     const portfolioAnalysis = await portfolioAnalysisService.getPortfolioAnalysis(accountId);
     const riskAnalysis = portfolioAnalysisService.calculateRiskScore(
@@ -112,8 +112,13 @@ export const investmentAdvisorAgent = {
     );
 
     // Record prompt for debugging
-    recordPrompt(contextPrompt, 'deepagents-investment-prompt.md');
 
+    let finalSystemPrompt = SYSTEM_PROMPT;
+    // 如果第一个消息是系统消息，则更新系统消息
+    if (messages[0].type === 'system') {
+      finalSystemPrompt = SYSTEM_PROMPT + '\n' + messages[0].content;
+      messages.shift();  // 清理第一个系统消息
+    }
     try {
       // Create the DeepAgent instance with all tools
       const investmentDeepAgent = createDeepAgent({
@@ -126,12 +131,18 @@ export const investmentAdvisorAgent = {
           noteQueryTool,
           TravilySearchTool,
         ],
-        systemPrompt: SYSTEM_PROMPT,
+        systemPrompt: finalSystemPrompt
       });
+
+      // 更新最后的消息为用户问题
+      messages[messages.length - 1] = new HumanMessage(contextPrompt);
+
+
+      recordPrompt(finalSystemPrompt + '\n' + messages.map((m) => m.content).join('\n'), 'deepagents-investment-prompt.md');
+
       // 处理流式请求
-      const messages = [new HumanMessage(contextPrompt)];
       const response = await investmentDeepAgent.stream(
-        { messages },
+        { messages: messages },
         {
           streamMode: ['messages', 'values'],
         },

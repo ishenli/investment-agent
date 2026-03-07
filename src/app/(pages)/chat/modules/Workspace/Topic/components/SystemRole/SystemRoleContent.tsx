@@ -12,7 +12,6 @@ import useMergeState from 'use-merge-value';
 import SidebarHeader from '@renderer/(pages)/chat/components/SidebarHeader';
 import AgentInfo from '@renderer/(pages)/chat/features/AgentInfo';
 import { useOpenChatSettings } from '@renderer/hooks/useInterceptingRoutes';
-import { useAgentStore } from '@renderer/store/agent';
 import { useGlobalStore } from '@renderer/store/global';
 import { ChatSettingsTabs } from '@renderer/store/global/initialState';
 import { systemStatusSelectors } from '@renderer/store/global/selectors';
@@ -34,7 +33,7 @@ const SystemRole = memo(() => {
 
   // 从 SessionStore 读取当前会话的 systemRole
   const systemRole = useSessionStore(sessionSelectors.currentSessionSystemRole);
-  const updateAgentConfig = useAgentStore((s) => s.updateAgentConfig);
+  const updateAgentConfig = useSessionStore((s) => s.updateAgentConfig);
 
   const [showSystemRole, toggleSystemRole] = useGlobalStore((s) => [
     systemStatusSelectors.showSystemRole(s),

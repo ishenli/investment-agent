@@ -126,6 +126,9 @@
   "tools": {
     "plugins": {
       "groupName": "内置插件"
+    },
+    "skills": {
+      "groupName": "技能"
     }
   },
   "typing": "正在输入...",

@@ -138,6 +138,13 @@ export class UpdateManager {
     autoUpdater.on('update-not-available', (info: UpdateInfo) => {
       log.info('Update not available. Current version:', info.version);
       this.isCheckingUpdate = false;
+      
+      // 通知渲染进程当前已是最新版本
+      if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+        this.mainWindow.webContents.send('update-not-available', {
+          version: info.version,
+        });
+      }
     });
 
     // 更新下载进度

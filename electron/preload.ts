@@ -22,5 +22,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     onUpdateError: (callback: (error: unknown) => void) => {
       ipcRenderer.on('update-error', (_event: unknown, error: unknown) => callback(error));
     },
+    onUpdateNotAvailable: (callback: (info: unknown) => void) => {
+      ipcRenderer.on('update-not-available', (_event: unknown, info: unknown) => callback(info));
+    },
   },
 });

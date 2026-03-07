@@ -295,14 +295,6 @@ app.whenReady().then(async () => {
   // Verify native module ABI compatibility before starting the server
   checkNativeModuleABI();
   
-  // 注册更新相关的 IPC 处理器
-  ipcMain.handle('check-for-updates', async () => {
-    await updateManager.checkForUpdates();
-  });
-  
-  ipcMain.handle('quit-and-install', () => {
-    updateManager.quitAndInstall();
-  });
 
   // Clear cache on version upgrade
   const currentVersion = app.getVersion();
@@ -363,12 +355,14 @@ app.whenReady().then(async () => {
 });
 
 app.on('window-all-closed', () => {
-  if (serverProcess) {
-    serverProcess.kill();
-    serverProcess = null;
-  }
-  if (process.platform !== 'darwin') {
-    app.quit();
+  for (const off of registeredIPCCallbacks) {
+    try {
+      off();
+    } catch (ex) {
+      // Some kind of object leak bug here, but we don't leak so it
+      // looks like "expected results" from the next-gen loader, best
+      // to just ignore it.
+    }
   }
 });
 
@@ -418,3 +412,25 @@ app.on('before-quit', () => {
     serverProcess = null;
   }
 });
+
+// 将需要监听的事件告知 IPC渲染器
+const registeredIPCCallbacks: Array<() => void> = []; 
+
+// 为窗口设置 IPC 通信
+if (mainWindow) {
+  // 监听检查更新请求
+  ipcMain.handle('check-for-updates', async () => {
+    await updateManager.checkForUpdates();
+  });
+  
+  // 监听安装更新请求
+  ipcMain.handle('quit-and-install', () => {
+    updateManager.quitAndInstall();
+  });
+  
+  // 添加清理函数到数组中
+  registeredIPCCallbacks.push(() => {
+    ipcMain.removeHandler('check-for-updates');
+    ipcMain.removeHandler('quit-and-install');
+  });
+}

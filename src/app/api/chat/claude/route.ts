@@ -14,6 +14,7 @@ import { z } from 'zod';
 import { streamClaude } from '../../../../server/core/claude/claudeClient';
 import { claudeService } from '@server/service/claudeService';
 import authService from '@server/service/authService';
+import { skillService } from '@server/service/skillService';
 import { BaseController } from '../../base/baseController';
 import { WithRequestContextStatic } from '@server/base/decorators';
 import { SSEEmitter } from '@server/base/sseEmitter';
@@ -24,6 +25,7 @@ import { igToolsServer } from '@/server/core/claude/buildTools';
 import positionService from '@/server/service/positionService';
 import transactionService from '@/server/service/transactionService';
 import { getToolDisplayName } from '@/server/core/claude/toolNameMapper';
+import { recordPrompt } from '@/server/utils/file';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -41,6 +43,8 @@ const ClaudeChatRequestSchema = z.object({
   agentId: z.string().optional(),
   stream: z.boolean().optional(),
   mode: z.enum(['code', 'plan', 'ask']).optional(),
+  /** T401: 会话级别激活的 skill slugs，作为全局已启用 skills 的子集过滤 */
+  skills: z.array(z.string()).optional(),
   files: z
     .array(
       z.object({
@@ -61,7 +65,7 @@ class ClaudeChatController extends BaseController {
     try {
       // 1. 参数验证
       const body = await this.validateBody(request, ClaudeChatRequestSchema);
-      const { sessionId, messages, model, mode, files, toolTimeout } = body;
+      const { sessionId, messages, model, mode, files, toolTimeout, skills: requestedSkills } = body;
 
       // 提取最后一条用户消息作为 prompt
       const userMessage = messages.findLast((msg) => msg.role === 'user');
@@ -76,6 +80,23 @@ class ClaudeChatController extends BaseController {
         return this.error('用户未登录', 'unauthorized');
       }
       const userIdNum = parseInt(userId, 10);
+
+      // T302/T403: 按需加载 skills prompt
+      // 仅当前端明确传递了非空 skills 数组时才查询并注入；
+      // 没有传递或为空数组则表示用户在会话中未选择任何技能，不注入
+      let skillsSystemPrompt: string | undefined;
+      if (requestedSkills && requestedSkills.length > 0) {
+        const requestedSet = new Set(requestedSkills);
+        // 仅从已启用的 skills 中过滤出用户实际选择的，确保安全边界
+        const activeSkills = await skillService.getEnabledSkills(userIdNum);
+        const selectedSkills = activeSkills.filter((s) => requestedSet.has(s.id));
+        if (selectedSkills.length > 0) {
+          skillsSystemPrompt = selectedSkills
+            .filter((s) => s.prompt)
+            .map((s) => `## Skill: ${s.name}\n\n${s.prompt}`)
+            .join('\n\n---\n\n') || undefined;
+        }
+      }
 
       // 3. 验证会话并获取真实的 session ID
       if (!sessionId) {
@@ -101,10 +122,16 @@ class ClaudeChatController extends BaseController {
           systemPromptOverride =
             '\n\nYou are in Ask mode. Answer questions and provide information only. Do not use any tools, do not read or write files, do not execute commands. Only respond with text.';
           break;
-        default: // 'code'
+        default: // 
+          systemPromptOverride =
+            '\n\nYou are in agent mode. You can use tools, read and write files, and execute commands. You are an investment assistant.';
           permissionMode = 'acceptEdits';
           break;
       }
+
+      // T304: 合并 systemPromptOverride 与 skillsSystemPrompt 为 finalSystemPrompt
+      const finalSystemPrompt =
+        [systemPromptOverride, skillsSystemPrompt].filter(Boolean).join('\n\n') || undefined;
 
       // 4. 获取 Claude 配置 (通过 ClaudeService)
       const claudeConfig = await claudeService.getClaudeConfig(userIdNum, model);
@@ -133,6 +160,9 @@ class ClaudeChatController extends BaseController {
         positions: await positionService.getPositionSummaryMarkdown(accountInfo.id),
         transactions: await transactionService.getTransactionSummaryMarkdown(accountInfo.id),
       });
+
+      recordPrompt(content + '\n\n' + finalSystemPrompt, 'claude-prompt.md');  
+
       // 7. 调用 streamClaude 并在后台处理
       (async () => {
         sseEmitter.sendStatus(`使用模型 ${claudeConfig.modelSlug}`, {
@@ -145,7 +175,7 @@ class ClaudeChatController extends BaseController {
             sessionId: realSessionId,
             sdkSessionId: undefined, // TODO: 从数据库加载实际的 sdk_session_id
             model: claudeConfig.modelSlug,
-            systemPrompt: systemPromptOverride || undefined,
+            systemPrompt: finalSystemPrompt,
             workingDirectory: workingDirectory || undefined,
             abortController,
             permissionMode,

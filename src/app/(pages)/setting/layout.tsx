@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { SidebarProvider, SidebarInset } from '@renderer/components/ui/sidebar';
-import { SettingsSidebar, type SettingsCategory } from '@renderer/components/settings-sidebar';
+import { SettingsSidebar, type SettingsCategory } from '@/app/(pages)/setting/settings-sidebar';
 import { usePathname, useRouter } from 'next/navigation';
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
@@ -17,8 +17,8 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
   };
 
   return (
-    <SidebarProvider defaultOpen={true}>
-      <div className="flex h-full min-h-screen w-full">
+    <SidebarProvider defaultOpen={true} className='min-h-[calc(100vh-90px)]'>
+      <div className="flex w-full">
         {/* Settings Sidebar */}
         <aside className="w-50 border-r border-border/40 bg-background shrink-0">
           <div className="p-2">

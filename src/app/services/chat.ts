@@ -25,8 +25,8 @@ import { get, isEmpty, merge } from 'lodash';
 import { post } from '../lib/request';
 import { connectAgentStream } from '@/app/lib/agentStreamClient';
 import { DEFAULT_AGENT_CONFIG } from '../const/settings/agent';
-import { getAgentStoreState } from '../store/agent';
-import { agentChatConfigSelectors } from '../store/agent/slices/chat';
+import { getSessionStoreState } from '@renderer/store/session';
+import { agentChatConfigSelectors } from '@renderer/store/session/selectors';
 import { isServerMode } from '@/shared';
 import { filesPrompts } from '../prompts/files';
 import { genToolCallingName } from '../lib/utils/toolCall';
@@ -45,6 +45,8 @@ interface GetChatCompletionPayload extends Partial<Omit<ChatStreamPayload, 'mess
   agentId: string;
   engineType?: 'deepagents' | 'claude';
   mode?: 'code' | 'plan' | 'ask';
+  /** 会话级激活的 skill slugs，仅对 claude 引擎生效，用于按需构建 systemPrompt */
+  skills?: string[];
 }
 
 type ContentType = 'stream' | 'text' | 'thought' | 'tool' | 'image' | 'file' | 'error';
@@ -246,6 +248,10 @@ interface BaiLingParams {
   tools: string[];
   agentId: string;
   engineType?: 'deepagents' | 'claude';
+  /** Claude 引擎的对话模式 */
+  mode?: 'code' | 'plan' | 'ask';
+  /** 会话级激活的 skill slugs，用于服务端按需注入 skill prompt */
+  skills?: string[];
 }
 
 interface BailingAgentStreamParams {
@@ -359,7 +365,7 @@ class ChatService {
       restParams,
     );
 
-    const chatConfig = agentChatConfigSelectors.currentChatConfig(getAgentStoreState());
+    const chatConfig = agentChatConfigSelectors.currentChatConfig(getSessionStoreState());
     const enabledSearch = chatConfig.searchMode !== 'off';
     const pluginIds = [...(enabledPlugins || [])];
 
@@ -622,6 +628,13 @@ class ChatService {
         model: params.model!,
         stream: true,
         messages: params.messages,
+        // 仅对 claude 引擎传递 mode / skills
+        ...(engineType === 'claude'
+          ? {
+              ...(params.mode !== undefined ? { mode: params.mode } : {}),
+              ...(params.skills !== undefined ? { skills: params.skills } : {}),
+            }
+          : {}),
       },
       signal: abortController?.signal,
       onEvent: (event) => {

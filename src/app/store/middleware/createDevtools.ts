@@ -1,7 +1,7 @@
 import { optionalDevtools } from 'zustand-utils';
 import { devtools as _devtools } from 'zustand/middleware';
 
-import { isDevelopment } from '@server/base/env';
+import { isDevelopment } from '@shared/utils/env';
 
 export const createDevtools =
   (name: string): typeof _devtools =>

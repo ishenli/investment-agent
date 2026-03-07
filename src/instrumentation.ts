@@ -31,5 +31,55 @@ export async function register() {
       logger.error('[Instrumentation] Failed to initialize:', error);
       // 不抛出错误，允许应用继续启动
     }
+
+    // 初始化 Skills 的同步
+    const skillManager = (await import('@server/lib/skillManager')).getSkillManager();
+
+    try {
+      skillManager.syncBundledSkillsToUserData();
+      logger.info('[Instrumentation] initApp: syncBundledSkillsToUserData done');
+    } catch (error) {
+      logger.error('[Instrumentation] initApp: syncBundledSkillsToUserData failed:', error);
+    }
+
+    // 3. 同步内置 Skills 到所有已注册用户的 DB 偏好表
+    //    确保 SKILL.md 文件的增删改能反映到管理 UI（create / update / prune）
+    try {
+      const { db } = await import('@server/lib/db');
+      const { users } = await import('@/drizzle/schema');
+      const { isNull } = await import('drizzle-orm');
+      const { skillService } = await import('@server/service/skillService');
+
+      const allUsers = await db.query.users.findMany({
+        where: isNull(users.deletedAt),
+        columns: { id: true },
+      });
+
+      if (allUsers.length > 0) {
+        logger.info(`[Instrumentation] Syncing builtin skills for ${allUsers.length} user(s)...`);
+        for (const user of allUsers) {
+          try {
+            const result = await skillService.syncBuiltinSkills(user.id);
+            logger.info(
+              `[Instrumentation] Skills synced for user ${user.id}: ` +
+                `created=${result.created}, updated=${result.updated}, pruned=${result.pruned}`,
+            );
+          } catch (err) {
+            logger.warn(`[Instrumentation] Skills sync failed for user ${user.id}:`, err);
+          }
+        }
+      } else {
+        logger.info('[Instrumentation] No users found, skipping builtin skills sync');
+      }
+    } catch (error) {
+      logger.error('[Instrumentation] Failed to sync builtin skills:', error);
+    }
+
+    // 调用账户的初始化方法
+    logger.info('[Instrumentation] Calling account initialization method...');
+    const { AssetAccountBizController } = (await import('@server/controller/assetAccount'))
+    const initController = new AssetAccountBizController();
+    await initController.init();
+    logger.info('[Instrumentation] Account initialization method completed');
   }
 }

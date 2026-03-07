@@ -1,13 +1,12 @@
 import { LOADING_FLAT, MESSAGE_CANCEL_FLAT } from '@renderer/const/message';
 import { chatService, onFinishContext } from '@renderer/services/chat';
 import { messageService } from '@renderer/services/message';
-import { getAgentStoreState } from '@renderer/store/agent';
-import { agentChatConfigSelectors } from '@renderer/store/agent/selectors';
+import { getSessionStoreState, useSessionStore } from '@renderer/store/session';
+import { agentChatConfigSelectors, sessionSelectors } from '@renderer/store/session/selectors';
 import { chatHelpers } from '@renderer/store/chat/helpers';
 import { chatSelectors, topicSelectors } from '@renderer/store/chat/selectors';
 import { ChatStore } from '@renderer/store/chat/store';
-import { getSessionStoreState, useSessionStore } from '@renderer/store/session';
-import { sessionSelectors } from '@renderer/store/session/selectors';
+import { getSkillsStoreState } from '@/app/store/skills/store';
 import {
   ChatMessage,
   ChatMessageError,
@@ -191,7 +190,7 @@ export const generateAIChat: StateCreator<
       threadId: 'activeThreadId',
     };
 
-    const agentConfig = agentChatConfigSelectors.currentChatConfig(getAgentStoreState());
+    const agentConfig = agentChatConfigSelectors.currentChatConfig(getSessionStoreState());
 
     let tempMessageId: string | undefined = undefined;
     let newTopicId: string | undefined = undefined;
@@ -304,7 +303,7 @@ export const generateAIChat: StateCreator<
     // create a new array to avoid the original messages array change
     const messages = [...originalMessages];
 
-    const agentStoreState = getAgentStoreState();
+    const agentStoreState = getSessionStoreState();
     const sessionStoreState = getSessionStoreState();
     // 从 SessionStore 读取 model 和 provider，从 AgentStore 读取 chatConfig
     const { model, provider, chatConfig } = sessionSelectors.currentSession(sessionStoreState)?.config || {};
@@ -416,15 +415,15 @@ export const generateAIChat: StateCreator<
       plugins: sessionConfig?.plugins || [],
       params: sessionConfig?.params || {},
     };
-    const chatConfig = agentChatConfigSelectors.currentChatConfig(getAgentStoreState());
+    const chatConfig = agentChatConfigSelectors.currentChatConfig(getSessionStoreState());
 
     // ================================== //
     //   messages uniformly preprocess    //
     // ================================== //
 
     // 1. slice messages with config
-    const historyCount = agentChatConfigSelectors.historyCount(getAgentStoreState());
-    const enableHistoryCount = agentChatConfigSelectors.enableHistoryCount(getAgentStoreState());
+    const historyCount = agentChatConfigSelectors.historyCount(getSessionStoreState());
+    const enableHistoryCount = agentChatConfigSelectors.enableHistoryCount(getSessionStoreState());
 
     const preprocessMsgs = chatHelpers.getSlicedMessages(messages, {
       includeNewUserMessage: true,
@@ -459,7 +458,17 @@ export const generateAIChat: StateCreator<
       : undefined;
     const currentSession = sessionSelectors.currentSession(useSessionStore.getState());
 
-    // console.info('currentSession', currentSession);
+    // 读取当前会话激活的 skill slugs（按需注入，仅 claude 引擎使用）
+    const sessionSkillSlugsForRequest = (() => {
+      const skillsState = getSkillsStoreState();
+      const sessionSlugs = skillsState.getSessionSkills(activeId);
+      if (sessionSlugs !== null) {
+        // 已有会话级覆盖：直接使用
+        return sessionSlugs;
+      }
+      // 尚未初始化：回退到全局 isEnabled 默认值
+      return skillsState.skills.filter((s) => s.isEnabled).map((s) => s.slug);
+    })();
 
     await chatService.createAssistantMessageStream({
       params: {
@@ -471,6 +480,7 @@ export const generateAIChat: StateCreator<
         plugins: agentConfig.plugins,
         engineType: currentSession?.config?.engineType,
         mode: currentSession?.config?.claudeMode,
+        skills: sessionSkillSlugsForRequest,
         ...agentConfig.params,
       },
       historySummary: historySummary?.content,

@@ -388,6 +388,98 @@
     "title": "主题设置"
   },
   "title": "设置",
+  "skills": {
+    "title": "技能管理",
+    "description": "管理和配置您的 AI技能",
+    "searchPlaceholder": "搜索技能名称、描述或ID...",
+    "refresh": "刷新",
+    "addSkill": "新增技能",
+    "skillsList": "技能列表",
+    "loading": "加载中...",
+    "noSkillsFound": "未找到技能",
+    "adjustSearch": "尝试调整搜索条件或筛选器",
+    "toggle": {
+      "enabled": "技能已启用",
+      "disabled": "技能已禁用",
+      "failed": "切换技能状态失败"
+    },
+    "delete": {
+      "success": "技能已删除",
+      "failed": "删除技能失败"
+    },
+    "create": {
+      "success": "技能已创建",
+      "failed": "创建技能失败"
+    },
+    "categories": {
+      "all": "全部",
+      "brainstorming": "头脑风暴",
+      "debugging": "调试",
+      "tdd": "测试驱动开发",
+      "code-review": "代码审查",
+      "testing": "测试",
+      "documentation": "文档",
+      "optimization": "优化",
+      "refactoring": "重构",
+      "other": "其他"
+    },
+    "sources": {
+      "official": "官方",
+      "community": "社区",
+      "custom": "自定义",
+      "officialProtected": "官方保护"
+    },
+    "card": {
+      "createdAt": "创建于",
+      "id": "ID"
+    },
+    "addDialog": {
+      "title": "添加新技能",
+      "description": "通过不同的方式上传和创建新的 AI 技能",
+      "createSkill": "创建技能",
+      "processing": "处理中...",
+      "skillInfo": "技能基本信息",
+      "selectedFile": "已选择文件",
+      "selectedFiles": "已选择文件",
+      "files": "个文件",
+      "tabs": {
+        "zip": "ZIP 压缩包",
+        "folder": "文件夹",
+        "github": "GitHub 链接"
+      },
+      "zip": {
+        "description": "上传包含技能文件的 ZIP 压缩包",
+        "selectFile": "选择 ZIP 文件"
+      },
+      "folder": {
+        "description": "上传包含技能文件的文件夹",
+        "selectFolder": "选择文件夹"
+      },
+      "github": {
+        "description": "通过 GitHub 仓库链接导入技能",
+        "urlLabel": "GitHub 仓库链接",
+        "urlPlaceholder": "https://github.com/username/repository",
+        "urlHint": "请输入完整的 GitHub 仓库链接"
+      },
+      "fields": {
+        "name": "技能名称",
+        "namePlaceholder": "输入技能名称",
+        "description": "技能描述",
+        "descriptionPlaceholder": "描述这个技能的功能和用途",
+        "category": "技能分类"
+      },
+      "errors": {
+        "nameRequired": "请输入技能名称",
+        "descriptionRequired": "请输入技能描述",
+        "zipRequired": "请选择 ZIP 文件",
+        "invalidZip": "请选择有效的 ZIP 文件",
+        "folderRequired": "请选择文件夹",
+        "githubUrlRequired": "请输入 GitHub 链接",
+        "invalidGithubUrl": "请输入有效的 GitHub 链接",
+        "createFailed": "创建技能失败"
+      }
+    }
+  },
   "tool": {
     "actions": {
       "delete": "删除",

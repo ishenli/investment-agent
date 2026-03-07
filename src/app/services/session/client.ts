@@ -19,7 +19,7 @@ import {
   SessionGroupItem,
   SessionGroups,
 } from '@typings/session';
-import { merge } from '@renderer/lib/merge';
+import { merge } from '@renderer/lib/utils/merge';
 import { get } from '@/app/lib/request/index';
 import { AgentTypeResponse as Agent } from '@typings/agent';
 import { ISessionService } from './type';

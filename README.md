@@ -3,6 +3,7 @@
 This is a localized investment analysis tool built with AI Coding, utilizing AI to provide comprehensive stock market analysis, asset management, and investment recommendations.
 
 English Version | [中文版本](./doc//zh/README.md)
+
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/ishenli/investment-agent)](https://github.com/ishenli/investment-agent/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/ishenli/investment-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/ishenli/investment-agent/actions/workflows/ci.yml)
@@ -594,6 +595,7 @@ This project is based on research and code from the following excellent projects
 | [Tauric Research Team](https://github.com/TauricResearch) | **[TradingAgents](https://github.com/TauricResearch/TradingAgents)** | Provided core architecture ideas for multi-agent trading systems, paper reference: [arxiv.org/pdf/2412.20138](https://arxiv.org/pdf/2412.20138) |
 | [@delenzhang](https://github.com/delenzhang) | **[TradingAgents](https://github.com/delenzhang/TradingAgents)** | Chinese optimization and adaptation work |
 | [@canisminor1990](https://github.com/canisminor1990) | [lobehub-ui](https://ui.lobehub.com/) | Advanced UI components and design system |
+｜LobsterAI｜ https://github.com/netease-youdao/LobsterAI｜ Skill System|
 
 ### Technical Support
 

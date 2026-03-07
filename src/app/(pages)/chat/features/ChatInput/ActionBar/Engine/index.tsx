@@ -7,8 +7,6 @@ import { Brain, Sparkles, Check } from 'lucide-react';
 import { useSessionStore } from '@renderer/store/session';
 import { sessionSelectors } from '@renderer/store/session/selectors';
 
-import { useAgentStore } from '@/app/store/agent';
-
 const useStyles = createStyles(({ css, token }) => ({
   select: css`
     width: 180px;
@@ -48,13 +46,10 @@ const useStyles = createStyles(({ css, token }) => ({
 const EngineSwitch = () => {
   const { styles } = useStyles();
 
-  // 直接订阅 engineType,确保状态变化时重新渲染
-  const engineType = useSessionStore((s) => {
-    const session = sessionSelectors.currentSession(s);
-    return session?.config?.engineType || 'deepagents';
-  });
+  // 直接订阅 engineType，确保状态变化时重新渲染
+  const engineType = useSessionStore(sessionSelectors.currentSessionEngineType);
 
-  const updateAgentConfig = useAgentStore((s) => s.updateAgentConfig);
+  const updateAgentConfig = useSessionStore((s) => s.updateAgentConfig);
   const handleEngineChange = async (value: 'deepagents' | 'claude') => {
     const sessionId = useSessionStore.getState().activeId;
     if (sessionId) {
