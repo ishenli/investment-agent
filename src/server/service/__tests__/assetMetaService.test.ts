@@ -1,21 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AssetMetaService } from '../assetMetaService';
 import { AssetMetaType } from '@/types/assetMeta';
-import { db } from '@server/lib/db';
+import { assetMetaRepository } from '@server/repository/assetMetaRepository';
 
-// Mock @server/lib/db before importing assetMetaService
-vi.mock('@server/lib/db', () => ({
-  db: {
-    query: {
-      assetMeta: {
-        findMany: vi.fn(),
-        findFirst: vi.fn(),
-      },
-    },
-    select: vi.fn(() => ({ from: vi.fn() })),
-    update: vi.fn(),
+// Mock repository
+vi.mock('@server/repository/assetMetaRepository', () => ({
+  assetMetaRepository: {
+    findMany: vi.fn(),
+    findById: vi.fn(),
+    searchBySymbol: vi.fn(),
+    createAssetMeta: vi.fn(),
+    updateAssetMeta: vi.fn(),
+    softDelete: vi.fn(),
     delete: vi.fn(),
-    insert: vi.fn(),
+    restore: vi.fn(),
+  },
+}));
+
+vi.mock('@server/base/logger', () => ({
+  default: {
+    error: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
   },
 }));
 
@@ -50,7 +56,7 @@ describe('AssetMetaService', () => {
 
   describe('getAllAssetMetas', () => {
     it('应该返回所有未删除的 assetMeta 记录', async () => {
-      (db.query.assetMeta.findMany as any).mockResolvedValue([mockAssetMeta]);
+      (assetMetaRepository.findMany as any).mockResolvedValue([mockAssetMeta]);
 
       const result = await assetMetaService.getAllAssetMetas(false);
 
@@ -60,7 +66,7 @@ describe('AssetMetaService', () => {
     });
 
     it('应该返回包含已删除的 assetMeta 记录', async () => {
-      (db.query.assetMeta.findMany as any).mockResolvedValue([
+      (assetMetaRepository.findMany as any).mockResolvedValue([
         mockAssetMeta,
         mockDeletedAssetMeta,
       ]);
@@ -70,16 +76,18 @@ describe('AssetMetaService', () => {
       expect(result).toHaveLength(2);
     });
 
-    it('数据库错误时应该抛出错误', async () => {
-      (db.query.assetMeta.findMany as any).mockRejectedValue(new Error('Database error'));
+    it('数据库错误时应该返回空数组', async () => {
+      (assetMetaRepository.findMany as any).mockRejectedValue(new Error('Database error'));
 
-      await expect(assetMetaService.getAllAssetMetas()).rejects.toThrow();
+      const result = await assetMetaService.getAllAssetMetas();
+
+      expect(result).toHaveLength(0);
     });
   });
 
   describe('getAssetMetaById', () => {
     it('应该返回指定 ID 的 assetMeta 记录', async () => {
-      (db.query.assetMeta.findFirst as any).mockResolvedValue(mockAssetMeta);
+      (assetMetaRepository.findById as any).mockResolvedValue(mockAssetMeta);
 
       const result = await assetMetaService.getAssetMetaById(1);
 
@@ -89,7 +97,7 @@ describe('AssetMetaService', () => {
     });
 
     it('不应返回已删除的记录（includeDeleted = false）', async () => {
-      (db.query.assetMeta.findFirst as any).mockResolvedValue(null);
+      (assetMetaRepository.findById as any).mockResolvedValue(null);
 
       const result = await assetMetaService.getAssetMetaById(1, false);
 
@@ -97,7 +105,7 @@ describe('AssetMetaService', () => {
     });
 
     it('应该返回已删除的记录（includeDeleted = true）', async () => {
-      (db.query.assetMeta.findFirst as any).mockResolvedValue(mockDeletedAssetMeta);
+      (assetMetaRepository.findById as any).mockResolvedValue(mockDeletedAssetMeta);
 
       const result = await assetMetaService.getAssetMetaById(1, true);
 
@@ -106,23 +114,25 @@ describe('AssetMetaService', () => {
     });
 
     it('记录不存在时应该返回 null', async () => {
-      (db.query.assetMeta.findFirst as any).mockResolvedValue(null);
+      (assetMetaRepository.findById as any).mockResolvedValue(null);
 
       const result = await assetMetaService.getAssetMetaById(999);
 
       expect(result).toBeNull();
     });
 
-    it('数据库错误时应该抛出错误', async () => {
-      (db.query.assetMeta.findFirst as any).mockRejectedValue(new Error('Database error'));
+    it('数据库错误时应该返回 null', async () => {
+      (assetMetaRepository.findById as any).mockRejectedValue(new Error('Database error'));
 
-      await expect(assetMetaService.getAssetMetaById(1)).rejects.toThrow();
+      const result = await assetMetaService.getAssetMetaById(1);
+
+      expect(result).toBeNull();
     });
   });
 
   describe('searchAssetMetasBySymbol', () => {
     it('应该根据 symbol 搜索 assetMeta 记录', async () => {
-      (db.query.assetMeta.findMany as any).mockResolvedValue([mockAssetMeta]);
+      (assetMetaRepository.searchBySymbol as any).mockResolvedValue([mockAssetMeta]);
 
       const result = await assetMetaService.searchAssetMetasBySymbol('AAP');
 
@@ -135,7 +145,7 @@ describe('AssetMetaService', () => {
         mockAssetMeta,
         { ...mockAssetMeta, id: 2, symbol: 'APPL', chineseName: '亚马逊' },
       ];
-      (db.query.assetMeta.findMany as any).mockResolvedValue(mockMetas);
+      (assetMetaRepository.searchBySymbol as any).mockResolvedValue(mockMetas);
 
       const result = await assetMetaService.searchAssetMetasBySymbol('A');
 
@@ -143,17 +153,19 @@ describe('AssetMetaService', () => {
     });
 
     it('未匹配到结果时应返回空数组', async () => {
-      (db.query.assetMeta.findMany as any).mockResolvedValue([]);
+      (assetMetaRepository.searchBySymbol as any).mockResolvedValue([]);
 
       const result = await assetMetaService.searchAssetMetasBySymbol('XYZ');
 
       expect(result).toHaveLength(0);
     });
 
-    it('数据库错误时应该抛出错误', async () => {
-      (db.query.assetMeta.findMany as any).mockRejectedValue(new Error('Database error'));
+    it('数据库错误时应该返回空数组', async () => {
+      (assetMetaRepository.searchBySymbol as any).mockRejectedValue(new Error('Database error'));
 
-      await expect(assetMetaService.searchAssetMetasBySymbol('AAP')).rejects.toThrow();
+      const result = await assetMetaService.searchAssetMetasBySymbol('AAP');
+
+      expect(result).toHaveLength(0);
     });
   });
 
@@ -173,9 +185,7 @@ describe('AssetMetaService', () => {
       };
 
       const newAssetMeta = { id: 2, ...assetMetaData, createdAt: new Date() };
-      const mockReturning = vi.fn().mockResolvedValue([newAssetMeta]);
-      const mockValues = vi.fn().mockReturnValue({ returning: mockReturning });
-      (db.insert as any).mockReturnValue({ values: mockValues });
+      (assetMetaRepository.createAssetMeta as any).mockResolvedValue(newAssetMeta);
 
       const result = await assetMetaService.createAssetMeta(assetMetaData);
 
@@ -198,9 +208,7 @@ describe('AssetMetaService', () => {
         deletedAt: null,
       };
 
-      (db.insert as any).mockImplementation(() => {
-        throw new Error('Database error');
-      });
+      (assetMetaRepository.createAssetMeta as any).mockRejectedValue(new Error('Database error'));
 
       await expect(assetMetaService.createAssetMeta(assetMetaData)).rejects.toThrow();
     });
@@ -214,11 +222,7 @@ describe('AssetMetaService', () => {
       };
 
       const updatedMeta = { ...mockAssetMeta, chineseName: '苹果公司', investmentMemo: '长期持有' };
-      const mockReturning = vi.fn().mockResolvedValue([updatedMeta]);
-      const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning });
-      const mockSet = vi.fn().mockReturnValue({ where: mockWhere });
-
-      (db.update as any).mockReturnValue({ set: mockSet });
+      (assetMetaRepository.updateAssetMeta as any).mockResolvedValue(updatedMeta);
 
       const result = await assetMetaService.updateAssetMeta(1, updateData);
 
@@ -228,11 +232,7 @@ describe('AssetMetaService', () => {
     });
 
     it('记录不存在时应该返回 null', async () => {
-      const mockReturning = vi.fn().mockResolvedValue([]);
-      const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning });
-      const mockSet = vi.fn().mockReturnValue({ where: mockWhere });
-
-      (db.update as any).mockReturnValue({ set: mockSet });
+      (assetMetaRepository.updateAssetMeta as any).mockResolvedValue(null);
 
       const result = await assetMetaService.updateAssetMeta(999, { chineseName: 'Updated' });
 
@@ -240,9 +240,7 @@ describe('AssetMetaService', () => {
     });
 
     it('数据库错误时应该抛出错误', async () => {
-      (db.update as any).mockImplementation(() => {
-        throw new Error('Database error');
-      });
+      (assetMetaRepository.updateAssetMeta as any).mockRejectedValue(new Error('Database error'));
 
       await expect(assetMetaService.updateAssetMeta(1, { chineseName: 'Updated' })).rejects.toThrow();
     });
@@ -250,12 +248,7 @@ describe('AssetMetaService', () => {
 
   describe('softDeleteAssetMeta', () => {
     it('应该成功软删除 assetMeta 记录', async () => {
-      const updatedMeta = { ...mockAssetMeta, deletedAt: new Date() };
-      const mockReturning = vi.fn().mockResolvedValue([updatedMeta]);
-      const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning });
-      const mockSet = vi.fn().mockReturnValue({ where: mockWhere });
-
-      (db.update as any).mockReturnValue({ set: mockSet });
+      (assetMetaRepository.softDelete as any).mockResolvedValue(true);
 
       const result = await assetMetaService.softDeleteAssetMeta(1);
 
@@ -263,11 +256,7 @@ describe('AssetMetaService', () => {
     });
 
     it('记录不存在时应该返回 false', async () => {
-      const mockReturning = vi.fn().mockResolvedValue([]);
-      const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning });
-      const mockSet = vi.fn().mockReturnValue({ where: mockWhere });
-
-      (db.update as any).mockReturnValue({ set: mockSet });
+      (assetMetaRepository.softDelete as any).mockResolvedValue(false);
 
       const result = await assetMetaService.softDeleteAssetMeta(999);
 
@@ -275,9 +264,7 @@ describe('AssetMetaService', () => {
     });
 
     it('数据库错误时应该抛出错误', async () => {
-      (db.update as any).mockImplementation(() => {
-        throw new Error('Database error');
-      });
+      (assetMetaRepository.softDelete as any).mockRejectedValue(new Error('Database error'));
 
       await expect(assetMetaService.softDeleteAssetMeta(1)).rejects.toThrow();
     });
@@ -285,8 +272,7 @@ describe('AssetMetaService', () => {
 
   describe('hardDeleteAssetMeta', () => {
     it('应该成功物理删除 assetMeta 记录', async () => {
-      const mockWhere = vi.fn().mockReturnValue({ rowsAffected: 1 });
-      (db.delete as any).mockReturnValue({ where: mockWhere });
+      (assetMetaRepository.delete as any).mockResolvedValue(true);
 
       const result = await assetMetaService.hardDeleteAssetMeta(1);
 
@@ -294,8 +280,7 @@ describe('AssetMetaService', () => {
     });
 
     it('记录不存在时应该返回 false', async () => {
-      const mockWhere = vi.fn().mockReturnValue({ rowsAffected: 0 });
-      (db.delete as any).mockReturnValue({ where: mockWhere });
+      (assetMetaRepository.delete as any).mockResolvedValue(false);
 
       const result = await assetMetaService.hardDeleteAssetMeta(999);
 
@@ -303,10 +288,7 @@ describe('AssetMetaService', () => {
     });
 
     it('数据库错误时应该抛出错误', async () => {
-      const mockWhere = vi.fn().mockImplementation(() => {
-        throw new Error('Database error');
-      });
-      (db.delete as any).mockReturnValue({ where: mockWhere });
+      (assetMetaRepository.delete as any).mockRejectedValue(new Error('Database error'));
 
       await expect(assetMetaService.hardDeleteAssetMeta(1)).rejects.toThrow();
     });
@@ -315,11 +297,7 @@ describe('AssetMetaService', () => {
   describe('restoreAssetMeta', () => {
     it('应该成功恢复已删除的 assetMeta 记录', async () => {
       const restoredMeta = { ...mockDeletedAssetMeta, deletedAt: null };
-      const mockReturning = vi.fn().mockResolvedValue([restoredMeta]);
-      const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning });
-      const mockSet = vi.fn().mockReturnValue({ where: mockWhere });
-
-      (db.update as any).mockReturnValue({ set: mockSet });
+      (assetMetaRepository.restore as any).mockResolvedValue(restoredMeta);
 
       const result = await assetMetaService.restoreAssetMeta(1);
 
@@ -327,11 +305,7 @@ describe('AssetMetaService', () => {
     });
 
     it('记录不存在时应该返回 false', async () => {
-      const mockReturning = vi.fn().mockResolvedValue([]);
-      const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning });
-      const mockSet = vi.fn().mockReturnValue({ where: mockWhere });
-
-      (db.update as any).mockReturnValue({ set: mockSet });
+      (assetMetaRepository.restore as any).mockResolvedValue(null);
 
       const result = await assetMetaService.restoreAssetMeta(999);
 
@@ -339,9 +313,7 @@ describe('AssetMetaService', () => {
     });
 
     it('数据库错误时应该抛出错误', async () => {
-      (db.update as any).mockImplementation(() => {
-        throw new Error('Database error');
-      });
+      (assetMetaRepository.restore as any).mockRejectedValue(new Error('Database error'));
 
       await expect(assetMetaService.restoreAssetMeta(1)).rejects.toThrow();
     });
@@ -349,7 +321,7 @@ describe('AssetMetaService', () => {
 
   describe('isAssetMetaDeleted', () => {
     it('应该正确检查记录是否已删除', async () => {
-      (db.query.assetMeta.findFirst as any).mockResolvedValue({
+      (assetMetaRepository.findById as any).mockResolvedValue({
         id: 1,
         deletedAt: new Date(),
       });
@@ -360,7 +332,7 @@ describe('AssetMetaService', () => {
     });
 
     it('未删除的记录应该返回 false', async () => {
-      (db.query.assetMeta.findFirst as any).mockResolvedValue({
+      (assetMetaRepository.findById as any).mockResolvedValue({
         id: 1,
         deletedAt: null,
       });
@@ -371,17 +343,19 @@ describe('AssetMetaService', () => {
     });
 
     it('记录不存在时应该返回 false', async () => {
-      (db.query.assetMeta.findFirst as any).mockResolvedValue(null);
+      (assetMetaRepository.findById as any).mockResolvedValue(null);
 
       const result = await assetMetaService.isAssetMetaDeleted(999);
 
       expect(result).toBe(false);
     });
 
-    it('数据库错误时应该抛出错误', async () => {
-      (db.query.assetMeta.findFirst as any).mockRejectedValue(new Error('Database error'));
+    it('数据库错误时应该返回 false', async () => {
+      (assetMetaRepository.findById as any).mockRejectedValue(new Error('Database error'));
 
-      await expect(assetMetaService.isAssetMetaDeleted(1)).rejects.toThrow();
+      const result = await assetMetaService.isAssetMetaDeleted(1);
+
+      expect(result).toBe(false);
     });
   });
 });

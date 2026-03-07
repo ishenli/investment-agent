@@ -11,6 +11,10 @@ vi.mock('@/drizzle/schema', () => ({
   modelProviders: {},
   providerModels: {},
   accountFunds: {},
+  assetCompanyInfo: {},
+  assetMeta: {},
+  assetMarketInfo: {},
+  assetMarketInfoToAssetMeta: {},
 }));
 
 // Mock Repository 单例

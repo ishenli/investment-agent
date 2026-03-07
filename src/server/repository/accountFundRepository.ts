@@ -4,7 +4,8 @@
  * 数据访问层：负责 account_funds 表的数据库操作
  */
 import { accountFunds } from '@/drizzle/schema';
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
+import { db } from '@server/lib/db';
 import { BaseIntRepository } from './base';
 
 /**
@@ -56,6 +57,29 @@ export class AccountFundRepository extends BaseIntRepository<AccountFundEntity> 
    */
   async createAccountFund(data: CreateAccountFundData): Promise<AccountFundEntity> {
     return this.create(data);
+  }
+
+  /**
+   * 批量查询账户资金记录
+   * @param accountIds 账户 ID 列表
+   * @returns Map<accountId, AccountFundEntity>
+   */
+  async findByAccountIds(accountIds: number[]): Promise<Map<number, AccountFundEntity>> {
+    if (accountIds.length === 0) {
+      return new Map();
+    }
+
+    const funds = await (db as any)
+      .select()
+      .from(accountFunds)
+      .where(inArray(accountFunds.accountId, accountIds));
+
+    const fundMap = new Map<number, AccountFundEntity>();
+    for (const fund of funds) {
+      fundMap.set(fund.accountId, fund as AccountFundEntity);
+    }
+
+    return fundMap;
   }
 }
 

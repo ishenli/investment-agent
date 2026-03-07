@@ -1,6 +1,9 @@
-import { db } from '@server/lib/db';
-import { assetMarketInfo, assetMeta, assetMarketInfoToAssetMeta } from '@/drizzle/schema';
-import { eq, desc, gte, lte, sql, inArray, and } from 'drizzle-orm';
+import {
+  assetMarketInfoRepository,
+  type AssetMarketInfoEntity,
+  type AssetMetaDetail,
+} from '@server/repository/assetMarketInfoRepository';
+import { assetMetaRepository } from '@server/repository/assetMetaRepository';
 import logger from '@server/base/logger';
 import {
   CreateAssetMarketInfoRequest,
@@ -8,10 +11,47 @@ import {
   AssetMetaDetails,
 } from '@/types/marketInfo';
 
+// ============== DTO 转换函数 ==============
+
+/**
+ * 将实体转换为响应 DTO
+ */
+function toAssetMarketInfoResponse(
+  entity: AssetMarketInfoEntity,
+  assetMetaIds: number[],
+  assetMetas: AssetMetaDetail[]
+): AssetMarketInfoType {
+  return {
+    id: entity.id,
+    assetMetaIds,
+    assetMetas: assetMetas.map((m) => ({
+      id: m.id,
+      symbol: m.symbol,
+      chineseName: m.chineseName,
+    })),
+    title: entity.title,
+    symbol: entity.symbol,
+    sentiment: entity.sentiment,
+    importance: entity.importance,
+    summary: entity.summary,
+    keyTopics: entity.keyTopics,
+    marketImpact: entity.marketImpact,
+    keyDataPoints: entity.keyDataPoints,
+    sourceUrl: entity.sourceUrl,
+    sourceName: entity.sourceName,
+    originalContent: entity.originalContent,
+    contentMode: entity.contentMode as 'ai_summary' | 'original',
+    createdAt: new Date(entity.createdAt),
+    updatedAt: new Date(entity.updatedAt),
+  };
+}
+
 export class AssetMarketInfoService {
   constructor() {
     // 数据库连接已经在 db.ts 中初始化
   }
+
+  // ============== 创建操作 ==============
 
   /**
    * 创建新的 assetMarketInfo 记录
@@ -23,81 +63,79 @@ export class AssetMarketInfoService {
       logger.info('[AssetMarketInfoService] 开始创建资产市场信息: %s', request.symbol);
 
       // 检查 assetMeta 是否存在
-      const existingAssetMetas = await db.query.assetMeta.findMany({
-        where: inArray(assetMeta.id, request.assetMetaIds),
-      });
+      const existingAssetMetas = await assetMetaRepository.findByIds(request.assetMetaIds);
 
       if (existingAssetMetas.length !== request.assetMetaIds.length) {
         throw new Error(`Some AssetMetas not found`);
       }
 
-      // 创建 assetMarketInfo 记录
-      const [newAssetMarketInfo] = await db
-        .insert(assetMarketInfo)
-        .values({
+      // 创建 assetMarketInfo 记录及关联
+      const newAssetMarketInfo = await assetMarketInfoRepository.createWithRelations(
+        {
           title: request.title,
           symbol: request.symbol || existingAssetMetas.map((m) => m.symbol).join(','),
           sentiment: request.sentiment,
           importance: request.importance,
           summary: request.summary,
-          keyTopics: request.keyTopics,
+          keyTopics: request.keyTopics || null,
           marketImpact: request.marketImpact,
-          keyDataPoints: request.keyDataPoints,
-          sourceUrl: request.sourceUrl,
-          sourceName: request.sourceName,
-          originalContent: request.originalContent,
+          keyDataPoints: request.keyDataPoints || null,
+          sourceUrl: request.sourceUrl || null,
+          sourceName: request.sourceName || null,
+          originalContent: request.originalContent || null,
           contentMode: request.contentMode,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .returning();
-
-      // 创建关联记录
-      if (request.assetMetaIds.length > 0) {
-        await db.insert(assetMarketInfoToAssetMeta).values(
-          request.assetMetaIds.map((id) => ({
-            assetMarketInfoId: newAssetMarketInfo.id,
-            assetMetaId: id,
-          })),
-        );
-      }
+        },
+        request.assetMetaIds
+      );
 
       logger.info('[AssetMarketInfoService] 成功创建资产市场信息: %d', newAssetMarketInfo.id);
 
-      // 获取关联的 assetMeta 详细信息
-      const assetMetasDetails = existingAssetMetas.map((meta) => ({
+      const assetMetasDetails: AssetMetaDetails[] = existingAssetMetas.map((meta) => ({
         id: meta.id,
         symbol: meta.symbol,
         chineseName: meta.chineseName,
       }));
 
-      return {
-        id: newAssetMarketInfo.id,
-        assetMetaIds: request.assetMetaIds,
-        assetMetas: assetMetasDetails,
-        title: newAssetMarketInfo.title,
-        symbol: newAssetMarketInfo.symbol,
-        sentiment: newAssetMarketInfo.sentiment,
-        importance: newAssetMarketInfo.importance,
-        summary: newAssetMarketInfo.summary,
-        keyTopics: newAssetMarketInfo.keyTopics,
-        marketImpact: newAssetMarketInfo.marketImpact,
-        keyDataPoints: newAssetMarketInfo.keyDataPoints,
-        sourceUrl: newAssetMarketInfo.sourceUrl,
-        sourceName: newAssetMarketInfo.sourceName,
-        originalContent: newAssetMarketInfo.originalContent,
-        contentMode: newAssetMarketInfo.contentMode as 'ai_summary' | 'original',
-        createdAt: new Date(newAssetMarketInfo.createdAt),
-        updatedAt: new Date(newAssetMarketInfo.updatedAt),
-      };
+      return toAssetMarketInfoResponse(newAssetMarketInfo, request.assetMetaIds, assetMetasDetails);
     } catch (error) {
       logger.error(
         '[AssetMarketInfoService] 创建资产市场信息失败: %s',
         error instanceof Error ? error.message : String(error),
       );
-      throw new Error(
-        `创建资产市场信息失败: ${error instanceof Error ? error.message : String(error)}`,
+      throw error;
+    }
+  }
+
+  // ============== 查询操作 ==============
+
+  /**
+   * 根据 ID 获取 assetMarketInfo 记录
+   * @param id assetMarketInfo ID
+   * @returns assetMarketInfo 记录
+   */
+  async getAssetMarketInfoById(id: number): Promise<AssetMarketInfoType | null> {
+    try {
+      logger.info('[AssetMarketInfoService] 开始获取资产市场信息: %d', id);
+
+      const assetMarketInfoRecord = await assetMarketInfoRepository.findById(id);
+
+      if (!assetMarketInfoRecord) {
+        return null;
+      }
+
+      // 获取关联的 assetMeta IDs 和详情
+      const relatedAssetMetaIds = await assetMarketInfoRepository.getRelatedAssetMetaIds(id);
+      const assetMetasDetails = await this.getAssetMetaDetails(relatedAssetMetaIds);
+
+      logger.info('[AssetMarketInfoService] 成功获取资产市场信息: %d', assetMarketInfoRecord.id);
+
+      return toAssetMarketInfoResponse(assetMarketInfoRecord, relatedAssetMetaIds, assetMetasDetails);
+    } catch (error) {
+      logger.error(
+        '[AssetMarketInfoService] 获取资产市场信息失败: %s',
+        error instanceof Error ? error.message : String(error),
       );
+      return null;
     }
   }
 
@@ -109,152 +147,58 @@ export class AssetMarketInfoService {
       logger.info('[AssetMarketInfoService] 开始获取资产市场信息: %s', symbol);
 
       // 首先尝试通过关联表查找
-      // 获取与指定symbol相关的assetMeta IDs
-      const assetMetas = await db.query.assetMeta.findMany({
-        where: eq(assetMeta.symbol, symbol),
-      });
+      const assetMetas = await assetMetaRepository.findBySymbol(symbol)
+        ? [await assetMetaRepository.findBySymbol(symbol)]
+        : [];
 
-      if (assetMetas.length > 0) {
-        const assetMetaIds = assetMetas.map((meta) => meta.id);
+      const assetMetaRecords = assetMetas.filter(Boolean) as AssetMetaDetail[];
+      let assetMarketInfoRecord: AssetMarketInfoEntity | null = null;
 
-        // 通过assetMeta IDs查找关联的assetMarketInfo IDs
-        const assetMarketInfoIds = await db
-          .selectDistinct({ assetMarketInfoId: assetMarketInfoToAssetMeta.assetMarketInfoId })
-          .from(assetMarketInfoToAssetMeta)
-          .where(inArray(assetMarketInfoToAssetMeta.assetMetaId, assetMetaIds));
+      if (assetMetaRecords.length > 0) {
+        const assetMetaIds = assetMetaRecords.map((meta) => meta.id);
+        const marketInfoIds = await Promise.all(
+          assetMetaIds.map((id) => assetMarketInfoRepository.getMarketInfoIdsByAssetMetaId(id))
+        );
+        const allMarketInfoIds = [...new Set(marketInfoIds.flat())];
 
-        if (assetMarketInfoIds.length > 0) {
-          // 获取最新的 assetMarketInfo 记录
-          const assetMarketInfos = await db
-            .select()
-            .from(assetMarketInfo)
-            .where(
-              inArray(
-                assetMarketInfo.id,
-                assetMarketInfoIds.map((item) => item.assetMarketInfoId),
-              ),
-            )
-            .orderBy(desc(assetMarketInfo.createdAt))
-            .limit(1);
-
-          if (assetMarketInfos.length > 0) {
-            const latestRecord = assetMarketInfos[0];
-
-            // 获取所有关联的 assetMeta IDs
-            const relatedMetas = await db
-              .select({ assetMetaId: assetMarketInfoToAssetMeta.assetMetaId })
-              .from(assetMarketInfoToAssetMeta)
-              .where(eq(assetMarketInfoToAssetMeta.assetMarketInfoId, latestRecord.id));
-
-            const assetMetaIds = relatedMetas.map((r) => r.assetMetaId);
-
-            // 获取关联的 assetMeta 详细信息
-            const assetMetasDetails = assetMetas.map((meta) => ({
-              id: meta.id,
-              symbol: meta.symbol,
-              chineseName: meta.chineseName,
-            }));
-
-            logger.info('[AssetMarketInfoService] 成功获取资产市场信息: %d', latestRecord.id);
-
-            return {
-              id: latestRecord.id,
-              assetMetaIds: assetMetaIds,
-              assetMetas: assetMetasDetails,
-              title: latestRecord.title,
-              symbol: latestRecord.symbol,
-              sentiment: latestRecord.sentiment,
-              importance: latestRecord.importance,
-              summary: latestRecord.summary,
-              keyTopics: latestRecord.keyTopics,
-              marketImpact: latestRecord.marketImpact,
-              keyDataPoints: latestRecord.keyDataPoints,
-              sourceUrl: latestRecord.sourceUrl,
-              sourceName: latestRecord.sourceName,
-              originalContent: latestRecord.originalContent,
-              contentMode: latestRecord.contentMode as 'ai_summary' | 'original',
-              createdAt: new Date(latestRecord.createdAt),
-              updatedAt: new Date(latestRecord.updatedAt),
-            };
+        if (allMarketInfoIds.length > 0) {
+          // 获取最新的记录
+          const allRecords = await Promise.all(
+            allMarketInfoIds.map((id) => assetMarketInfoRepository.findById(id))
+          );
+          const validRecords = allRecords.filter(Boolean) as AssetMarketInfoEntity[];
+          if (validRecords.length > 0) {
+            assetMarketInfoRecord = validRecords.sort(
+              (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            )[0];
           }
         }
       }
 
-      // 回退到直接通过symbol查找（向后兼容）
-      const assetMarketInfoRecords = await db
-        .select()
-        .from(assetMarketInfo)
-        .where(eq(assetMarketInfo.symbol, symbol))
-        .orderBy(desc(assetMarketInfo.createdAt))
-        .limit(1);
+      // 回退：直接通过 symbol 查找
+      if (!assetMarketInfoRecord) {
+        assetMarketInfoRecord = await assetMarketInfoRepository.findLatestBySymbol(symbol);
+      }
 
-      if (assetMarketInfoRecords.length === 0) {
+      if (!assetMarketInfoRecord) {
         return null;
       }
 
-      const latestRecord = assetMarketInfoRecords[0];
+      // 获取关联的 assetMeta IDs 和详情
+      const relatedAssetMetaIds = await assetMarketInfoRepository.getRelatedAssetMetaIds(
+        assetMarketInfoRecord.id
+      );
+      const assetMetasDetails = await this.getAssetMetaDetails(relatedAssetMetaIds);
 
-      // 获取所有关联的 assetMeta IDs
-      const relatedMetas = await db
-        .select({ assetMetaId: assetMarketInfoToAssetMeta.assetMetaId })
-        .from(assetMarketInfoToAssetMeta)
-        .where(eq(assetMarketInfoToAssetMeta.assetMarketInfoId, latestRecord.id));
+      logger.info('[AssetMarketInfoService] 成功获取资产市场信息: %d', assetMarketInfoRecord.id);
 
-      // 向后兼容：如果在关联表中找不到关联记录，则尝试通过symbol查找
-      let finalAssetMetaIds: number[] = relatedMetas.map((r) => r.assetMetaId);
-      let assetMetasDetails: AssetMetaDetails[] = [];
-      if (finalAssetMetaIds.length === 0 && latestRecord.symbol) {
-        try {
-          // 尝试通过symbol查找对应的assetMeta
-          const symbolBasedMetas = await db.query.assetMeta.findMany({
-            where: eq(assetMeta.symbol, latestRecord.symbol),
-          });
-
-          finalAssetMetaIds = symbolBasedMetas.map((meta) => meta.id);
-          assetMetasDetails = symbolBasedMetas.map((meta) => ({
-            id: meta.id,
-            symbol: meta.symbol,
-            chineseName: meta.chineseName,
-          }));
-        } catch (symbolLookupError) {
-          logger.warn(
-            '[AssetMarketInfoService] 通过symbol查找assetMeta失败: %s',
-            symbolLookupError instanceof Error
-              ? symbolLookupError.message
-              : String(symbolLookupError),
-          );
-        }
-      }
-
-      logger.info('[AssetMarketInfoService] 成功获取资产市场信息: %d', latestRecord.id);
-
-      return {
-        id: latestRecord.id,
-        assetMetaIds: finalAssetMetaIds,
-        assetMetas: assetMetasDetails,
-        title: latestRecord.title,
-        symbol: latestRecord.symbol,
-        sentiment: latestRecord.sentiment,
-        importance: latestRecord.importance,
-        summary: latestRecord.summary,
-        keyTopics: latestRecord.keyTopics,
-        marketImpact: latestRecord.marketImpact,
-        keyDataPoints: latestRecord.keyDataPoints,
-        sourceUrl: latestRecord.sourceUrl,
-        sourceName: latestRecord.sourceName,
-        originalContent: latestRecord.originalContent,
-        contentMode: latestRecord.contentMode as 'ai_summary' | 'original',
-        createdAt: new Date(latestRecord.createdAt),
-        updatedAt: new Date(latestRecord.updatedAt),
-      };
+      return toAssetMarketInfoResponse(assetMarketInfoRecord, relatedAssetMetaIds, assetMetasDetails);
     } catch (error) {
       logger.error(
         '[AssetMarketInfoService] 获取资产市场信息失败: %s',
         error instanceof Error ? error.message : String(error),
       );
-      throw new Error(
-        `获取资产市场信息失败: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      return null;
     }
   }
 
@@ -269,168 +213,45 @@ export class AssetMarketInfoService {
     try {
       logger.info('[AssetMarketInfoService] 开始获取资产市场信息: %d', assetMetaId);
 
-      // 使用子查询先获取 assetMarketInfo IDs
-      const assetMarketInfoIds = await db
-        .select({ id: assetMarketInfo.id })
-        .from(assetMarketInfo)
-        .innerJoin(
-          assetMarketInfoToAssetMeta,
-          eq(assetMarketInfo.id, assetMarketInfoToAssetMeta.assetMarketInfoId),
-        )
-        .where(eq(assetMarketInfoToAssetMeta.assetMetaId, assetMetaId));
+      // 通过关联表查找
+      const marketInfoIds = await assetMarketInfoRepository.getMarketInfoIdsByAssetMetaId(assetMetaId);
 
-      if (assetMarketInfoIds.length === 0) {
-        // 向后兼容：如果通过关联表找不到，则尝试直接通过symbol查找
-        const assetMetaRecord = await db.query.assetMeta.findFirst({
-          where: eq(assetMeta.id, assetMetaId),
-        });
+      let assetMarketInfoRecord: AssetMarketInfoEntity | null = null;
 
-        if (!assetMetaRecord) {
-          return null;
-        }
-
-        // 通过symbol查找assetMarketInfo
-        const symbolBasedRecords = await db
-          .select()
-          .from(assetMarketInfo)
-          .where(eq(assetMarketInfo.symbol, assetMetaRecord.symbol))
-          .orderBy(desc(assetMarketInfo.createdAt))
-          .limit(1);
-
-        if (symbolBasedRecords.length === 0) {
-          return null;
-        }
-
-        const assetMarketInfoRecord = symbolBasedRecords[0];
-
-        // 获取关联的assetMeta IDs
-        const relatedMetas = await db
-          .select({ assetMetaId: assetMarketInfoToAssetMeta.assetMetaId })
-          .from(assetMarketInfoToAssetMeta)
-          .where(eq(assetMarketInfoToAssetMeta.assetMarketInfoId, assetMarketInfoRecord.id));
-
-        // 向后兼容：如果在关联表中找不到关联记录，则使用当前assetMetaId
-        let finalAssetMetaIds: number[] = relatedMetas.map((r) => r.assetMetaId);
-        let assetMetasDetails: AssetMetaDetails[] = [];
-        if (finalAssetMetaIds.length === 0) {
-          finalAssetMetaIds = [assetMetaId];
-          assetMetasDetails = [
-            {
-              id: assetMetaRecord.id,
-              symbol: assetMetaRecord.symbol,
-              chineseName: assetMetaRecord.chineseName,
-            },
-          ];
-        } else {
-          // 获取关联的 assetMeta 详细信息
-          const relatedAssetMetas = await db
-            .select({
-              id: assetMeta.id,
-              symbol: assetMeta.symbol,
-              chineseName: assetMeta.chineseName,
-            })
-            .from(assetMeta)
-            .where(inArray(assetMeta.id, finalAssetMetaIds));
-
-          assetMetasDetails = relatedAssetMetas;
-        }
-
-        logger.info('[AssetMarketInfoService] 成功获取资产市场信息: %d', assetMarketInfoRecord.id);
-
-        return {
-          id: assetMarketInfoRecord.id,
-          assetMetaIds: finalAssetMetaIds,
-          assetMetas: assetMetasDetails,
-          title: assetMarketInfoRecord.title,
-          symbol: assetMarketInfoRecord.symbol,
-          sentiment: assetMarketInfoRecord.sentiment,
-          importance: assetMarketInfoRecord.importance,
-          summary: assetMarketInfoRecord.summary,
-          keyTopics: assetMarketInfoRecord.keyTopics,
-          marketImpact: assetMarketInfoRecord.marketImpact,
-          keyDataPoints: assetMarketInfoRecord.keyDataPoints,
-          sourceUrl: assetMarketInfoRecord.sourceUrl,
-          sourceName: assetMarketInfoRecord.sourceName,
-          originalContent: assetMarketInfoRecord.originalContent,
-          contentMode: assetMarketInfoRecord.contentMode as 'ai_summary' | 'original',
-          createdAt: new Date(assetMarketInfoRecord.createdAt),
-          updatedAt: new Date(assetMarketInfoRecord.updatedAt),
-        };
+      if (marketInfoIds.length > 0) {
+        // 获取最新的记录
+        const records = await assetMarketInfoRepository.findByAssetMetaId(assetMetaId, 1, 0);
+        assetMarketInfoRecord = records[0] ?? null;
       }
 
-      // 获取最新的 assetMarketInfo 记录
-      const latestAssetMarketInfo = await db
-        .select()
-        .from(assetMarketInfo)
-        .where(
-          inArray(
-            assetMarketInfo.id,
-            assetMarketInfoIds.map((item) => item.id),
-          ),
-        )
-        .orderBy(desc(assetMarketInfo.createdAt))
-        .limit(1);
+      // 向后兼容：如果通过关联表找不到，则尝试直接通过 symbol 查找
+      if (!assetMarketInfoRecord) {
+        const assetMetaRecord = await assetMetaRepository.findById(assetMetaId);
+        if (assetMetaRecord) {
+          assetMarketInfoRecord = await assetMarketInfoRepository.findLatestBySymbol(assetMetaRecord.symbol);
+        }
+      }
 
-      if (latestAssetMarketInfo.length === 0) {
+      if (!assetMarketInfoRecord) {
         return null;
       }
 
-      const assetMarketInfoRecord = latestAssetMarketInfo[0];
-
-      // 获取所有关联的 assetMeta IDs
-      const relatedMetas = await db
-        .select({ assetMetaId: assetMarketInfoToAssetMeta.assetMetaId })
-        .from(assetMarketInfoToAssetMeta)
-        .where(eq(assetMarketInfoToAssetMeta.assetMarketInfoId, assetMarketInfoRecord.id));
-
-      // 获取关联的 assetMeta 详细信息
-      const relatedAssetMetaIds = relatedMetas.map((r) => r.assetMetaId);
-      const relatedAssetMetas = await db
-        .select({
-          id: assetMeta.id,
-          symbol: assetMeta.symbol,
-          chineseName: assetMeta.chineseName,
-        })
-        .from(assetMeta)
-        .where(inArray(assetMeta.id, relatedAssetMetaIds));
-
-      const assetMetasDetails = relatedAssetMetas;
-
-      // 向后兼容：如果在关联表中找不到关联记录，则使用传入的assetMetaId
-      let finalAssetMetaIds: number[] = relatedAssetMetaIds;
-      if (finalAssetMetaIds.length === 0) {
-        finalAssetMetaIds = [assetMetaId];
-      }
+      // 获取关联的 assetMeta IDs 和详情
+      const relatedAssetMetaIds = await assetMarketInfoRepository.getRelatedAssetMetaIds(
+        assetMarketInfoRecord.id
+      );
+      const finalAssetMetaIds = relatedAssetMetaIds.length > 0 ? relatedAssetMetaIds : [assetMetaId];
+      const assetMetasDetails = await this.getAssetMetaDetails(finalAssetMetaIds);
 
       logger.info('[AssetMarketInfoService] 成功获取资产市场信息: %d', assetMarketInfoRecord.id);
 
-      return {
-        id: assetMarketInfoRecord.id,
-        assetMetaIds: finalAssetMetaIds,
-        assetMetas: assetMetasDetails,
-        title: assetMarketInfoRecord.title,
-        symbol: assetMarketInfoRecord.symbol,
-        sentiment: assetMarketInfoRecord.sentiment,
-        importance: assetMarketInfoRecord.importance,
-        summary: assetMarketInfoRecord.summary,
-        keyTopics: assetMarketInfoRecord.keyTopics,
-        marketImpact: assetMarketInfoRecord.marketImpact,
-        keyDataPoints: assetMarketInfoRecord.keyDataPoints,
-        sourceUrl: assetMarketInfoRecord.sourceUrl,
-        sourceName: assetMarketInfoRecord.sourceName,
-        originalContent: assetMarketInfoRecord.originalContent,
-        contentMode: assetMarketInfoRecord.contentMode as 'ai_summary' | 'original',
-        createdAt: new Date(assetMarketInfoRecord.createdAt),
-        updatedAt: new Date(assetMarketInfoRecord.updatedAt),
-      };
+      return toAssetMarketInfoResponse(assetMarketInfoRecord, finalAssetMetaIds, assetMetasDetails);
     } catch (error) {
       logger.error(
         '[AssetMarketInfoService] 获取资产市场信息失败: %s',
         error instanceof Error ? error.message : String(error),
       );
-      throw new Error(
-        `获取资产市场信息失败: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      return null;
     }
   }
 
@@ -443,116 +264,28 @@ export class AssetMarketInfoService {
     try {
       logger.info('[AssetMarketInfoService] 开始获取最新的资产市场信息，限制数量: %d', limit);
 
-      // 获取最新的 assetMarketInfo 记录
-      const assetMarketInfoRecords = await db
-        .select()
-        .from(assetMarketInfo)
-        .orderBy(desc(assetMarketInfo.createdAt))
-        .limit(limit);
+      const records = await assetMarketInfoRepository.findLatest(limit);
 
       logger.info(
         '[AssetMarketInfoService] 成功获取资产市场信息列表，数量: %d',
-        assetMarketInfoRecords.length,
+        records.length,
       );
 
-      // 获取所有关联关系
-      const infoIds = assetMarketInfoRecords.map((r) => r.id);
-      let relations: { assetMarketInfoId: number; assetMetaId: number }[] = [];
-      if (infoIds.length > 0) {
-        relations = await db
-          .select()
-          .from(assetMarketInfoToAssetMeta)
-          .where(inArray(assetMarketInfoToAssetMeta.assetMarketInfoId, infoIds));
-      }
+      // 批量获取关联的 assetMeta 详情
+      const infoIds = records.map((r) => r.id);
+      const detailsMap = await assetMarketInfoRepository.getAssetMetaDetailsByMarketInfoIds(infoIds);
 
-      // 获取所有关联的 assetMeta 详细信息
-      let assetMetasDetails: { id: number; symbol: string; chineseName: string | null }[] = [];
-      const assetMetaIds = relations.map((r) => r.assetMetaId);
-      if (assetMetaIds.length > 0) {
-        const assetMetas = await db
-          .select({
-            id: assetMeta.id,
-            symbol: assetMeta.symbol,
-            chineseName: assetMeta.chineseName,
-          })
-          .from(assetMeta)
-          .where(inArray(assetMeta.id, assetMetaIds));
-
-        assetMetasDetails = assetMetas;
-      }
-
-      // 为每条记录处理关联的 assetMeta IDs 和详细信息
-      const results: AssetMarketInfoType[] = [];
-      for (const record of assetMarketInfoRecords) {
-        // 获取当前记录的关联assetMeta IDs
-        let assetMetaIds = relations
-          .filter((r) => r.assetMarketInfoId === record.id)
-          .map((r) => r.assetMetaId);
-
-        // 获取当前记录的关联assetMeta详细信息
-        const assetMetas = assetMetasDetails.filter((meta) => assetMetaIds.includes(meta.id));
-
-        // 向后兼容：如果在关联表中找不到关联记录，则尝试通过symbol查找
-        if (assetMetaIds.length === 0 && record.symbol) {
-          try {
-            // 尝试通过symbol查找对应的assetMeta
-            const symbolBasedMetas = await db.query.assetMeta.findMany({
-              where: eq(assetMeta.symbol, record.symbol),
-              columns: {
-                id: true,
-                symbol: true,
-                chineseName: true,
-              },
-            });
-
-            assetMetaIds = symbolBasedMetas.map((meta) => meta.id);
-            assetMetas.push(
-              ...symbolBasedMetas.map((meta) => ({
-                id: meta.id,
-                symbol: meta.symbol,
-                chineseName: meta.chineseName,
-              })),
-            );
-          } catch (symbolLookupError) {
-            logger.warn(
-              '[AssetMarketInfoService] 通过symbol查找assetMeta失败: %s',
-              symbolLookupError instanceof Error
-                ? symbolLookupError.message
-                : String(symbolLookupError),
-            );
-          }
-        }
-
-        results.push({
-          id: record.id,
-          assetMetaIds: assetMetaIds,
-          assetMetas: assetMetas,
-          title: record.title,
-          symbol: record.symbol,
-          sentiment: record.sentiment,
-          importance: record.importance,
-          summary: record.summary,
-          keyTopics: record.keyTopics,
-          marketImpact: record.marketImpact,
-          keyDataPoints: record.keyDataPoints,
-          sourceUrl: record.sourceUrl,
-          sourceName: record.sourceName,
-          originalContent: record.originalContent,
-          contentMode: record.contentMode as 'ai_summary' | 'original',
-          createdAt: new Date(record.createdAt),
-          updatedAt: new Date(record.updatedAt),
-        });
-      }
-
-      return results;
+      return records.map((record) => {
+        const details = detailsMap.get(record.id) ?? [];
+        const assetMetaIds = details.map((d) => d.id);
+        return toAssetMarketInfoResponse(record, assetMetaIds, details);
+      });
     } catch (error) {
       logger.error(
         '[AssetMarketInfoService] 获取最新的资产市场信息失败: %s',
         error instanceof Error ? error.message : String(error),
       );
-      throw new Error(
-        `获取最新的资产市场信息失败: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      return [];
     }
   }
 
@@ -575,189 +308,28 @@ export class AssetMarketInfoService {
         endDate.toISOString(),
       );
 
-      // 获取时间范围内的 assetMarketInfo 记录
-      const assetMarketInfoRecords = await db
-        .select()
-        .from(assetMarketInfo)
-        .where(
-          and(gte(assetMarketInfo.createdAt, startDate), lte(assetMarketInfo.createdAt, endDate)),
-        )
-        .orderBy(desc(assetMarketInfo.createdAt))
-        .limit(limit);
+      const records = await assetMarketInfoRepository.findByDateRange(startDate, endDate, limit);
 
       logger.info(
         '[AssetMarketInfoService] 成功获取时间范围内的资产市场信息，数量: %d',
-        assetMarketInfoRecords.length,
+        records.length,
       );
 
-      // 获取所有关联关系
-      const infoIds = assetMarketInfoRecords.map((r) => r.id);
-      let relations: { assetMarketInfoId: number; assetMetaId: number }[] = [];
-      if (infoIds.length > 0) {
-        relations = await db
-          .select()
-          .from(assetMarketInfoToAssetMeta)
-          .where(inArray(assetMarketInfoToAssetMeta.assetMarketInfoId, infoIds));
-      }
+      // 批量获取关联的 assetMeta 详情
+      const infoIds = records.map((r) => r.id);
+      const detailsMap = await assetMarketInfoRepository.getAssetMetaDetailsByMarketInfoIds(infoIds);
 
-      // 获取所有关联的 assetMeta 详细信息
-      let assetMetasDetails: { id: number; symbol: string; chineseName: string | null }[] = [];
-      const assetMetaIds = relations.map((r) => r.assetMetaId);
-      if (assetMetaIds.length > 0) {
-        const assetMetas = await db
-          .select({
-            id: assetMeta.id,
-            symbol: assetMeta.symbol,
-            chineseName: assetMeta.chineseName,
-          })
-          .from(assetMeta)
-          .where(inArray(assetMeta.id, assetMetaIds));
-
-        assetMetasDetails = assetMetas;
-      }
-
-      // 为每条记录处理关联的 assetMeta IDs 和详细信息
-      const results: AssetMarketInfoType[] = [];
-      for (const record of assetMarketInfoRecords) {
-        // 获取当前记录的关联assetMeta IDs
-        let assetMetaIds = relations
-          .filter((r) => r.assetMarketInfoId === record.id)
-          .map((r) => r.assetMetaId);
-
-        // 获取当前记录的关联assetMeta详细信息
-        const assetMetas = assetMetasDetails.filter((meta) => assetMetaIds.includes(meta.id));
-
-        // 向后兼容：如果在关联表中找不到关联记录，则尝试通过symbol查找
-        if (assetMetaIds.length === 0 && record.symbol) {
-          try {
-            // 尝试通过symbol查找对应的assetMeta
-            const symbolBasedMetas = await db.query.assetMeta.findMany({
-              where: eq(assetMeta.symbol, record.symbol),
-              columns: {
-                id: true,
-                symbol: true,
-                chineseName: true,
-              },
-            });
-
-            assetMetaIds = symbolBasedMetas.map((meta) => meta.id);
-            assetMetas.push(
-              ...symbolBasedMetas.map((meta) => ({
-                id: meta.id,
-                symbol: meta.symbol,
-                chineseName: meta.chineseName,
-              })),
-            );
-          } catch (symbolLookupError) {
-            logger.warn(
-              '[AssetMarketInfoService] 通过symbol查找assetMeta失败: %s',
-              symbolLookupError instanceof Error
-                ? symbolLookupError.message
-                : String(symbolLookupError),
-            );
-          }
-        }
-
-        results.push({
-          id: record.id,
-          assetMetaIds: assetMetaIds,
-          assetMetas: assetMetas,
-          title: record.title,
-          symbol: record.symbol,
-          sentiment: record.sentiment,
-          importance: record.importance,
-          summary: record.summary,
-          keyTopics: record.keyTopics,
-          marketImpact: record.marketImpact,
-          keyDataPoints: record.keyDataPoints,
-          sourceUrl: record.sourceUrl,
-          sourceName: record.sourceName,
-          originalContent: record.originalContent,
-          contentMode: record.contentMode as 'ai_summary' | 'original',
-          createdAt: new Date(record.createdAt),
-          updatedAt: new Date(record.updatedAt),
-        });
-      }
-
-      return results;
+      return records.map((record) => {
+        const details = detailsMap.get(record.id) ?? [];
+        const assetMetaIds = details.map((d) => d.id);
+        return toAssetMarketInfoResponse(record, assetMetaIds, details);
+      });
     } catch (error) {
       logger.error(
         '[AssetMarketInfoService] 获取时间范围内的资产市场信息失败: %s',
         error instanceof Error ? error.message : String(error),
       );
-      throw new Error(
-        `获取时间范围内的资产市场信息失败: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
-  }
-
-  /**
-   * 根据 ID 获取 assetMarketInfo 记录
-   * @param id assetMarketInfo ID
-   * @returns assetMarketInfo 记录
-   */
-  async getAssetMarketInfoById(id: number): Promise<AssetMarketInfoType | null> {
-    try {
-      logger.info('[AssetMarketInfoService] 开始获取资产市场信息: %d', id);
-
-      const assetMarketInfoRecord = await db.query.assetMarketInfo.findFirst({
-        where: eq(assetMarketInfo.id, id),
-      });
-
-      if (!assetMarketInfoRecord) {
-        return null;
-      }
-
-      const relatedMetas = await db
-        .select({ assetMetaId: assetMarketInfoToAssetMeta.assetMetaId })
-        .from(assetMarketInfoToAssetMeta)
-        .where(eq(assetMarketInfoToAssetMeta.assetMarketInfoId, assetMarketInfoRecord.id));
-
-      // 获取关联的 assetMeta 详细信息
-      const relatedAssetMetaIds = relatedMetas.map((r) => r.assetMetaId);
-      let assetMetasDetails: AssetMetaDetails[] = [];
-      if (relatedAssetMetaIds.length > 0) {
-        const relatedAssetMetas = await db
-          .select({
-            id: assetMeta.id,
-            symbol: assetMeta.symbol,
-            chineseName: assetMeta.chineseName,
-          })
-          .from(assetMeta)
-          .where(inArray(assetMeta.id, relatedAssetMetaIds));
-
-        assetMetasDetails = relatedAssetMetas;
-      }
-
-      logger.info('[AssetMarketInfoService] 成功获取资产市场信息: %d', assetMarketInfoRecord.id);
-
-      return {
-        id: assetMarketInfoRecord.id,
-        assetMetaIds: relatedAssetMetaIds,
-        assetMetas: assetMetasDetails,
-        title: assetMarketInfoRecord.title,
-        symbol: assetMarketInfoRecord.symbol,
-        sentiment: assetMarketInfoRecord.sentiment,
-        importance: assetMarketInfoRecord.importance,
-        summary: assetMarketInfoRecord.summary,
-        keyTopics: assetMarketInfoRecord.keyTopics,
-        marketImpact: assetMarketInfoRecord.marketImpact,
-        keyDataPoints: assetMarketInfoRecord.keyDataPoints,
-        sourceUrl: assetMarketInfoRecord.sourceUrl,
-        sourceName: assetMarketInfoRecord.sourceName,
-        originalContent: assetMarketInfoRecord.originalContent,
-        contentMode: assetMarketInfoRecord.contentMode as 'ai_summary' | 'original',
-        createdAt: new Date(assetMarketInfoRecord.createdAt),
-        updatedAt: new Date(assetMarketInfoRecord.updatedAt),
-      };
-    } catch (error) {
-      logger.error(
-        '[AssetMarketInfoService] 获取资产市场信息失败: %s',
-        error instanceof Error ? error.message : String(error),
-      );
-      throw new Error(
-        `获取资产市场信息失败: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      return [];
     }
   }
 
@@ -781,87 +353,28 @@ export class AssetMarketInfoService {
         offset,
       );
 
-      const assetMarketInfoRecords = await db
-        .select({
-          info: assetMarketInfo,
-        })
-        .from(assetMarketInfo)
-        .innerJoin(
-          assetMarketInfoToAssetMeta,
-          eq(assetMarketInfo.id, assetMarketInfoToAssetMeta.assetMarketInfoId),
-        )
-        .where(eq(assetMarketInfoToAssetMeta.assetMetaId, assetMetaId))
-        .orderBy(desc(assetMarketInfo.createdAt))
-        .limit(limit)
-        .offset(offset);
+      const records = await assetMarketInfoRepository.findByAssetMetaId(assetMetaId, limit, offset);
 
       logger.info(
         '[AssetMarketInfoService] 成功获取资产市场信息列表，数量: %d',
-        assetMarketInfoRecords.length,
+        records.length,
       );
 
-      const infoIds = assetMarketInfoRecords.map((r) => r.info.id);
-      let relations: { assetMarketInfoId: number; assetMetaId: number }[] = [];
-      if (infoIds.length > 0) {
-        relations = await db
-          .select()
-          .from(assetMarketInfoToAssetMeta)
-          .where(inArray(assetMarketInfoToAssetMeta.assetMarketInfoId, infoIds));
-      }
+      // 批量获取关联的 assetMeta 详情
+      const infoIds = records.map((r) => r.id);
+      const detailsMap = await assetMarketInfoRepository.getAssetMetaDetailsByMarketInfoIds(infoIds);
 
-      // 获取所有关联的 assetMeta 详细信息
-      let assetMetasDetails: { id: number; symbol: string; chineseName: string | null }[] = [];
-      const assetMetaIds = relations.map((r) => r.assetMetaId);
-      if (assetMetaIds.length > 0) {
-        const assetMetas = await db
-          .select({
-            id: assetMeta.id,
-            symbol: assetMeta.symbol,
-            chineseName: assetMeta.chineseName,
-          })
-          .from(assetMeta)
-          .where(inArray(assetMeta.id, assetMetaIds));
-
-        assetMetasDetails = assetMetas;
-      }
-
-      return assetMarketInfoRecords.map(({ info: record }) => {
-        // 获取当前记录的关联assetMeta IDs
-        const assetMetaIds = relations
-          .filter((r) => r.assetMarketInfoId === record.id)
-          .map((r) => r.assetMetaId);
-
-        // 获取当前记录的关联assetMeta详细信息
-        const assetMetas = assetMetasDetails.filter((meta) => assetMetaIds.includes(meta.id));
-
-        return {
-          id: record.id,
-          assetMetaIds: assetMetaIds,
-          assetMetas: assetMetas,
-          title: record.title,
-          symbol: record.symbol,
-          sentiment: record.sentiment,
-          importance: record.importance,
-          summary: record.summary,
-          keyTopics: record.keyTopics,
-          marketImpact: record.marketImpact,
-          keyDataPoints: record.keyDataPoints,
-          sourceUrl: record.sourceUrl,
-          sourceName: record.sourceName,
-          originalContent: record.originalContent,
-          contentMode: record.contentMode as 'ai_summary' | 'original',
-          createdAt: new Date(record.createdAt),
-          updatedAt: new Date(record.updatedAt),
-        };
+      return records.map((record) => {
+        const details = detailsMap.get(record.id) ?? [];
+        const assetMetaIds = details.map((d) => d.id);
+        return toAssetMarketInfoResponse(record, assetMetaIds, details);
       });
     } catch (error) {
       logger.error(
         '[AssetMarketInfoService] 获取资产市场信息列表失败: %s',
         error instanceof Error ? error.message : String(error),
       );
-      throw new Error(
-        `获取资产市场信息列表失败: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      return [];
     }
   }
 
@@ -874,28 +387,21 @@ export class AssetMarketInfoService {
     try {
       logger.info('[AssetMarketInfoService] 开始获取资产市场信息总数: %d', assetMetaId);
 
-      const result = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(assetMarketInfo)
-        .innerJoin(
-          assetMarketInfoToAssetMeta,
-          eq(assetMarketInfo.id, assetMarketInfoToAssetMeta.assetMarketInfoId),
-        )
-        .where(eq(assetMarketInfoToAssetMeta.assetMetaId, assetMetaId));
+      const count = await assetMarketInfoRepository.countByAssetMetaId(assetMetaId);
 
-      logger.info('[AssetMarketInfoService] 成功获取资产市场信息总数: %d', result[0].count);
+      logger.info('[AssetMarketInfoService] 成功获取资产市场信息总数: %d', count);
 
-      return result[0].count;
+      return count;
     } catch (error) {
       logger.error(
         '[AssetMarketInfoService] 获取资产市场信息总数失败: %s',
         error instanceof Error ? error.message : String(error),
       );
-      throw new Error(
-        `获取资产市场信息总数失败: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      return 0;
     }
   }
+
+  // ============== 删除操作 ==============
 
   /**
    * 根据 ID 删除 assetMarketInfo 记录
@@ -906,20 +412,34 @@ export class AssetMarketInfoService {
     try {
       logger.info('[AssetMarketInfoService] 开始删除资产市场信息: %d', id);
 
-      const result = await db.delete(assetMarketInfo).where(eq(assetMarketInfo.id, id));
+      const success = await assetMarketInfoRepository.deleteById(id);
 
       logger.info('[AssetMarketInfoService] 成功删除资产市场信息: %d', id);
 
-      return result.rowsAffected > 0;
+      return success;
     } catch (error) {
       logger.error(
         '[AssetMarketInfoService] 删除资产市场信息失败: %s',
         error instanceof Error ? error.message : String(error),
       );
-      throw new Error(
-        `删除资产市场信息失败: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      throw error;
     }
+  }
+
+  // ============== 私有辅助方法 ==============
+
+  /**
+   * 获取 assetMeta 详情列表
+   */
+  private async getAssetMetaDetails(assetMetaIds: number[]): Promise<AssetMetaDetail[]> {
+    if (assetMetaIds.length === 0) return [];
+
+    const metas = await assetMetaRepository.findByIds(assetMetaIds);
+    return metas.map((m) => ({
+      id: m.id,
+      symbol: m.symbol,
+      chineseName: m.chineseName,
+    }));
   }
 }
 

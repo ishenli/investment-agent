@@ -1,13 +1,26 @@
-import { db } from '@server/lib/db';
-import { assetMeta } from '@/drizzle/schema';
-import { eq, like, asc, desc, isNull, and } from 'drizzle-orm';
+import { assetMetaRepository, type AssetMetaEntity } from '@server/repository/assetMetaRepository';
 import logger from '@server/base/logger';
 import { AssetMetaType } from '@/types/assetMeta';
+
+// ============== DTO 转换函数 ==============
+
+/**
+ * 将实体转换为响应 DTO
+ */
+function toAssetMetaResponse(entity: AssetMetaEntity): AssetMetaType {
+  return {
+    ...entity,
+    createdAt: entity.createdAt ? new Date(entity.createdAt) : new Date(),
+    updatedAt: entity.updatedAt ? new Date(entity.updatedAt) : new Date(),
+  };
+}
 
 export class AssetMetaService {
   constructor() {
     // 数据库连接已经在 db.ts 中初始化
   }
+
+  // ============== 查询操作 ==============
 
   /**
    * 获取所有 assetMeta 记录
@@ -16,21 +29,13 @@ export class AssetMetaService {
    */
   async getAllAssetMetas(includeDeleted: boolean = false): Promise<AssetMetaType[]> {
     try {
-      const whereClause = includeDeleted ? undefined : isNull(assetMeta.deletedAt);
-      
-      const assetMetas = await db.query.assetMeta.findMany({
-        where: whereClause,
-        orderBy: [asc(assetMeta.symbol)],
+      const assetMetas = await assetMetaRepository.findMany(undefined, {
+        includeDeleted,
       });
-
-      return assetMetas.map((asset: AssetMetaType) => ({
-        ...asset,
-        createdAt: asset.createdAt ? new Date(asset.createdAt) : new Date(),
-        updatedAt: asset.updatedAt ? new Date(asset.updatedAt) : new Date(),
-      }));
+      return assetMetas.map(toAssetMetaResponse);
     } catch (error) {
       logger.error(`Failed to get all asset metas: ${error}`);
-      throw new Error(`Database query failed: ${error}`);
+      return []; // 读操作返回安全默认值
     }
   }
 
@@ -42,23 +47,11 @@ export class AssetMetaService {
    */
   async getAssetMetaById(id: number, includeDeleted: boolean = false): Promise<AssetMetaType | null> {
     try {
-      const whereClause = includeDeleted 
-        ? eq(assetMeta.id, id)
-        : and(eq(assetMeta.id, id), isNull(assetMeta.deletedAt));
-        
-      const asset = await db.query.assetMeta.findFirst({
-        where: whereClause,
-      });
-
-      return asset
-        ? {
-            ...asset,
-            createdAt: asset.createdAt ? new Date(asset.createdAt) : new Date(),
-          }
-        : null;
+      const asset = await assetMetaRepository.findById(id, { includeDeleted });
+      return asset ? toAssetMetaResponse(asset) : null;
     } catch (error) {
       logger.error(`Failed to get asset meta by id ${id}: ${error}`);
-      throw new Error(`Database query failed: ${error}`);
+      return null; // 读操作返回安全默认值
     }
   }
 
@@ -70,25 +63,15 @@ export class AssetMetaService {
    */
   async searchAssetMetasBySymbol(symbol: string, includeDeleted: boolean = false): Promise<AssetMetaType[]> {
     try {
-      const baseCondition = like(assetMeta.symbol, `%${symbol}%`);
-      const whereClause = includeDeleted 
-        ? baseCondition
-        : and(baseCondition, isNull(assetMeta.deletedAt));
-        
-      const assetMetas = await db.query.assetMeta.findMany({
-        where: whereClause,
-        orderBy: [asc(assetMeta.symbol)],
-      });
-
-      return assetMetas.map((asset: AssetMetaType) => ({
-        ...asset,
-        createdAt: asset.createdAt ? new Date(asset.createdAt) : new Date(),
-      }));
+      const assetMetas = await assetMetaRepository.searchBySymbol(symbol, includeDeleted);
+      return assetMetas.map(toAssetMetaResponse);
     } catch (error) {
       logger.error(`Failed to search asset metas by symbol ${symbol}: ${error}`);
-      throw new Error(`Database query failed: ${error}`);
+      return []; // 读操作返回安全默认值
     }
   }
+
+  // ============== 创建操作 ==============
 
   /**
    * 创建新的 assetMeta 记录
@@ -99,33 +82,28 @@ export class AssetMetaService {
     assetMetaData: Omit<AssetMetaType, 'id' | 'createdAt'>,
   ): Promise<AssetMetaType> {
     try {
-      const [newAssetMeta] = await db
-        .insert(assetMeta)
-        .values({
-          symbol: assetMetaData.symbol,
-          priceCents: assetMetaData.priceCents,
-          assetType: assetMetaData.assetType,
-          currency: assetMetaData.currency,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          source: assetMetaData.source,
-          market: assetMetaData.market,
-          chineseName: assetMetaData.chineseName,
-          fullName: assetMetaData.fullName,
-          logoUrl: assetMetaData.logoUrl,
-          investmentMemo: assetMetaData.investmentMemo,
-        })
-        .returning();
+      const newAssetMeta = await assetMetaRepository.createAssetMeta({
+        symbol: assetMetaData.symbol,
+        priceCents: assetMetaData.priceCents,
+        assetType: assetMetaData.assetType,
+        currency: assetMetaData.currency,
+        source: assetMetaData.source,
+        market: assetMetaData.market,
+        chineseName: assetMetaData.chineseName,
+        fullName: assetMetaData.fullName,
+        logoUrl: assetMetaData.logoUrl,
+        investmentMemo: assetMetaData.investmentMemo,
+      });
 
-      return {
-        ...newAssetMeta,
-        createdAt: newAssetMeta.createdAt ? new Date(newAssetMeta.createdAt) : new Date(),
-      };
+      logger.info(`[AssetMetaService] Created asset meta: ${newAssetMeta.id}`);
+      return toAssetMetaResponse(newAssetMeta);
     } catch (error) {
       logger.error(`Failed to create asset meta: ${error}`);
-      throw new Error(`Database insert failed: ${error}`);
+      throw error; // 写操作重新抛出
     }
   }
+
+  // ============== 更新操作 ==============
 
   /**
    * 更新 assetMeta 记录
@@ -138,38 +116,32 @@ export class AssetMetaService {
     assetMetaData: Partial<Omit<AssetMetaType, 'id'>>,
   ): Promise<AssetMetaType | null> {
     try {
-      const [updatedAssetMeta] = await db
-        .update(assetMeta)
-        .set({
-          symbol: assetMetaData.symbol,
-          priceCents: assetMetaData.priceCents,
-          assetType: assetMetaData.assetType,
-          currency: assetMetaData.currency,
-          createdAt: assetMetaData.createdAt,
-          updatedAt: new Date(),
-          source: assetMetaData.source,
-          market: assetMetaData.market,
-          chineseName: assetMetaData.chineseName,
-          fullName: assetMetaData.fullName,
-          logoUrl: assetMetaData.logoUrl,
-          investmentMemo: assetMetaData.investmentMemo,
-        })
-        .where(eq(assetMeta.id, id))
-        .returning();
+      const updated = await assetMetaRepository.updateAssetMeta(id, {
+        symbol: assetMetaData.symbol,
+        priceCents: assetMetaData.priceCents,
+        assetType: assetMetaData.assetType,
+        currency: assetMetaData.currency,
+        source: assetMetaData.source,
+        market: assetMetaData.market,
+        chineseName: assetMetaData.chineseName,
+        fullName: assetMetaData.fullName,
+        logoUrl: assetMetaData.logoUrl,
+        investmentMemo: assetMetaData.investmentMemo,
+      });
 
-      return updatedAssetMeta
-        ? {
-            ...updatedAssetMeta,
-            createdAt: updatedAssetMeta.createdAt
-              ? new Date(updatedAssetMeta.createdAt)
-              : new Date(),
-          }
-        : null;
+      if (!updated) {
+        return null;
+      }
+
+      logger.info(`[AssetMetaService] Updated asset meta: ${id}`);
+      return toAssetMetaResponse(updated);
     } catch (error) {
       logger.error(`Failed to update asset meta with id ${id}: ${error}`);
-      throw new Error(`Database update failed: ${error}`);
+      throw error; // 写操作重新抛出
     }
   }
+
+  // ============== 软删除操作 ==============
 
   /**
    * 软删除 assetMeta 记录
@@ -178,24 +150,12 @@ export class AssetMetaService {
    */
   async softDeleteAssetMeta(id: number): Promise<boolean> {
     try {
-      const [result] = await db
-        .update(assetMeta)
-        .set({
-          deletedAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .where(eq(assetMeta.id, id))
-        .returning();
-
-      const success = !!result;
-      logger.info('[AssetMetaService] softDeleteAssetMeta result', {
-        id,
-        success,
-      });
+      const success = await assetMetaRepository.softDelete(id);
+      logger.info(`[AssetMetaService] Soft delete asset meta: ${id}, success: ${success}`);
       return success;
     } catch (error) {
       logger.error(`Failed to soft delete asset meta with id ${id}: ${error}`);
-      throw new Error(`Database soft delete failed: ${error}`);
+      throw error; // 写操作重新抛出
     }
   }
 
@@ -206,15 +166,12 @@ export class AssetMetaService {
    */
   async hardDeleteAssetMeta(id: number): Promise<boolean> {
     try {
-      const result = await db.delete(assetMeta).where(eq(assetMeta.id, id));
-
-      logger.info('[AssetMetaService] hardDeleteAssetMeta result', {
-        changes: result.rowsAffected,
-      });
-      return result.rowsAffected > 0;
+      const success = await assetMetaRepository.delete(id);
+      logger.info(`[AssetMetaService] Hard delete asset meta: ${id}, success: ${success}`);
+      return success;
     } catch (error) {
       logger.error(`Failed to hard delete asset meta with id ${id}: ${error}`);
-      throw new Error(`Database hard delete failed: ${error}`);
+      throw error; // 写操作重新抛出
     }
   }
 
@@ -225,24 +182,12 @@ export class AssetMetaService {
    */
   async restoreAssetMeta(id: number): Promise<boolean> {
     try {
-      const [result] = await db
-        .update(assetMeta)
-        .set({
-          deletedAt: null,
-          updatedAt: new Date(),
-        })
-        .where(eq(assetMeta.id, id))
-        .returning();
-
-      const success = !!result;
-      logger.info('[AssetMetaService] restoreAssetMeta result', {
-        id,
-        success,
-      });
-      return success;
+      const restored = await assetMetaRepository.restore(id);
+      logger.info(`[AssetMetaService] Restore asset meta: ${id}, success: ${!!restored}`);
+      return !!restored;
     } catch (error) {
       logger.error(`Failed to restore asset meta with id ${id}: ${error}`);
-      throw new Error(`Database restore failed: ${error}`);
+      throw error; // 写操作重新抛出
     }
   }
 
@@ -253,15 +198,11 @@ export class AssetMetaService {
    */
   async isAssetMetaDeleted(id: number): Promise<boolean> {
     try {
-      const asset = await db.query.assetMeta.findFirst({
-        where: eq(assetMeta.id, id),
-        columns: { deletedAt: true },
-      });
-
+      const asset = await assetMetaRepository.findById(id, { includeDeleted: true });
       return !!asset?.deletedAt;
     } catch (error) {
       logger.error(`Failed to check if asset meta is deleted with id ${id}: ${error}`);
-      throw new Error(`Database query failed: ${error}`);
+      return false; // 读操作返回安全默认值
     }
   }
 }
