@@ -25,7 +25,7 @@ export class NoteController extends BaseBizController {
         userId,
         parseInt(limit),
         parseInt(offset),
-        sortBy,
+        sortBy as 'createdAt' | 'updatedAt' | 'title',
         sortOrder as 'asc' | 'desc',
         search,
         tag,

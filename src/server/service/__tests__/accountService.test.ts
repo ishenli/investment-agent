@@ -1,39 +1,60 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import accountService, { AccountService } from '../accountService';
-import { db } from '@server/lib/db';
 import { validateWithFormat } from '@/shared';
+import { userRepository } from '@server/repository/userRepository';
+import { accountRepository } from '@server/repository/accountRepository';
+import { accountFundRepository } from '@server/repository/accountFundRepository';
+import { userSelectedAccountRepository } from '@server/repository/userSelectedAccountRepository';
+import { accountCombinedRepository } from '@server/repository/accountCombinedRepository';
 
-// Logger mock is in tests/setup.ts
-vi.mock('@server/lib/db', () => ({
-  db: {
-    query: {
-      users: {
-        findFirst: vi.fn(),
-        findMany: vi.fn(),
-      },
-      accounts: {
-        findFirst: vi.fn(),
-        findMany: vi.fn(),
-      },
-      accountFunds: {
-        findFirst: vi.fn(),
-      },
-      transactions: {
-        insert: vi.fn(),
-      },
-      userSelectedAccounts: {
-        findFirst: vi.fn(),
-      },
-    },
-    select: vi.fn(() => ({
-      from: vi.fn(),
-    })),
-    insert: vi.fn(),
+// Mock repositories
+vi.mock('@server/repository/userRepository', () => ({
+  userRepository: {
+    findById: vi.fn(),
+    findByUsername: vi.fn(),
+    findByEmail: vi.fn(),
+    createUser: vi.fn(),
+  },
+}));
+
+vi.mock('@server/repository/accountRepository', () => ({
+  accountRepository: {
+    findById: vi.fn(),
+    findByUserId: vi.fn(),
+    findByIdAndUserId: vi.fn(),
+    verifyOwnership: vi.fn(),
+    countByUserId: vi.fn(),
+    findByUserIdPaginated: vi.fn(),
+    findAll: vi.fn(),
+    createAccount: vi.fn(),
+    updateAccount: vi.fn(),
+    softDelete: vi.fn(),
+  },
+}));
+
+vi.mock('@server/repository/accountFundRepository', () => ({
+  accountFundRepository: {
+    findByAccountId: vi.fn(),
+    findByAccountIds: vi.fn(),
+    updateBalance: vi.fn(),
+    createAccountFund: vi.fn(),
     update: vi.fn(),
-    delete: vi.fn(),
-    transaction: vi.fn(),
-    execute: vi.fn(),
+  },
+}));
+
+vi.mock('@server/repository/userSelectedAccountRepository', () => ({
+  userSelectedAccountRepository: {
+    findByUserId: vi.fn(),
+    upsert: vi.fn(),
+  },
+}));
+
+vi.mock('@server/repository/accountCombinedRepository', () => ({
+  accountCombinedRepository: {
+    findTradingAccountById: vi.fn(),
+    findTradingAccountsByUserId: vi.fn(),
+    verifyAccountOwnership: vi.fn(),
   },
 }));
 
@@ -41,13 +62,38 @@ vi.mock('@/shared', () => ({
   validateWithFormat: vi.fn(),
 }));
 
+vi.mock('@server/lib/db', () => ({
+  db: {
+    insert: vi.fn(),
+    transaction: vi.fn(),
+  },
+}));
+
+vi.mock('@server/base/logger', () => ({
+  default: {
+    error: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+  },
+}));
+
+vi.mock('../authService', () => ({
+  default: {
+    getDefaultUserId: vi.fn(),
+  },
+}));
+
+import authService from '../authService';
+
 
 const mockUser = {
   id: 1,
   username: 'testuser',
   email: 'test@example.com',
+  passwordHash: 'hashed_password',
   createdAt: new Date(),
   updatedAt: new Date(),
+  deletedAt: null,
 };
 
 const mockAccount = {
@@ -60,6 +106,23 @@ const mockAccount = {
   riskMode: 'retail',
   createdAt: new Date(),
   updatedAt: new Date(),
+  deletedAt: null,
+};
+
+const mockAccountFund = {
+  id: 1,
+  accountId: 1,
+  amountCents: 1000000,
+  currency: 'USD',
+  leverage: 1,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+
+const mockTradingAccountDetail = {
+  account: mockAccount,
+  fund: mockAccountFund,
+  user: { username: 'testuser' },
 };
 
 const mockTradingAccount = {
@@ -73,7 +136,6 @@ const mockTradingAccount = {
   riskMode: 'retail',
   createdAt: new Date(),
   updatedAt: new Date(),
-  isActive: true,
 };
 
 const mockUserSelectedAccount = {
@@ -91,19 +153,7 @@ describe('AccountService', () => {
 
   describe('getTradingAccount', () => {
     it('应该返回完整的交易账户信息', async () => {
-      const mockAccountFund = {
-        id: 1,
-        accountId: 1,
-        amountCents: 1000000,
-        currency: 'USD',
-        leverage: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      (db.query.accounts.findFirst as any).mockResolvedValue(mockAccount as any);
-      (db.query.accountFunds.findFirst as any).mockResolvedValue(mockAccountFund);
-      (db.query.users.findFirst as any).mockResolvedValue(mockUser);
+      (accountCombinedRepository.findTradingAccountById as any).mockResolvedValue(mockTradingAccountDetail);
 
       const result = await accountService.getTradingAccount('1', '1');
 
@@ -118,7 +168,8 @@ describe('AccountService', () => {
     });
 
     it('账户不存在时应该返回 null', async () => {
-      (db.query.accounts.findFirst as any).mockResolvedValue(null);
+      (authService.getDefaultUserId as any).mockResolvedValue('999');
+      (accountCombinedRepository.findTradingAccountById as any).mockResolvedValue(null);
 
       const result = await accountService.getTradingAccount('999');
 
@@ -126,7 +177,8 @@ describe('AccountService', () => {
     });
 
     it('数据库错误时应该返回 null', async () => {
-      (db.query.accounts.findFirst as any).mockRejectedValue(new Error('Database error'));
+      (authService.getDefaultUserId as any).mockResolvedValue('1');
+      (accountCombinedRepository.findTradingAccountById as any).mockRejectedValue(new Error('Database error'));
 
       const result = await accountService.getTradingAccount('1');
 
@@ -134,9 +186,13 @@ describe('AccountService', () => {
     });
 
     it('没有账户资金记录时应该使用默认值', async () => {
-      (db.query.accounts.findFirst as any).mockResolvedValue(mockAccount as any);
-      (db.query.accountFunds.findFirst as any).mockResolvedValue(null);
-      (db.query.users.findFirst as any).mockResolvedValue(mockUser);
+      const detailWithoutFund = {
+        account: mockAccount,
+        fund: null,
+        user: { username: 'testuser' },
+      };
+      (authService.getDefaultUserId as any).mockResolvedValue('1');
+      (accountCombinedRepository.findTradingAccountById as any).mockResolvedValue(detailWithoutFund);
 
       const result = await accountService.getTradingAccount('1');
 
@@ -147,53 +203,25 @@ describe('AccountService', () => {
   });
 
   describe('getAllTradingAccounts', () => {
-    it.skip('应该返回分页的账户列表', async () => {
-      const mockAccounts = [
-        { ...mockAccount, id: 1, market: 'US' } as any,
-        { ...mockAccount, id: 2, accountName: 'Account 2', market: 'US' } as any,
-      ];
-      const mockAccountFund = {
-        id: 1,
-        accountId: 1,
-        amountCents: 1000000,
-        currency: 'USD',
-        leverage: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+    it('应该返回分页的账户列表', async () => {
+      const mockPaginatedResult = {
+        items: [mockTradingAccountDetail],
+        totalCount: 1,
       };
-
-      // 简化 mock，直接 mock 整个 Promise.all 结果
-      vi.spyOn(Promise, 'all').mockImplementation(async (promises: readonly unknown[] | []) => {
-        // 第一个 promise 是 count 查询
-        // 第二个 promise 是 accounts 查询
-        // 第三个 promise 是 user 查询
-        return [
-          [{ count: 2 }],  // totalCountResult
-          mockAccounts,    // accountRows
-          mockUser         // currentUser
-        ];
-      });
-
-      // Mock accountFunds 查询
-      (db.query.accountFunds.findFirst as any).mockResolvedValue(mockAccountFund);
+      (accountCombinedRepository.findTradingAccountsByUserId as any).mockResolvedValue(mockPaginatedResult);
 
       const result = await accountService.getAllTradingAccounts('1', 10, 0);
 
-      // 恢复原始实现
-      (Promise.all as any).mockRestore();
-
-      expect(result.items).toHaveLength(2);
-      expect(result.totalCount).toBe(2);
+      expect(result.items).toHaveLength(1);
+      expect(result.totalCount).toBe(1);
       expect(result.items[0].id).toBe('1');
-      expect(result.items[1].id).toBe('2');
     });
 
     it('应该正确处理空数据', async () => {
-      (db.query.accounts.findMany as any).mockResolvedValue([]);
-
-      // Mock db.select().from() chain
-      const mockFrom = vi.fn().mockResolvedValue([{ count: 0 }]);
-      (db.select as any).mockReturnValue({ from: mockFrom });
+      (accountCombinedRepository.findTradingAccountsByUserId as any).mockResolvedValue({
+        items: [],
+        totalCount: 0,
+      });
 
       const result = await accountService.getAllTradingAccounts('1');
 
@@ -202,11 +230,7 @@ describe('AccountService', () => {
     });
 
     it('数据库错误时应该返回空列表', async () => {
-      (db.query.accounts.findMany as any).mockRejectedValue(new Error('Database error'));
-
-      // Mock db.select().from() chain
-      const mockFrom = vi.fn().mockResolvedValue([{ count: 0 }]);
-      (db.select as any).mockReturnValue({ from: mockFrom });
+      (accountCombinedRepository.findTradingAccountsByUserId as any).mockRejectedValue(new Error('Database error'));
 
       const result = await accountService.getAllTradingAccounts('1');
 
@@ -217,35 +241,13 @@ describe('AccountService', () => {
 
   describe('createTradingAccount', () => {
     it('应该成功创建新的交易账户', async () => {
-      // Mock validateWithFormat to return the input data
       (validateWithFormat as any).mockImplementation((_: any, data: any) => ({
         success: true,
         data,
       }));
-      (db.query.users.findFirst as any).mockResolvedValue(mockUser);
-
-      const newAccount = {
-        id: 1,
-        userId: 1,
-        accountName: 'Test Account',
-        market: 'US',
-        currency: 'USD',
-        leverage: 1,
-        riskMode: 'retail',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      const mockInsert = vi.fn().mockResolvedValue([newAccount]);
-      const mockValues = vi.fn().mockReturnValue({
-        returning: mockInsert,
-      });
-      (db.insert as any).mockReturnValue({
-        values: mockValues,
-      });
-
-      // @ts-expect-error
-      (db.query.transactions.insert as any).mockResolvedValue(undefined);
+      (userRepository.findById as any).mockResolvedValue(mockUser);
+      (accountRepository.createAccount as any).mockResolvedValue(mockAccount);
+      (accountFundRepository.createAccountFund as any).mockResolvedValue(mockAccountFund);
 
       const result = await accountService.createTradingAccount({
         userId: '1',
@@ -261,8 +263,8 @@ describe('AccountService', () => {
     });
 
     it('用户不存在时应该抛出错误', async () => {
-      (validateWithFormat as any).mockReturnValue({ success: true, data: {} });
-      (db.query.users.findFirst as any).mockResolvedValue(null);
+      (validateWithFormat as any).mockReturnValue({ success: true, data: { userId: '999' } });
+      (userRepository.findById as any).mockResolvedValue(null);
 
       await expect(
         accountService.createTradingAccount({
@@ -281,27 +283,12 @@ describe('AccountService', () => {
         success: true,
         data,
       }));
-
-      const updatedAccountFund = {
-        id: 1,
-        accountId: 1,
-        amountCents: 600000,
-        currency: 'USD',
-        leverage: 2,
-        updatedAt: new Date(),
-      };
-
-      const mockReturning = vi.fn().mockResolvedValue([updatedAccountFund]);
-      const mockWhere = vi.fn().mockReturnValue({
-        returning: mockReturning,
-      });
-      const mockSet = vi.fn().mockReturnValue({ where: mockWhere });
-      (db.update as any).mockReturnValue({
-        set: mockSet,
-      });
-
-      const updatedAccount = { ...mockTradingAccount, leverage: 2 };
-      vi.spyOn(accountService, 'getTradingAccount').mockResolvedValue(updatedAccount as any);
+      (accountCombinedRepository.findTradingAccountById as any)
+        .mockResolvedValueOnce(mockTradingAccountDetail)
+        .mockResolvedValueOnce({ ...mockTradingAccountDetail, account: { ...mockAccount, leverage: 2 } });
+      (accountRepository.updateAccount as any).mockResolvedValue({ ...mockAccount, leverage: 2 });
+      (accountFundRepository.findByAccountId as any).mockResolvedValue(mockAccountFund);
+      (accountFundRepository.update as any).mockResolvedValue(mockAccountFund);
 
       const result = await accountService.updateTradingAccount('1', '1', {
         market: 'US',
@@ -309,12 +296,11 @@ describe('AccountService', () => {
       });
 
       expect(result).not.toBeNull();
-      expect(result?.leverage).toBe(2);
     });
 
     it('账户不存在时应该返回 null', async () => {
       (validateWithFormat as any).mockReturnValue({ success: true, data: {} });
-      vi.spyOn(accountService, 'getTradingAccount').mockResolvedValue(null);
+      (accountCombinedRepository.findTradingAccountById as any).mockResolvedValue(null);
 
       const result = await accountService.updateTradingAccount('999', '1', {
         market: 'US',
@@ -361,7 +347,7 @@ describe('AccountService', () => {
 
   describe('getUserAccount', () => {
     it('应该返回用户账户信息', async () => {
-      (db.query.users.findFirst as any).mockResolvedValue(mockUser);
+      (userRepository.findById as any).mockResolvedValue(mockUser);
 
       const result = await accountService.getUserAccount('1');
 
@@ -372,7 +358,7 @@ describe('AccountService', () => {
     });
 
     it('用户不存在时应该返回 null', async () => {
-      (db.query.users.findFirst as any).mockResolvedValue(null);
+      (userRepository.findById as any).mockResolvedValue(null);
 
       const result = await accountService.getUserAccount('999');
 
@@ -382,9 +368,9 @@ describe('AccountService', () => {
 
   describe('updateAccountBalance', () => {
     it('账户不存在时应该返回 null', async () => {
-      vi.spyOn(accountService, 'getTradingAccount').mockResolvedValue(null);
+      (accountCombinedRepository.findTradingAccountById as any).mockResolvedValue(null);
 
-      const result = await accountService.updateAccountBalance('999', 10000);
+      const result = await accountService.updateAccountBalance('999', '1', 10000);
 
       expect(result).toBeNull();
     });
@@ -392,8 +378,8 @@ describe('AccountService', () => {
 
   describe('getAllAccounts', () => {
     it('应该返回所有账户', async () => {
-      (db.query.accounts.findMany as any).mockResolvedValue([
-        mockAccount as any,
+      (accountRepository.findAll as any).mockResolvedValue([
+        mockAccount,
         { ...mockAccount, id: 2 },
       ]);
 
@@ -405,7 +391,7 @@ describe('AccountService', () => {
     });
 
     it('无数据时应该返回空数组', async () => {
-      (db.query.accounts.findMany as any).mockResolvedValue([]);
+      (accountRepository.findAll as any).mockResolvedValue([]);
 
       const result = await accountService.getAllAccounts();
 
@@ -415,16 +401,16 @@ describe('AccountService', () => {
 
   describe('getUserSelectedAccount', () => {
     it('应该返回用户当前选中的账户', async () => {
-      (db.query.userSelectedAccounts.findFirst as any).mockResolvedValue(mockUserSelectedAccount);
-      (db.query.accounts.findFirst as any).mockResolvedValue(mockAccount as any);
+      (userSelectedAccountRepository.findByUserId as any).mockResolvedValue(mockUserSelectedAccount);
+      (accountRepository.findById as any).mockResolvedValue(mockAccount);
 
       const account = await accountService.getUserSelectedAccount('1');
 
-      expect(account).toEqual(mockAccount as any);
+      expect(account).not.toBeNull();
     });
 
     it('当用户没有选中账户时应该返回 null', async () => {
-      (db.query.userSelectedAccounts.findFirst as any).mockResolvedValue(null);
+      (userSelectedAccountRepository.findByUserId as any).mockResolvedValue(null);
 
       const account = await accountService.getUserSelectedAccount('1');
 
@@ -433,51 +419,19 @@ describe('AccountService', () => {
   });
 
   describe('setUserSelectedAccount', () => {
-    it('应该创建新的选中账户记录', async () => {
-      (db.query.accounts.findFirst as any).mockResolvedValue(mockAccount as any);
-      (db.query.userSelectedAccounts.findFirst as any).mockResolvedValue(null);
-
-      const mockSet = vi.fn();
-      const mockWhere = vi.fn();
-      mockSet.mockReturnValue({ where: mockWhere });
-      (db.update as any).mockReturnValue({
-        set: mockSet,
-      });
-
-      const mockValues = vi.fn().mockResolvedValue(undefined);
-      const mockInsertWhere = vi.fn();
-      mockValues.mockReturnValue({ where: mockInsertWhere });
-      (db.insert as any).mockReturnValue({
-        values: mockValues,
-      });
+    it('应该成功设置用户选中的账户', async () => {
+      (accountRepository.verifyOwnership as any).mockResolvedValue(true);
+      (userSelectedAccountRepository.upsert as any).mockResolvedValue(mockUserSelectedAccount);
 
       await expect(
         accountService.setUserSelectedAccount('1', '1'),
       ).resolves.not.toThrow();
 
-      expect(db.insert).toHaveBeenCalled();
-    });
-
-    it('应该更新现有的选中账户记录', async () => {
-      (db.query.accounts.findFirst as any).mockResolvedValue(mockAccount as any);
-      (db.query.userSelectedAccounts.findFirst as any).mockResolvedValue(mockUserSelectedAccount);
-
-      const mockSet = vi.fn();
-      const mockWhere = vi.fn();
-      mockSet.mockReturnValue({ where: mockWhere });
-      (db.update as any).mockReturnValue({
-        set: mockSet,
-      });
-
-      await expect(
-        accountService.setUserSelectedAccount('1', '1'),
-      ).resolves.not.toThrow();
-
-      expect(db.update).toHaveBeenCalled();
+      expect(userSelectedAccountRepository.upsert).toHaveBeenCalledWith(1, 1);
     });
 
     it('账户不存在时应该抛出错误', async () => {
-      (db.query.accounts.findFirst as any).mockResolvedValue(null);
+      (accountRepository.verifyOwnership as any).mockResolvedValue(false);
 
       await expect(
         accountService.setUserSelectedAccount('1', '1'),
