@@ -25,7 +25,7 @@ import { StepOneContentFetcher } from './StepOneContentFetcher';
 import { StepTwoAIAnalyzer } from './StepTwoAIAnalyzer';
 import { StepThreeDataSaver } from './StepThreeDataSaver';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 export function CombinedStepperMarketFetcher() {
   const router = useRouter();
