@@ -71,10 +71,10 @@ export default function SkillsPage() {
   };
 
   const sourceTabs = [
-    { value: 'all', label: t('skills.all' as any) || 'All' },
+    { value: 'all', label: t('skills.all') || 'All' },
     ...sources().map(src => ({
       value: src.value,
-      label: `${t(`skills.sources.${src.value}` as any) || src.value} (${src.count})`,
+      label: `${t(`skills.sources.${src.value}`) || src.value} (${src.count})`,
     })),
   ];
 

@@ -11,20 +11,6 @@ const useStyles = createStyles(({ css, token }) => ({
   select: css`
     width: 180px;
 
-    .ant-select-selector {
-      border-radius: 16px !important;
-      background: ${token.colorFillTertiary} !important;
-      border: none !important;
-      padding: 4px 12px !important;
-      height: auto !important;
-      font-size: 13px;
-      font-weight: 500;
-      transition: all 0.2s ease;
-
-      &:hover {
-        background: ${token.colorFillSecondary} !important;
-      }
-    }
 
     .ant-select-selection-item {
       padding: 0 !important;

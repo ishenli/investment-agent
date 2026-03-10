@@ -390,6 +390,7 @@
   },
   "title": "Settings",
   "skills": {
+    "all": "All",
     "title": "Skills Management",
     "description": "Manage and configure your AI skills",
     "searchPlaceholder": "Search skill name, description, or ID...",

@@ -389,6 +389,7 @@
   },
   "title": "设置",
   "skills": {
+    "all": "全部",
     "title": "技能管理",
     "description": "管理和配置您的 AI技能",
     "searchPlaceholder": "搜索技能名称、描述或ID...",

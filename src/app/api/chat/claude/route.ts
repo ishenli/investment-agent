@@ -10,7 +10,6 @@
  * - 使用统一的 AgentStreamEvent 格式输出
  */
 import { NextRequest } from 'next/server';
-import path from 'path';
 import { z } from 'zod';
 import { streamClaude } from '../../../../server/core/claude/claudeClient';
 import { claudeService } from '@server/service/claudeService';
@@ -79,16 +78,27 @@ class ClaudeChatController extends BaseController {
           const roleLabel =
             msg.role === 'user' ? 'Human' : msg.role === 'assistant' ? 'Assistant' : 'System';
           return `<${roleLabel}>\n${msg.content.trim()}\n</${roleLabel}>`;
-        })
-        .join('\n\n');
+        }).join('\n');
+
+      const prompt =[
+        '# 聊天记录',
+        content,
+        '# 用户问题',
+        userMessage.content,
+      ].join('\n');
 
       // 2. 用户认证
       const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
-      const userIdNum = parseInt(userId, 10);
 
+            // 3. 验证会话并获取真实的 session ID
+      if (!sessionId) {
+        return this.error('会话不存在', 'session_not_found');
+      }
+
+      const userIdNum = parseInt(userId, 10);
       // T302: 获取已启用的 skills
       let enabledSkills = await skillService.getEnabledSkills(userIdNum);
 
@@ -101,28 +111,26 @@ class ClaudeChatController extends BaseController {
 
       // T303: 构建 skillsSystemPrompt
       // skillPath = SKILL.md 的绝对路径，其 dirname 即为 {baseDir}
-      const skillsSystemPrompt =
-        enabledSkills
+      const skillsSystemPrompt = (() => {
+        const skillItems = enabledSkills
           .filter((s) => s.prompt)
           .map((s) => {
-            const baseDir = path.dirname(s.skillPath);
-            const promptWithBaseDir = s.prompt.replace(/\{baseDir\}/g, baseDir);
+            // const baseDir = path.dirname(s.skillPath);
+            // const promptWithBaseDir = s.prompt.replace(/\{baseDir\}/g, baseDir);
             return [
-              `## Skill: ${s.name}`,
-              s.description ? `> ${s.description}` : '',
-              '',
-              promptWithBaseDir.trim(),
-            ]
-              .filter((line, idx) => idx !== 1 || line !== '')
-              .join('\n');
-          })
-          .join('\n\n---\n\n') || undefined;
-
-      // 3. 验证会话并获取真实的 session ID
-      if (!sessionId) {
-        return this.error('会话不存在', 'session_not_found');
-      }
-     
+              `<skill name="${s.name}">`,
+              `<description>${s.description.replace(/"/g, '&quot;')}</description>`,
+              s.prompt,
+              `</skill>`,
+            ].join('\n');
+          });
+        if (skillItems.length === 0) return undefined;
+        
+        return [
+          '# 内置技能列表',
+          `<skills>\n${skillItems.join('\n')}\n</skills>`
+        ].join('\n');
+      })();
       // 使用真实的 session ID, "inbox_NU7XvF4aO3DEGlwJnGsD7"使用后半部分
       const realSessionId = sessionId.split('_')[1];
 
@@ -171,15 +179,19 @@ class ClaudeChatController extends BaseController {
         return this.error('用户账户不存在', 'account_not_found');
       }
 
-      // 创建 claude 工作区间
-      const workingDirectory = await claudeService.createWorkspace(userIdNum, 'invest-advisor', {
+      // 创建 claude 工作区间（写入持仓/交易上下文文件）
+      await claudeService.createWorkspace(userIdNum, 'invest-advisor', {
         title: 'Claude 内存工作空间上下文',
         description: '本目录包含交易记录、持仓和市场信息等业务数据文件，供 Claude Agent SDK 作为上下文读取。',
         positions: await positionService.getPositionSummaryMarkdown(accountInfo.id),
         transactions: await transactionService.getTransactionSummaryMarkdown(accountInfo.id),
       });
 
-      recordPrompt(content + '\n\n' + finalSystemPrompt, 'claude-investment-prompt.md');  
+      // SDK cwd 使用用户根目录 memory/claude/{userId}/，
+      // 技能文件已由 SkillService 在技能变更时部署到该目录下的 .claude/skills/
+      const sdkCwd = claudeService.getUserWorkspaceRoot(userIdNum);
+
+      recordPrompt(prompt + '\n\n' + finalSystemPrompt, 'claude-investment-prompt.md');
 
       // 7. 调用 streamClaude 并在后台处理
       (async () => {
@@ -189,12 +201,12 @@ class ClaudeChatController extends BaseController {
         });
         try {
           const stream = streamClaude({
-            prompt: content,
+            prompt: prompt,
             sessionId: realSessionId,
             sdkSessionId: undefined, // TODO: 从数据库加载实际的 sdk_session_id
             model: claudeConfig.modelSlug,
             systemPrompt: finalSystemPrompt,
-            workingDirectory: workingDirectory || undefined,
+            workingDirectory: sdkCwd || undefined,
             abortController,
             permissionMode,
             files: files as FileAttachment[] | undefined,

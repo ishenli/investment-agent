@@ -91,6 +91,7 @@
   --antd-color-border-light: oklch(0.95 0 0);
   --antd-color-bg-elevated: oklch(1 0 0);
   --antd-color-bg-layout: var(--background);
+  --antd-bg-color-solid: #f7f7f7;
 }
 
 .dark {
@@ -138,6 +139,7 @@
   --antd-color-border-light: oklch(1 0 0 / 8%);
   --antd-color-bg-elevated: oklch(0.269 0 0);
   --antd-color-bg-layout: var(--background); /* Already dark in .dark theme */
+  --antd-bg-color-solid: #1d1d1d;
 }
 
 @layer base {

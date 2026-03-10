@@ -25,10 +25,12 @@ export const useStyles = createStyles(
     const blockStylish = css`
       padding-block: 8px;
       padding-inline: 12px;
-      border: 1px solid ${rgba(token.colorBorderSecondary, 0.66)};
+      border: 1px solid
+        ${placement === 'right' ? 'transparent' : rgba(token.colorBorderSecondary, 0.66)};
       border-radius: ${token.borderRadiusLG}px;
 
-      background-color: ${token.colorBgContainer};
+      background-color: ${placement === 'right' ? token.colorBgSolid : token.colorBgContainer};
+      color: ${placement === 'right' ? token.colorText : 'inherit'};
     `;
 
     const rawStylish = css`

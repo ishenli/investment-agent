@@ -59,20 +59,30 @@ const ThoughtBelowMessage = memo<ChatMessage>(({ thoughtChain }) => {
    * {"type":"tool_use","id":"xx","toolName":"Skill","arguments":{"skill":"find-skills","args":"股票分析 stock analysis"}}
    */
   if (title === 'Skill') {
-    console.info('Skill', thoughtChain)
     const skill = get(thoughtChain, 'content.skill');
     const args = get(thoughtChain, 'content.args');
     if (skill && args) {
-      content = ':使用' + skill + '，参数是' + args;
+      content = '：' + skill + '(' + args + ')';
+    }
+    if (skill && !args) {
+      content = '：' + skill;
     }
   }
 
   if (title === 'Bash') {
     const command = get(thoughtChain, 'content.command');
     if (command) {
-      content = ':使用' + command;
+      content = '(' + command + ')';
     }
   }
+
+  if (title === 'Glob') {
+    const pattern = get(thoughtChain, 'content.pattern');
+    if (pattern) {
+      content = '(' + pattern + ')';
+    }
+  }
+
   
   return (
     <div className={styles.container}>
