@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useSnapshots, useCreateSnapshot, useDeleteSnapshot, formatCentsToDollars, SnapshotRecord } from '@/app/hooks/useSnapshot';
+import { useSnapshots, useCreateSnapshot, useDeleteSnapshot, formatCentsToDollars, SnapshotRecord, computeSnapshotDiff } from '@/app/hooks/useSnapshot';
 import { Button } from '@renderer/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@renderer/components/ui/card';
 import { Badge } from '@renderer/components/ui/badge';
@@ -17,13 +17,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@renderer/components/ui/alert-dialog';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@renderer/components/ui/dialog';
 import {
   Camera,
   Plus,
@@ -113,9 +106,11 @@ function PositionDetail({ positions }: { positions: SnapshotRecord['positions'] 
 // Snapshot card component
 function SnapshotCard({
   snapshot,
+  prevSnapshot,
   onDelete,
 }: {
   snapshot: SnapshotRecord;
+  prevSnapshot?: SnapshotRecord;
   onDelete: (id: number) => void;
 }) {
   const { t } = useTranslation('snapshot');
@@ -124,10 +119,19 @@ function SnapshotCard({
   const snapshotDate = new Date(snapshot.snapshotDate);
   const createdAt = new Date(snapshot.createdAt);
 
-  const isProfit = snapshot.positions.totalPositionsValueCents > 0;
   const totalValue = snapshot.totalValueCents;
   const cashBalance = snapshot.cashBalanceCents;
   const positionValue = snapshot.positions.totalPositionsValueCents;
+
+  const diff = prevSnapshot ? computeSnapshotDiff(snapshot, prevSnapshot) : null;
+
+  const formatDiffCents = (cents: number) => {
+    return formatCentsToDollars(Math.abs(cents)).replace('$', cents >= 0 ? '+$' : '-$');
+  };
+  const formatDiffPct = (pct: number) => {
+    const sign = pct >= 0 ? '+' : '';
+    return `${sign}${pct.toFixed(2)}%`;
+  };
 
   return (
     <Card>
@@ -198,18 +202,54 @@ function SnapshotCard({
               <DollarSign className="h-4 w-4 text-muted-foreground" />
               {formatCentsToDollars(totalValue)}
             </div>
+            {diff && (
+              <div className={cn(
+                'text-xs flex items-center gap-0.5',
+                diff.totalValueDiffCents >= 0 ? 'text-green-600' : 'text-red-500',
+              )}>
+                {diff.totalValueDiffCents >= 0
+                  ? <TrendingUp className="h-3 w-3" />
+                  : <TrendingDown className="h-3 w-3" />}
+                <span>{formatDiffCents(diff.totalValueDiffCents)}</span>
+                <span className="text-muted-foreground/70">({formatDiffPct(diff.totalValueDiffPct)})</span>
+              </div>
+            )}
           </div>
           <div className="space-y-1">
             <div className="text-xs text-muted-foreground">{t('stats.positionValue')}</div>
             <div className="text-lg font-semibold">
               {formatCentsToDollars(positionValue)}
             </div>
+            {diff && (
+              <div className={cn(
+                'text-xs flex items-center gap-0.5',
+                diff.positionValueDiffCents >= 0 ? 'text-green-600' : 'text-red-500',
+              )}>
+                {diff.positionValueDiffCents >= 0
+                  ? <TrendingUp className="h-3 w-3" />
+                  : <TrendingDown className="h-3 w-3" />}
+                <span>{formatDiffCents(diff.positionValueDiffCents)}</span>
+                <span className="text-muted-foreground/70">({formatDiffPct(diff.positionValueDiffPct)})</span>
+              </div>
+            )}
           </div>
           <div className="space-y-1">
             <div className="text-xs text-muted-foreground">{t('stats.cashBalance')}</div>
             <div className="text-lg font-semibold">
               {formatCentsToDollars(cashBalance)}
             </div>
+            {diff && (
+              <div className={cn(
+                'text-xs flex items-center gap-0.5',
+                diff.cashBalanceDiffCents >= 0 ? 'text-green-600' : 'text-red-500',
+              )}>
+                {diff.cashBalanceDiffCents >= 0
+                  ? <TrendingUp className="h-3 w-3" />
+                  : <TrendingDown className="h-3 w-3" />}
+                <span>{formatDiffCents(diff.cashBalanceDiffCents)}</span>
+                <span className="text-muted-foreground/70">({formatDiffPct(diff.cashBalanceDiffPct)})</span>
+              </div>
+            )}
           </div>
           <div className="space-y-1">
             <div className="text-xs text-muted-foreground">{t('stats.positionCount')}</div>
@@ -217,15 +257,19 @@ function SnapshotCard({
               <Package className="h-4 w-4 text-muted-foreground" />
               {snapshot.positions.positionCount}
             </div>
+            {diff && diff.positionCountDiff !== 0 && (
+              <div className={cn(
+                'text-xs flex items-center gap-0.5',
+                diff.positionCountDiff > 0 ? 'text-green-600' : 'text-red-500',
+              )}>
+                {diff.positionCountDiff > 0
+                  ? <TrendingUp className="h-3 w-3" />
+                  : <TrendingDown className="h-3 w-3" />}
+                <span>{t('stats.positionCountDiff', { count: diff.positionCountDiff })}</span>
+              </div>
+            )}
           </div>
         </div>
-
-        {/* Benchmark Info */}
-        {snapshot.benchmarkValueCents && (
-          <div className="text-sm text-muted-foreground">
-            {t('benchmark', { symbol: snapshot.benchmarkSymbol })}: {formatCentsToDollars(snapshot.benchmarkValueCents)}
-          </div>
-        )}
 
         {/* Expanded Position Details */}
         {expanded && (
@@ -375,10 +419,11 @@ export default function SnapshotPage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {snapshots.map((snapshot) => (
+          {snapshots.map((snapshot, idx) => (
             <SnapshotCard
               key={snapshot.id}
               snapshot={snapshot}
+              prevSnapshot={snapshots[idx + 1]}
               onDelete={handleDeleteSnapshot}
             />
           ))}

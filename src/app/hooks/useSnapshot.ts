@@ -131,3 +131,41 @@ export const calculateReturnPercentage = (
   if (costBasisCents === 0) return 0;
   return ((currentValueCents - costBasisCents) / costBasisCents) * 100;
 };
+
+// 快照差值结构
+export interface SnapshotDiff {
+  totalValueDiffCents: number;
+  totalValueDiffPct: number;
+  positionValueDiffCents: number;
+  positionValueDiffPct: number;
+  cashBalanceDiffCents: number;
+  cashBalanceDiffPct: number;
+  positionCountDiff: number;
+}
+
+// 辅助函数：计算两个快照之间的差值（current 相对于 prev）
+export const computeSnapshotDiff = (
+  current: SnapshotRecord,
+  prev: SnapshotRecord,
+): SnapshotDiff => {
+  const safePct = (diff: number, base: number) =>
+    base !== 0 ? (diff / base) * 100 : 0;
+
+  const totalDiff = current.totalValueCents - prev.totalValueCents;
+  const posDiff =
+    current.positions.totalPositionsValueCents -
+    prev.positions.totalPositionsValueCents;
+  const cashDiff = current.cashBalanceCents - prev.cashBalanceCents;
+  const countDiff =
+    current.positions.positionCount - prev.positions.positionCount;
+
+  return {
+    totalValueDiffCents: totalDiff,
+    totalValueDiffPct: safePct(totalDiff, prev.totalValueCents),
+    positionValueDiffCents: posDiff,
+    positionValueDiffPct: safePct(posDiff, prev.positions.totalPositionsValueCents),
+    cashBalanceDiffCents: cashDiff,
+    cashBalanceDiffPct: safePct(cashDiff, prev.cashBalanceCents),
+    positionCountDiff: countDiff,
+  };
+};

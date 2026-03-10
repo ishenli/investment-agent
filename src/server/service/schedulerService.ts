@@ -155,21 +155,7 @@ export class SchedulerService {
 
     logger.info('[SchedulerService] Starting task check...');
 
-    // 1. 检查并执行今日快照任务
-    const snapshotCheck = await this.shouldRunTask('daily_snapshot');
-    if (!snapshotCheck.executed || force) {
-      result.snapshot = await this.executeDailySnapshots();
-    } else {
-      logger.info('[SchedulerService] Daily snapshot already executed today');
-      result.snapshot = {
-        executed: false,
-        status: 'success',
-        accountsProcessed: 0,
-        errors: [],
-      };
-    }
-
-    // 2. 检查并执行今日价格同步任务
+    // 1. 检查并执行今日价格同步任务（必须先于快照，确保快照使用当天最新价格）
     const priceSyncCheck = await this.shouldRunTask('price_sync');
     if (!priceSyncCheck.executed || force) {
       result.priceSync = await this.executePriceSync();
@@ -179,6 +165,20 @@ export class SchedulerService {
         executed: false,
         status: 'success',
         symbolsProcessed: 0,
+        errors: [],
+      };
+    }
+
+    // 2. 检查并执行今日快照任务（在价格同步之后执行，保证使用最新价格）
+    const snapshotCheck = await this.shouldRunTask('daily_snapshot');
+    if (!snapshotCheck.executed || force) {
+      result.snapshot = await this.executeDailySnapshots();
+    } else {
+      logger.info('[SchedulerService] Daily snapshot already executed today');
+      result.snapshot = {
+        executed: false,
+        status: 'success',
+        accountsProcessed: 0,
         errors: [],
       };
     }
