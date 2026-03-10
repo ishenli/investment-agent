@@ -18,6 +18,7 @@ import { useState } from 'react';
 import { Alert, AlertTitle } from './ui/alert';
 import { AlertCircleIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface AddTransactionDialogProps {
   open: boolean;
@@ -37,9 +38,9 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
   const [description, setDescription] = useState('');
   const [tradeTime, setTradeTime] = useState('');
   const [loading, setLoading] = useState(false);
-  const fetchTransactions = useAssetStore((state) => state.fetchTransactions);
   const addTransaction = useAssetStore((state) => state.addTransaction);
   const addTransactionsError = useAssetStore((state) => state.addTransactionsError);
+  const queryClient = useQueryClient();
 
   // 获取当前市场对应的货币符号
   const getCurrencySymbol = (market: MarketType) => {
@@ -100,6 +101,11 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
       }
 
       await addTransaction(transactionData);
+
+      // 失效 React Query 缓存，确保账户余额、持仓、摘要数据得到刷新
+      queryClient.invalidateQueries({ queryKey: ['account'] });
+      queryClient.invalidateQueries({ queryKey: ['positions'] });
+      queryClient.invalidateQueries({ queryKey: ['summary'] });
     
       // 重置表单
       setType('buy');
@@ -112,7 +118,6 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
       setDescription('');
       setTradeTime('');
       onOpenChange(false);
-      fetchTransactions();
     } catch (error) {
       console.error('Failed to add transaction', error);
     } finally {

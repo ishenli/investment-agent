@@ -46,6 +46,7 @@
     "earliestSnapshot": "Earliest Snapshot",
     "latestSnapshot": "Latest Snapshot",
     "positionCount": "Position Count",
+    "positionCountDiff": "{{count}} vs prev",
     "positionValue": "Position Value",
     "totalSnapshots": "Total Snapshots",
     "totalValue": "Total Value"

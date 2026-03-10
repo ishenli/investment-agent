@@ -83,6 +83,12 @@ export const createAssetTransactionsSlice: StateCreator<
         addTransactionsError: null,
         transactionsLoading: false,
       }));
+
+      // 交易成功后，刷新账户余额和资产摘要数据
+      await Promise.all([
+        get().fetchAccount(''),
+        get().fetchSummary(''),
+      ]);
     } catch (error) {
       set((state: AssetStore) => ({
         ...state,
@@ -123,6 +129,12 @@ export const createAssetTransactionsSlice: StateCreator<
         ),
         transactionsLoading: false,
       }));
+
+      // 交易更新成功后，刷新账户余额和资产摘要数据
+      await Promise.all([
+        get().fetchAccount(''),
+        get().fetchSummary(''),
+      ]);
     } catch (error) {
       set((state: AssetStore) => ({
         ...state,

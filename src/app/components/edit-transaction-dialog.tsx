@@ -15,6 +15,7 @@ import { TransactionRecordType, TransactionType } from '@typings/index';
 import { AssetType, MarketType } from '@typings/asset';
 import { useState, useEffect } from 'react';
 import { CURRENCY_SYMBOLS, EXCHANGE_RATES } from '@shared/constant';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface EditTransactionDialogProps {
   open: boolean;
@@ -39,6 +40,7 @@ export function EditTransactionDialog({
   const [loading, setLoading] = useState(false);
   const fetchTransactions = useAssetStore((state) => state.fetchTransactions);
   const updateTransaction = useAssetStore((state) => state.updateTransaction);
+  const queryClient = useQueryClient();
 
   // 资金类型状态
   const [currencyType, setCurrencyType] = useState<MarketType>('US');
@@ -128,6 +130,12 @@ export function EditTransactionDialog({
       }
 
       await updateTransaction(transaction.id, transactionData);
+
+      // 失效 React Query 缓存，确保账户余额、持仓、摘要数据得到刷新
+      queryClient.invalidateQueries({ queryKey: ['account'] });
+      queryClient.invalidateQueries({ queryKey: ['positions'] });
+      queryClient.invalidateQueries({ queryKey: ['summary'] });
+
       onOpenChange(false);
       fetchTransactions();
     } catch (error) {

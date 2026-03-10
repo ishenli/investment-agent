@@ -4,9 +4,7 @@ import { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
-  CardTitle,
 } from '@renderer/components/ui/card';
 import {
   Table,
@@ -60,45 +58,6 @@ export function TransactionHistory() {
     fetchTransactions();
   }, [fetchTransactions]);
 
-  // Handle loading state
-  if (transactionsLoading) {
-    return (
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">{t('history.title')}</CardTitle>
-            <CardDescription>{t('history.loading')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-center items-center h-32">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Handle error state
-  if (transactionsError) {
-    return (
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">{t('history.title')}</CardTitle>
-            <CardDescription>{t('history.error')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-red-500 text-center py-4">{t('error', { ns: 'common' })}: {transactionsError}</div>
-            <div className="text-center">
-              <Button onClick={() => fetchTransactions()}>{t('history.reload')}</Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <>
       <div className="space-y-6">
@@ -138,7 +97,18 @@ export function TransactionHistory() {
             </div>
           </CardHeader>
           <CardContent>
-            {filteredTransactions.length === 0 ? (
+            {transactionsError ? (
+              <div className="space-y-4">
+                <div className="text-red-500 text-center py-4">{t('error', { ns: 'common' })}: {transactionsError}</div>
+                <div className="text-center">
+                  <Button onClick={() => fetchTransactions()}>{t('history.reload')}</Button>
+                </div>
+              </div>
+            ) : transactionsLoading ? (
+              <div className="flex justify-center items-center h-32">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+              </div>
+            ) : filteredTransactions.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">{t('history.noRecords')}</div>
             ) : (
               <Table>

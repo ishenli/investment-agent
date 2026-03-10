@@ -46,6 +46,7 @@
     "earliestSnapshot": "最早快照",
     "latestSnapshot": "最新快照",
     "positionCount": "持仓数量",
+    "positionCountDiff": "较上次 {{count}} 个",
     "positionValue": "持仓市值",
     "totalSnapshots": "总快照数",
     "totalValue": "总市值"

@@ -1,8 +1,14 @@
-import { db } from '@server/lib/db';
-import { portfolioSnapshots, assetPositions, accountFunds } from '@/drizzle/schema';
-import { eq, and, lte, gte, desc, sql } from 'drizzle-orm';
 import logger from '@server/base/logger';
 import priceService from './priceService';
+import { unifiedPriceService } from './unifiedPriceService';
+import { accountRepository } from '@server/repository/accountRepository';
+import { accountFundRepository } from '@server/repository/accountFundRepository';
+import { assetPositionRepository } from '@server/repository/assetPositionRepository';
+import {
+  portfolioSnapshotRepository,
+  type CreateSnapshotData,
+} from '@server/repository/portfolioSnapshotRepository';
+import type { MarketType } from '@typings/asset';
 
 /**
  * Position snapshot for storing in the positions JSON field
@@ -71,15 +77,15 @@ export class PortfolioSnapshotService {
       // Normalize date to start of day (remove time component)
       const snapshotDate = this.normalizeToDate(date);
 
+      // Get account market info for price fetching
+      const account = await accountRepository.findById(accountId);
+      const accountMarket = (account?.market ?? 'US') as MarketType;
+
       // Get all positions for the account
-      const positions = await db.query.assetPositions.findMany({
-        where: eq(assetPositions.accountId, accountId),
-      });
+      const positions = await assetPositionRepository.findByAccountId(accountId);
 
       // Get cash balance
-      const accountFund = await db.query.accountFunds.findFirst({
-        where: eq(accountFunds.accountId, accountId),
-      });
+      const accountFund = await accountFundRepository.findByAccountId(accountId);
       const cashBalanceCents = accountFund?.amountCents ?? 0;
 
       // Build positions snapshot with current prices
@@ -87,8 +93,8 @@ export class PortfolioSnapshotService {
       let totalPositionsValueCents = 0;
 
       for (const position of positions) {
-        // Get current price for the symbol
-        const currentPrice = await this.getCurrentPrice(position.symbol);
+        // Get current price for the symbol (refresh from external API if needed)
+        const currentPrice = await this.getCurrentPrice(position.symbol, accountMarket);
         const currentPriceCents = Math.round(currentPrice * 100);
 
         const quantity = position.quantity;
@@ -117,55 +123,42 @@ export class PortfolioSnapshotService {
       // Calculate total value (positions + cash)
       const totalValueCents = totalPositionsValueCents + cashBalanceCents;
 
-      // Get benchmark value (SPY)
-      const benchmarkValueCents = await this.getBenchmarkValue('SPY');
+      // Get benchmark value (SPY - US market)
+      const benchmarkValueCents = await this.getBenchmarkValue('SPY', 'US');
 
       // Check if snapshot already exists for this date
-      const existingSnapshot = await db.query.portfolioSnapshots.findFirst({
-        where: and(
-          eq(portfolioSnapshots.accountId, accountId),
-          eq(portfolioSnapshots.snapshotDate, snapshotDate),
-        ),
-      });
+      const existingSnapshot = await portfolioSnapshotRepository.findByAccountIdAndDate(
+        accountId,
+        snapshotDate,
+      );
 
       if (existingSnapshot) {
         // Update existing snapshot (idempotent)
-        const [updatedSnapshot] = await db
-          .update(portfolioSnapshots)
-          .set({
-            totalValueCents,
-            cashBalanceCents,
-            positions: positionsData,
-            benchmarkValueCents,
-            source,
-            updatedAt: new Date(),
-          })
-          .where(eq(portfolioSnapshots.id, existingSnapshot.id))
-          .returning();
+        const updatedSnapshot = await portfolioSnapshotRepository.updateSnapshot(
+          existingSnapshot.id,
+          { totalValueCents, cashBalanceCents, positions: positionsData, benchmarkValueCents, source },
+        );
 
         logger.info(
           `Updated snapshot for account ${accountId} on ${snapshotDate.toISOString().split('T')[0]}`,
         );
 
-        return this.toRecord(updatedSnapshot);
+        return this.toRecord(updatedSnapshot!);
       }
 
       // Create new snapshot
-      const [newSnapshot] = await db
-        .insert(portfolioSnapshots)
-        .values({
-          accountId,
-          snapshotDate,
-          totalValueCents,
-          cashBalanceCents,
-          positions: positionsData,
-          benchmarkValueCents,
-          benchmarkSymbol: 'SPY',
-          source,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .returning();
+      const snapshotData: CreateSnapshotData = {
+        accountId,
+        snapshotDate,
+        totalValueCents,
+        cashBalanceCents,
+        positions: positionsData,
+        benchmarkValueCents: benchmarkValueCents ?? null,
+        benchmarkSymbol: 'SPY',
+        source,
+        notes: null,
+      };
+      const newSnapshot = await portfolioSnapshotRepository.createSnapshot(snapshotData);
 
       logger.info(
         `Created snapshot for account ${accountId} on ${snapshotDate.toISOString().split('T')[0]}`,
@@ -192,25 +185,20 @@ export class PortfolioSnapshotService {
       const normalizedDate = this.normalizeToDate(targetDate);
 
       // First try to get exact date match
-      const exactSnapshot = await db.query.portfolioSnapshots.findFirst({
-        where: and(
-          eq(portfolioSnapshots.accountId, accountId),
-          eq(portfolioSnapshots.snapshotDate, normalizedDate),
-        ),
-      });
+      const exactSnapshot = await portfolioSnapshotRepository.findByAccountIdAndDate(
+        accountId,
+        normalizedDate,
+      );
 
       if (exactSnapshot) {
         return this.toRecord(exactSnapshot);
       }
 
       // If not found, get the nearest snapshot before the target date
-      const nearestSnapshot = await db.query.portfolioSnapshots.findFirst({
-        where: and(
-          eq(portfolioSnapshots.accountId, accountId),
-          lte(portfolioSnapshots.snapshotDate, normalizedDate),
-        ),
-        orderBy: [desc(portfolioSnapshots.snapshotDate)],
-      });
+      const nearestSnapshot = await portfolioSnapshotRepository.findNearestOnOrBefore(
+        accountId,
+        normalizedDate,
+      );
 
       if (nearestSnapshot) {
         logger.info(
@@ -242,14 +230,11 @@ export class PortfolioSnapshotService {
       const normalizedStartDate = this.normalizeToDate(startDate);
       const normalizedEndDate = this.normalizeToDate(endDate);
 
-      const snapshots = await db.query.portfolioSnapshots.findMany({
-        where: and(
-          eq(portfolioSnapshots.accountId, accountId),
-          gte(portfolioSnapshots.snapshotDate, normalizedStartDate),
-          lte(portfolioSnapshots.snapshotDate, normalizedEndDate),
-        ),
-        orderBy: [portfolioSnapshots.snapshotDate],
-      });
+      const snapshots = await portfolioSnapshotRepository.findByAccountIdAndDateRange(
+        accountId,
+        normalizedStartDate,
+        normalizedEndDate,
+      );
 
       return snapshots.map((s) => this.toRecord(s));
     } catch (error) {
@@ -265,11 +250,7 @@ export class PortfolioSnapshotService {
    */
   async getAllSnapshots(accountId: number): Promise<PortfolioSnapshotRecord[]> {
     try {
-      const snapshots = await db.query.portfolioSnapshots.findMany({
-        where: eq(portfolioSnapshots.accountId, accountId),
-        orderBy: [desc(portfolioSnapshots.snapshotDate)],
-      });
-
+      const snapshots = await portfolioSnapshotRepository.findAllByAccountId(accountId);
       return snapshots.map((s) => this.toRecord(s));
     } catch (error) {
       logger.error(`Failed to get all snapshots for account ${accountId}: ${error}`);
@@ -284,12 +265,7 @@ export class PortfolioSnapshotService {
    */
   async deleteSnapshot(snapshotId: number): Promise<boolean> {
     try {
-      const result = await db
-        .delete(portfolioSnapshots)
-        .where(eq(portfolioSnapshots.id, snapshotId))
-        .returning();
-
-      return result.length > 0;
+      return await portfolioSnapshotRepository.deleteSnapshot(snapshotId);
     } catch (error) {
       logger.error(`Failed to delete snapshot ${snapshotId}: ${error}`);
       return false;
@@ -303,11 +279,7 @@ export class PortfolioSnapshotService {
    */
   async getLatestSnapshot(accountId: number): Promise<PortfolioSnapshotRecord | null> {
     try {
-      const snapshot = await db.query.portfolioSnapshots.findFirst({
-        where: eq(portfolioSnapshots.accountId, accountId),
-        orderBy: [desc(portfolioSnapshots.snapshotDate)],
-      });
-
+      const snapshot = await portfolioSnapshotRepository.findLatestByAccountId(accountId);
       return snapshot ? this.toRecord(snapshot) : null;
     } catch (error) {
       logger.error(`Failed to get latest snapshot for account ${accountId}: ${error}`);
@@ -324,13 +296,10 @@ export class PortfolioSnapshotService {
   async hasSnapshotForDate(accountId: number, date: Date): Promise<boolean> {
     try {
       const normalizedDate = this.normalizeToDate(date);
-      const snapshot = await db.query.portfolioSnapshots.findFirst({
-        where: and(
-          eq(portfolioSnapshots.accountId, accountId),
-          eq(portfolioSnapshots.snapshotDate, normalizedDate),
-        ),
-      });
-
+      const snapshot = await portfolioSnapshotRepository.findByAccountIdAndDate(
+        accountId,
+        normalizedDate,
+      );
       return !!snapshot;
     } catch (error) {
       logger.error(`Failed to check snapshot existence: ${error}`);
@@ -351,11 +320,19 @@ export class PortfolioSnapshotService {
 
   /**
    * Get current price for a symbol
+   * Attempts to fetch the latest price via unifiedPriceService (with external API fallback);
+   * falls back to the cached DB value if that fails.
    * @param symbol Stock symbol
+   * @param market Market type
    * @returns Current price (in dollars, not cents)
    */
-  private async getCurrentPrice(symbol: string): Promise<number> {
+  private async getCurrentPrice(symbol: string, market: MarketType = 'US'): Promise<number> {
     try {
+      const quoteResponse = await unifiedPriceService.getQuote(symbol, market, { forceRefresh: false });
+      if (quoteResponse) {
+        return quoteResponse.price;
+      }
+      // Fallback: read cached value from DB
       const priceInfo = await priceService.getLatestPrice(symbol);
       return priceInfo?.price ?? 0;
     } catch (error) {
@@ -367,13 +344,19 @@ export class PortfolioSnapshotService {
   /**
    * Get benchmark value (price of SPY or other benchmark)
    * @param symbol Benchmark symbol (default: SPY)
+   * @param market Market type (default: US)
    * @returns Benchmark value in cents
    */
-  private async getBenchmarkValue(symbol: string = 'SPY'): Promise<number> {
+  private async getBenchmarkValue(symbol: string = 'SPY', market: MarketType = 'US'): Promise<number> {
     try {
+      const quoteResponse = await unifiedPriceService.getQuote(symbol, market, { forceRefresh: false });
+      if (quoteResponse) {
+        return Math.round(quoteResponse.price * 100);
+      }
+      // Fallback: read cached value from DB
       const priceInfo = await priceService.getLatestPrice(symbol);
       const price = priceInfo?.price ?? 0;
-      return Math.round(price * 100); // Convert to cents
+      return Math.round(price * 100);
     } catch (error) {
       logger.warn(`Failed to get benchmark value for ${symbol}: ${error}`);
       return 0;
