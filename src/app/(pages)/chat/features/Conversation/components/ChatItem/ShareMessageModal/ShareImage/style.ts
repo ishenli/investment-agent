@@ -22,7 +22,7 @@ export const useStyles = createStyles(({ css, token, cx }, withBackground: boole
     `,
   ),
   footer: css`
-    padding: 16px;
+    padding: 12px;
     border-block-start: 1px solid ${token.colorBorder};
   `,
   header: css`
@@ -45,7 +45,7 @@ export const useStyles = createStyles(({ css, token, cx }, withBackground: boole
     color: ${token.colorTextDescription};
   `,
   mainTitle: css`
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 500;
     color: #111827;
     margin-left: -58px;

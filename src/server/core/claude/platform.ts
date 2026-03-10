@@ -32,6 +32,7 @@ export function getExtraPathDirs(): string[] {
       path.join(home, '.claude', 'bin'),
       path.join(home, '.local', 'bin'),
       path.join(home, '.nvm', 'current', 'bin'),
+      path.join(home, '.cargo', 'bin'),
     ];
   }
   return [
@@ -43,6 +44,9 @@ export function getExtraPathDirs(): string[] {
     path.join(home, '.nvm', 'current', 'bin'),
     path.join(home, '.local', 'bin'),
     path.join(home, '.claude', 'bin'),
+    path.join(home, '.cargo', 'bin'),      // uv 默认安装位置 (cargo install)
+    path.join(home, '.pyenv', 'shims'),    // pyenv shims
+    path.join(home, '.pyenv', 'bin'),      // pyenv 本身
   ];
 }
 

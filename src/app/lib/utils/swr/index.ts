@@ -20,13 +20,14 @@ const isDesktop = true;
  *
  * 适用于 messages、topics、sessions 等用户会在客户端交互的数据
  */
-// @ts-ignore
+// @ts-expect-error SWRHook generic overload mismatch
 export const useClientDataSWR: SWRHook = (key, fetch, config) =>
   useSWR(key, fetch, {
-    // default is 2000ms ,it makes the user's quick switch don't work correctly.
-    // Cause issue like this: https://github.com/lobehub/lobe-chat/issues/532
-    // we need to set it to 0.
-    dedupingInterval: 0,
+    // 原先设置为 0 是为了解决快速切换 session 时的问题，
+    // 但 0 会导致极短时间内并发触发多次真实请求。
+    // 设为 300ms：在同一渲染周期内的并发触发会被合并，
+    // 同时不影响正常的用户交互切换场景。
+    dedupingInterval: 300,
     focusThrottleInterval:
       // FIXME: desktop 云同步模式也是走 edge 请求，也应该增大延迟
       // desktop 1.5s
@@ -47,7 +48,7 @@ export const useClientDataSWR: SWRHook = (key, fetch, config) =>
  * 这一类请求方法是相对“死”的请求模式，只会在第一次请求时触发。
  * 适用于第一次请求，例如 `initUserState`
  */
-// @ts-ignore
+// @ts-expect-error SWRHook generic overload mismatch
 export const useOnlyFetchOnceSWR: SWRHook = (key, fetch, config) =>
   useSWR(key, fetch, {
     refreshWhenOffline: false,
@@ -61,7 +62,7 @@ export const useOnlyFetchOnceSWR: SWRHook = (key, fetch, config) =>
  * 可以很简单地完成 loading / error 态的交互处理，同时，相同 swr key 的请求会自动共享 loading态（例如新建助手按钮和右上角的 + 号）
  * 非常适用于新建等操作。
  */
-// @ts-ignore
+// @ts-expect-error SWRHook generic overload mismatch
 export const useActionSWR: SWRHook = (key, fetch, config) =>
   useSWR(key, fetch, {
     refreshWhenHidden: false,

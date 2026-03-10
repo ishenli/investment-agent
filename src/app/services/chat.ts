@@ -36,6 +36,7 @@ import { produce } from 'immer';
 import { getToolStoreState } from '../store/tool';
 import { BuiltinSystemRolePrompts } from '../prompts/systemRole';
 import { t } from 'i18next';
+import { safeParseJSON } from '../lib/utils/safeParseJSON';
 
 type SSEFinishType = 'done' | 'error' | 'abort';
 
@@ -353,7 +354,7 @@ class ChatService {
     onFinish,
     ...options
   }: CreateAssistantMessageStream) => {
-    console.log('createAssistantMessageStream', params);
+    console.info('[chat.ts]createAssistantMessageStream', params);
     const { plugins: enabledPlugins, messages, ...restParams } = params;
     const { isWelcomeQuestion, trace, historySummary } = options;
     const payload = merge(
@@ -377,6 +378,7 @@ class ChatService {
       isWelcomeQuestion,
       trace,
       historySummary,
+      engineType: params.engineType,
     });
 
     try {
@@ -445,6 +447,7 @@ class ChatService {
     isWelcomeQuestion,
     trace,
     historySummary,
+    engineType,
     ...options
   }: {
     messages: ChatMessage[];
@@ -454,6 +457,7 @@ class ChatService {
     isWelcomeQuestion?: boolean;
     trace?: string;
     historySummary?: string;
+    engineType?: 'deepagents' | 'claude';
   }) => {
     const getUserContent = async (m: ChatMessage) => {
       // only if message doesn't have images and files, then return the plain content
@@ -549,6 +553,9 @@ class ChatService {
     );
 
     postMessages = produce(postMessages, (draft) => {
+
+      if (engineType === 'claude') return;
+
       // if it's a welcome question, inject InboxGuide SystemRole
       const inboxGuideSystemRole =
         isWelcomeQuestion && trace === INBOX_SESSION_ID && 'INBOX_GUIDE_SYSTEMROLE';
@@ -682,8 +689,8 @@ class ChatService {
                 type: 'TOOL',
                 content:
                   typeof event.arguments === 'string'
-                    ? event.arguments
-                    : JSON.stringify(event.arguments),
+                    ? safeParseJSON(event.arguments)
+                    : event.arguments,
               },
             });
             break;

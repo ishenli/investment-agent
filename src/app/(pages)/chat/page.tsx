@@ -20,22 +20,26 @@ export interface LayoutProps {
 
 const Layout = ({}: LayoutProps) => {
   const { initUserState } = useUserStore();
-  const { fetchAvailableModels } = useAiInfraStore();
+  const { useFetchAvailableModels } = useAiInfraStore();
+  // SWR 声明式调用：全局 key 自动去重，无需 useEffect，无需 inflight 锁
+  useFetchAvailableModels();
   // 保护页面，确保用户有账户才能访问
   useAccountGuard();
-  // 初始化
-  const [isInitialized, setIsInitialized] = useState(false);
+  // 初始化会话（POST /api/chat/sessions）
+  const [isSessionReady, setIsSessionReady] = useState(false);
   useEffect(() => {
-    async function initSessionConfig() {
+    // 注意：依赖数组不能包含 isSessionReady。
+    // 若包含，setIsSessionReady(true) 会再次触发 effect，
+    // 导致 initSessionConfig 被执行两次，产生重复的 POST /api/chat/sessions。
+    async function init() {
       await sessionService.initSessionConfig();
-      // 加载可用的 AI 模型列表
-      await fetchAvailableModels();
-      setIsInitialized(true);
+      setIsSessionReady(true);
     }
-    initSessionConfig();
-  }, [isInitialized, fetchAvailableModels]);
+    init();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  if (!isInitialized) {
+  if (!isSessionReady) {
     return (
       <div className="flex h-full items-center justify-center">
         <Spin size="large" />

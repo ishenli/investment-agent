@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Input } from '@renderer/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@renderer/components/ui/tabs';
 import { Button } from '@renderer/components/ui/button';
@@ -25,7 +25,8 @@ export default function SkillsPage() {
     selectedSource,
     filteredSkills,
     sources,
-    fetchSkills,
+    useFetchSkills,
+    refreshSkills,
     toggleSkill,
     createCustomSkill,
     deleteCustomSkill,
@@ -35,10 +36,8 @@ export default function SkillsPage() {
     // clearError,
   } = useSkillsStore();
 
-  // 页面加载时获取技能
-  useEffect(() => {
-    fetchSkills();
-  }, [fetchSkills]);
+  // SWR 声明式调用：全局 key 自动去重，无需 useEffect
+  useFetchSkills();
 
   const handleToggle = async (slug: string, isEnabled: boolean) => {
     try {
@@ -68,7 +67,7 @@ export default function SkillsPage() {
   };
 
   const handleRefresh = () => {
-    fetchSkills();
+    refreshSkills();
   };
 
   const sourceTabs = [

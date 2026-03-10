@@ -202,16 +202,34 @@ export class SkillFileScanner {
     return path.join(homeDir, CLAUDE_SKILLS_DIR_NAME, CLAUDE_SKILLS_SUBDIR);
   }
 
+  private getProjectClaudeSkillsRoot(): string | null {
+    if (isElectron() && process.env.NEXT_APP_DATA_PATH) {
+      // 打包后 NEXT_APP_DATA_PATH = .../resources/standalone
+      // .claude/skills 被打包到 .../resources/standalone/.claude/skills
+      return path.join(process.env.NEXT_APP_DATA_PATH, CLAUDE_SKILLS_DIR_NAME, CLAUDE_SKILLS_SUBDIR);
+    }
+    return path.join(getProjectRoot(), CLAUDE_SKILLS_DIR_NAME, CLAUDE_SKILLS_SUBDIR);
+  }
+
   /**
-   * Returns ordered skill roots: bundled (lowest priority) → claude → user (highest priority).
+   * Returns ordered skill roots: bundled (lowest priority) → global claude → project claude → user (highest priority).
    */
   getSkillRoots(primaryRoot?: string): string[] {
     const resolvedPrimary = primaryRoot ?? this.getSkillsRoot();
     const roots: string[] = [resolvedPrimary];
 
-    const claudeRoot = this.getClaudeSkillsRoot();
-    if (claudeRoot && fs.existsSync(claudeRoot)) {
-      roots.push(claudeRoot);
+    const globalClaudeRoot = this.getClaudeSkillsRoot();
+    if (globalClaudeRoot && fs.existsSync(globalClaudeRoot)) {
+      roots.push(globalClaudeRoot);
+    }
+
+    const projectClaudeRoot = this.getProjectClaudeSkillsRoot();
+    if (
+      projectClaudeRoot &&
+      projectClaudeRoot !== globalClaudeRoot &&
+      fs.existsSync(projectClaudeRoot)
+    ) {
+      roots.push(projectClaudeRoot);
     }
 
     const appRoot = this.getBundledSkillsRoot();

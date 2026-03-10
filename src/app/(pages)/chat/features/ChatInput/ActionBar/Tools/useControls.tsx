@@ -1,6 +1,5 @@
 import { Avatar, ItemType } from '@lobehub/ui';
 import isEqual from 'fast-deep-equal';
-import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useCheckPluginsIsInstalled } from '@renderer/hooks/useCheckPluginsIsInstalled';
@@ -118,15 +117,13 @@ export const useSkillsControls = () => {
   const tStr = t as (key: string) => string;
 
   const sessionId = useSessionStore((s) => s.activeId);
-  const { fetchSkills, filteredSkills, skills } = useSkillsStore();
+  const { useFetchSkills, filteredSkills } = useSkillsStore();
+  // SWR 声明式调用：全局 key 自动去重，无需 useEffect 和 hasFetchedRef
+  useFetchSkills();
 
-  useEffect(() => {
-    if (skills.length === 0) {
-      fetchSkills();
-    }
-  }, [fetchSkills, skills.length]);
+  const enabledSkills = filteredSkills().filter((skill) => skill.isEnabled);
 
-  const enabledSkills = filteredSkills();
+  // 如果没有启用的技能，则不显示技能组
 
   const items: ItemType[] = enabledSkills.length > 0
     ? [

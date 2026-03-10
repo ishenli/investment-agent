@@ -2,6 +2,13 @@ import { StateCreator } from 'zustand';
 import { TradingAccountType, UpdateAccountRequestType } from '@typings/account';
 import { AccountStore } from '../../types';
 
+/**
+ * 模块级防重入锁：保证 initializeAccount 全局只执行一次
+ * AppSidebar 和 useAccountGuard 同时 mount 时共享同一个 Promise，
+ * 避免对 /api/account 和 /api/account/selected 产生重复请求
+ */
+let _initializationPromise: Promise<void> | null = null;
+
 export interface AccountSettingsAction {
   fetchAccountSettings: (accountId: string) => Promise<void>;
   fetchAccounts: () => Promise<void>;
@@ -24,18 +31,38 @@ export const createAccountSettingsSlice: StateCreator<
   AccountSettingsAction
 > = (set, get) => ({
   initializeAccount: async () => {
-    // 获取账户数据
-    await get().fetchAccounts();
-    await get().fetchSelectedAccount();
-    const accounts = get().accounts;
-    const account = get().account;
-
-    // 如果有账户但未设置选中账号，自动选择第一个账户
-    if (accounts.length > 0 && !account) {
-      await get().setAccount(accounts[0]);
+    // 若已有账户数据且已选中账户，直接复用，无需网络请求
+    const state = get();
+    if (state.accounts.length > 0 && state.account) {
+      return;
     }
+
+    // 防重入：多处并发调用时共享同一个 Promise
+    if (_initializationPromise) {
+      return _initializationPromise;
+    }
+
+    _initializationPromise = (async () => {
+      try {
+        await get().fetchAccounts();
+        await get().fetchSelectedAccount();
+        const accounts = get().accounts;
+        const account = get().account;
+
+        // 如果有账户但未设置选中账号，自动选择第一个账户
+        if (accounts.length > 0 && !account) {
+          await get().setAccount(accounts[0]);
+        }
+      } finally {
+        // 初始化结束后清除锁，下次可重新触发
+        _initializationPromise = null;
+      }
+    })();
+
+    return _initializationPromise;
   },
   fetchSelectedAccount: async () => {
+    console.warn('Fetching selected account...');
     try {
       const response = await fetch('/api/account/selected');
       if (!response.ok) {

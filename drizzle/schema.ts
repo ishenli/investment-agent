@@ -421,7 +421,9 @@ export const skills = sqliteTable('skills', {
   userId: integer('user_id')
     .notNull()
     .references(() => users.id),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  deletedAt: integer('deleted_at', { mode: 'timestamp' }), // 软删除时间戳
 }, (table) => [
   // 索引：按用户 ID 查询
   index('idx_skills_user_id').on(table.userId),

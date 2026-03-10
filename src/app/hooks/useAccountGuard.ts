@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAccountStore } from '@renderer/store/account/store';
 
@@ -31,60 +31,68 @@ const isProtectedRoute = (pathname: string): boolean => {
 /**
  * 账户守卫 Hook
  * 用于保护需要账户的页面，当用户没有账户时重定向到创建页面
+ *
+ * 优化点：
+ * - 防重入逻辑已下沉到 store.initializeAccount，和 AppSidebar 共享锁
+ * - 依赖 pathname 确保路由变化时重新验证
+ * - 使用 isChecking ref 防止同一组件快速路由切换时的竞态
  */
 export function useAccountGuard() {
   const router = useRouter();
   const pathname = usePathname();
-  const { accounts, account, fetchAccounts, fetchSelectedAccount, setAccount, loading } =
-    useAccountStore();
+  const isCheckingRef = useRef(false);
 
   useEffect(() => {
+    // 如果当前路由是白名单路由，不需要检查
+    if (isWhitelistRoute(pathname)) {
+      return;
+    }
+
+    // 如果当前路由不需要账户保护，跳过
+    if (!isProtectedRoute(pathname)) {
+      return;
+    }
+
+    // 防止同一组件并发执行（快速路由切换场景）
+    if (isCheckingRef.current) {
+      return;
+    }
+
+    let cancelled = false;
+
     const checkAccount = async () => {
-      // 如果当前路由是白名单路由，不需要检查
-      if (isWhitelistRoute(pathname)) {
-        return;
-      }
-
-      // 如果当前路由不需要账户，不需要检查
-      if (!isProtectedRoute(pathname)) {
-        return;
-      }
-
-      // 缓存当前路径，避免在已跳转到 /account/create 时重复检查
-      const hasRedirected = sessionStorage.getItem('accountGuardRedirect');
-      if (hasRedirected === 'true' && pathname === '/account/create') {
-        return;
-      }
+      isCheckingRef.current = true;
 
       try {
-        await fetchAccounts();
-        const accounts = useAccountStore.getState().accounts;
-        // 如果没有账户，重定向到创建页面
+        // 防重入已在 store.initializeAccount 内部处理，直接调用即可
+        await useAccountStore.getState().initializeAccount();
+
+        // effect 已被清理（路由再次变化），不执行跳转
+        if (cancelled) return;
+
+        const { accounts } = useAccountStore.getState();
         if (accounts.length === 0) {
-          sessionStorage.setItem('accountGuardRedirect', 'true');
           router.push('/account/create');
-          return;
-        }
-
-        // 如果有账户但未设置选中账户，自动选择第一个
-        if (!account) {
-          await fetchSelectedAccount();
-          const currentAccount = useAccountStore.getState().account;
-
-          if (!currentAccount && accounts.length > 0) {
-            // 自动选择第一个账户
-            await setAccount(accounts[0]);
-          }
         }
       } catch (error) {
         console.error('Failed to check account status:', error);
-        // 检查失败时，仍允许访问基础页面
-        if (!isWhitelistRoute(pathname) && accounts.length === 0) {
-          router.push('/account/create');
+        if (!cancelled) {
+          const { accounts } = useAccountStore.getState();
+          if (accounts.length === 0) {
+            router.push('/account/create');
+          }
         }
+      } finally {
+        isCheckingRef.current = false;
       }
     };
 
     checkAccount();
-  }, []);
+
+    return () => {
+      // 标记为已取消，防止 unmount 后执行跳转
+      cancelled = true;
+      isCheckingRef.current = false;
+    };
+  }, [pathname, router]);
 }

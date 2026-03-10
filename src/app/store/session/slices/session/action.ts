@@ -184,8 +184,10 @@ export const createSessionSlice: StateCreator<
   },
 
   refreshSessions: async () => {
-    const result = await sessionService.getGroupedSessions();
-    get().internal_processSessions(result.sessions, result.sessionGroups);
+    // 使用 SWR mutate 触发重新验证，全局共享同一个请求
+    // 而非直接调用 sessionService.getGroupedSessions()，
+    // 避免绕过 SWR 缓存层并行发起重复请求
+    await mutate([FETCH_SESSIONS_KEY, true]);
   },
 
   removeSession: async (sessionId) => {

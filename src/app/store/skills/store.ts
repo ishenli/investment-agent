@@ -4,6 +4,8 @@ import { StateCreator } from 'zustand/vanilla';
 import { devtools } from 'zustand/middleware';
 import type { SkillListResponse, SkillResponse, SkillSource } from '@typings/skill';
 import { produce } from 'immer';
+import { useOnlyFetchOnceSWR } from '@renderer/lib/utils/swr';
+import { mutate } from 'swr';
 
 // ============== State Types ==============
 
@@ -25,8 +27,19 @@ export interface SkillsState {
 // ============== Action Types ==============
 
 export interface SkillsActions {
-  // Data fetching
-  fetchSkills: () => Promise<void>;
+  /**
+   * SWR Hook: fetch skills list from /api/skills.
+   * Leverages SWR's global key-based deduplication — multiple components
+   * calling this hook simultaneously share a single in-flight request.
+   * Call directly at the component top level (no useEffect needed).
+   */
+  useFetchSkills: () => void;
+
+  /**
+   * Imperatively re-fetch skills (e.g. after create/delete or manual refresh).
+   * Triggers SWR revalidation for the same cache key.
+   */
+  refreshSkills: () => Promise<void>;
 
   // Global toggle (persisted to DB via /api/skills/[id])
   toggleSkill: (slug: string, isEnabled: boolean) => Promise<void>;
@@ -79,27 +92,44 @@ const initialState: SkillsState = {
 
 export type SkillsStore = SkillsState & SkillsActions;
 
+/** SWR cache key for skills list */
+const FETCH_SKILLS_KEY = 'fetchSkills';
+
 const createStore: StateCreator<SkillsStore, [['zustand/devtools', never]]> = (set, get) => ({
   ...initialState,
 
   // ── Data fetching ──────────────────────────────────────────────────────
 
-  fetchSkills: async () => {
-    set({ loading: true, error: null });
+  useFetchSkills: () =>
+    // useOnlyFetchOnceSWR 全局按 key 去重：
+    // React StrictMode 双重挂载、多组件并发调用时，SWR 只发起一次真实请求。
+    useOnlyFetchOnceSWR(
+      FETCH_SKILLS_KEY,
+      async () => {
+        set({ loading: true, error: null });
+        const response = await fetch('/api/skills');
+        if (!response.ok) throw new Error('Failed to fetch skills');
+        const res = await response.json();
+        const data = res.data as SkillListResponse;
+        set({ skills: data.skills, loading: false });
+      },
+      {
+        onError: (error) => {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          set({ error: errorMessage, loading: false });
+        },
+      },
+    ),
 
+  refreshSkills: async () => {
+    // 先通知服务端清除 SkillRegistry 内存缓存（保证手动放置的 SKILL.md 被扫描到）
     try {
-      const response = await fetch('/api/skills');
-      if (!response.ok) {
-        throw new Error('Failed to fetch skills');
-      }
-
-      const res = await response.json();
-      const data = res.data as SkillListResponse;
-      set({ skills: data.skills, loading: false });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      set({ error: errorMessage, loading: false });
+      await fetch('/api/skills/sync', { method: 'POST' });
+    } catch {
+      // sync 失败不阻断后续列表刷新
     }
+    // 强制触发 SWR 重验证
+    await mutate(FETCH_SKILLS_KEY);
   },
 
   // ── State toggle ───────────────────────────────────────────────────────

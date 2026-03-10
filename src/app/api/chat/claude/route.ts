@@ -10,6 +10,7 @@
  * - 使用统一的 AgentStreamEvent 格式输出
  */
 import { NextRequest } from 'next/server';
+import path from 'path';
 import { z } from 'zod';
 import { streamClaude } from '../../../../server/core/claude/claudeClient';
 import { claudeService } from '@server/service/claudeService';
@@ -72,34 +73,56 @@ class ClaudeChatController extends BaseController {
       if (!userMessage) {
         return this.error('未找到用户消息', 'no_user_message');
       }
-      const content = userMessage.content;
+      // 将消息数组格式化为带角色标签的对话文本，便于 AI 理解上下文
+      const content = messages
+        .map((msg) => {
+          const roleLabel =
+            msg.role === 'user' ? 'Human' : msg.role === 'assistant' ? 'Assistant' : 'System';
+          return `<${roleLabel}>\n${msg.content.trim()}\n</${roleLabel}>`;
+        })
+        .join('\n\n');
 
       // 2. 用户认证
       const userId = await authService.getCurrentUserId();
       if (!userId) {
         return this.error('用户未登录', 'unauthorized');
       }
+      const userIdNum = parseInt(userId, 10);
+
+      // T302: 获取已启用的 skills
+      let enabledSkills = await skillService.getEnabledSkills(userIdNum);
+
+      // T403: 会话级别过滤 — 若请求携带非空 skills 数组，则仅保留交集
+      // ResolvedSkill 使用 id 字段作为 slug（业务键）
+      if (requestedSkills && requestedSkills.length > 0) {
+        const requestedSet = new Set(requestedSkills);
+        enabledSkills = enabledSkills.filter((s) => requestedSet.has(s.id));
+      }
+
+      // T303: 构建 skillsSystemPrompt
+      // skillPath = SKILL.md 的绝对路径，其 dirname 即为 {baseDir}
+      const skillsSystemPrompt =
+        enabledSkills
+          .filter((s) => s.prompt)
+          .map((s) => {
+            const baseDir = path.dirname(s.skillPath);
+            const promptWithBaseDir = s.prompt.replace(/\{baseDir\}/g, baseDir);
+            return [
+              `## Skill: ${s.name}`,
+              s.description ? `> ${s.description}` : '',
+              '',
+              promptWithBaseDir.trim(),
+            ]
+              .filter((line, idx) => idx !== 1 || line !== '')
+              .join('\n');
+          })
+          .join('\n\n---\n\n') || undefined;
 
       // 3. 验证会话并获取真实的 session ID
       if (!sessionId) {
         return this.error('会话不存在', 'session_not_found');
       }
      
-      const userIdNum = parseInt(userId, 10);
-      // T302/T403: 按需加载 skills prompt
-      // 仅当前端明确传递了非空 skills 数组时才查询并注入。
-      // 使用 getSkillsBySlugs 而非 getEnabledSkills，因为用户在工具面板中明确选择了这些技能，
-      // 即使它们的全局 isEnabled=false 也应该被尊重。
-      let skillsSystemPrompt: string | undefined;
-      if (requestedSkills && requestedSkills.length > 0) {
-        const selectedSkills = await skillService.getSkillsBySlugs(userIdNum, requestedSkills);
-        if (selectedSkills.length > 0) {
-          skillsSystemPrompt = selectedSkills
-            .filter((s) => s.prompt)
-            .map((s) => `## Skill: ${s.name}\n\n${s.description}`)
-            .join('\n\n---\n\n') || undefined;
-        }
-      }
       // 使用真实的 session ID, "inbox_NU7XvF4aO3DEGlwJnGsD7"使用后半部分
       const realSessionId = sessionId.split('_')[1];
 
@@ -119,9 +142,7 @@ class ClaudeChatController extends BaseController {
           systemPromptOverride =
             '\n\nYou are in Ask mode. Answer questions and provide information only. Do not use any tools, do not read or write files, do not execute commands. Only respond with text.';
           break;
-        default: // 
-          systemPromptOverride =
-            '\n\nYou are in agent mode. You can use tools, read and write files, and execute commands. You are an investment assistant.';
+        default: // 'code'
           permissionMode = 'acceptEdits';
           break;
       }
@@ -158,7 +179,7 @@ class ClaudeChatController extends BaseController {
         transactions: await transactionService.getTransactionSummaryMarkdown(accountInfo.id),
       });
 
-      recordPrompt(content + '\n\n' + finalSystemPrompt, 'claude-prompt.md');  
+      recordPrompt(content + '\n\n' + finalSystemPrompt, 'claude-investment-prompt.md');  
 
       // 7. 调用 streamClaude 并在后台处理
       (async () => {
@@ -183,7 +204,7 @@ class ClaudeChatController extends BaseController {
             mcpServers: {
               'ig-tools': igToolsServer,
             },
-            allowedTools: ["Skill", "Read", "Write", "Bash"],  // 启用 Skill 工具
+            allowedTools: ["Skill", "Read", "Write", "Bash", "Glob"],  // 启用 Skill 工具
             updateSdkSessionId: (id: string, newSdkSessionId: string) => {
               // TODO: 将 newSdkSessionId 保存到数据库
               logger.info(
