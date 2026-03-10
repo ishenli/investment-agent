@@ -79,6 +79,8 @@ mac:
   target:
     - target: dmg
       arch: [arm64]
+    - target: zip
+      arch: [arm64]
   notarize: false
 win:
   icon: build/icon.ico
