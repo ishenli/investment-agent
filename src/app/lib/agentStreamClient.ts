@@ -1,4 +1,5 @@
 import type { AgentStreamEvent } from '@/types/agentStream';
+import { get } from 'lodash';
 
 export type AgentStreamClientOptions = {
   api: string;
@@ -137,4 +138,52 @@ function processLine(line: string, onEvent: (event: AgentStreamEvent) => void): 
   }
 
   return false;
+}
+
+
+export function formatToolMessage(event: AgentStreamEvent) {
+
+  if (event.type !== 'tool_use') return '';
+  const title = event.toolName;
+
+  let content = '';
+  /**
+   * {"type":"tool_use","id":"xx","toolName":"Skill","arguments":{"skill":"find-skills","args":"股票分析 stock analysis"}}
+   */
+  if (title === 'Skill') {
+    const skill = get(event, 'arguments.skill');
+    const args = get(event, 'arguments.args');
+    if (skill && args) {
+      content = '：' + skill + '(' + args + ')';
+    }
+    if (skill && !args) {
+      content = '：' + skill;
+    }
+  }
+
+  if (title === 'Bash') {
+    const command = get(event, 'arguments.command');
+    if (command) {
+      content = '(' + command + ')';
+    }
+  }
+
+  if (title === 'Glob') {
+    const pattern = get(event, 'arguments.pattern');
+    if (pattern) {
+      content = '(' + pattern + ')';
+    }
+  }
+  if (title === 'Write') {
+    const url = get(event, 'arguments.file_path');
+    if (url) {
+      content = '(' + url + ')';
+    }
+  }
+
+  return `
+  \`\`\`bash
+  ${title}${content}
+  \`\`\`
+  `;
 }

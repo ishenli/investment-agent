@@ -21,6 +21,26 @@ export interface ModelThoughtChain {
   title: string;
 }
 
+/**
+ * 单个 Agent 流式事件条目（status / tool_use）
+ */
+export interface AgentEventEntry {
+  /** 唯一 id */
+  id?: string;
+  /** 事件类型 */
+  eventType: 'status' | 'tool_use';
+  /** 工具名称（tool_use 专用） */
+  toolName?: string;
+  /** 工具参数（tool_use 专用） */
+  arguments?: unknown;
+  /** status 消息文本 */
+  message?: string;
+  /** status 等级 */
+  level?: 'info' | 'debug' | 'warning' | 'error';
+  /** 时间戳 */
+  timestamp: number;
+}
+
 export interface ModelTokensUsage {
   acceptedPredictionTokens?: number;
   inputAudioTokens?: number;

@@ -25,5 +25,12 @@
     "completed": "Deep thinking completed",
     "completedWithDuration": "Deep thinking completed ({{duration}} seconds)",
     "inProgress": "Deep thinking..."
+  },
+  "agentEvents": {
+    "running": "Running...",
+    "completed": "Completed",
+    "completedWithCount": "Completed ({{count}} steps)",
+    "toolCall": "Tool call",
+    "status": "Status update"
   }
 }

@@ -1,5 +1,5 @@
 import { GroundingSearch } from '../search';
-import { MessageMetadata, MessageRoleType, ModelReasoning, ModelThoughtChain } from './base';
+import { MessageMetadata, MessageRoleType, ModelReasoning, ModelThoughtChain, AgentEventEntry } from './base';
 import { ChatImageItem } from './image';
 import { ChatPluginPayload, ChatToolPayload } from './tools';
 import { Translate } from './translate';
@@ -94,6 +94,10 @@ export interface ChatMessage {
   ragRawQuery?: string | null;
   reasoning?: ModelReasoning | null;
   thoughtChain?: ModelThoughtChain | null;
+  /**
+   * Agent 流式事件列表（status / tool_use）
+   */
+  agentEvents?: AgentEventEntry[] | null;
   /**
    * permission request from Claude SDK
    */

@@ -82,6 +82,12 @@ const ThoughtBelowMessage = memo<ChatMessage>(({ thoughtChain }) => {
       content = '(' + pattern + ')';
     }
   }
+  if (title === 'Write') {
+    const url = get(thoughtChain, 'content.file_path');
+    if (url) {
+      content = '(' + url + ')';
+    }
+  }
 
   
   return (

@@ -62,8 +62,8 @@ extraResources:
     filter: ["icon.*"]
   - from: "drizzle"
     to: "standalone/drizzle"
-  - from: "SKILLs"
-    to: "standalone/SKILLs"
+  - from: "skills"
+    to: "standalone/skills"
 asarUnpack:
   - "**/*.node"
   - "**/@libsql/**"

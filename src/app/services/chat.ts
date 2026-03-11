@@ -3,6 +3,7 @@ import {
   ChatMessage,
   ChatMessageError,
   CitationItem,
+  MessageAgentEventsChunk,
   MessageGroundingChunk,
   MessageReasoningChunk,
   MessageRelatedChunk,
@@ -23,7 +24,7 @@ import {
 import { GroundingSearch } from '@typings/search';
 import { get, isEmpty, merge } from 'lodash';
 import { post } from '../lib/request';
-import { connectAgentStream } from '@/app/lib/agentStreamClient';
+import { connectAgentStream, formatToolMessage } from '@/app/lib/agentStreamClient';
 import { DEFAULT_AGENT_CONFIG } from '../const/settings/agent';
 import { getSessionStoreState } from '@renderer/store/session';
 import { agentChatConfigSelectors } from '@renderer/store/session/selectors';
@@ -91,7 +92,8 @@ export type onMessageHandle = (
     | MessageToolCallsChunk
     | MessageReasoningChunk
     | MessageRelatedChunk
-    | MessageThoughtChainChunk,
+    | MessageThoughtChainChunk
+    | MessageAgentEventsChunk,
 ) => void;
 
 export type OnFinishHandler = (text: string, context: onFinishContext) => Promise<void>;
@@ -681,18 +683,34 @@ class ChatService {
             }
             break;
           }
+          case 'status': {
+            if (event.message) {
+              onMessageHandle?.({
+                type: 'agentEvents',
+                event: {
+                  eventType: 'status',
+                  id: event.id,
+                  message: event.message,
+                  level: event.level,
+                  timestamp: Date.now(),
+                },
+              });
+            }
+            break;
+          }
           case 'tool_use': {
-            onMessageHandle?.({
-              type: 'thoughtChain',
-              thoughtChain: {
-                title: event.toolName,
-                type: 'TOOL',
-                content:
-                  typeof event.arguments === 'string'
-                    ? safeParseJSON(event.arguments)
-                    : event.arguments,
-              },
-            });
+            if (event.toolName) {
+              onMessageHandle?.({
+                type: 'agentEvents',
+                event: {
+                  eventType: 'tool_use',
+                  id: event.id,
+                  toolName: event.toolName,
+                  arguments: event.arguments,
+                  timestamp: Date.now(),
+                },
+              });
+            }
             break;
           }
           case 'permission_request': {

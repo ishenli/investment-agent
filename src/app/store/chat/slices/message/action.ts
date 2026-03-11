@@ -273,6 +273,10 @@ export const chatMessage: StateCreator<
   internal_updateMessageContent: async (id, content, extra) => {
     const { internal_dispatchMessage, refreshMessages } = get();
 
+    // 在 refreshMessages 之前先快照纯内存态字段（不持久化到 DB）
+    const msgBefore = chatSelectors.getMessageById(id)(get());
+    const agentEventsSnapshot = msgBefore?.agentEvents;
+
     internal_dispatchMessage({
       id,
       type: 'updateMessage',
@@ -300,6 +304,15 @@ export const chatMessage: StateCreator<
 
     // 重新刷一下页面
     await refreshMessages();
+
+    // refreshMessages 从 DB 加载会覆盖内存，把纯内存态字段补回来（会话内可见，刷新页面后自然丢失）
+    if (agentEventsSnapshot && agentEventsSnapshot.length > 0) {
+      internal_dispatchMessage({
+        id,
+        type: 'updateMessage',
+        value: { agentEvents: agentEventsSnapshot },
+      });
+    }
   },
   modifyMessageContent: async (id, content) => {
     await get().internal_updateMessageContent(id, content);

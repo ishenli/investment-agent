@@ -613,6 +613,18 @@ export const generateAIChat: StateCreator<
             }
             break;
           }
+
+          case 'agentEvents': {
+            // 累积 agent 事件到列表
+            const currentMsg = chatSelectors.getMessageById(messageId)(get());
+            const prevEvents = currentMsg?.agentEvents ?? [];
+            internal_dispatchMessage({
+              id: messageId,
+              type: 'updateMessage',
+              value: { agentEvents: [...prevEvents, chunk.event] },
+            });
+            break;
+          }
           // case 'tool_calls': {
           //   internal_toggleToolCallingStreaming(messageId, chunk.isAnimationActives);
           //   internal_dispatchMessage({

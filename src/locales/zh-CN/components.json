@@ -25,5 +25,12 @@
     "completed": "深度思考完成",
     "completedWithDuration": "深度思考完成（用时 {{duration}} 秒）",
     "inProgress": "深度思考中..."
+  },
+  "agentEvents": {
+    "running": "执行中...",
+    "completed": "执行完成",
+    "completedWithCount": "执行完成（{{count}} 步）",
+    "toolCall": "调用工具",
+    "status": "状态更新"
   }
 }
