@@ -8,7 +8,6 @@
  *
  * All filesystem I/O is delegated to SkillInstaller / SkillFileScanner.
  * All state merging is handled by SkillRegistry.
- * This class is purely an orchestration / façade layer.
  *
  * Note: Database only stores user preferences (slug, source, isEnabled, icon).
  * Content fields (name, description, category, prompt) come from SKILL.md files.
@@ -18,9 +17,9 @@ import logger from '@server/base/logger';
 import { skillRepository, type CreateSkillData, type UpdateSkillData } from '../repository/skillRepository';
 import { skillRegistry } from '../lib/skill/SkillRegistry';
 import { skillInstaller } from '../lib/skill/SkillInstaller';
-import { getProjectRoot } from '../base/env';
 import path from 'path';
 import fs from 'fs/promises';
+import { claudeService } from './claudeService';
 import type {
   Skill,
   CreateSkillRequest,
@@ -32,6 +31,9 @@ import type {
   InstallResult,
   ResolvedSkill,
 } from '@typings/skill';
+import { isNull } from 'drizzle-orm';
+import { db } from '../lib/db';
+import { users } from '@/drizzle/schema';
 
 export class SkillService {
   // ─────────────────────────────────────────────────────────────────────────
@@ -366,53 +368,81 @@ export class SkillService {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
+  // Initialization — server startup
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Sync built-in skills for all registered (non-deleted) users.
+   * Intended to be called once at server startup (instrumentation).
+   * Does NOT block the startup process — caller should fire-and-forget if needed.
+   */
+  async initForAllUsers(): Promise<void> {
+    // Step 1: Electron 环境下将 bundled skills 同步到用户数据目录（文件系统层）
+    try {
+      const { getSkillManager } = await import('../lib/skillManager');
+      getSkillManager().syncBundledSkillsToUserData();
+      logger.info('[SkillService] initForAllUsers: syncBundledSkillsToUserData done');
+    } catch (error) {
+      logger.error('[SkillService] initForAllUsers: syncBundledSkillsToUserData failed:', error);
+    }
+
+    const allUsers = await db.query.users.findMany({
+      where: isNull(users.deletedAt),
+      columns: { id: true },
+    });
+
+    if (allUsers.length === 0) {
+      logger.info('[SkillService] initForAllUsers: no users found, skipping builtin skills sync');
+      return;
+    }
+
+    logger.info(`[SkillService] initForAllUsers: syncing builtin skills for ${allUsers.length} user(s)...`);
+
+    for (const user of allUsers) {
+      try {
+        const result = await this.syncBuiltinSkills(user.id);
+        logger.info(
+          `[SkillService] initForAllUsers: skills synced for user ${user.id}: ` +
+            `created=${result.created}, pruned=${result.pruned}`,
+        );
+      } catch (err) {
+        logger.warn(`[SkillService] initForAllUsers: skills sync failed for user ${user.id}:`, err);
+      }
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
   // Private helpers
   // ─────────────────────────────────────────────────────────────────────────
 
   /**
    * 将用户已启用的技能部署到 memory/claude/{userId}/.claude/skills/。
    *
-   * Claude Agent SDK 将该目录作为 cwd，通过 {cwd}/.claude/skills/ 自动发现技能文件。
-   * 在技能状态发生变更时调用，而非每次 Chat 请求，避免重复写入。
+   * Claude Code 规范：每个 skill 必须是一个子目录包（{slug}/SKILL.md）。
+   * 每次调用先清空整个 skillsDir，再将所有已启用 skill 的源目录批量覆盖复制进去。
    *
    * @param userId - 用户 ID，用于隔离部署目录
    */
   private async deployEnabledSkills(userId: number): Promise<void> {
     try {
       const enabledSkills = await skillRegistry.getEnabledSkills(userId);
-      const skillsDir = path.join(getProjectRoot(), 'memory', 'claude', String(userId), '.claude', 'skills');
+      const skillsDir = path.join(claudeService.getUserWorkspaceRoot(userId), '.claude', 'skills');
 
+      // 清空后重建，确保不残留已禁用技能
+      await fs.rm(skillsDir, { recursive: true, force: true });
       await fs.mkdir(skillsDir, { recursive: true });
 
-      // 将每个已启用的技能写入为 {slug}.md
-      const enabledSlugs = new Set<string>();
+      // 批量复制：将每个源目录整体拷贝为 {skillsDir}/{slug}，覆盖写入
+      let count = 0;
       for (const skill of enabledSkills) {
-        if (!skill.prompt) continue;
-
-        const skillSourceDir = path.dirname(skill.skillPath);
-
-        // 将技能内容中的相对 Markdown 链接改写为绝对路径，
-        // 确保 Claude 通过 Read 工具访问 references/ 等引用文件时不会路径失败
-        const content = skill.prompt.replace(
-          /\[([^\]]+)\]\((?!https?:\/\/)([^)]+)\)/g,
-          (_match, text: string, relPath: string) => {
-            return `[${text}](${path.join(skillSourceDir, relPath)})`;
-          },
-        );
-
-        await fs.writeFile(path.join(skillsDir, `${skill.id}.md`), content, 'utf-8');
-        enabledSlugs.add(skill.id);
+        if (!skill.skillPath) continue;
+        const sourceDir = path.dirname(skill.skillPath);
+        const destSkillDir = path.join(skillsDir, skill.id);
+        await fs.cp(sourceDir, destSkillDir, { recursive: true, force: true });
+        count++;
       }
 
-      // 清理不再已启用的旧技能文件
-      const existing = await fs.readdir(skillsDir).catch(() => []);
-      for (const entry of existing) {
-        if (entry.endsWith('.md') && !enabledSlugs.has(entry.slice(0, -3))) {
-          await fs.unlink(path.join(skillsDir, entry)).catch(() => {});
-        }
-      }
-
-      logger.info(`[SkillService] Deployed ${enabledSlugs.size} skill(s) for user ${userId} → ${skillsDir}`);
+      logger.info(`[SkillService] Deployed ${count} skill(s) for user ${userId} → ${skillsDir}`);
     } catch (error) {
       // 部署失败不应阻断主流程，记录日志即可
       logger.warn('[SkillService] Failed to deploy enabled skills:', error);

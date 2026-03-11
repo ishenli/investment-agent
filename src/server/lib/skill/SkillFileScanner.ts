@@ -12,7 +12,7 @@ import logger from '@server/base/logger';
 import { getHomeDir, getProjectRoot, isElectron } from '@server/base/env';
 import type { ParsedSkill } from '@/types/skill';
 
-export const SKILLS_DIR_NAME = 'SKILLs';
+export const SKILLS_DIR_NAME = 'skills';
 const CLAUDE_SKILLS_DIR_NAME = '.claude';
 const CLAUDE_SKILLS_SUBDIR = 'skills';
 export const SKILLS_CONFIG_FILE = 'skills.config.json';

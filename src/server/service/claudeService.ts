@@ -68,7 +68,7 @@ export class ClaudeService {
 
   constructor() {
     const projectRoot = getProjectRoot();
-    this.workspaceRoot = path.join(projectRoot, 'memory', 'claude');
+    this.workspaceRoot = path.join(projectRoot, 'workspace');
   }
 
   /**

@@ -64,8 +64,6 @@ extraResources:
     to: "standalone/drizzle"
   - from: "SKILLs"
     to: "standalone/SKILLs"
-  - from: ".claude/skills"
-    to: "standalone/.claude/skills"
 asarUnpack:
   - "**/*.node"
   - "**/@libsql/**"
