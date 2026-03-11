@@ -109,7 +109,6 @@
     "debug": "^4.4.3",
     "decimal.js": "^10.6.0",
     "deepagents": "^1.8.1",
-    "dexie": "^4.3.0",
     "drizzle-kit": "^0.31.9",
     "drizzle-orm": "^0.44.7",
     "electron-log": "^5.4.3",

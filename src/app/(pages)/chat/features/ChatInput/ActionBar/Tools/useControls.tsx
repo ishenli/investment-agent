@@ -2,8 +2,6 @@ import { Avatar, ItemType } from '@lobehub/ui';
 import isEqual from 'fast-deep-equal';
 import { useTranslation } from 'react-i18next';
 
-import { useCheckPluginsIsInstalled } from '@renderer/hooks/useCheckPluginsIsInstalled';
-import { useFetchInstalledPlugins } from '@renderer/hooks/useFetchInstalledPlugins';
 import { useSessionStore } from '@renderer/store/session';
 import { sessionSelectors } from '@renderer/store/session/selectors';
 import { useToolStore } from '@renderer/store/tool';
@@ -82,9 +80,6 @@ export const usePluginsControls = ({ setUpdating }: { setUpdating: (updating: bo
 
   const plugins = useSessionStore(sessionSelectors.currentSessionPlugins);
   const builtinList = useToolStore(builtinToolSelectors.metaList(showDalle), isEqual);
-
-  useFetchInstalledPlugins();
-  useCheckPluginsIsInstalled(plugins);
 
   const items: ItemType[] = [
     {

@@ -5,17 +5,13 @@ import { StateCreator } from 'zustand/vanilla';
 import { createDevtools } from '../middleware/createDevtools';
 import { ToolStoreState, initialState } from './initialState';
 import { BuiltinToolAction, createBuiltinToolSlice } from './slices/builtin';
-import { PluginAction, createPluginSlice } from './slices/plugin';
-import { PluginStoreAction, createPluginStoreSlice } from './slices/oldStore';
 
 //  ===============  聚合 createStoreFn ============ //
 
-export type ToolStore = ToolStoreState & PluginAction & PluginStoreAction & BuiltinToolAction;
+export type ToolStore = ToolStoreState & BuiltinToolAction;
 
 const createStore: StateCreator<ToolStore, [['zustand/devtools', never]]> = (...parameters) => ({
   ...initialState,
-  ...createPluginSlice(...parameters),
-  ...createPluginStoreSlice(...parameters),
   ...createBuiltinToolSlice(...parameters),
 });
 

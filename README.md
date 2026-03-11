@@ -195,10 +195,11 @@ The system is built on a multi-agent architecture, with each agent specializing 
 ### Technical Architecture
 
 - **Frontend Layer**: Next.js 16 + React 19 + TypeScript
-- **AI Layer**: LangChain + LangGraph (multi-agent orchestration)
+- **AI Layer**: LangChain + LangGraph (multi-agent orchestration) + Claude Agent SDK
 - **Data Layer**: SQLite + Drizzle ORM
 - **Service Layer**: RESTful API + WebSocket (real-time data)
 - **State Management**: Zustand + TanStack Query
+- **Skills System**: Claude Code-compatible skill packages (`{slug}/SKILL.md`) with filesystem discovery, DB preference management, and auto-deployment to the Claude workspace
 
 ## Available Scripts
 
@@ -378,13 +379,13 @@ investment-agent/
 - **Vercel AI SDK** - Streaming AI responses and edge functions
 - **DeepAgents** - Advanced AI agent orchestration platform
 - **Tavily** - AI-powered web search and information retrieval
+- **Claude Agent SDK** - Claude Agent SDK
 
 ### Database & Data Management
 
 - **Drizzle ORM** - Type-safe SQL ORM with excellent TypeScript support
 - **Drizzle Kit** - Database schema management and migrations
 - **@libsql/client** - LibSQL client for edge-compatible database operations
-- **Dexie** - IndexedDB wrapper for client-side data persistence
 
 ### UI Components & Design System
 
