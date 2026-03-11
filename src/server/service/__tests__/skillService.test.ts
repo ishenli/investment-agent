@@ -4,6 +4,13 @@ import { skillRepository } from '../../repository/skillRepository';
 import { skillRegistry } from '../../lib/skill/SkillRegistry';
 import { skillInstaller } from '../../lib/skill/SkillInstaller';
 
+// Mock drizzle schema first (required by modelProviderRepository)
+vi.mock('@/drizzle/schema', () => ({
+  modelProviders: {},
+  providerModels: {},
+  skills: {},
+}));
+
 // Mock dependencies
 vi.mock('../../repository/skillRepository', () => ({
   skillRepository: {
