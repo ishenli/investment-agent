@@ -145,6 +145,7 @@ describe('ChatService', () => {
         accountId: '1',
         emitter: mockEmitter,
         model: 'Kimi-K2-Instruct',
+        messages: [],
       });
       expect(logger.info).toHaveBeenCalledWith(
         '[ChatService] 开始处理聊天请求: 我想了解投资建议, Graph类型: investment_advisor'
