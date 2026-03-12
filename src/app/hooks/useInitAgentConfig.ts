@@ -1,8 +1,7 @@
-import { useAgentStore } from '@renderer/store/agent';
 import { useSessionStore } from '@renderer/store/session';
 
 export const useInitAgentConfig = () => {
-  const [useFetchAgentConfig] = useAgentStore((s) => [s.useFetchAgentConfig]);
+  const [useFetchAgentConfig] = useSessionStore((s) => [s.useFetchAgentConfig]);
 
   const isLogin = true;
 

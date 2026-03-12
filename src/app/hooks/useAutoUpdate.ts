@@ -40,30 +40,49 @@ export function useAutoUpdate(): UseAutoUpdateReturn {
     if (!isElectron) {
       return;
     }
-
+  
     const { updater } = window.electronAPI!;
-
-    // 监听更新可用事件
-    updater.onUpdateAvailable((info: UpdateInfo) => {
+  
+    //监听更新可用事件
+    const handleUpdateAvailable = (info: UpdateInfo) => {
       console.log('发现新版本:', info.version);
       setStatus('available');
       setUpdateInfo(info);
       setError(null);
-    });
-
-    // 监听下载进度
-    updater.onDownloadProgress((progress: DownloadProgress) => {
+    };
+  
+    //监听已是最新版本事件
+    const handleUpdateNotAvailable = (info: { version: string }) => {
+      console.log('当前已是最新版本:', info.version);
+      setStatus('up-to-date');
+      setError(null);
+    };
+  
+    //监听下载进度
+    const handleDownloadProgress = (progress: DownloadProgress) => {
       console.log('下载进度:', progress.percent.toFixed(2) + '%');
       setStatus('downloading');
       setDownloadProgress(progress);
-    });
-
+    };
+  
     // 监听更新错误
-    updater.onUpdateError((err: UpdateError) => {
+    const handleUpdateError = (err: UpdateError) => {
       console.error('更新失败:', err.message);
       setStatus('error');
       setError(err);
-    });
+    };
+  
+    // 注册事件监听器
+    updater.onUpdateAvailable(handleUpdateAvailable);
+    updater.onUpdateNotAvailable(handleUpdateNotAvailable);
+    updater.onDownloadProgress(handleDownloadProgress);
+    updater.onUpdateError(handleUpdateError);
+  
+    //清理函数
+    return () => {
+      //移除事件监听器的逻辑应该在这里，但 Electron 的 ipcRenderer没有提供 off 方法
+      //在实际应用中，可能需要在 Electron 主进程中处理
+    };
   }, [isElectron]);
 
   // 检查更新
@@ -71,25 +90,20 @@ export function useAutoUpdate(): UseAutoUpdateReturn {
     if (!window.electronAPI?.updater) {
       return;
     }
-
+  
     try {
       setStatus('checking');
       setError(null);
+      setUpdateInfo(null);
+      setDownloadProgress(null);
+        
       await window.electronAPI.updater.checkForUpdates();
-      
-      // 如果没有发现新版本，会在一段时间后没有收到 update-available 事件
-      // 这里设置一个超时来判断是否已是最新版本
-      setTimeout(() => {
-        if (status === 'checking') {
-          setStatus('up-to-date');
-        }
-      }, 5000);
     } catch (err) {
       console.error('检查更新失败:', err);
       setStatus('error');
       setError({ message: '检查更新失败' });
     }
-  }, [status]);
+  }, []);
 
   // 安装更新
   const installUpdate = useCallback(() => {

@@ -318,7 +318,7 @@ export default function NotePage() {
               <SelectTrigger className="w-[100px]">
                 <SelectValue placeholder={t('sortOrder.desc')} />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="w-[120px]">
                 <SelectItem value="desc">{t('sortOrder.desc')}</SelectItem>
                 <SelectItem value="asc">{t('sortOrder.asc')}</SelectItem>
               </SelectContent>

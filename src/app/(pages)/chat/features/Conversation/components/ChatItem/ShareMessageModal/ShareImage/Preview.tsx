@@ -69,7 +69,7 @@ const Preview = memo<PreviewProps>(
             </Flexbox>
             {withFooter ? (
               <Flexbox align={'center'} className={styles.footer} gap={4}>
-                <div className={styles.mainTitle}>你的投资 AI 助手</div>
+                <div className={styles.mainTitle}>{t('shareFooterTitle')}</div>
               </Flexbox>
             ) : (
               <div />

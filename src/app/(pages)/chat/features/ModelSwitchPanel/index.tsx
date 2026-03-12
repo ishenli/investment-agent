@@ -1,6 +1,5 @@
 import { ModelItemRender, ProviderItemRender } from '@renderer/(pages)/chat/components/ModelSelect';
 import ActionDropdown from '@renderer/(pages)/chat/features/ChatInput/ActionBar/components/ActionDropdown';
-import { useAgentStore } from '@renderer/store/agent';
 import { useSessionStore } from '@renderer/store/session';
 import { sessionSelectors } from '@renderer/store/session';
 import { useAiInfraStore } from '@renderer/store/aiInfra';
@@ -47,7 +46,7 @@ interface IProps {
 const ModelSwitchPanel = memo<IProps>(({ children, onOpenChange, open }) => {
   const router = useRouter();
   const { styles, theme } = useStyles();
-  const updateAgentConfig = useAgentStore((s) => s.updateAgentConfig);
+  const updateAgentConfig = useSessionStore((s) => s.updateAgentConfig);
 
   // 从 SessionStore 读取当前会话的 model 和 provider
   const currentSession = useSessionStore(sessionSelectors.currentSession);

@@ -2,6 +2,7 @@ import { StateCreator } from 'zustand/vanilla';
 import { AiInfraStore } from '../../store';
 import { EnabledProviderWithModels, AiProviderSourceEnum } from '@typings/aiProvider';
 import { AiModelForSelect, ModelAbilities } from '@typings/aiModel';
+import { useOnlyFetchOnceSWR } from '@renderer/lib/utils/swr';
 
 // Define the API response type
 interface AvailableModelsResponse {
@@ -25,10 +26,12 @@ interface AvailableModelsResponse {
 
 export interface AiProviderAction {
   /**
-   * Fetch available models from modelProvider API
-   * Transforms the response to match EnabledProviderWithModels interface
+   * SWR Hook: fetch available models from modelProvider API.
+   * Leverages SWR's global key-based deduplication — multiple components
+   * calling this hook simultaneously share a single in-flight request.
+   * Call directly at the component top level (no useEffect needed).
    */
-  fetchAvailableModels: () => Promise<void>;
+  useFetchAvailableModels: () => void;
 
   /**
    * Set loading state for models
@@ -87,49 +90,41 @@ function transformModelsToProviderFormat(models: AvailableModelsResponse['models
   return Object.values(groupedByProvider).sort((a, b) => a.name.localeCompare(b.name));
 }
 
+/** SWR cache key for available models */
+const FETCH_AVAILABLE_MODELS_KEY = 'fetchAvailableModels';
+
 export const createAiProviderSlice: StateCreator<
   AiInfraStore,
   [['zustand/devtools', never]],
   [],
   AiProviderAction
-> = (set, get) => ({
-  fetchAvailableModels: async () => {
-    set({ loadingModels: true, loadingModelsError: null });
-
-    try {
-      const response = await fetch('/api/model-providers/models/available', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        const { models } = result.data;
-
-        // Transform the data structure
-        const enabledChatModelList = transformModelsToProviderFormat(models);
-
-        set({
-          enabledChatModelList,
-          loadingModels: false,
-          initAiProviderList: true,
+> = (set) => ({
+  useFetchAvailableModels: () =>
+    // useOnlyFetchOnceSWR 全局按 key 去重：
+    // React StrictMode 双重挂载、多组件并发调用时，SWR 只发起一次真实请求。
+    useOnlyFetchOnceSWR(
+      FETCH_AVAILABLE_MODELS_KEY,
+      async () => {
+        const response = await fetch('/api/model-providers/models/available', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
         });
-      } else {
-        set({
-          loadingModelsError: result.error?.message || '获取可用模型列表失败',
-          loadingModels: false,
-        });
-      }
-    } catch (error) {
-      set({
-        loadingModelsError: '获取可用模型列表失败',
-        loadingModels: false,
-      });
-    }
-  },
+        const result = await response.json();
+
+        if (result.success) {
+          const enabledChatModelList = transformModelsToProviderFormat(result.data.models);
+          set({ enabledChatModelList, loadingModels: false, initAiProviderList: true });
+        } else {
+          set({
+            loadingModelsError: result.error?.message || '获取可用模型列表失败',
+            loadingModels: false,
+          });
+        }
+      },
+      {
+        onError: () => set({ loadingModelsError: '获取可用模型列表失败', loadingModels: false }),
+      },
+    ),
 
   setModelsLoading: (loading) => {
     set({ loadingModels: loading });

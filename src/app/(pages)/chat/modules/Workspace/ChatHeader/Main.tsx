@@ -82,7 +82,13 @@ const Main = memo<{ className?: string }>(({ className }) => {
         size={32}
         title={title}
       />
-      <Flexbox align={'center'} className={styles.container} gap={8} horizontal>
+      <Flexbox style={{
+        // @ts-expect-error - WebkitAppRegion is not a standard CSS property
+        WebkitAppRegion: 'drag',
+        appRegion: 'drag',
+        WebkitUserSelect: 'none',
+        userSelect: 'none',
+      }} align={'center'} className={styles.container} gap={8} horizontal>
         <div className={styles.title}>{displayTitle}</div>
         <Tags />
       </Flexbox>

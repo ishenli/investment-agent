@@ -52,8 +52,11 @@ run
 .turbo
 .qoder
 .vscode/
+.agents/
 /public/version.json
 
 # electron
 /dist-electron/
 /release/
+/memory/
+/workspace/

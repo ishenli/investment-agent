@@ -1,9 +1,7 @@
 import { DEFAULT_USER_AVATAR } from '@renderer/const/meta';
 import { INBOX_SESSION_ID } from '@renderer/const/session';
-import { useAgentStore } from '@renderer/store/agent';
-import { agentChatConfigSelectors } from '@renderer/store/agent/selectors';
 import { useSessionStore } from '@renderer/store/session';
-import { sessionMetaSelectors } from '@renderer/store/session/selectors';
+import { agentChatConfigSelectors, sessionMetaSelectors } from '@renderer/store/session/selectors';
 import { useUserStore } from '@renderer/store/user';
 import { userAvatar } from '@renderer/store/user/selectors';
 import { ChatFileItem, ChatMessage } from '@typings/message';
@@ -110,8 +108,8 @@ const mainAIChats = (s: ChatStoreState): ChatMessage[] => {
 
 const mainAIChatsWithHistoryConfig = (s: ChatStoreState): ChatMessage[] => {
   const chats = mainAIChats(s);
-  const enableHistoryCount = agentChatConfigSelectors.enableHistoryCount(useAgentStore.getState());
-  const historyCount = agentChatConfigSelectors.historyCount(useAgentStore.getState());
+  const enableHistoryCount = agentChatConfigSelectors.enableHistoryCount(useSessionStore.getState());
+  const historyCount = agentChatConfigSelectors.historyCount(useSessionStore.getState());
 
   return getSlicedMessages(chats, {
     enableHistoryCount,

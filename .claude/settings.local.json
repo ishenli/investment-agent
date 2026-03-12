@@ -31,7 +31,9 @@
       "Bash(openspec --help:*)",
       "Bash(pnpm tsc:*)",
       "Bash(head:*)",
-      "Bash(pnpm openspec:*)"
+      "Bash(pnpm openspec:*)",
+      "Bash(pnpm types:check:*)",
+      "WebSearch"
     ]
   }
 }

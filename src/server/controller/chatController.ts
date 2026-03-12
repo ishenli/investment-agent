@@ -10,9 +10,7 @@ import authService from '../service/authService';
 import { chatStorageService } from '../service/chatStorageService';
 import agentService from '../service/agentService';
 import { BaseBizController } from './base';
-import { INBOX_SESSION_ID } from '@/app/const/session';
-import { merge } from 'lodash';
-
+import { merge } from '@renderer/lib/utils/merge'; 
 /**
  * 获取当前用户ID（数字类型）
  * authService 返回 string，数据库使用 number

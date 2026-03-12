@@ -1,4 +1,4 @@
-import { ModelThoughtChain } from './base';
+import { AgentEventEntry, ModelThoughtChain } from './base';
 import { MessageToolCall } from './tools';
 
 export * from './base';
@@ -77,4 +77,10 @@ export interface MessageRelatedChunk {
 export interface MessageThoughtChainChunk {
   thoughtChain: ModelThoughtChain;
   type: 'thoughtChain';
+}
+
+export interface MessageAgentEventsChunk {
+  /** 新增的单个事件 */
+  event: AgentEventEntry;
+  type: 'agentEvents';
 }

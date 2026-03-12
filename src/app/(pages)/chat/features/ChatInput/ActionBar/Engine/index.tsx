@@ -7,26 +7,10 @@ import { Brain, Sparkles, Check } from 'lucide-react';
 import { useSessionStore } from '@renderer/store/session';
 import { sessionSelectors } from '@renderer/store/session/selectors';
 
-import { useAgentStore } from '@/app/store/agent';
-
 const useStyles = createStyles(({ css, token }) => ({
   select: css`
     width: 180px;
 
-    .ant-select-selector {
-      border-radius: 16px !important;
-      background: ${token.colorFillTertiary} !important;
-      border: none !important;
-      padding: 4px 12px !important;
-      height: auto !important;
-      font-size: 13px;
-      font-weight: 500;
-      transition: all 0.2s ease;
-
-      &:hover {
-        background: ${token.colorFillSecondary} !important;
-      }
-    }
 
     .ant-select-selection-item {
       padding: 0 !important;
@@ -48,13 +32,10 @@ const useStyles = createStyles(({ css, token }) => ({
 const EngineSwitch = () => {
   const { styles } = useStyles();
 
-  // 直接订阅 engineType,确保状态变化时重新渲染
-  const engineType = useSessionStore((s) => {
-    const session = sessionSelectors.currentSession(s);
-    return session?.config?.engineType || 'deepagents';
-  });
+  // 直接订阅 engineType，确保状态变化时重新渲染
+  const engineType = useSessionStore(sessionSelectors.currentSessionEngineType);
 
-  const updateAgentConfig = useAgentStore((s) => s.updateAgentConfig);
+  const updateAgentConfig = useSessionStore((s) => s.updateAgentConfig);
   const handleEngineChange = async (value: 'deepagents' | 'claude') => {
     const sessionId = useSessionStore.getState().activeId;
     if (sessionId) {

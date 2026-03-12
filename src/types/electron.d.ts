@@ -25,6 +25,7 @@ export interface ElectronUpdater {
   onUpdateAvailable: (callback: (info: UpdateInfo) => void) => void;
   onDownloadProgress: (callback: (progress: DownloadProgress) => void) => void;
   onUpdateError: (callback: (error: UpdateError) => void) => void;
+  onUpdateNotAvailable: (callback: (info: { version: string }) => void) => void;
 }
 
 export interface ElectronAPI {

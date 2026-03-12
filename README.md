@@ -3,6 +3,7 @@
 This is a localized investment analysis tool built with AI Coding, utilizing AI to provide comprehensive stock market analysis, asset management, and investment recommendations.
 
 English Version | [中文版本](./doc//zh/README.md)
+
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/ishenli/investment-agent)](https://github.com/ishenli/investment-agent/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/ishenli/investment-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/ishenli/investment-agent/actions/workflows/ci.yml)
@@ -194,10 +195,11 @@ The system is built on a multi-agent architecture, with each agent specializing 
 ### Technical Architecture
 
 - **Frontend Layer**: Next.js 16 + React 19 + TypeScript
-- **AI Layer**: LangChain + LangGraph (multi-agent orchestration)
+- **AI Layer**: LangChain + LangGraph (multi-agent orchestration) + Claude Agent SDK
 - **Data Layer**: SQLite + Drizzle ORM
 - **Service Layer**: RESTful API + WebSocket (real-time data)
 - **State Management**: Zustand + TanStack Query
+- **Skills System**: Claude Code-compatible skill packages (`{slug}/SKILL.md`) with filesystem discovery, DB preference management, and auto-deployment to the Claude workspace
 
 ## Available Scripts
 
@@ -377,13 +379,13 @@ investment-agent/
 - **Vercel AI SDK** - Streaming AI responses and edge functions
 - **DeepAgents** - Advanced AI agent orchestration platform
 - **Tavily** - AI-powered web search and information retrieval
+- **Claude Agent SDK** - Claude Agent SDK
 
 ### Database & Data Management
 
 - **Drizzle ORM** - Type-safe SQL ORM with excellent TypeScript support
 - **Drizzle Kit** - Database schema management and migrations
 - **@libsql/client** - LibSQL client for edge-compatible database operations
-- **Dexie** - IndexedDB wrapper for client-side data persistence
 
 ### UI Components & Design System
 
@@ -594,6 +596,7 @@ This project is based on research and code from the following excellent projects
 | [Tauric Research Team](https://github.com/TauricResearch) | **[TradingAgents](https://github.com/TauricResearch/TradingAgents)** | Provided core architecture ideas for multi-agent trading systems, paper reference: [arxiv.org/pdf/2412.20138](https://arxiv.org/pdf/2412.20138) |
 | [@delenzhang](https://github.com/delenzhang) | **[TradingAgents](https://github.com/delenzhang/TradingAgents)** | Chinese optimization and adaptation work |
 | [@canisminor1990](https://github.com/canisminor1990) | [lobehub-ui](https://ui.lobehub.com/) | Advanced UI components and design system |
+｜LobsterAI｜ https://github.com/netease-youdao/LobsterAI｜ Skill System|
 
 ### Technical Support
 

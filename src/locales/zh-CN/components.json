@@ -9,7 +9,7 @@
       "search": "搜索"
     },
     "navMain": {
-      "accountInfo": "账户信息",
+      "accountInfo": "账户总览",
       "aiAdvisor": "AI投顾",
       "aiInsights": "AI洞察",
       "aiReports": "AI报告",
@@ -25,5 +25,12 @@
     "completed": "深度思考完成",
     "completedWithDuration": "深度思考完成（用时 {{duration}} 秒）",
     "inProgress": "深度思考中..."
+  },
+  "agentEvents": {
+    "running": "执行中...",
+    "completed": "执行完成",
+    "completedWithCount": "执行完成（{{count}} 步）",
+    "toolCall": "调用工具",
+    "status": "状态更新"
   }
 }

@@ -232,6 +232,27 @@
       "when": 1772340808168,
       "tag": "0032_rainy_red_wolf",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "6",
+      "when": 1772411465468,
+      "tag": "0033_peaceful_jetstream",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "6",
+      "when": 1772868977360,
+      "tag": "0034_normal_cable",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "6",
+      "when": 1772883077066,
+      "tag": "0035_sturdy_virginia_dare",
+      "breakpoints": true
     }
   ]
 }

@@ -51,11 +51,6 @@ export const data = {
       icon: IconAsset,
     },
     {
-      title: 'sidebar.navMain.tradeRecords',
-      url: '/trade',
-      icon: IconTrademark,
-    },
-        {
       title: 'sidebar.navMain.aiAdvisor',
       url: '/chat',
       icon: IconMessage,
@@ -88,6 +83,11 @@ export const data = {
     //   url: '/market',
     //   icon: IconReportAnalytics as Icon,
     // },
+    {
+      name: 'sidebar.navMain.tradeRecords',
+      url: '/trade',
+      icon: IconTrademark,
+    },
     {
       name: 'sidebar.documents.marketInfo',
       url: '/asset-market-info',

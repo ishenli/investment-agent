@@ -1,10 +1,7 @@
-export const isProduction = () => process.env.NODE_ENV === 'production';
-
-export const isDevelopment = () => process.env.NODE_ENV !== 'production';
-
-export const isTest = () => process.env.NODE_ENV === 'test';
 import os from 'os';
 import path from 'path';
+
+export * from '@/shared/utils/env';
 
 export const isElectron = () => process.env.IN_ELECTRON === 'Y';
 
@@ -37,4 +34,21 @@ export const getProjectDir = () => {
     return process.env.PROJECT_DIR;
   }
   return process.cwd();
+};
+
+
+export const getHomeDir = () => {
+  return process.env.HOME || os.homedir();
+};
+
+
+export const appendEnvPath = (current: string | undefined, entries: string[]): string => {
+  const delimiter = process.platform === 'win32' ? ';' : ':';
+  const existing = (current || '').split(delimiter).filter(Boolean);
+  const merged = [...existing];
+  entries.forEach(entry => {
+    if (!entry || merged.includes(entry)) return;
+    merged.push(entry);
+  });
+  return merged.join(delimiter);
 };

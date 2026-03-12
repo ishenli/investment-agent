@@ -6,7 +6,6 @@ import { Bot, Lightbulb, MessageCircleQuestion, Check } from 'lucide-react';
 
 import { useSessionStore } from '@renderer/store/session';
 import { sessionSelectors } from '@renderer/store/session/selectors';
-import { useAgentStore } from '@/app/store/agent';
 
 const useStyles = createStyles(({ css, token }) => ({
   select: css`
@@ -60,7 +59,7 @@ const ClaudeModeSwitch = () => {
     return (session?.config?.claudeMode as ClaudeModeType) || 'code';
   });
 
-  const updateAgentConfig = useAgentStore((s) => s.updateAgentConfig);
+  const updateAgentConfig = useSessionStore((s) => s.updateAgentConfig);
 
   const handleModeChange = async (value: ClaudeModeType) => {
     const sessionId = useSessionStore.getState().activeId;

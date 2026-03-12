@@ -14,14 +14,12 @@ export function AntDesignThemeSync({
   return (
     <ConfigProvider
       theme={{
-        // token: {
-        //   // Map to our CSS variables
-        //   colorPrimary: 'var(--antd-primary-color)',
-        //   colorBgContainer: 'var(--antd-bg-color-container)',
-        //   colorText: 'var(--antd-text-color)',
-        //   colorBorder: 'var(--antd-border-color)',
-        //   borderRadius: parseInt('var(--antd-border-radius)', 10),
-        // },
+        token: {
+          // Map to our CSS variables
+          // colorPrimary: 'var(--antd-primary-color)',
+          colorBgSolid: 'var(--antd-bg-color-solid)',
+          // colorBgSpotlight: 'var(--antd-bg-color-spotlight)',
+        },
         algorithm: resolvedTheme === 'dark'
           ? antdTheme.darkAlgorithm
           : undefined,

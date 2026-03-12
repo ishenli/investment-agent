@@ -3,8 +3,8 @@ import React, { memo, useMemo } from 'react';
 
 import { ChatItem } from '@renderer/(pages)/chat/features/Conversation';
 import ActionsBar from '@renderer/(pages)/chat/features/Conversation/components/ChatItem/ActionsBar';
-import { useAgentStore } from '@renderer/store/agent';
-import { agentChatConfigSelectors } from '@renderer/store/agent/selectors';
+import { useSessionStore } from '@renderer/store/session';
+import { agentChatConfigSelectors } from '@renderer/store/session/selectors';
 import { useChatStore } from '@renderer/store/chat';
 import { chatSelectors } from '@renderer/store/chat/selectors';
 
@@ -55,7 +55,7 @@ const MainChatItem = memo<ThreadChatItemProps>(({ id, index }) => {
     chatSelectors.mainDisplayChatIDs(s).length,
   ]);
 
-  const [displayMode, enableHistoryDivider] = useAgentStore((s) => [
+  const [displayMode, enableHistoryDivider] = useSessionStore((s) => [
     agentChatConfigSelectors.displayMode(s),
     agentChatConfigSelectors.enableHistoryDivider(historyLength, index)(s),
   ]);

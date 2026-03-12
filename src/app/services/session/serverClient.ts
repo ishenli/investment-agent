@@ -44,6 +44,31 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<ApiRe
   return response.json();
 }
 
+/**
+ * 模块级 inflight 请求合并：当多个调用方并发请求同一读接口时，
+ * 共享同一个进行中的 Promise，避免重复网络请求。
+ * 完成后清除，下次调用仍可发起新请求。
+ */
+let _inflightSessionsRequest: Promise<ApiResponse<{ sessions: LobeAgentSession[] }>> | null = null;
+
+function fetchAllSessions(): Promise<ApiResponse<{ sessions: LobeAgentSession[] }>> {
+  if (_inflightSessionsRequest) {
+    return _inflightSessionsRequest;
+  }
+  _inflightSessionsRequest = request<{ sessions: LobeAgentSession[] }>('/api/chat/sessions').finally(
+    () => {
+      _inflightSessionsRequest = null;
+    },
+  );
+  return _inflightSessionsRequest;
+}
+
+/**
+ * 模块级 inflight 锁：防止 initSessionConfig 并发执行
+ * 主要防御 React StrictMode 双重触发、快速路由切换等场景下的重复 POST 请求
+ */
+let _inflightInitSessionConfig: Promise<void> | null = null;
+
 export class ServerService implements ISessionService {
   async createSession(
     type: LobeSessionType,
@@ -78,7 +103,7 @@ export class ServerService implements ISessionService {
   }
 
   async getGroupedSessions(): Promise<ChatSessionList> {
-    const res = await request<{ sessions: LobeAgentSession[] }>('/api/chat/sessions');
+    const res = await fetchAllSessions();
 
     if (!res.success) {
       throw new Error(res.error || '获取会话列表失败');
@@ -103,7 +128,7 @@ export class ServerService implements ISessionService {
   }
 
   async getSessionsByType(_type: 'agent' | 'group' | 'all' = 'all'): Promise<LobeSessions> {
-    const res = await request<{ sessions: LobeAgentSession[] }>('/api/chat/sessions');
+    const res = await fetchAllSessions();
 
     if (!res.success) {
       throw new Error(res.error || '获取会话列表失败');
@@ -113,7 +138,7 @@ export class ServerService implements ISessionService {
   }
 
   async countSessions(): Promise<number> {
-    const res = await request<{ sessions: LobeAgentSession[] }>('/api/chat/sessions');
+    const res = await fetchAllSessions();
 
     if (!res.success) {
       return 0;
@@ -257,34 +282,48 @@ export class ServerService implements ISessionService {
    * @param config 初始化配置选项
    */
   async initSessionConfig(config: SessionInitConfig = DEFAULT_SESSION_INIT_CONFIG): Promise<void> {
-    const promises: Promise<any>[] = [];
-
-    // 遍历配置映射，按 map 键读取初始化配置
-    Object.entries(SESSION_CONFIG_MAP).forEach(
-      ([id, { sessionConfig, agentConfig: defaultAgentConfig }]) => {
-        const init = config[id as keyof SessionInitConfig];
-        if (init?.enabled) {
-          const agentConfig = init.config || defaultAgentConfig;
-          // 创建会话
-          promises.push(
-            this.createSession(LobeSessionType.Agent, {
-              slug: sessionConfig.slug,
-              meta: {
-                title: sessionConfig.title,
-                description: sessionConfig.description,
-                avatar: sessionConfig.avatar,
-              },
-              agentId: sessionConfig.agentId,
-              config: agentConfig as LobeAgentConfig,
-            }),
-          );
-        }
-      },
-    );
-
-    // 并行执行所有创建操作
-    if (promises.length > 0) {
-      await Promise.all(promises);
+    // 若已有进行中的初始化，复用同一个 Promise，避免并发重复创建会话
+    if (_inflightInitSessionConfig) {
+      return _inflightInitSessionConfig;
     }
+
+    _inflightInitSessionConfig = (async () => {
+      try {
+        const promises: Promise<any>[] = [];
+
+        // 遍历配置映射，按 map 键读取初始化配置
+        Object.entries(SESSION_CONFIG_MAP).forEach(
+          ([id, { sessionConfig, agentConfig: defaultAgentConfig }]) => {
+            const init = config[id as keyof SessionInitConfig];
+            if (init?.enabled) {
+              const agentConfig = init.config || defaultAgentConfig;
+              // 创建会话
+              promises.push(
+                this.createSession(LobeSessionType.Agent, {
+                  slug: sessionConfig.slug,
+                  meta: {
+                    title: sessionConfig.title,
+                    description: sessionConfig.description,
+                    avatar: sessionConfig.avatar,
+                  },
+                  agentId: sessionConfig.agentId,
+                  config: agentConfig as LobeAgentConfig,
+                }),
+              );
+            }
+          },
+        );
+
+        // 并行执行所有创建操作
+        if (promises.length > 0) {
+          await Promise.all(promises);
+        }
+      } finally {
+        // 完成后清除锁，下次可正常初始化
+        _inflightInitSessionConfig = null;
+      }
+    })();
+
+    return _inflightInitSessionConfig;
   }
 }

@@ -6,8 +6,8 @@ import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Center, Flexbox } from 'react-layout-kit';
 
-import { agentChatConfigSelectors } from '@renderer/store/agent/selectors';
-import { useAgentStore } from '@renderer/store/agent/store';
+import { agentChatConfigSelectors } from '@renderer/store/session/selectors';
+import { useSessionStore } from '@renderer/store/session';
 import { useChatStore } from '@renderer/store/chat';
 import { topicSelectors } from '@renderer/store/chat/selectors';
 
@@ -37,7 +37,7 @@ const History = memo(() => {
     return [history?.content, history?.model];
   });
 
-  const enableCompressHistory = useAgentStore(
+  const enableCompressHistory = useSessionStore(
     (s) => agentChatConfigSelectors.currentChatConfig(s).enableCompressHistory,
   );
 

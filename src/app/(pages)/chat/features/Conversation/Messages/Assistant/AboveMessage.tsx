@@ -53,11 +53,48 @@ const ThoughtBelowMessage = memo<ChatMessage>(({ thoughtChain }) => {
   if (thoughtChain.type === 'TOOL' && get(thoughtChain, 'content.name')) {
     title = get(thoughtChain, 'content.name') + ' ' + title;
   }
+
+  let content = '';
+  /**
+   * {"type":"tool_use","id":"xx","toolName":"Skill","arguments":{"skill":"find-skills","args":"股票分析 stock analysis"}}
+   */
+  if (title === 'Skill') {
+    const skill = get(thoughtChain, 'content.skill');
+    const args = get(thoughtChain, 'content.args');
+    if (skill && args) {
+      content = '：' + skill + '(' + args + ')';
+    }
+    if (skill && !args) {
+      content = '：' + skill;
+    }
+  }
+
+  if (title === 'Bash') {
+    const command = get(thoughtChain, 'content.command');
+    if (command) {
+      content = '(' + command + ')';
+    }
+  }
+
+  if (title === 'Glob') {
+    const pattern = get(thoughtChain, 'content.pattern');
+    if (pattern) {
+      content = '(' + pattern + ')';
+    }
+  }
+  if (title === 'Write') {
+    const url = get(thoughtChain, 'content.file_path');
+    if (url) {
+      content = '(' + url + ')';
+    }
+  }
+
+  
   return (
     <div className={styles.container}>
       <p className={styles.title}>
         <img className={styles.img} src={img} alt="think" />
-        &nbsp;{title}
+        &nbsp;{title}&nbsp;{content}
       </p>
     </div>
   );

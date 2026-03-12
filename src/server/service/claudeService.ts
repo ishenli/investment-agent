@@ -68,7 +68,7 @@ export class ClaudeService {
 
   constructor() {
     const projectRoot = getProjectRoot();
-    this.workspaceRoot = path.join(projectRoot, 'memory', 'claude');
+    this.workspaceRoot = path.join(projectRoot, 'workspace');
   }
 
   /**
@@ -278,6 +278,17 @@ export class ClaudeService {
     } catch (error) {
       this.logger.warn(`[ClaudeService] Failed to cleanup workspace ${workDir}: ${error}`);
     }
+  }
+
+  /**
+   * 返回用户工作空间根目录（memory/claude/{userId}/）。
+   *
+   * 此目录作为 Claude Agent SDK 的 cwd：
+   *   - 投资上下文文件居于子目录 invest-advisor/
+   *   - 技能文件部署到 .claude/skills/，SDK 可在 {cwd}/.claude/skills/ 自动发现
+   */
+  getUserWorkspaceRoot(userId: number): string {
+    return path.join(this.workspaceRoot, String(userId));
   }
 
   /**

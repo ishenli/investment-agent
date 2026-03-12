@@ -12,8 +12,8 @@ import { HtmlPreviewAction } from '@renderer/(pages)/chat/components/HtmlPreview
 import { DEFAULT_TRANSITION_MODE } from '@renderer/const/settings';
 import ChatItem from '@renderer/(pages)/chat/features/ChatItem';
 import { VirtuosoContext } from '@renderer/(pages)/chat/features/Conversation/components/VirtualizedList/VirtuosoContext';
-import { useAgentStore } from '@renderer/store/agent';
-import { agentChatConfigSelectors } from '@renderer/store/agent/selectors';
+import { useSessionStore } from '@renderer/store/session';
+import { agentChatConfigSelectors } from '@renderer/store/session/selectors';
 import { useChatStore } from '@renderer/store/chat';
 import { chatSelectors } from '@renderer/store/chat/selectors';
 import { ChatMessage } from '@typings/message';
@@ -78,7 +78,7 @@ const Item = memo<ChatListItemProps>(
     const { t } = useTranslation('common');
     const { styles, cx } = useStyles();
 
-    const type = useAgentStore(agentChatConfigSelectors.displayMode);
+    const type = useSessionStore(agentChatConfigSelectors.displayMode);
     const item = useChatStore(chatSelectors.getMessageById(id), isEqual);
     const transitionMode = DEFAULT_TRANSITION_MODE;
 

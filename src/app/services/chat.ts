@@ -3,6 +3,7 @@ import {
   ChatMessage,
   ChatMessageError,
   CitationItem,
+  MessageAgentEventsChunk,
   MessageGroundingChunk,
   MessageReasoningChunk,
   MessageRelatedChunk,
@@ -23,10 +24,10 @@ import {
 import { GroundingSearch } from '@typings/search';
 import { get, isEmpty, merge } from 'lodash';
 import { post } from '../lib/request';
-import { connectAgentStream } from '@/app/lib/agentStreamClient';
+import { connectAgentStream, formatToolMessage } from '@/app/lib/agentStreamClient';
 import { DEFAULT_AGENT_CONFIG } from '../const/settings/agent';
-import { getAgentStoreState } from '../store/agent';
-import { agentChatConfigSelectors } from '../store/agent/slices/chat';
+import { getSessionStoreState } from '@renderer/store/session';
+import { agentChatConfigSelectors } from '@renderer/store/session/selectors';
 import { isServerMode } from '@/shared';
 import { filesPrompts } from '../prompts/files';
 import { genToolCallingName } from '../lib/utils/toolCall';
@@ -36,6 +37,7 @@ import { produce } from 'immer';
 import { getToolStoreState } from '../store/tool';
 import { BuiltinSystemRolePrompts } from '../prompts/systemRole';
 import { t } from 'i18next';
+import { safeParseJSON } from '../lib/utils/safeParseJSON';
 
 type SSEFinishType = 'done' | 'error' | 'abort';
 
@@ -45,6 +47,8 @@ interface GetChatCompletionPayload extends Partial<Omit<ChatStreamPayload, 'mess
   agentId: string;
   engineType?: 'deepagents' | 'claude';
   mode?: 'code' | 'plan' | 'ask';
+  /** 会话级激活的 skill slugs，仅对 claude 引擎生效，用于按需构建 systemPrompt */
+  skills?: string[];
 }
 
 type ContentType = 'stream' | 'text' | 'thought' | 'tool' | 'image' | 'file' | 'error';
@@ -88,7 +92,8 @@ export type onMessageHandle = (
     | MessageToolCallsChunk
     | MessageReasoningChunk
     | MessageRelatedChunk
-    | MessageThoughtChainChunk,
+    | MessageThoughtChainChunk
+    | MessageAgentEventsChunk,
 ) => void;
 
 export type OnFinishHandler = (text: string, context: onFinishContext) => Promise<void>;
@@ -246,6 +251,10 @@ interface BaiLingParams {
   tools: string[];
   agentId: string;
   engineType?: 'deepagents' | 'claude';
+  /** Claude 引擎的对话模式 */
+  mode?: 'code' | 'plan' | 'ask';
+  /** 会话级激活的 skill slugs，用于服务端按需注入 skill prompt */
+  skills?: string[];
 }
 
 interface BailingAgentStreamParams {
@@ -347,7 +356,7 @@ class ChatService {
     onFinish,
     ...options
   }: CreateAssistantMessageStream) => {
-    console.log('createAssistantMessageStream', params);
+    console.info('[chat.ts]createAssistantMessageStream', params);
     const { plugins: enabledPlugins, messages, ...restParams } = params;
     const { isWelcomeQuestion, trace, historySummary } = options;
     const payload = merge(
@@ -359,7 +368,7 @@ class ChatService {
       restParams,
     );
 
-    const chatConfig = agentChatConfigSelectors.currentChatConfig(getAgentStoreState());
+    const chatConfig = agentChatConfigSelectors.currentChatConfig(getSessionStoreState());
     const enabledSearch = chatConfig.searchMode !== 'off';
     const pluginIds = [...(enabledPlugins || [])];
 
@@ -371,6 +380,7 @@ class ChatService {
       isWelcomeQuestion,
       trace,
       historySummary,
+      engineType: params.engineType,
     });
 
     try {
@@ -409,6 +419,8 @@ class ChatService {
           stream: true,
           tools: pluginIds,
           engineType: params.engineType,
+          mode: params.mode,
+          skills: params.skills,
         },
         abortController,
         onMessageHandle,
@@ -437,6 +449,7 @@ class ChatService {
     isWelcomeQuestion,
     trace,
     historySummary,
+    engineType,
     ...options
   }: {
     messages: ChatMessage[];
@@ -446,6 +459,7 @@ class ChatService {
     isWelcomeQuestion?: boolean;
     trace?: string;
     historySummary?: string;
+    engineType?: 'deepagents' | 'claude';
   }) => {
     const getUserContent = async (m: ChatMessage) => {
       // only if message doesn't have images and files, then return the plain content
@@ -541,6 +555,9 @@ class ChatService {
     );
 
     postMessages = produce(postMessages, (draft) => {
+
+      if (engineType === 'claude') return;
+
       // if it's a welcome question, inject InboxGuide SystemRole
       const inboxGuideSystemRole =
         isWelcomeQuestion && trace === INBOX_SESSION_ID && 'INBOX_GUIDE_SYSTEMROLE';
@@ -622,6 +639,13 @@ class ChatService {
         model: params.model!,
         stream: true,
         messages: params.messages,
+        // 仅对 claude 引擎传递 mode / skills
+        ...(engineType === 'claude'
+          ? {
+              ...(params.mode !== undefined ? { mode: params.mode } : {}),
+              ...(params.skills !== undefined ? { skills: params.skills } : {}),
+            }
+          : {}),
       },
       signal: abortController?.signal,
       onEvent: (event) => {
@@ -659,18 +683,34 @@ class ChatService {
             }
             break;
           }
+          case 'status': {
+            if (event.message) {
+              onMessageHandle?.({
+                type: 'agentEvents',
+                event: {
+                  eventType: 'status',
+                  id: event.id,
+                  message: event.message,
+                  level: event.level,
+                  timestamp: Date.now(),
+                },
+              });
+            }
+            break;
+          }
           case 'tool_use': {
-            onMessageHandle?.({
-              type: 'thoughtChain',
-              thoughtChain: {
-                title: event.toolName,
-                type: 'TOOL',
-                content:
-                  typeof event.arguments === 'string'
-                    ? event.arguments
-                    : JSON.stringify(event.arguments),
-              },
-            });
+            if (event.toolName) {
+              onMessageHandle?.({
+                type: 'agentEvents',
+                event: {
+                  eventType: 'tool_use',
+                  id: event.id,
+                  toolName: event.toolName,
+                  arguments: event.arguments,
+                  timestamp: Date.now(),
+                },
+              });
+            }
             break;
           }
           case 'permission_request': {

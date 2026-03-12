@@ -31,5 +31,29 @@ export async function register() {
       logger.error('[Instrumentation] Failed to initialize:', error);
       // 不抛出错误，允许应用继续启动
     }
+
+    // 3. 同步内置 Skills（文件系统 + DB 偏好表，非阻塞，后台执行）
+    import('@server/service/skillService')
+      .then(({ skillService }) => skillService.initForAllUsers())
+      .then(() => {
+        logger.info('[Instrumentation] Builtin skills sync completed');
+      })
+      .catch((error) => {
+        logger.error('[Instrumentation] Failed to sync builtin skills:', error);
+      });
+
+    // 4.0 调用账户的初始化方法（非阻塞，后台执行，不阻断应用启动）
+    logger.info('[Instrumentation] Triggering account price update in background...');
+    import('@server/controller/assetAccount')
+      .then(({ AssetAccountBizController }) => {
+        const initController = new AssetAccountBizController();
+        return initController.init();
+      })
+      .then(() => {
+        logger.info('[Instrumentation] Account price update completed');
+      })
+      .catch((error) => {
+        logger.error('[Instrumentation] Account price update failed:', error);
+      });
   }
 }

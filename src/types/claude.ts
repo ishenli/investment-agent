@@ -220,26 +220,6 @@ export interface UpdateTaskRequest {
   description?: string;
 }
 
-// --- Skill API ---
-
-export interface SkillDefinition {
-  name: string;
-  description: string;
-  prompt: string;
-  enabled: boolean;
-}
-
-export interface CreateSkillRequest {
-  name: string;
-  description: string;
-  prompt: string;
-}
-
-export interface UpdateSkillRequest {
-  description?: string;
-  prompt?: string;
-  enabled?: boolean;
-}
 
 // ==========================================
 // API Response Types
@@ -299,15 +279,6 @@ export interface TaskResponse {
   task: TaskItem;
 }
 
-// --- Skill API Responses ---
-
-export interface SkillsResponse {
-  skills: SkillDefinition[];
-}
-
-export interface SkillResponse {
-  skill: SkillDefinition;
-}
 
 // ==========================================
 // SSE Event Types (streaming chat response)

@@ -362,6 +362,7 @@
     "general": "General",
     "provider": "Provider",
     "theme": "Theme",
+    "skills": "Skills",
     "tool": "Tool"
   },
   "theme": {
@@ -388,6 +389,99 @@
     "title": "Theme Settings"
   },
   "title": "Settings",
+  "skills": {
+    "all": "All",
+    "title": "Skills Management",
+    "description": "Manage and configure your AI skills",
+    "searchPlaceholder": "Search skill name, description, or ID...",
+    "refresh": "Refresh",
+    "addSkill": "Add Skill",
+    "skillsList": "Skills List",
+    "loading": "Loading...",
+    "noSkillsFound": "No skills found",
+    "adjustSearch": "Try adjusting search criteria or filters",
+    "toggle": {
+      "enabled": "Skill enabled",
+      "disabled": "Skill disabled",
+      "failed": "Failed to toggle skill status"
+    },
+    "delete": {
+      "success": "Skill deleted",
+      "failed": "Failed to delete skill"
+    },
+    "create": {
+      "success": "Skill created",
+      "failed": "Failed to create skill"
+    },
+    "categories": {
+      "all": "All",
+      "brainstorming": "Brainstorming",
+      "debugging": "Debugging",
+      "tdd": "Test-Driven Development",
+      "code-review": "Code Review",
+      "testing": "Testing",
+      "documentation": "Documentation",
+      "optimization": "Optimization",
+      "refactoring": "Refactoring",
+      "other": "Other"
+    },
+    "sources": {
+      "official": "Official",
+      "community": "Community",
+      "custom": "Custom",
+      "officialProtected": "Official Protected"
+    },
+    "card": {
+      "createdAt": "Created at",
+      "id": "ID"
+    },
+    "addDialog": {
+      "title": "Add New Skill",
+      "description": "Upload and create new AI skills through different methods",
+      "createSkill": "Create Skill",
+      "processing": "Processing...",
+      "skillInfo": "Skill Basic Information",
+      "selectedFile": "Selected File",
+      "selectedFiles": "Selected Files",
+      "files": "files",
+      "tabs": {
+        "zip": "ZIP Archive",
+        "folder": "Folder",
+        "github": "GitHub Link"
+      },
+      "zip": {
+        "description": "Upload a ZIP archive containing skill files",
+        "selectFile": "Select ZIP File"
+      },
+      "folder": {
+        "description": "Upload a folder containing skill files",
+        "selectFolder": "Select Folder"
+      },
+      "github": {
+        "description": "Import skills via GitHub repository link",
+        "urlLabel": "GitHub Repository Link",
+        "urlPlaceholder": "https://github.com/username/repository",
+        "urlHint": "Please enter the complete GitHub repository link"
+      },
+      "fields": {
+        "name": "Skill Name",
+        "namePlaceholder": "Enter skill name",
+        "description": "Skill Description",
+        "descriptionPlaceholder": "Describe the function and purpose of this skill",
+        "category": "Skill Category"
+      },
+      "errors": {
+        "nameRequired": "Please enter skill name",
+        "descriptionRequired": "Please enter skill description",
+        "zipRequired": "Please select a ZIP file",
+        "invalidZip": "Please select a valid ZIP file",
+        "folderRequired": "Please select a folder",
+        "githubUrlRequired": "Please enter GitHub link",
+        "invalidGithubUrl": "Please enter a valid GitHub link",
+        "createFailed": "Failed to create skill"
+      }
+    }
+  },
   "tool": {
     "actions": {
       "delete": "Delete",

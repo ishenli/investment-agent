@@ -1,5 +1,10 @@
+import { MESSAGE_CANCEL_FLAT } from '@renderer/const/message';
+import { INBOX_SESSION_ID } from '@renderer/const/session';
 import { sessionService } from '@renderer/services/session';
 import { SessionStore } from '@renderer/store/session';
+import { useClientDataSWR } from '@renderer/lib/utils/swr';
+import { merge } from '@renderer/lib/utils/merge';
+import { LobeAgentChatConfig, LobeAgentConfig } from '@typings/agent';
 import { MetaData } from '@typings/meta';
 import {
   ChatSessionList,
@@ -8,18 +13,20 @@ import {
   LobeSessionType,
   UpdateSessionParams,
 } from '@typings/session';
-import useSWR, { SWRResponse } from 'swr';
+import { isEqual } from 'lodash';
+import { produce } from 'immer';
+import { mutate, SWRResponse } from 'swr';
+import useSWR from 'swr';
 import type { PartialDeep } from 'type-fest';
 import { StateCreator } from 'zustand/vanilla';
 
 import { LobeSessionGroups } from '@typings/session/sessionGroup';
-import { useClientDataSWR } from '@renderer/lib/utils/swr';
-import { isEqual } from 'lodash';
 import { SessionDispatch } from './reducers';
-import { INBOX_SESSION_ID } from '@/app/const/session';
+import { sessionSelectors } from './selectors';
 
 const FETCH_SESSIONS_KEY = 'fetchSessions';
 const SEARCH_SESSIONS_KEY = 'searchSessions';
+const FETCH_AGENT_CONFIG_KEY = 'FETCH_AGENT_CONFIG';
 
 export interface SessionAction {
   /**
@@ -72,7 +79,34 @@ export interface SessionAction {
     customGroups: LobeSessionGroups,
     actions?: string,
   ) => void;
-   
+
+  // ─────────────────────────────────────────────────────────────
+  // Migrated from AgentStore
+  // ─────────────────────────────────────────────────────────────
+
+  /** 更新当前会话的 agent config（model/systemRole/engineType/chatConfig 等） */
+  updateAgentConfig: (config: PartialDeep<LobeAgentConfig>) => Promise<void>;
+  /** 更新当前会话的 chatConfig */
+  updateAgentChatConfig: (config: Partial<LobeAgentChatConfig>) => Promise<void>;
+  /** 切换 plugin 开关 */
+  togglePlugin: (id: string, open?: boolean) => Promise<void>;
+  /** 移除 plugin */
+  removePlugin: (id: string) => Promise<void>;
+  /** SWR hook：加载并填充 agentMap */
+  useFetchAgentConfig: (isLogin: boolean | undefined, id: string) => SWRResponse<LobeAgentConfig>;
+
+  internal_dispatchAgentMap: (
+    id: string,
+    config: PartialDeep<LobeAgentConfig>,
+    actions?: string,
+  ) => void;
+  internal_refreshAgentConfig: (id: string) => Promise<void>;
+  internal_updateAgentConfig: (
+    id: string,
+    data: PartialDeep<LobeAgentConfig>,
+    signal?: AbortSignal,
+  ) => Promise<void>;
+  internal_createAbortController: (key: 'updateAgentConfigSignal' | 'updateAgentChatConfigSignal') => AbortController;
 }
 
 export const createSessionSlice: StateCreator<
@@ -150,8 +184,10 @@ export const createSessionSlice: StateCreator<
   },
 
   refreshSessions: async () => {
-    const result = await sessionService.getGroupedSessions();
-    get().internal_processSessions(result.sessions, result.sessionGroups);
+    // 使用 SWR mutate 触发重新验证，全局共享同一个请求
+    // 而非直接调用 sessionService.getGroupedSessions()，
+    // 避免绕过 SWR 缓存层并行发起重复请求
+    await mutate([FETCH_SESSIONS_KEY, true]);
   },
 
   removeSession: async (sessionId) => {
@@ -248,4 +284,103 @@ export const createSessionSlice: StateCreator<
         suspense: true,
       },
     ),
+
+  // ─────────────────────────────────────────────────────────────
+  // Migrated from AgentStore
+  // ─────────────────────────────────────────────────────────────
+
+  updateAgentConfig: async (config) => {
+    const { activeId } = get();
+    if (!activeId) return;
+    const controller = get().internal_createAbortController('updateAgentConfigSignal');
+    await get().internal_updateAgentConfig(activeId, config, controller.signal);
+  },
+
+  updateAgentChatConfig: async (config) => {
+    await get().updateAgentConfig({ chatConfig: config });
+  },
+
+  togglePlugin: async (id, open) => {
+    const originConfig = sessionSelectors.currentSessionConfig(get());
+
+    const plugins = produce(originConfig.plugins || [], (draft: string[]) => {
+      const index = draft.indexOf(id);
+      const shouldOpen = open !== undefined ? open : index === -1;
+      if (shouldOpen) {
+        if (index === -1) draft.push(id);
+      } else {
+        if (index !== -1) draft.splice(index, 1);
+      }
+    });
+
+    const { activeId } = get();
+    if (!activeId) return;
+
+    await sessionService.updateSessionConfig(activeId, { plugins });
+    await get().refreshSessions();
+  },
+
+  removePlugin: async (id) => {
+    await get().togglePlugin(id, false);
+  },
+
+  useFetchAgentConfig: (isLogin, sessionId) =>
+    useClientDataSWR<LobeAgentConfig>(
+      isLogin ? [FETCH_AGENT_CONFIG_KEY, sessionId] : null,
+      ([, id]: string[]) => sessionService.getSessionConfig(id),
+      {
+        onSuccess: (data) => {
+          get().internal_dispatchAgentMap(sessionId, data, 'fetch');
+          set(
+            {
+              activeAgentId: data.id,
+              agentConfigInitMap: {
+                ...get().agentConfigInitMap,
+                [sessionId]: true,
+              },
+            },
+            false,
+            'fetchAgentConfig',
+          );
+        },
+      },
+    ),
+
+  internal_dispatchAgentMap: (id, config, actions) => {
+    const agentMap = produce(get().agentMap, (draft: Record<string, any>) => {
+      if (!draft[id]) {
+        draft[id] = config;
+      } else {
+        draft[id] = merge(draft[id], config);
+      }
+    });
+
+    if (isEqual(get().agentMap, agentMap)) return;
+
+    set({ agentMap }, false, 'dispatchAgent' + (actions ? `/${actions}` : ''));
+  },
+
+  internal_refreshAgentConfig: async (id) => {
+    await mutate([FETCH_AGENT_CONFIG_KEY, id]);
+  },
+
+  internal_updateAgentConfig: async (id, data, signal) => {
+    // optimistic update
+    get().internal_dispatchAgentMap(id, data, 'optimistic_updateAgentConfig');
+
+    await sessionService.updateSessionConfig(id, data, signal);
+    await get().internal_refreshAgentConfig(id);
+
+    // 始终刷新 sessions，确保 sessions 数组中的 config 与后端保持同步
+    // （不仅限于 model 变更，engineType 等字段变更同样需要刷新）
+    await get().refreshSessions();
+  },
+
+  internal_createAbortController: (key) => {
+    const abortController = get()[key] as AbortController | undefined;
+    if (abortController) abortController.abort(MESSAGE_CANCEL_FLAT);
+    const controller = new AbortController();
+    set({ [key]: controller }, false, 'internal_createAbortController');
+    return controller;
+  },
 });
