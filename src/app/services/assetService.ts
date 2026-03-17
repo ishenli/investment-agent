@@ -69,7 +69,12 @@ export const fetchLatestPrice = async (symbol: string, market: string) => {
     }
 
     const result = await response.json();
-    return result.data.data.priceCents;
+    // API 返回的是美元价格，需要转换为美分
+    const priceInDollars = result.data?.price;
+    if (typeof priceInDollars !== 'number') {
+      throw new Error('价格数据格式错误');
+    }
+    return Math.round(priceInDollars * 100);
   } catch (error) {
     console.error('获取最新价格时出错:', error);
     return null;
