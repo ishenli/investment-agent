@@ -17,6 +17,7 @@ export interface DownloadProgress {
 
 export interface UpdateError {
   message: string;
+  detail?: string; // 原始错误信息，供调试用；message 字段用于存放 i18n key
 }
 
 export interface ElectronUpdater {

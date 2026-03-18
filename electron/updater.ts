@@ -1,4 +1,4 @@
-import { app, dialog, BrowserWindow } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import { autoUpdater, UpdateInfo } from 'electron-updater';
 import log from 'electron-log';
 
@@ -60,8 +60,10 @@ export class UpdateManager {
     autoUpdater.logger = log;
 
     // 配置更新行为
-    autoUpdater.autoDownload = true; // 自动下载更新
-    autoUpdater.autoInstallOnAppQuit = true; // 退出时自动安装
+    // 注意：由于签名问题暂时禁用自动下载，改为引导用户前往 GitHub Releases 手动下载
+    // 待签名问题解决后可恢复 autoDownload = true 实现增量更新
+    autoUpdater.autoDownload = false;
+    autoUpdater.autoInstallOnAppQuit = false; // 退出时自动安装（增量更新时使用）
 
     this.setupEventListeners();
   }
@@ -189,22 +191,26 @@ export class UpdateManager {
 
   /**
    * 显示更新下载完成对话框
+   * 注意：由于签名问题暂时禁用增量更新，此方法保留供后续恢复使用
+   * 恢复时取消注释 dialog 相关代码，并在顶部 import 中添加 dialog
    */
-  private showUpdateDownloadedDialog(info: UpdateInfo): void {
-    const dialogOpts = {
-      type: 'info' as const,
-      buttons: ['立即重启', '稍后'],
-      title: '更新已就绪',
-      message: `新版本 ${info.version} 已下载完成`,
-      detail: '应用将在重启后更新。是否立即重启应用？\n\n您的数据已自动保存，无需担心数据丢失。',
-    };
-
-    dialog.showMessageBox(dialogOpts).then((result) => {
-      if (result.response === 0) {
-        // 用户选择立即重启
-        this.quitAndInstall();
-      }
-    });
+  private showUpdateDownloadedDialog(_info: UpdateInfo): void {
+    // TODO: 待签名问题解决后，取消以下注释以恢复增量更新弹窗
+    // const dialogOpts = {
+    //   type: 'info' as const,
+    //   buttons: ['立即重启', '稍后'],
+    //   title: '更新已就绪',
+    //   message: `新版本 ${info.version} 已下载完成`,
+    //   detail: '应用将在重启后更新。是否立即重启应用？\n\n您的数据已自动保存，无需担心数据丢失。',
+    // };
+    //
+    // dialog.showMessageBox(dialogOpts).then((result) => {
+    //   if (result.response === 0) {
+    //     // 用户选择立即重启
+    //     this.quitAndInstall();
+    //   }
+    // });
+    log.info('Update downloaded (silent mode): notifying renderer only');
   }
 
   /**

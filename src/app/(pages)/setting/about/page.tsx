@@ -1,14 +1,12 @@
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@renderer/components/ui/card';
-import { Package, Heart, Code, Zap, Shield, Info, Download, CheckCircle2, AlertCircle, Loader2, RefreshCw } from 'lucide-react';
+import { Package, Heart, Code, Zap, Shield, Info, Download, CheckCircle2, AlertCircle, Loader2, RefreshCw, ExternalLink } from 'lucide-react';
 import { Separator } from '@renderer/components/ui/separator';
 import { Button } from '@renderer/components/ui/button';
-import { Progress } from '@renderer/components/ui/progress';
 import { Alert, AlertDescription } from '@renderer/components/ui/alert';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { useAutoUpdate } from '@/app/hooks/useAutoUpdate';
-import { Modal } from 'antd';
 
 interface AboutInfo {
   version: string;
@@ -39,11 +37,11 @@ export default function AboutPage() {
   const {
     status: updateStatus,
     updateInfo,
-    downloadProgress,
+    downloadProgress: _downloadProgress,
     error: updateError,
     isElectron,
     checkForUpdates,
-    installUpdate,
+    // installUpdate, // 增量更新恢复后使用
   } = useAutoUpdate();
 
   useEffect(() => {
@@ -60,18 +58,18 @@ export default function AboutPage() {
     await checkForUpdates();
   };
   
-  // 处理安装更新按钮点击
-  const handleInstallUpdate = () => {
-    Modal.confirm({
-      title: t('about.update.confirmTitle', '确认更新'),
-      content: t('about.update.confirmContent', '应用将重启以完成更新。您的数据已自动保存，无需担心数据丢失。确定要立即更新吗？'),
-      okText: t('about.update.confirm', '立即更新'),
-      cancelText: t('about.update.cancel', '取消'),
-      onOk: () => {
-        installUpdate();
-      },
-    });
-  };
+  // 处理安装更新按钮点击（增量更新恢复后使用）
+  // const handleInstallUpdate = () => {
+  //   Modal.confirm({
+  //     title: t('about.update.confirmTitle', '确认更新'),
+  //     content: t('about.update.confirmContent', '应用将重启以完成更新。您的数据已自动保存，无需担心数据丢失。确定要立即更新吗？'),
+  //     okText: t('about.update.confirm', '立即更新'),
+  //     cancelText: t('about.update.cancel', '取消'),
+  //     onOk: () => {
+  //       installUpdate();
+  //     },
+  //   });
+  // };
   
   // 获取更新状态的显示文本和图标
   const getUpdateStatusDisplay = () => {
@@ -103,7 +101,7 @@ export default function AboutPage() {
       case 'error':
         return {
           icon: <AlertCircle className="h-4 w-4 text-red-500" />,
-          text: t('about.update.error', '更新失败'),
+          text: t('about.update.error', '更新出现错误'),
           type: 'error' as const,
         };
       default:
@@ -226,8 +224,8 @@ export default function AboutPage() {
               </Alert>
             )}
 
-            {/* 下载进度条 */}
-            {updateStatus === 'downloading' && downloadProgress && (
+            {/* 下载进度条（增量更新恢复后使用） */}
+            {/* {updateStatus === 'downloading' && downloadProgress && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">{t('about.update.progress', '下载进度')}</span>
@@ -238,18 +236,24 @@ export default function AboutPage() {
                   {(downloadProgress.transferred / 1024 / 1024).toFixed(2)} MB / {(downloadProgress.total / 1024 / 1024).toFixed(2)} MB
                 </p>
               </div>
-            )}
+            )} */}
 
             {/* 错误信息 */}
             {updateError && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{updateError.message}</AlertDescription>
+                <AlertDescription>
+                  {/* updateError.message 存放 i18n key，fallback 到 error 通用文案 */}
+                  {t(updateError.message, t('about.update.error', '更新出现错误'))}
+                  {updateError.detail && (
+                    <span className="block text-xs opacity-70 mt-1">{updateError.detail}</span>
+                  )}
+                </AlertDescription>
               </Alert>
             )}
 
-            {/* 更新详情 */}
-            {updateInfo && updateStatus === 'available' && (
+            {/* 新版本提示：引导前往 GitHub Releases */}
+            {updateInfo && (updateStatus === 'available' || updateStatus === 'downloaded') && (
               <div className="space-y-3">
                 <Separator />
                 <div className="space-y-2">
@@ -259,12 +263,34 @@ export default function AboutPage() {
                   </div>
                 </div>
                 <Button
-                  onClick={handleInstallUpdate}
+                  asChild
                   className="w-full"
                   size="sm"
                 >
-                  <Download className="mr-2 h-4 w-4" />
-                  {t('about.update.downloadAndInstall', '下载并安装')}
+                  <a
+                    href="https://github.com/ishenli/investment-agent/releases"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    {t('about.update.viewReleases', '前往 GitHub Releases 下载')}
+                  </a>
+                </Button>
+              </div>
+            )}
+
+            {/* 当无版本信息时也显示 GitHub Releases 入口 */}
+            {!updateInfo && updateStatus !== 'checking' && (
+              <div className="flex justify-end">
+                <Button variant="ghost" size="sm" asChild className="text-muted-foreground text-xs">
+                  <a
+                    href="https://github.com/ishenli/investment-agent/releases"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Download className="mr-1 h-3 w-3" />
+                    {t('about.update.viewReleases', '前往 GitHub Releases 下载')}
+                  </a>
                 </Button>
               </div>
             )}
