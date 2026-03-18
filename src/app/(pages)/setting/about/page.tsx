@@ -255,13 +255,6 @@ export default function AboutPage() {
             {/* 新版本提示：引导前往 GitHub Releases */}
             {updateInfo && (updateStatus === 'available' || updateStatus === 'downloaded') && (
               <div className="space-y-3">
-                <Separator />
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">{t('about.update.releaseNotes', '更新内容')}</p>
-                  <div className="text-xs text-muted-foreground whitespace-pre-wrap p-3 bg-muted/50 rounded-lg max-h-32 overflow-y-auto">
-                    {updateInfo.releaseNotes || t('about.update.noReleaseNotes', '暂无更新说明')}
-                  </div>
-                </div>
                 <Button
                   asChild
                   className="w-full"
