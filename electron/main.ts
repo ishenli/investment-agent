@@ -1,12 +1,22 @@
-import { app, BrowserWindow, nativeImage, dialog, session, utilityProcess, ipcMain } from 'electron';
+import { app, BrowserWindow, nativeImage, dialog, session, utilityProcess, ipcMain, Tray, Menu } from 'electron';
 import path from 'path';
 import { execFileSync } from 'child_process';
 import fs from 'fs';
 import net from 'net';
 import os from 'os';
+import log from 'electron-log/main';
 import { updateManager } from './updater';
 
+// 初始化 electron-log
+log.initialize();
+log.transports.file.level = 'info';
+log.transports.console.level = 'debug';
+log.info('[Log] electron-log initialized');
+
+// 扩展 Electron app 类型以添加自定义属性
+
 let mainWindow: BrowserWindow | null = null;
+let tray: Tray | null = null;
 let serverProcess: Electron.UtilityProcess | null = null;
 let serverPort: number | null = null;
 let serverErrors: string[] = [];
@@ -15,6 +25,9 @@ let serverExitCode: number | null = null;
 let userShellEnv: Record<string, string> = {};
 
 const isDev = !app.isPackaged;
+
+// 标记应用是否正在退出（用于控制窗口关闭行为）
+(app as any).isQuitting = false;
 
 /**
  * Verify that better_sqlite3.node in standalone resources is compatible
@@ -250,6 +263,28 @@ function getIconPath(): string {
   return path.join(process.resourcesPath, 'icon.icns');
 }
 
+/**
+ * 获取托盘图标路径 (macOS 上优先使用 PNG)
+ */
+function getTrayIconPath(): string {
+  if (isDev) {
+    return path.join(process.cwd(), 'build', 'icon.png');
+  }
+  // macOS 打包后，尝试使用 PNG 格式的托盘图标
+  if (process.platform === 'darwin') {
+    const pngPath = path.join(process.resourcesPath, 'icon.png');
+    if (fs.existsSync(pngPath)) {
+      return pngPath;
+    }
+    // 如果 PNG 不存在，回退到 icns
+    return path.join(process.resourcesPath, 'icon.icns');
+  }
+  if (process.platform === 'win32') {
+    return path.join(process.resourcesPath, 'icon.ico');
+  }
+  return path.join(process.resourcesPath, 'icon.png');
+}
+
 function createWindow(port: number) {
   const windowOptions: Electron.BrowserWindowConstructorOptions = {
     width: 1280,
@@ -286,6 +321,108 @@ function createWindow(port: number) {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+
+  // 任务 1.7: 修改窗口关闭事件，隐藏窗口而非关闭
+  mainWindow.on('close', (event) => {
+    // 阻止默认关闭行为，最小化到托盘
+    if (!(app as any).isQuitting) {
+      event.preventDefault();
+      mainWindow?.hide();
+
+      // macOS 上隐藏 Dock 图标
+      if (process.platform === 'darwin' && app.dock) {
+        app.dock.hide();
+      }
+
+      log.info('[Tray] Window minimized to tray');
+    }
+  });
+}
+
+/**
+ * 创建系统托盘
+ */
+function createTray(): void {
+  log.info('[Tray] Starting tray creation...');
+  log.info(`[Tray] Platform: ${process.platform}`);
+  log.info(`[Tray] Is packaged: ${app.isPackaged}`);
+
+  const trayIconPath = getTrayIconPath();
+  log.info(`[Tray] Tray icon path: ${trayIconPath}`);
+
+  // 检查图标文件是否存在
+  const iconExists = fs.existsSync(trayIconPath);
+  log.info(`[Tray] Icon file exists: ${iconExists}`);
+
+  // 创建托盘图标
+  const icon = nativeImage.createFromPath(trayIconPath);
+  log.info(`[Tray] Icon is empty: ${icon.isEmpty()}`);
+  log.info(`[Tray] Icon size: ${icon.getSize().width}x${icon.getSize().height}`);
+
+  // 如果图标加载失败，创建一个空图标
+  const trayIcon = icon.isEmpty()
+    ? nativeImage.createEmpty()
+    : icon.resize({ width: 16, height: 16 });
+
+  log.info(`[Tray] Creating tray with icon...`);
+
+  try {
+    tray = new Tray(trayIcon);
+    log.info('[Tray] Tray created successfully');
+  } catch (error) {
+    log.error('[Tray] Failed to create tray:', error);
+    return;
+  }
+
+  tray.setToolTip('Investment Agent');
+  log.info('[Tray] Tooltip set');
+
+  // 任务 1.4: 为托盘添加右键菜单，包含"显示"和"退出"选项
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: '显示窗口',
+      click: () => {
+        log.info('[Tray] Menu: Show window clicked');
+        if (mainWindow) {
+          mainWindow.show();
+          mainWindow.focus();
+
+          // macOS 上恢复 Dock 图标
+          if (process.platform === 'darwin' && app.dock) {
+            app.dock.show();
+          }
+        }
+      },
+    },
+    { type: 'separator' },
+    {
+      label: '退出',
+      click: () => {
+        log.info('[Tray] Menu: Quit clicked');
+        (app as any).isQuitting = true;
+        app.quit();
+      },
+    },
+  ]);
+
+  tray.setContextMenu(contextMenu);
+  log.info('[Tray] Context menu set');
+
+  // 任务 1.5: 双击托盘图标恢复窗口
+  tray.on('double-click', () => {
+    log.info('[Tray] Double-click event');
+    if (mainWindow) {
+      mainWindow.show();
+      mainWindow.focus();
+
+      // macOS 上恢复 Dock 图标
+      if (process.platform === 'darwin' && app.dock) {
+        app.dock.show();
+      }
+    }
+  });
+
+  log.info('[Tray] System tray fully initialized');
 }
 
 app.whenReady().then(async () => {
@@ -338,7 +475,10 @@ app.whenReady().then(async () => {
 
     serverPort = port;
     createWindow(port);
-    
+
+    // 创建系统托盘
+    createTray();
+
     // 设置自动更新（仅在打包环境下）
     if (!isDev && mainWindow) {
       updateManager.setMainWindow(mainWindow);
@@ -407,6 +547,16 @@ Please try restarting the application.`
 });
 
 app.on('before-quit', () => {
+  // 设置退出标志，确保窗口关闭时不阻止退出
+  (app as any).isQuitting = true;
+
+  // 清理托盘
+  if (tray) {
+    tray.destroy();
+    tray = null;
+  }
+
+  // 终止服务器进程
   if (serverProcess) {
     serverProcess.kill();
     serverProcess = null;
@@ -414,23 +564,20 @@ app.on('before-quit', () => {
 });
 
 // 将需要监听的事件告知 IPC渲染器
-const registeredIPCCallbacks: Array<() => void> = []; 
+const registeredIPCCallbacks: Array<() => void> = [];
 
-// 为窗口设置 IPC 通信
-if (mainWindow) {
-  // 监听检查更新请求
-  ipcMain.handle('check-for-updates', async () => {
-    await updateManager.checkForUpdates();
-  });
-  
-  // 监听安装更新请求
-  ipcMain.handle('quit-and-install', () => {
-    updateManager.quitAndInstall();
-  });
-  
-  // 添加清理函数到数组中
-  registeredIPCCallbacks.push(() => {
-    ipcMain.removeHandler('check-for-updates');
-    ipcMain.removeHandler('quit-and-install');
-  });
-}
+// 注册更新相关 IPC handler（无条件注册，不依赖 mainWindow 是否存在）
+// 原先包裹在 if (mainWindow) 中导致 mainWindow 为 null 时 handler 未注册，
+// 前端调用 ipcRenderer.invoke('check-for-updates') 会抛出 "No handler registered" 错误
+ipcMain.handle('check-for-updates', async () => {
+  await updateManager.checkForUpdates();
+});
+
+ipcMain.handle('quit-and-install', () => {
+  updateManager.quitAndInstall();
+});
+
+registeredIPCCallbacks.push(() => {
+  ipcMain.removeHandler('check-for-updates');
+  ipcMain.removeHandler('quit-and-install');
+});

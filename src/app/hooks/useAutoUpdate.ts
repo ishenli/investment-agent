@@ -4,9 +4,9 @@ import type { UpdateInfo, DownloadProgress, UpdateError } from '@/types/electron
 type UpdateStatus = 
   | 'idle'           // 初始状态
   | 'checking'       // 检查中
-  | 'available'      // 有新版本可用
-  | 'downloading'    // 下载中
-  | 'downloaded'     // 下载完成
+  | 'available'      // 有新版本可用（静默模式：引导用户前往 GitHub Releases 下载）
+  | 'downloading'    // 下载中（增量更新恢复后使用）
+  | 'downloaded'     // 下载完成（增量更新恢复后使用）
   | 'up-to-date'     // 已是最新版本
   | 'error';         // 错误
 
@@ -26,6 +26,15 @@ interface UseAutoUpdateReturn {
 /**
  * 自动更新 Hook
  * 用于在前端组件中集成 Electron 自动更新功能
+ * 
+ * 当前策略（静默模式）：
+ * - 由于签名问题暂时禁用增量更新（autoDownload = false）
+ * - 检测到新版本时，显示状态提示并引导用户前往 GitHub Releases 手动下载
+ * - 不弹出下载进度条和安装弹窗
+ * 
+ * 增量更新恢复方式：
+ * 1. 在 electron/updater.ts 中将 autoDownload 改回 true
+ * 2. 在 about/page.tsx 中恢复 handleInstallUpdate 和下载进度显示
  */
 export function useAutoUpdate(): UseAutoUpdateReturn {
   const [status, setStatus] = useState<UpdateStatus>('idle');
@@ -99,9 +108,11 @@ export function useAutoUpdate(): UseAutoUpdateReturn {
         
       await window.electronAPI.updater.checkForUpdates();
     } catch (err) {
-      console.error('检查更新失败:', err);
+      const errMsg = err instanceof Error ? err.message : String(err);
+      console.error('检查更新失败:', errMsg);
       setStatus('error');
-      setError({ message: '检查更新失败' });
+      // 使用 i18n key 作为 code，message 附带原始错误信息供调试
+      setError({ message: 'about.update.checkFailed', detail: errMsg });
     }
   }, []);
 

@@ -60,3 +60,5 @@ run
 /release/
 /memory/
 /workspace/
+
+.logs
