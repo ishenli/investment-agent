@@ -4,8 +4,9 @@
 
 记忆管理系统为投资 AI 助手提供双层记忆能力：
 
-1. **短期记忆（Session-Level）**：使用 Claude Agent SDK Hooks + 工作区 Markdown 文件，实现对话过程中实时记忆提取和上下文保持
-2. **长期记忆（Persistent）**：使用 SQLite 数据库存储，支持用户手动管理和跨会话持久化
+1. **短期记忆（Session-Level）**：使用 Claude Agent SDK Hooks + Markdown 文件，实现对话过程中实时记忆提取和上下文保持，3 天自动清理
+2. **长期记忆（Persistent）**：使用 SQLite 数据库存储，支持用户手动管理和跨会话持久化，支持 Vector + BM25 混合搜索
+3. **身份层（Identity Layer）**：使用 SQLite 存储 Agent 人格配置，每次会话必定加载
 
 ## ADDED Requirements
 
@@ -24,14 +25,14 @@ The system SHALL use Claude Agent SDK hooks to automatically extract and store u
 #### Scenario: Short-term memory file format (user-level)
 
 - **WHEN** short-term memory is created
-- **THEN** the system SHALL create a markdown file in `.investment-agent/memory/users/{userId}/`
+- **THEN** the system SHALL create a markdown file in `{getProjectRoot()}/memory/users/{userId}/{category}.md`
 - **AND** include YAML frontmatter with category, source, importance, created_at, updated_at
 - **AND** include markdown content with the memory details
 
 #### Scenario: Load short-term memory on conversation start
 
 - **WHEN** conversation starts or resumes
-- **THEN** the system SHALL read all markdown files from `.investment-agent/memory/users/{userId}/`
+- **THEN** the system SHALL read all markdown files from `{getProjectRoot()}/memory/users/{userId}/`
 - **AND** inject the content into the conversation context
 
 #### Scenario: Auto-cleanup expired memories (3 days)
@@ -50,17 +51,17 @@ The system SHALL provide persistent storage for user memories in SQLite database
 #### Scenario: Create memory manually
 
 - **WHEN** user creates a new memory through the UI
-- **THEN** the system SHALL store the memory in the `memories` table
+- **THEN** the system SHALL store the memory in the `agent_memories` table
 - **AND** set `source` to `manual`
 - **AND** generate auto-increment id
 - **AND** set `createdAt` and `updatedAt` timestamps
 
 #### Scenario: Create memory automatically
 
-- **WHEN** AI extracts a memory during conversation and user confirms
-- **THEN** the system SHALL store the memory in the `memories` table
-- **AND** set `source` to `auto`
-- **AND** link to the source session via `sessionId`
+- **WHEN** AI extracts a memory during conversation with importance >= 7
+- **THEN** the system SHALL store the memory in the `agent_memories` table
+- **AND** set `source` to `agent_extracted`
+- **AND** automatically promote from short-term memory
 
 #### Scenario: Soft delete memory
 
@@ -70,23 +71,51 @@ The system SHALL provide persistent storage for user memories in SQLite database
 
 ---
 
+### Requirement: Agent Profiles (Identity Layer)
+
+The system SHALL provide persistent storage for agent identity configuration in SQLite database.
+
+#### Scenario: Profile types
+
+- **WHEN** the system initializes agent profiles
+- **THEN** the system SHALL support the following profile types:
+  - `soul`: Agent core identity and behavior guidelines
+  - `user_context`: User-specific context and background
+  - `investment_style`: User's investment style and preferences
+
+#### Scenario: Load profiles on session start
+
+- **WHEN** conversation starts
+- **THEN** the system SHALL load all profile types for the user
+- **AND** inject into the system prompt for AI context
+
+#### Scenario: Get profile
+
+- **WHEN** `GET /api/memory/profile?type={profileType}` is called
+- **THEN** return the profile content for the specified type
+- **OR** return null if not found
+
+#### Scenario: Upsert profile
+
+- **WHEN** `PUT /api/memory/profile` is called with profile data
+- **THEN** create or update the profile for the user
+- **AND** set `updatedAt` timestamp
+- **AND** return the updated profile
+
+---
+
 ### Requirement: Memory Categories
 
-The system SHALL support the following memory categories: investment_preference, risk_tolerance, trading_strategy, position_rule, market_view, personal_info, other.
+The system SHALL support the following memory categories: investment_preference, trading_strategy, position_rule, market_view, investment_decision, personal_info.
 
 #### Scenario: Categorize investment preference
 
-- **WHEN** user creates a memory about investment style (e.g., "偏好科技股", "价值投资")
+- **WHEN** user creates a memory about investment style or risk appetite (e.g., "偏好科技股", "价值投资", "风险承受能力中等")
 - **THEN** the system SHALL categorize it as `investment_preference`
-
-#### Scenario: Categorize risk tolerance
-
-- **WHEN** user creates a memory about risk appetite (e.g., "风险承受能力中等", "保守型投资者")
-- **THEN** the system SHALL categorize it as `risk_tolerance`
 
 #### Scenario: Categorize trading strategy
 
-- **WHEN** user creates a memory about trading approach (e.g., "止损线5%", "分批建仓")
+- **WHEN** user creates a memory about trading approach (e.g., "止损线5%", "分批建仓", "止盈条件")
 - **THEN** the system SHALL categorize it as `trading_strategy`
 
 #### Scenario: Categorize position rule
@@ -99,11 +128,21 @@ The system SHALL support the following memory categories: investment_preference,
 - **WHEN** user creates a memory about market outlook (e.g., "看好AI板块", "谨慎看待高估值股票")
 - **THEN** the system SHALL categorize it as `market_view`
 
+#### Scenario: Categorize investment decision
+
+- **WHEN** user creates a memory about specific buy/sell decisions (e.g., "买入 AAPL，理由是...")
+- **THEN** the system SHALL categorize it as `investment_decision`
+
+#### Scenario: Categorize personal info
+
+- **WHEN** user creates a memory about personal background (e.g., "5年投资经验", "主要投资美股")
+- **THEN** the system SHALL categorize it as `personal_info`
+
 ---
 
 ### Requirement: Memory API Endpoints
 
-The system SHALL provide REST API endpoints for memory CRUD operations.
+The system SHALL provide REST API endpoints for memory CRUD operations and profile management.
 
 #### Scenario: GET /api/memory
 
@@ -135,14 +174,20 @@ The system SHALL provide REST API endpoints for memory CRUD operations.
 - **AND** set `deletedAt` to current timestamp
 - **OR** return 404 if memory not found
 
-#### Scenario: POST /api/memory/sync
+#### Scenario: GET /api/memory/profile
 
-- **WHEN** authenticated user requests to sync short-term to long-term memory
-- **THEN** read markdown files from `.investment-agent/memory/users/{userId}/`
-- **AND** parse each file's frontmatter and content
-- **AND** create long-term memory records
-- **AND** optionally delete the synced short-term memory files
-- **AND** return the created long-term memories
+- **WHEN** authenticated user makes GET request to `/api/memory/profile?type={profileType}`
+- **THEN** return the profile content for the specified type
+- **AND** profileType SHALL be one of: `soul`, `user_context`, `investment_style`
+- **OR** return null if not found
+
+#### Scenario: PUT /api/memory/profile
+
+- **WHEN** authenticated user sends PUT request with profile data
+- **THEN** validate required fields: `profileType`, `content`
+- **AND** create or update the profile for the user
+- **AND** set `updatedAt` timestamp
+- **AND** return the updated profile object
 
 ---
 
@@ -165,14 +210,13 @@ The system SHALL provide a MemoryService for memory business logic operations.
 - **AND** limit to specified count (default 10)
 - **AND** return the memories
 
-#### Scenario: Sync short-term to long-term
+#### Scenario: Promote short-term to long-term
 
-- **WHEN** `syncShortTermToLongTerm(userId)` is called
-- **THEN** read short-term memory files from `.investment-agent/memory/users/{userId}/`
-- **AND** parse and validate memory content
-- **AND** create long-term memory records
-- **AND** optionally delete the synced short-term memory files
-- **AND** return the created memories
+- **WHEN** `promoteToLongTerm(userId, category, content, importance)` is called
+- **AND** importance >= 7
+- **THEN** create long-term memory record in `agent_memories` table
+- **AND** set `source` to `agent_extracted`
+- **AND** optionally delete the corresponding short-term memory file
 
 #### Scenario: Update memory
 
@@ -190,29 +234,59 @@ The system SHALL provide a MemoryService for memory business logic operations.
 - **AND** return success status
 - **OR** return failure if not found or not owned
 
+#### Scenario: Get profile
+
+- **WHEN** `getProfile(userId, profileType)` is called
+- **THEN** return the profile content for the specified type
+- **OR** return null if not found
+
+#### Scenario: Upsert profile
+
+- **WHEN** `upsertProfile(userId, profileType, content)` is called
+- **THEN** create or update the profile
+- **AND** return the updated profile
+
 ---
 
 ### Requirement: Memory Repository Layer
 
-The system SHALL provide a MemoryRepository for memory data access.
+The system SHALL provide a MemoryRepository for memory data access and a ProfileRepository for profile data access.
 
-#### Scenario: Repository inheritance
+#### Scenario: MemoryRepository inheritance
 
 - **WHEN** the `MemoryRepository` is created
 - **THEN** it SHALL extend `BaseIntRepository`
-- **AND** it SHALL provide type-safe CRUD operations
+- **AND** it SHALL provide type-safe CRUD operations for `agent_memories` table
 
-#### Scenario: Find by user
+#### Scenario: Find memories by user
 
 - **WHEN** `findByUserId(userId)` is called
 - **THEN** return all non-deleted memories for the user
 - **AND** order by `importance` DESC, `updatedAt` DESC
 
-#### Scenario: Find by user and category
+#### Scenario: Find memories by user and category
 
 - **WHEN** `findByUserIdAndCategory(userId, category)` is called
 - **THEN** return non-deleted memories matching both criteria
 - **AND** order by `importance` DESC, `updatedAt` DESC
+
+#### Scenario: ProfileRepository inheritance
+
+- **WHEN** the `ProfileRepository` is created
+- **THEN** it SHALL extend `BaseIntRepository`
+- **AND** it SHALL provide type-safe CRUD operations for `agent_profiles` table
+
+#### Scenario: Find profile by user and type
+
+- **WHEN** `findByUserIdAndType(userId, profileType)` is called
+- **THEN** return the profile for the specified user and type
+- **OR** return null if not found
+
+#### Scenario: Upsert profile
+
+- **WHEN** `upsertProfile(userId, profileType, content)` is called
+- **THEN** create or update the profile
+- **AND** update `updatedAt` timestamp
 
 ---
 
@@ -222,8 +296,8 @@ The system SHALL provide a service for managing short-term memory markdown files
 
 #### Scenario: Write short-term memory (user-level)
 
-- **WHEN** `writeShortTermMemory(userId, category, content)` is called
-- **THEN** create `.investment-agent/memory/users/{userId}/{category}.md`
+- **WHEN** `writeShortTermMemory(userId, category, content, importance)` is called
+- **THEN** create `{getProjectRoot()}/memory/users/{userId}/{category}.md`
 - **AND** include YAML frontmatter (category, source, importance, created_at, updated_at)
 - **AND** write markdown content
 
@@ -231,7 +305,7 @@ The system SHALL provide a service for managing short-term memory markdown files
 
 - **WHEN** `readShortTermMemories(userId)` is called
 - **THEN** trigger automatic cleanup of expired memories
-- **AND** read all markdown files from `.investment-agent/memory/users/{userId}/`
+- **AND** read all markdown files from `{getProjectRoot()}/memory/users/{userId}/`
 - **AND** parse frontmatter and content
 - **AND** return array of memory objects
 
@@ -341,12 +415,13 @@ The system SHALL provide a memory management page at `/settings/memory` for user
 
 ### Requirement: Memory Injection to Chat Context
 
-The system SHALL automatically inject both short-term and long-term memories into chat context.
+The system SHALL automatically inject identity profiles, short-term and long-term memories into chat context.
 
 #### Scenario: Inject memories on conversation start
 
 - **WHEN** user starts a new conversation or sends a message
-- **THEN** retrieve relevant long-term memories via MemoryService
+- **THEN** load identity profiles from `agent_profiles` table
+- **AND** retrieve relevant long-term memories via MemoryService
 - **AND** read short-term memory files
 - **AND** format memories as context text
 - **AND** include in the system prompt for the AI
@@ -356,16 +431,19 @@ The system SHALL automatically inject both short-term and long-term memories int
 - **WHEN** memories are injected into context
 - **THEN** format as:
   ```
-  ## 用户投资记忆
+  ## 关于你的用户
 
-  ### 长期记忆
-  - [偏好] 偏好科技股投资
-  - [风险] 风险承受能力：中等
+  ### 投资风格画像
+  {agent_profiles.investment_style 内容}
 
-  ### 当前会话记忆
-  - 用户提及：希望关注AI板块
+  ### 长期记忆（核心偏好）
+  - [investment_preference] 偏好科技股投资
+  - [position_rule] 单一持仓不超过 20%
+
+  ### 近期会话记忆（最近3天）
+  {短期记忆 Markdown 文件内容}
   ```
-- **AND** limit to top 10 most important memories
+- **AND** limit to top 10 most important long-term memories
 - **AND** include category label for each memory
 
 ---

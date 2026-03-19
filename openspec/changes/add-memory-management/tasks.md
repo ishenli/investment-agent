@@ -1,216 +1,338 @@
 # 任务：Memory Management
 
-**输入**：用户需求 - 为投资助手添加记忆功能（双层架构）
-**前置条件**：plan.md（必需）
-**参考**：项目规范
+**输入**：plan.md（必读） + openclaw-memory-design.md（参考）
+**前置条件**：plan.md 已确认
+**参考**：项目规范 `.claude/rules/`
 
 **测试**：
 - 类型检查：`npm run types:check`
 - 单元测试：`npm test`
 
-**组织方式**：任务按 User Stories 分组，支持增量交付和独立验证。
+**组织方式**：任务按阶段分组，支持增量交付和独立验证。
 
 ## 格式说明
 
 `[ID] [P?] [US?] 描述`
-- **[P]**：可并行（不同文件，无依赖）
-- **[US?]**：所属用户故事（P1, P2, P3...）
+- **[P]**：可与同阶段其他 [P] 任务并行（不同文件，无依赖）
+- **[US?]**：所属用户故事（P1-P4）
 
 ## 路径约定
 
 | 类型 | 路径 |
 |------|------|
-| API Routes | `src/app/api/memory/route.ts` |
-| Service | `src/server/service/memoryService.ts` |
+| DB Schema | `drizzle/schema/memory.ts` |
+| Core Memory | `src/server/core/memory/` |
+| LangGraph Nodes | `src/server/core/deepagents/investmentAdvisorAgent/nodes/` |
 | Repository | `src/server/repository/memoryRepository.ts` |
-| SDK Hooks | `src/server/core/claude/memoryHooks.ts` |
+| Service | `src/server/service/memoryService.ts` |
+| API Routes | `src/app/api/memory/route.ts` |
 | Store | `src/app/store/memory/` |
-| Components | `src/app/(pages)/settings/memory/` |
+| UI | `src/app/(pages)/settings/memory/` |
 | Types | `src/types/memory.ts` |
-| Short-term Memory | `.investment-agent/memory/` |
 
 ---
 
-## 第0阶段：准备（设计与验证）
+## 第0阶段：准备
 
-- [ ] T00 创建变更目录结构 `openspec/changes/add-memory-management/` <!-- id: 0 -->
-- [ ] T01 编写 proposal.md 描述变更意图和影响 <!-- id: 1 -->
-- [ ] T02 编写 spec delta 规范变更 <!-- id: 2 -->
-- [ ] T03 运行 `openspec validate add-memory-management --strict` 验证 <!-- id: 3 -->
+- [ ] T00 确认 proposal.md、plan.md、spec.md 内容一致，无遗漏变更点 <!-- id: 0 -->
+- [ ] T01 运行 `openspec validate add-memory-management --strict` 验证规范 <!-- id: 1 -->
 
 ---
 
-## 第1阶段：设置（基础设施）
+## 第1阶段：数据库 Schema（两张新表）
 
-**目的**：项目初始化和类型定义
+**目的**：建立数据库表结构，是所有后续工作的基础
 
-- [ ] T004 在 `src/types/memory.ts` 定义记忆类型（短期/长期） <!-- id: 4 -->
-- [ ] T005 [P] 在 `drizzle/schema.ts` 添加 memories 表定义（长期记忆） <!-- id: 5 -->
-- [ ] T006 [P] 创建 `.investment-agent/memory/` 目录结构（短期记忆） <!-- id: 6 -->
+- [ ] T10 [P] 新建 `drizzle/schema/memory.ts`，定义两张表 <!-- id: 10 -->
+  - `agent_memories`：长期记忆（userId, category, content, source, importance, accessCount, lastAccessedAt, embedding, createdAt, updatedAt, deletedAt）
+  - `agent_profiles`：身份配置（userId, profileType, content, createdAt, updatedAt）
+  - 添加索引：`idx_agent_memories_user_category`、`idx_agent_memories_importance`、`idx_agent_profiles_user_type`（unique）
 
----
+- [ ] T11 [P] 在 `drizzle/schema.ts` 中导入并 re-export `drizzle/schema/memory.ts` <!-- id: 11 -->
 
-## 第2阶段：基础（服务层）
+- [ ] T12 执行 `npm run db:generate` 生成 migration 文件 <!-- id: 12 -->
 
-**目的**：核心业务逻辑和数据访问，必须在 UI 前完成
+- [ ] T13 执行 `npm run db:migrate` 应用 migration <!-- id: 13 -->
 
-**⚠️ 关键**：此阶段完成前不应开始 UI 工作
+- [ ] T14 [P] 在 `src/types/memory.ts` 定义 TypeScript 类型 <!-- id: 14 -->
+  ```typescript
+  type MemoryCategory = 'investment_preference' | 'trading_strategy' | 'position_rule' | 'market_view' | 'investment_decision' | 'personal_info'
+  type MemorySource = 'manual' | 'agent_extracted' | 'system'
+  type ProfileType = 'soul' | 'user_context' | 'investment_style'
+  interface AgentMemory { ... }
+  interface AgentProfile { ... }
+  interface ShortTermMemoryItem { category, content, source, importance, createdAt, updatedAt }
+  interface SessionContext { soul, userCtx, investStyle, shortTermMemories, coreMemories }
+  interface ExtractedMemory { category, content, importance }
+  interface MemorySearchResult { id, score, content, category }
+  ```
 
-### 长期记忆（SQLite）
-
-- [ ] T007 [P] 在 `src/server/repository/memoryRepository.ts` 实现 Repository <!-- id: 7 -->
-- [ ] T008 [P] 在 `src/server/service/memoryService.ts` 实现服务层 <!-- id: 8 -->
-
-### 短期记忆（SDK Hooks + Markdown）
-
-- [ ] T009 在 `src/server/core/claude/memoryHooks.ts` 实现 SDK Hooks <!-- id: 9 -->
-- [ ] T010 在 `src/server/core/claude/memoryFileService.ts` 实现短期记忆文件管理 <!-- id: 10 -->
-- [ ] T011 在 `claudeClient.ts` 集成 memory hooks <!-- id: 11 -->
-
-### 测试
-
-- [ ] T012 编写服务层单元测试 <!-- id: 12 -->
-
-**检查点**：业务逻辑就绪，可以开始 API/UI 实现
+**检查点**：`npm run types:check` 通过，migration 文件生成
 
 ---
 
-## 第3阶段：API
+## 第2阶段：核心 Memory 模块
 
-- [ ] T013 在 `src/app/api/memory/route.ts` 实现 API Route <!-- id: 13 -->
-- [ ] T014 添加请求验证（Zod schema） <!-- id: 14 -->
-- [ ] T015 添加错误处理和日志记录 <!-- id: 15 -->
-- [ ] T016 实现 `POST /api/memory/sync` 同步短期记忆到长期记忆 <!-- id: 16 -->
-- [ ] T017 编写 API 集成测试 <!-- id: 17 -->
+**目的**：实现 `src/server/core/memory/` 下的全部模块
 
----
+**⚠️ 关键**：此阶段完成前不应开始 LangGraph/API/UI 工作
 
-## 第4阶段：User Story 1 - 手动管理长期记忆 (优先级：P1) 🎯 MVP
+### 2a. Repository 层
 
-**目标**：用户可以手动添加投资相关的长期记忆，系统会在对话中自动使用这些记忆
-**独立测试**：在设置页面添加记忆，开始新对话，AI 引用该记忆
+- [ ] T20 [P] 实现 `src/server/repository/memoryRepository.ts` <!-- id: 20 -->
+  - 继承 `BaseIntRepository`
+  - `agent_memories`：`findByUserId`、`findByUserIdAndCategory`、`upsert`（按 content 语义去重）、`softDelete`、`updateAccessCount`
+  - `agent_profiles`：`findByUserIdAndType`、`upsertProfile`
 
-### 实现
+### 2b. Embedding Provider
 
-- [ ] T018 [P] [US1] 在 `src/app/store/memory/` 创建 Store <!-- id: 18 -->
-- [ ] T019 [P] [US1] 在 `src/app/(pages)/settings/memory/page.tsx` 创建记忆管理页面 <!-- id: 19 -->
-- [ ] T020 [US1] 在页面中集成组件和 Store <!-- id: 20 -->
-- [ ] T021 [US1] 添加加载/错误状态处理 <!-- id: 21 -->
-- [ ] T022 [US1] 添加记忆分类筛选功能 <!-- id: 22 -->
-- [ ] T023 [US1] 验证响应式布局 <!-- id: 23 -->
-- [ ] T024 [US1] 编写组件单元测试 <!-- id: 24 -->
+- [ ] T21 [P] 实现 `src/server/core/memory/embedding-provider.ts` <!-- id: 21 -->
+  - 复用现有 `MODEL_PROVIDER_URL` 发起 embedding 请求
+  - 返回 `number[]`，序列化为 JSON 存入 SQLite
+  - 不可用时静默 fallback（返回 null）
 
-**检查点**：US1 功能完整可用
+### 2c. 混合搜索引擎
 
----
+- [ ] T22 实现 `src/server/core/memory/memory-search.ts`（依赖 T21） <!-- id: 22 -->
+  - Vector 搜索（70% 权重）：从 embedding JSON 计算余弦相似度
+  - BM25 关键词搜索（30% 权重）：SQLite FTS5 或手动 TF-IDF
+  - Reciprocal Rank Fusion 融合排序（k=60）
+  - 无向量时自动降级为纯 BM25
+  - 搜索后异步更新 `accessCount` 和 `lastAccessedAt`
 
-## 第5阶段：User Story 2 - SDK Hooks 自动提取短期记忆 (优先级：P2)
+### 2d. 短期记忆文件服务
 
-**目标**：AI 在对话中自动通过 SDK Hooks 提取用户偏好，存储到短期记忆文件
-**独立测试**：对话中提及偏好，系统自动创建短期记忆文件
+- [ ] T23 [P] 实现 `src/server/core/memory/short-term-memory.ts` <!-- id: 23 -->
+  - `writeMemory(userId, category, content, importance)`：写入 Markdown 文件到 `{getProjectRoot()}/memory/users/{userId}/{category}.md`
+  - `readMemories(userId)`：读取用户所有短期记忆文件
+  - `cleanupExpired(userId)`：清理 3 天前的文件
+  - `deleteMemory(userId, category)`：删除指定分类的记忆文件
+  - 文件格式：YAML frontmatter + markdown content
 
-### 实现
+### 2e. 渐进式记忆提取器
 
-- [ ] T025 [US2] 实现 PostToolUse hook 分析对话内容 <!-- id: 25 -->
-- [ ] T026 [US2] 实现记忆提取逻辑（识别投资偏好、风险态度等） <!-- id: 26 -->
-- [ ] T027 [US2] 实现短期记忆文件写入（Markdown 格式） <!-- id: 27 -->
-- [ ] T028 [US2] 验证自动提取流程 <!-- id: 28 -->
+- [ ] T24 [P] 实现 `src/server/core/memory/memory-extractor.ts` <!-- id: 24 -->
+  - 投资场景定制 Prompt（提取投资偏好/持仓策略/关注标的/个人背景/近期关注点）
+  - 触发条件：累计消息数 >= 3
+  - 增量更新：输出 JSON 数组 `[{category, content, importance}]`
+  - 不提取：临时报价、一次性闲聊、已过时信息
 
----
+### 2f. 上下文压缩前冲刷
 
-## 第6阶段：User Story 3 - 记忆注入对话 (优先级：P2)
+- [ ] T25 实现 `src/server/core/memory/memory-flush.ts`（依赖 T23） <!-- id: 25 -->
+  - `shouldFlush(currentTokens, contextWindow)`：阈值 = contextWindow - 20000 - 4000
+  - `flush(userId, context)`：
+    1. LLM 提炼当前上下文的持久化摘要
+    2. 写入短期记忆文件（short-term-memory）
+    3. importance >= 7 的记忆自动晋升 agent_memories
 
-**目标**：长期记忆和短期记忆自动注入到对话上下文中
-**独立测试**：有记忆的用户开始对话，AI 响应中体现记忆内容
+### 2g. MemoryManager（核心调度）
 
-### 实现
+- [ ] T26 实现 `src/server/core/memory/memory-manager.ts`（依赖 T20-T25） <!-- id: 26 -->
+  - `loadSessionContext(userId)`：并行加载 soul + user_context + investment_style + 短期记忆 + importance>=7 记忆
+  - `extractAndStore(userId, messages)`：调用 MemoryExtractor → writeShortTermMemory → upsertMemory(importance>=7) → 异步生成 embedding
+  - `search(userId, query, limit=6)`：委托 MemorySearch.hybridSearch
+  - `flushBeforeCompaction(userId, context)`：委托 MemoryFlusher.flush
+  - `buildMemoryPrompt(ctx)`：生成注入 System Prompt 的记忆上下文文本
 
-- [ ] T029 [US3] 实现长期记忆检索（按重要性排序） <!-- id: 29 -->
-- [ ] T030 [US3] 实现短期记忆文件读取 <!-- id: 30 -->
-- [ ] T031 [US3] 在 System Prompt 中注入记忆内容 <!-- id: 31 -->
-- [ ] T032 [US3] 验证记忆正确注入到对话上下文 <!-- id: 32 -->
+- [ ] T27 新建 `src/server/core/memory/index.ts` 统一导出 <!-- id: 27 -->
 
----
+### 2h. 测试
 
-## 第7阶段：User Story 4 - 短期记忆同步到长期记忆 (优先级：P3)
+- [ ] T28 编写核心模块单元测试 <!-- id: 28 -->
+  - `MemoryExtractor.extract()` 输出格式验证
+  - `MemorySearch` RRF 融合逻辑验证
+  - `MemoryFlusher.shouldFlush()` 阈值验证
+  - `ShortTermMemory` 文件读写验证
+  - `MemoryManager.loadSessionContext()` 集成测试
 
-**目标**：用户可以将短期记忆同步到长期记忆，实现跨会话保留
-**独立测试**：对话结束后，用户确认保存，记忆出现在长期记忆列表
-
-### 实现
-
-- [ ] T033 [US4] 实现同步 API `POST /api/memory/sync` <!-- id: 33 -->
-- [ ] T034 [US4] 在对话结束 UI 添加"保存记忆"按钮 <!-- id: 34 -->
-- [ ] T035 [US4] 实现短期记忆文件解析并写入 SQLite <!-- id: 35 -->
-- [ ] T036 [US4] 验证同步流程 <!-- id: 36 -->
-
----
-
-## 第8阶段：完善与质量保证
-
-**目的**：跨用户的改进和质量检查
-
-- [ ] T037 运行 `npm run lint` 并修复问题 <!-- id: 37 -->
-- [ ] T038 运行 `npm run types:check` 确保类型正确 <!-- id: 38 -->
-- [ ] T039 运行 `npm test` 确保测试通过 <!-- id: 39 -->
-- [ ] T040 添加/更新用户文档（如需要） <!-- id: 40 -->
-- [ ] T041 性能优化审查 <!-- id: 41 -->
+**检查点**：`npm test` 全通，`npm run types:check` 通过
 
 ---
 
-## 第9阶段：归档准备
+## 第3阶段：Claude Agent SDK Hooks 集成
 
-- [ ] T042 更新所有 TODO 状态为完成 <!-- id: 42 -->
-- [ ] T043 验证所有场景在 spec.md 中已实现 <!-- id: 43 -->
+**目的**：在 `claudeClient.ts` 的 `streamClaude()` 中接入记忆系统
+
+- [ ] T30 实现 `src/server/core/claude/memoryHooks.ts`（依赖 T26） <!-- id: 30 -->
+  - `createMemoryHooks(userId, memoryManager)`：返回 SDK hooks 配置对象
+  - `PostModelTurn` hook：异步调用 `memoryManager.extractAndStore()`，不阻塞响应
+  - token 阈值检测：接近上限时调用 `memoryManager.flushBeforeCompaction()`
+
+- [ ] T31 修改 `claudeClient.ts` 的 `streamClaude()` 集成记忆（依赖 T30） <!-- id: 31 -->
+  - 会话启动前：调用 `memoryManager.loadSessionContext(userId)` 并 `buildMemoryPrompt()`
+  - 将记忆上下文追加到 `queryOptions.systemPrompt`
+  - 将 `memoryHooks` 合并到 `queryOptions.hooks`
+
+- [ ] T32 验证 SDK Hooks 集成：对话启动时 system prompt 包含记忆内容 <!-- id: 32 -->
+
+- [ ] T33 验证 PostModelTurn Hook：对话结束后短期记忆文件和 agent_memories 有新数据 <!-- id: 33 -->
+
+**检查点**：对话中 AI 能引用上一次对话的偏好信息
+
+---
+
+## 第4阶段：服务层 + API
+
+**目的**：暴露 REST API 供前端使用
+
+### 服务层
+
+- [ ] T40 [P] 实现 `src/server/service/memoryService.ts`（依赖 T20） <!-- id: 40 -->
+  - `createMemory(userId, data)` / `updateMemory(userId, id, data)` / `deleteMemory(userId, id)`
+  - `listMemories(userId, category?)` → 按 importance DESC, updatedAt DESC
+  - `retrieveRelevantMemories(userId, limit=10)` → 供 LangGraph 直接调用
+  - `getProfiles(userId)` / `upsertProfile(userId, type, content)`
+
+### API Route
+
+- [ ] T41 实现 `src/app/api/memory/route.ts`（依赖 T40） <!-- id: 41 -->
+  - `GET /api/memory?category=` → 列出长期记忆
+  - `POST /api/memory` → 创建（source=user_explicit）
+  - `PUT /api/memory/[id]` → 更新
+  - `DELETE /api/memory/[id]` → 软删除
+  - `GET /api/memory/profile?type=` → 获取身份配置
+  - `PUT /api/memory/profile` → 更新身份配置
+
+- [ ] T42 添加 Zod 请求验证 + 错误处理 <!-- id: 42 -->
+
+- [ ] T43 编写 API 集成测试 <!-- id: 43 -->
+
+**检查点**：API 端点可正常调用，返回正确数据
+
+---
+
+## 第5阶段：User Story P2 - 手动管理长期记忆 🎯 MVP UI
+
+**目标**：用户可在设置页面 CRUD 长期记忆，下次对话 AI 会引用
+**独立测试**：在设置页面添加"偏好价值投资"，开始新对话，AI 回复中引用该偏好
+
+### 状态管理
+
+- [ ] T50 [P] [US2] 实现 `src/app/store/memory/index.ts`（Zustand） <!-- id: 50 -->
+  - State：`memories[]`、`loading`、`error`、`activeCategory`
+  - Actions：`fetchMemories`、`createMemory`、`updateMemory`、`deleteMemory`、`setCategory`
+
+### UI 组件
+
+- [ ] T51 [P] [US2] 实现记忆管理页面 `src/app/(pages)/settings/memory/page.tsx` <!-- id: 51 -->
+  - 记忆列表（展示 content、category badge、importance 星级、source 来源标签）
+  - 分类筛选 Tabs（全部 / 投资偏好 / 持仓规则 / 市场洞察 / 投资决策）
+  - 空状态引导文案："记忆的提取是渐进式的，积累更多对话，助理会更懂你"
+
+- [ ] T52 [US2] 实现新增/编辑记忆 Dialog <!-- id: 52 -->
+  - content textarea、category select、importance slider(1-10)
+  - 表单验证 + 保存/取消
+
+- [ ] T53 [US2] 实现删除确认 Dialog <!-- id: 53 -->
+
+- [ ] T54 [US2] 在 Settings 侧边栏导航中添加「记忆」入口（Brain 图标） <!-- id: 54 -->
+
+- [ ] T55 [US2] 添加 i18n 翻译键（zh-CN + en-US） <!-- id: 55 -->
+  - 页面标题、按钮、分类标签、空状态文案、表单 label
+
+- [ ] T56 [US2] 验证响应式布局 <!-- id: 56 -->
+
+**检查点**：US P2 功能完整可用，AI 在对话中引用手动添加的记忆
+
+---
+
+## 第6阶段：User Story P1 - 渐进式自动提取记忆
+
+**目标**：对话后自动提取偏好，3次以上对话后效果明显提升
+**独立测试**：对话中说"我偏好价值投资，不喜欢追涨"，结束后 agent_memories 出现新条目
+
+- [ ] T60 [US1] 在 saveMemoryNode 中实现渐进式触发逻辑 <!-- id: 60 -->
+  - 前 2 次对话：只写短期记忆文件，不触发 extractor
+  - 第 3+ 次对话：触发 MemoryExtractor，增量 upsert
+
+- [ ] T61 [US1] 初始化 Agent Soul Profile（第一次使用时自动创建） <!-- id: 61 -->
+  - 投资分析师身份定义（参考 openclaw-memory-design.md §2.8）
+  - 包含：核心身份、行为准则、记忆管理规则
+
+- [ ] T62 [US1] 在对话 UI 中展示"记忆已更新"轻提示 <!-- id: 62 -->
+  - saveMemoryNode 完成后通过 SSE/WebSocket 推送通知
+  - 前端显示 toast："助理记住了一些新内容"
+
+- [ ] T63 [US1] 验证渐进式提取效果 <!-- id: 63 -->
+  - 3 次对话后 agent_memories 有正确分类的条目
+  - 重复信息不重复写入（upsert 去重）
+
+**检查点**：US P1 验证通过
+
+---
+
+## 第7阶段：User Story P3 - 高价值记忆自动晋升
+
+**目标**：importance >= 7 的短期记忆自动成为长期记忆
+**独立测试**：用户明确说"我的止损线是5%，这是铁律"，系统自动升入长期记忆
+
+- [ ] T70 [US3] 在 MemoryFlusher.flush() 和 saveMemoryNode 中实现晋升逻辑 <!-- id: 70 -->
+  - importance >= 7 的条目 upsert 到 agent_memories
+  - source 标记为 `agent_extracted`
+
+- [ ] T71 [US3] 在记忆管理页面展示自动提取的记忆（source=agent_extracted 标签区分） <!-- id: 71 -->
+
+- [ ] T72 [US3] 验证晋升流程 <!-- id: 72 -->
+
+**检查点**：US P3 验证通过
+
+---
+
+## 第8阶段：User Story P4 - 上下文压缩前记忆冲刷
+
+**目标**：长会话 token 接近上限时，重要内容自动持久化
+**独立测试**：模拟长会话，token 接近阈值，flush 后重启会话，AI 依然记得关键决策
+
+- [ ] T80 [US4] 在 LangGraph Agent 的 token 监测点调用 `MemoryFlusher.shouldFlush()` <!-- id: 80 -->
+- [ ] T81 [US4] 触发 flush 后向前端发送轻提示（"正在整理记忆..."） <!-- id: 81 -->
+- [ ] T82 [US4] 验证 flush 后重启会话，记忆内容完整保留 <!-- id: 82 -->
+
+**检查点**：US P4 验证通过
+
+---
+
+## 第9阶段：完善与质量保证
+
+- [ ] T90 [P] 运行 `npm run lint` 并修复所有问题 <!-- id: 90 -->
+- [ ] T91 [P] 运行 `npm run types:check` 确保零类型错误 <!-- id: 91 -->
+- [ ] T92 运行 `npm test` 确保所有测试通过 <!-- id: 92 -->
+- [ ] T93 性能审查：记忆检索确保 < 100ms（SQLite explain query plan） <!-- id: 93 -->
+- [ ] T94 安全审查：所有 DB 查询验证 userId 隔离 <!-- id: 94 -->
+
+---
+
+## 第10阶段：归档准备
+
+- [ ] T100 确认所有 tasks 状态为完成 <!-- id: 100 -->
+- [ ] T101 验证 spec.md 中所有场景均已实现 <!-- id: 101 -->
+- [ ] T102 更新 spec.md 中仍引用旧路径的场景描述 <!-- id: 102 -->
 
 ---
 
 ## 依赖关系
 
-### 阶段依赖
-
-- **准备（第0阶段）**：立即进行
-- **设置（第1阶段）**：依赖准备完成
-- **基础（第2阶段）**：依赖设置 - 阻塞 API/UI
-- **API（第3阶段）**：依赖基础阶段
-- **User Stories**：依赖 API 和基础阶段
-- **完善**：依赖期望的 US 完成
-
-### 并行机会
-
-- 长期记忆和短期记忆的基础设施可以并行构建
-- Store 与 UI 组件可以并行开发
-- Repository 和 Service 可以并行构建
-
----
-
-## 技术要点
-
-### Claude Agent SDK Hooks 集成
-
-```typescript
-// 在 claudeClient.ts 中集成
-import { createMemoryHooks } from './memoryHooks';
-
-// 在 queryOptions.hooks 中添加
-const memoryHooks = createMemoryHooks(userId, sessionId);
-queryOptions.hooks = {
-  ...existingHooks,
-  PostToolUse: [
-    ...(existingHooks.PostToolUse || []),
-    ...memoryHooks.PostToolUse,
-  ],
-};
+```
+第0阶段（准备）
+    ↓
+第1阶段（Schema + Migration） ← 所有后续工作的基础
+    ↓
+第2阶段（Core Memory Modules）← 并行：T20/T21/T23/T24 可并行，T22依赖T21，T25依赖T23，T26依赖T20-T25
+    ↓
+第3阶段（SDK Hooks集成）+ 第4阶段（Service+API）← 可并行进行
+    ↓
+第5阶段（手动管理UI）← MVP
+    ↓
+第6阶段（渐进式提取）+ 第7阶段（自动晋升）← 可并行
+    ↓
+第8阶段（Flush冲刷）
+    ↓
+第9阶段（QA）→ 第10阶段（归档）
 ```
 
-### 短期记忆文件路径（用户维度，3天）
+### 关键并行机会
 
-```
-.investment-agent/
-└── memory/
-    └── users/
-        └── {userId}/
-            ├── preferences.md
-            ├── context.md
-            └── extracted.md
-```
+- T10（Schema 两表）与 T14（Types 定义）可并行
+- T20（Repository）、T21（Embedding）、T23（ShortTermMemory）、T24（Extractor）可并行
+- T30（loadMemoryNode）与 T40（Service）可并行
+- T50（Store）与 T51（UI 框架）可并行
