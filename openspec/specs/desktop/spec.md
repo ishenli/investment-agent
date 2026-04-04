@@ -1,6 +1,10 @@
-## ADDED Requirements
+# desktop Specification
+
+## Purpose
+TBD - created by archiving change add-system-tray-support. Update Purpose after archive.
+## Requirements
 ### Requirement: System Tray Minimization
-应用程序应在用户点击关闭按钮时最小化到系统托盘而不是退出，从而允许后台任务继续运行。
+应用程序 SHALL 在用户点击关闭按钮时最小化到系统托盘而不是退出，从而允许后台任务继续运行。
 
 #### Scenario: Close button minimizes to tray
 - **GIVEN** 应用正在运行且窗口可见
@@ -46,3 +50,4 @@ On macOS, the application SHALL handle dock icon visibility appropriately when m
 - **WHEN** 用户最小化到托盘
 - **THEN** Dock 图标应被隐藏（可选，根据用户偏好）
 - **AND** 托盘图标应在菜单栏可见
+
