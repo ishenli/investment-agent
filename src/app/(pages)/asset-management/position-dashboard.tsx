@@ -309,7 +309,7 @@ export function PositionManagement() {
               </div>
               <div className="flex gap-2">
                 <Select value={filterMarket} onValueChange={setFilterMarket}>
-                  <SelectTrigger className="w-full md:w-36">
+                  <SelectTrigger className="w-full md:w-40">
                     <FilterIcon className="h-4 w-4 mr-2" />
                     <SelectValue placeholder={t('filter.market')} />
                   </SelectTrigger>
@@ -340,49 +340,48 @@ export function PositionManagement() {
                       {getSortIcon('symbol')}
                     </div>
                   </TableHead>
-                  <TableHead
-                    className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-                    onClick={() => handleSort('market')}
-                  >
-                    <div className="flex items-center">
-                      {t('table.market')}
-                      {getSortIcon('market')}
+                  <TableHead className="hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-xs">{t('table.holdingInfo')}</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          className="flex items-center text-xs hover:text-foreground text-muted-foreground"
+                          onClick={() => handleSort('marketValue')}
+                        >
+                          {t('table.marketValue')}
+                          {getSortIcon('marketValue')}
+                        </button>
+                        <span className="text-muted-foreground">/</span>
+                        <button
+                          className="flex items-center text-xs hover:text-foreground text-muted-foreground"
+                          onClick={() => handleSort('quantity')}
+                        >
+                          {t('table.quantity')}
+                          {getSortIcon('quantity')}
+                        </button>
+                      </div>
                     </div>
                   </TableHead>
-                  <TableHead
-                    className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-                    onClick={() => handleSort('quantity')}
-                  >
-                    <div className="flex items-center">
-                      {t('table.quantity')}
-                      {getSortIcon('quantity')}
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-                    onClick={() => handleSort('averageCost')}
-                  >
-                    <div className="flex items-center">
-                      {t('table.averageCost')}
-                      {getSortIcon('averageCost')}
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-                    onClick={() => handleSort('currentPrice')}
-                  >
-                    <div className="flex items-center">
-                      {t('table.currentPrice')}
-                      {getSortIcon('currentPrice')}
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-                    onClick={() => handleSort('marketValue')}
-                  >
-                    <div className="flex items-center">
-                      {t('table.marketValue')}
-                      {getSortIcon('marketValue')}
+                  <TableHead className="hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-xs">{t('table.priceInfo')}</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          className="flex items-center text-xs hover:text-foreground text-muted-foreground"
+                          onClick={() => handleSort('currentPrice')}
+                        >
+                          {t('table.currentPrice')}
+                          {getSortIcon('currentPrice')}
+                        </button>
+                        <span className="text-muted-foreground">/</span>
+                        <button
+                          className="flex items-center text-xs hover:text-foreground text-muted-foreground"
+                          onClick={() => handleSort('averageCost')}
+                        >
+                          {t('table.averageCost')}
+                          {getSortIcon('averageCost')}
+                        </button>
+                      </div>
                     </div>
                   </TableHead>
                   <TableHead
@@ -401,6 +400,15 @@ export function PositionManagement() {
                     <div className="flex items-center">
                       {t('table.positionRatio')}
                       {getSortIcon('positionRatio')}
+                    </div>
+                  </TableHead>
+                  <TableHead
+                    className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                    onClick={() => handleSort('market')}
+                  >
+                    <div className="flex items-center">
+                      {t('table.market')}
+                      {getSortIcon('market')}
                     </div>
                   </TableHead>
                   <TableHead>{t('table.actions')}</TableHead>
@@ -451,38 +459,31 @@ export function PositionManagement() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={position.market === 'HK' ? 'secondary' : 'default'}>
-                        {marketToChinese(position.market)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{position.quantity}</TableCell>
-                    <TableCell>
-                      <span
-                        className={
-                          position.currentPrice > position.averageCost
-                            ? 'text-green-500'
-                            : position.currentPrice < position.averageCost
-                              ? 'text-red-500'
-                              : ''
-                        }
-                      >
-                        {formatPrice(position.averageCost, currency.symbol, currency.rate)}
-                      </span>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-medium">
+                          {formatValueWhole(position.marketValue, currency.symbol, currency.rate)}
+                        </span>
+                        <span className="text-xs text-muted-foreground">{position.quantity}</span>
+                      </div>
                     </TableCell>
                     <TableCell>
-                      <span
-                        className={
-                          position.currentPrice > position.averageCost
-                            ? 'text-green-500'
-                            : position.currentPrice < position.averageCost
-                              ? 'text-red-500'
-                              : ''
-                        }
-                      >
-                        {formatPrice(position.currentPrice, currency.symbol, currency.rate)}
-                      </span>
+                      <div className="flex flex-col gap-0.5">
+                        <span
+                          className={
+                            position.currentPrice > position.averageCost
+                              ? 'text-green-500 font-medium'
+                              : position.currentPrice < position.averageCost
+                                ? 'text-red-500 font-medium'
+                                : 'font-medium'
+                          }
+                        >
+                          {formatPrice(position.currentPrice, currency.symbol, currency.rate)}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatPrice(position.averageCost, currency.symbol, currency.rate)}
+                        </span>
+                      </div>
                     </TableCell>
-                    <TableCell>{formatValueWhole(position.marketValue, currency.symbol, currency.rate)}</TableCell>
                     <TableCell>
                       <div className="flex items-center">
                         {position.unrealizedPnL >= 0 ? (
@@ -505,6 +506,11 @@ export function PositionManagement() {
                       ) : (
                         <span>N/A</span>
                       )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={position.market === 'HK' ? 'secondary' : 'default'}>
+                        {marketToChinese(position.market)}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">

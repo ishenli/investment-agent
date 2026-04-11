@@ -158,7 +158,7 @@ export class TencentAdapter extends PriceSourceAdapter {
     return result;
   }
 
-  async healthCheck(): Promise<boolean> {
+  async healthCheck(_accountId?: string): Promise<boolean> {
     try {
       // 使用一个常见的港股代码进行健康检查
       const result = await this.fetchQuote({ symbol: '00700', market: 'HK' });

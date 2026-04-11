@@ -71,17 +71,6 @@ The system SHALL provide SKILL.md file operations via SkillInstaller for custom 
 ### Requirement: Skills Data Storage
 The system SHALL store skill user preferences in a `skills` table with fields: id, slug, source, isEnabled, icon, userId, createdAt, updatedAt, deletedAt. Content data (name, description, prompt, category) SHALL be stored in SKILL.md files.
 
-#### Scenario: Persist skill preference on create
-- **WHEN** a new custom skill is created
-- **THEN** create SKILL.md file with frontmatter and prompt
-- **AND** insert a preference record into the skills table
-- **AND** set createdAt and updatedAt timestamps
-
-#### Scenario: Update skill on toggle
-- **WHEN** skill enable status is toggled
-- **THEN** update the isEnabled field in the skills table
-- **AND** update the updatedAt timestamp
-
 #### Scenario: Auto-sync built-in skills on initialisation
 - **WHEN** the application initialises for an authenticated user
 - **THEN** the system MUST call `skillService.syncBuiltinSkills(userId)`

@@ -8,6 +8,8 @@ export interface QuoteRequest {
   symbol: string;
   /** 市场类型 */
   market: MarketType;
+  /** 账户 ID，用于获取用户配置（如 API Key），可选 */
+  accountId?: string;
 }
 
 /**

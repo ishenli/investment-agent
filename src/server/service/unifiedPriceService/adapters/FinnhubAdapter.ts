@@ -3,25 +3,79 @@ import type { MarketType } from '@typings/asset';
 import type { QuoteRequest, QuoteResponse } from '@server/service/unifiedPriceService/types';
 import { PriceSourceAdapter } from './PriceSourceAdapter';
 import { finnhubClient, isFinnhubApiKeySet } from '@server/dataflows/finnhubUtil';
+import settingService from '@server/service/settingService';
+import accountService from '@server/service/accountService';
 
 /**
  * Finnhub 数据源适配器
  *
- * 支持 US 和 CN 市场的资产价格获取。
+ * 支持 US 市场的资产价格获取。
  * 不支持批量查询，使用循环调用单个接口。
+ *
+ * API Key 获取优先级：
+ * 1. 用户 setting 配置 (FINNHUB_API_KEY) - 按账户区分
+ * 2. 环境变量 FINNHUB_API_KEY (兜底)
  */
 export class FinnhubAdapter extends PriceSourceAdapter {
   name = 'finnhub';
   supportedMarkets: MarketType[] = ['US'];
   supportsBatch = false;
 
-  async fetchQuote(request: QuoteRequest): Promise<QuoteResponse | null> {
-    const { symbol, market } = request;
+  /**
+   * 动态获取 Finnhub API Key
+   * 优先级：用户 setting > 环境变量
+   *
+   * @param accountId 账户 ID，用于获取用户 setting
+   * @returns API Key 或 null
+   */
+  private async getApiKey(accountId?: string): Promise<string | null> {
+    // 优先从用户 setting 获取
+    if (accountId) {
+      try {
+        const account = await accountService.getTradingAccount(accountId);
+        if (account) {
+          const userId = account.userId.toString();
+          const setting = await settingService.getSettingByKey(userId, 'FINNHUB_API_KEY');
+          if (setting?.value) {
+            logger.debug(`[FinnhubAdapter] Using FINNHUB_API_KEY from user setting`);
+            return setting.value;
+          }
+        }
+      } catch (error) {
+        logger.warn(`[FinnhubAdapter] Failed to get API key from setting:`, error);
+      }
+    }
 
-    if (!isFinnhubApiKeySet()) {
-      logger.warn('[FinnhubAdapter] FINNHUB_API_KEY not set');
+    // 兜底：环境变量
+    if (isFinnhubApiKeySet()) {
+      logger.debug(`[FinnhubAdapter] Using FINNHUB_API_KEY from environment variable`);
+      return process.env.FINNHUB_API_KEY!;
+    }
+
+    return null;
+  }
+
+  /**
+   * 配置 Finnhub 客户端的 API Key
+   *
+   * @param apiKey API Key
+   */
+  private configureClient(apiKey: string): void {
+    const apiKeyAuth = finnhubClient.apiClient.authentications['api_key'] as { apiKey: string };
+    apiKeyAuth.apiKey = apiKey;
+  }
+
+  async fetchQuote(request: QuoteRequest): Promise<QuoteResponse | null> {
+    const { symbol, market, accountId } = request;
+
+    const apiKey = await this.getApiKey(accountId);
+    if (!apiKey) {
+      logger.warn('[FinnhubAdapter] FINNHUB_API_KEY not configured (no setting or env var)');
       return null;
     }
+
+    // 动态配置客户端
+    this.configureClient(apiKey);
 
     if (!this.supportedMarkets.includes(market)) {
       logger.warn(`[FinnhubAdapter] Market ${market} not supported`);
@@ -97,10 +151,14 @@ export class FinnhubAdapter extends PriceSourceAdapter {
     return null;
   }
 
-  async healthCheck(): Promise<boolean> {
-    if (!isFinnhubApiKeySet()) {
+  async healthCheck(accountId?: string): Promise<boolean> {
+    const apiKey = await this.getApiKey(accountId);
+    if (!apiKey) {
       return false;
     }
+
+    // 配置客户端
+    this.configureClient(apiKey);
 
     try {
       // 使用一个常见的股票代码进行健康检查

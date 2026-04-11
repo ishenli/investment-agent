@@ -34,7 +34,7 @@ export class AuthService {
    */
   async getCurrentUserId(request?: Request): Promise<string> {
     if (!request) {
-      logger.warn('getCurrentUserId called without request object');
+      // logger.warn('getCurrentUserId called without request object');
       return this.getDefaultUserId();
     }
 

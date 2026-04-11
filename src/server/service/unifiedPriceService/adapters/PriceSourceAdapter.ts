@@ -77,9 +77,10 @@ export abstract class PriceSourceAdapter {
   /**
    * 健康检查，验证适配器的数据源是否可用
    *
+   * @param accountId 账户 ID，用于获取用户配置（如 API Key）
    * @returns 数据源是否可用
    */
-  abstract healthCheck(): Promise<boolean>;
+  abstract healthCheck(accountId?: string): Promise<boolean>;
 
   /**
    * 检查是否支持指定的市场

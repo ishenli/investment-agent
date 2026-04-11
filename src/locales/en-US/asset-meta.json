@@ -32,6 +32,28 @@
     },
     "title": "Asset Basic Information"
   },
+  "companyInfo": {
+    "buttons": {
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving..."
+    },
+    "editTitle": "Edit Company Info",
+    "addTitle": "Add Company Info",
+    "description": "Please enter the title and content of the company info",
+    "error": "Error",
+    "fields": {
+      "content": "Content",
+      "title": "Title"
+    },
+    "placeholders": {
+      "content": "Please enter content",
+      "title": "Please enter title"
+    },
+    "validation": {
+      "titleAndContentRequired": "Title and content cannot be empty"
+    }
+  },
   "delete": {
     "confirm": "Are you sure you want to delete this record?",
     "failed": "Delete failed",
@@ -162,6 +184,8 @@
     }
   },
   "investmentMemo": {
+    "addDescription": "Please enter supplementary notes about this asset",
+    "addTitle": "Add Notes",
     "buttons": {
       "cancel": "Cancel",
       "save": "Save",

@@ -32,6 +32,28 @@
     },
     "title": "资产基本信息"
   },
+  "companyInfo": {
+    "buttons": {
+      "cancel": "取消",
+      "save": "保存",
+      "saving": "保存中..."
+    },
+    "editTitle": "编辑公司纪要",
+    "addTitle": "添加公司纪要",
+    "description": "请输入公司纪要的标题和内容",
+    "error": "错误",
+    "fields": {
+      "content": "内容",
+      "title": "标题"
+    },
+    "placeholders": {
+      "content": "请输入内容",
+      "title": "请输入标题"
+    },
+    "validation": {
+      "titleAndContentRequired": "标题和内容不能为空"
+    }
+  },
   "delete": {
     "confirm": "确定要删除这条记录吗？",
     "failed": "删除失败",
@@ -162,6 +184,8 @@
     }
   },
   "investmentMemo": {
+    "addDescription": "请输入关于该资产的补充纪要",
+    "addTitle": "补充纪要",
     "buttons": {
       "cancel": "取消",
       "save": "保存",
