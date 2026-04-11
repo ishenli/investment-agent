@@ -1,23 +1,36 @@
 import logger from '@server/base/logger';
 import assetCompanyInfoService from '@server/service/assetCompanyInfoService';
+import assetMetaService from '@server/service/assetMetaService';
 import { tool as langchainTool } from 'langchain';
 import { tool as claudeTool } from '@anthropic-ai/claude-agent-sdk';
 import z from 'zod';
 
 /**
- *资代号参数 Schema
+ * 资产代号参数 Schema
  */
 const AssetSymbolParams = z.object({
   symbol: z.string().describe('资产代号、可能是公司名称、股票、ETF等'),
 });
 
 /**
- *公信息查询核心逻辑
+ * 公司信息查询核心逻辑，同时附加 asset_meta 中的 investment_memo
  */
 async function executeCompanyInfoQuery(symbol: string): Promise<string> {
   logger.info(`[recallCompanyInfoTool]: ${symbol}`);
   try {
-    const result = await assetCompanyInfoService.getLatestAssetCompanyInfoBySymbol(symbol);
+    const [companyInfo, assetMetas] = await Promise.all([
+      assetCompanyInfoService.getLatestAssetCompanyInfoBySymbol(symbol),
+      assetMetaService.searchAssetMetasBySymbol(symbol),
+    ]);
+
+    const investmentMemo =
+      assetMetas.find((m) => m.investmentMemo)?.investmentMemo ?? null;
+
+    const result = {
+      companyInfo,
+      investmentMemo,
+    };
+
     return JSON.stringify(result, null, 2);
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : '未知错误';

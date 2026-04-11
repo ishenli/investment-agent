@@ -1,7 +1,4 @@
-import { tool, createSdkMcpServer } from '@anthropic-ai/claude-agent-sdk';
-import { z } from 'zod';
-import { searchAssetInfo } from '@server/dataflows/finnhubUtil';
-import logger from '@server/base/logger';
+import { createSdkMcpServer } from '@anthropic-ai/claude-agent-sdk';
 import { 
   noteQueryClaudeTool, 
   TravilySearchClaudeTool,

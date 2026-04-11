@@ -121,6 +121,8 @@ The system SHALL store skill user preferences in a `skills` table with fields: i
 - **AND** synced skills MUST have `source = 'official'` and `isEnabled = true` by default
 - **AND** stale DB rows (skills no longer on FS) MUST be pruned
 
+---
+
 ### Requirement: SKILL.md File Format
 The system SHALL use a standardized SKILL.md file format with YAML frontmatter and Markdown content.
 
@@ -300,6 +302,3 @@ The system SHALL provide SKILL.md file operations via SkillInstaller for custom 
 - **WHEN** `skillInstaller.deleteCustomSkillFiles(slug)` is called
 - **THEN** remove the entire skill directory `{skillsRoot}/{slug}/`
 - **AND** log success message
-
----
-
