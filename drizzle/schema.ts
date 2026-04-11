@@ -431,6 +431,20 @@ export const skills = sqliteTable('skills', {
   uniqueIndex('idx_skills_user_slug_unique').on(table.userId, table.slug),
 ]);
 
+// 汇率表：存储货币对汇率信息
+export const exchangeRates = sqliteTable('exchange_rates', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  fromCurrency: text('from_currency').notNull(),      // 源货币：HKD, CNY
+  toCurrency: text('to_currency').notNull().default('USD'),  // 目标货币：默认 USD
+  rate: real('rate').notNull(),                        // 汇率值
+  source: text('source', { enum: ['manual', 'api', 'default'] }).default('manual'), // 来源：manual, api, default
+  lastUpdated: integer('last_updated', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+}, (table) => [
+  uniqueIndex('idx_exchange_rates_pair_unique').on(table.fromCurrency, table.toCurrency),
+]);
+
 // ============== Chat Storage Tables ==============
 // 聊天存储相关表，从 drizzle/schema/chat.ts 导入
 export {

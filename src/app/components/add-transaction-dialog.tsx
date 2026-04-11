@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from '@renderer/components/ui/select';
 import { useAssetStore } from '@renderer/store/asset/store';
-import { CURRENCY_SYMBOLS, EXCHANGE_RATES } from '@shared/constant';
+import { CURRENCY_SYMBOLS } from '@shared/constant';
 import { TransactionType } from '@/types';
 import { AssetType, MarketType } from '@typings/asset';
 import { useState } from 'react';
@@ -19,6 +19,7 @@ import { Alert, AlertTitle } from './ui/alert';
 import { AlertCircleIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
+import { useExchangeRates } from '@/app/hooks/useExchangeRates';
 
 interface AddTransactionDialogProps {
   open: boolean;
@@ -41,21 +42,22 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
   const addTransaction = useAssetStore((state) => state.addTransaction);
   const addTransactionsError = useAssetStore((state) => state.addTransactionsError);
   const queryClient = useQueryClient();
+  const { convertToUSD } = useExchangeRates();
 
   // 获取当前市场对应的货币符号
   const getCurrencySymbol = (market: MarketType) => {
     return CURRENCY_SYMBOLS[market] || '$';
   };
 
-  // 将金额转换为美元
-  const convertToUSD = (amount: number, market: MarketType): number => {
+  // 将市场类型转换为货币代码
+  const marketToCurrency = (market: MarketType): string => {
     switch (market) {
       case 'HK':
-        return amount * EXCHANGE_RATES.HKD_TO_USD;
+        return 'HKD';
       case 'CN':
-        return amount * EXCHANGE_RATES.CNY_TO_USD;
+        return 'CNY';
       default:
-        return amount; // USD 不需要转换
+        return 'USD';
     }
   };
 
@@ -70,7 +72,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
       // 处理出入金
       if (type === 'deposit' || type === 'withdrawal') {
         const originalAmount = parseFloat(amount);
-        const usdAmount = convertToUSD(originalAmount, currencyType);
+        const usdAmount = convertToUSD(originalAmount, marketToCurrency(currencyType));
 
         transactionData = {
           type: type,
@@ -84,8 +86,8 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
         const originalQuantity = parseFloat(quantity);
         const originalPrice = parseFloat(price);
         const originalTotalAmount = originalQuantity * originalPrice;
-        const usdTotalAmount = convertToUSD(originalTotalAmount, marketType);
-        const usdPrice = convertToUSD(originalPrice, marketType);
+        const usdTotalAmount = convertToUSD(originalTotalAmount, marketToCurrency(marketType));
+        const usdPrice = convertToUSD(originalPrice, marketToCurrency(marketType));
 
         transactionData = {
           type,

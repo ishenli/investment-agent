@@ -362,11 +362,38 @@
   "sidebar": {
     "about": "About",
     "agent": "Agent",
+    "exchange": "Exchange Rate",
     "general": "General",
     "provider": "Provider",
     "theme": "Theme",
     "skills": "Skills",
     "tool": "Tool"
+  },
+  "exchange": {
+    "title": "Exchange Rate Settings",
+    "description": "Manage currency exchange rates for currency conversion calculations",
+    "loading": "Loading...",
+    "error": "Failed to load exchange rates",
+    "currentRates": "Current Exchange Rates",
+    "currentRatesDescription": "Display exchange rates for various currencies to USD",
+    "fetchOnline": "Fetch Online",
+    "resetDefaults": "Reset to Defaults",
+    "about": "About Exchange Rates",
+    "save": "Save",
+    "lastUpdated": "Last Updated",
+    "initDefaults": "Initialize Default Rates",
+    "rateInvalid": "{{currency}} rate value is invalid",
+    "rateUpdated": "{{currency}} rate has been updated",
+    "rateSaveFailed": "Failed to save {{currency}} rate",
+    "aboutTip1": "Exchange rates are used to convert amounts in different currencies to USD for unified calculation",
+    "aboutTip2": "\"Fetch Online\" retrieves the latest real-time exchange rates from a free API",
+    "aboutTip3": "\"Reset to Defaults\" resets the exchange rates to system preset values",
+    "aboutTip4": "Manually modified rates will be saved until the next update",
+    "source": {
+      "manual": "Manual",
+      "api": "Online API",
+      "default": "System Default"
+    }
   },
   "theme": {
     "backgroundColorExample": "This is a background color example",

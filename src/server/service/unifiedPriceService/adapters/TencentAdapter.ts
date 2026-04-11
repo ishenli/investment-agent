@@ -1,6 +1,6 @@
 import axios from 'axios';
 import logger from '@server/base/logger';
-import { EXCHANGE_RATES } from '@shared/constant';
+import exchangeRateService from '@server/service/exchangeRateService';
 import type { MarketType } from '@typings/asset';
 import type {
   QuoteRequest,
@@ -11,17 +11,19 @@ import { PriceSourceAdapter } from './PriceSourceAdapter';
 
 
 /**
- * HKD 转 USD 的汇率转换
+ * HKD 转 USD 的汇率转换（使用动态汇率）
  */
-function hkdToUsd(hkd: number): number {
-  return Number((hkd * EXCHANGE_RATES.HKD_TO_USD).toFixed(4));
+async function hkdToUsd(hkd: number): Promise<number> {
+  const rate = await exchangeRateService.getRate('HKD', 'USD');
+  return Number((hkd * rate).toFixed(4));
 }
 
 /**
- * CNY 转 USD 的汇率转换
+ * CNY 转 USD 的汇率转换（使用动态汇率）
  */
-function cnyToUsd(cny: number): number {
-  return Number((cny * EXCHANGE_RATES.CNY_TO_USD).toFixed(4));
+async function cnyToUsd(cny: number): Promise<number> {
+  const rate = await exchangeRateService.getRate('CNY', 'USD');
+  return Number((cny * rate).toFixed(4));
 }
 
 /**
@@ -95,13 +97,14 @@ export class TencentAdapter extends PriceSourceAdapter {
       const stocksData = this.parseResponseData(response.data);
 
       // 匹配请求数据
-      requests.forEach((request) => {
+      for (const request of requests) {
         const stockData = stocksData[request.symbol];
         if (stockData) {
           const isHK = request.market === 'HK';
+          const price = isHK ? await hkdToUsd(stockData.price) : await cnyToUsd(stockData.price);
           succeeded.push({
             symbol: request.symbol,
-            price: isHK ? hkdToUsd(stockData.price) : cnyToUsd(stockData.price),
+            price,
             currency: isHK ? 'HKD' : 'CNY',
             timestamp: new Date(),
             source: 'tencent',
@@ -114,7 +117,7 @@ export class TencentAdapter extends PriceSourceAdapter {
             error: 'No data returned from Tencent API',
           });
         }
-      });
+      }
     } catch (error) {
       // 整体请求失败，所有股票都标记为失败
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';

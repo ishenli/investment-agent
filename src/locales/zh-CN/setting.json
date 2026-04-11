@@ -362,10 +362,37 @@
   "sidebar": {
     "about": "关于",
     "agent": "智能体设置",
+    "exchange": "汇率设置",
     "general": "通用设置",
     "provider": "模型设置",
     "theme": "主题设置",
     "tool": "工具设置"
+  },
+  "exchange": {
+    "title": "汇率设置",
+    "description": "管理货币汇率配置，用于货币转换计算",
+    "loading": "加载中...",
+    "error": "加载汇率失败",
+    "currentRates": "当前汇率",
+    "currentRatesDescription": "显示各货币对 USD 的转换汇率",
+    "fetchOnline": "从在线获取",
+    "resetDefaults": "恢复默认",
+    "about": "关于汇率",
+    "save": "保存",
+    "lastUpdated": "最后更新",
+    "initDefaults": "初始化默认汇率",
+    "rateInvalid": "{{currency}} 汇率值无效",
+    "rateUpdated": "{{currency}} 汇率已更新",
+    "rateSaveFailed": "{{currency}} 汇率保存失败",
+    "aboutTip1": "汇率用于将不同货币的金额转换为美元进行统一计算",
+    "aboutTip2": "「从在线获取」将从免费的汇率 API 获取最新的实时汇率",
+    "aboutTip3": "「恢复默认」将汇率重置为系统预设的默认值",
+    "aboutTip4": "手动修改的汇率会被保存，直到下次更新",
+    "source": {
+      "manual": "手动设置",
+      "api": "在线获取",
+      "default": "系统默认"
+    }
   },
   "theme": {
     "backgroundColorExample": "这是背景色示例",

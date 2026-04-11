@@ -14,8 +14,9 @@ import { useAssetStore } from '@renderer/store/asset/store';
 import { TransactionRecordType, TransactionType } from '@typings/index';
 import { AssetType, MarketType } from '@typings/asset';
 import { useState, useEffect } from 'react';
-import { CURRENCY_SYMBOLS, EXCHANGE_RATES } from '@shared/constant';
+import { CURRENCY_SYMBOLS } from '@shared/constant';
 import { useQueryClient } from '@tanstack/react-query';
+import { useExchangeRates } from '@/app/hooks/useExchangeRates';
 
 interface EditTransactionDialogProps {
   open: boolean;
@@ -41,6 +42,7 @@ export function EditTransactionDialog({
   const fetchTransactions = useAssetStore((state) => state.fetchTransactions);
   const updateTransaction = useAssetStore((state) => state.updateTransaction);
   const queryClient = useQueryClient();
+  const { convertToUSD } = useExchangeRates();
 
   // 资金类型状态
   const [currencyType, setCurrencyType] = useState<MarketType>('US');
@@ -50,15 +52,15 @@ export function EditTransactionDialog({
     return CURRENCY_SYMBOLS[market] || '$';
   };
 
-  // 将金额转换为美元
-  const convertToUSD = (amount: number, market: MarketType): number => {
+  // 将市场类型转换为货币代码
+  const marketToCurrency = (market: MarketType): string => {
     switch (market) {
       case 'HK':
-        return amount * EXCHANGE_RATES.HKD_TO_USD;
+        return 'HKD';
       case 'CN':
-        return amount * EXCHANGE_RATES.CNY_TO_USD;
+        return 'CNY';
       default:
-        return amount; // USD 不需要转换
+        return 'USD';
     }
   };
 
@@ -103,7 +105,7 @@ export function EditTransactionDialog({
       // 处理出入金
       if (type === 'deposit' || type === 'withdrawal') {
         const originalAmount = parseFloat(amount);
-        const usdAmount = convertToUSD(originalAmount, currencyType);
+        const usdAmount = convertToUSD(originalAmount, marketToCurrency(currencyType));
 
         transactionData = {
           type: type,

@@ -42,19 +42,9 @@ import { EditPositionDialog } from './components/EditPositionDialog';
 import { PositionType } from '@typings/position';
 import { Skeleton } from '@renderer/components/ui/skeleton';
 import Link from 'next/link';
-import { marketToChinese, USD_TO_HKD, USD_TO_CNY } from '@/shared';
+import { marketToChinese } from '@/shared';
 import { useTranslation } from 'react-i18next';
-
-// 辅助函数：根据市场筛选条件获取货币信息
-const getCurrencyByFilter = (filterMarket: string) => {
-  if (filterMarket === '港股' || filterMarket === 'HK') {
-    return { symbol: 'HK$', rate: USD_TO_HKD, currency: 'HKD' };
-  }
-  if (filterMarket === 'A股' || filterMarket === 'CN') {
-    return { symbol: '¥', rate: USD_TO_CNY, currency: 'CNY' };
-  }
-  return { symbol: '$', rate: 1, currency: 'USD' };
-};
+import { useExchangeRates } from '@/app/hooks/useExchangeRates';
 
 // 辅助函数：格式化价格显示
 const formatPrice = (price: number, currencySymbol: string, rate: number) => {
@@ -90,8 +80,21 @@ export function PositionManagement() {
   const [filterMarket, setFilterMarket] = useState('all');
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: 'ascending' });
 
-  // 根据市场筛选条件获取货币信息
-  const currency = getCurrencyByFilter(filterMarket);
+  // 获取动态汇率
+  const { getRate } = useExchangeRates();
+
+  // 根据市场筛选条件获取货币信息（使用动态汇率）
+  const currency = (() => {
+    if (filterMarket === '港股' || filterMarket === 'HK') {
+      const rate = getRate('HKD', 'USD') || 0.13;
+      return { symbol: 'HK$', rate: 1 / rate, currency: 'HKD' }; // USD -> HKD
+    }
+    if (filterMarket === 'A股' || filterMarket === 'CN') {
+      const rate = getRate('CNY', 'USD') || 0.14;
+      return { symbol: '¥', rate: 1 / rate, currency: 'CNY' }; // USD -> CNY
+    }
+    return { symbol: '$', rate: 1, currency: 'USD' };
+  })();
 
   // 使用React Query获取持仓数据
   const { data: positions = [], isLoading, isError, refetch } = usePositionsQuery();

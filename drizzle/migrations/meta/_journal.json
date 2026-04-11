@@ -253,6 +253,13 @@
       "when": 1772883077066,
       "tag": "0035_sturdy_virginia_dare",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "6",
+      "when": 1775781585016,
+      "tag": "0036_brief_scarlet_spider",
+      "breakpoints": true
     }
   ]
 }

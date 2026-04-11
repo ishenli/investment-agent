@@ -9,6 +9,7 @@ import {
   IconAdjustments,
   IconInbox,
   IconBulb,
+  IconCurrencyDollar,
   type Icon,
 } from '@tabler/icons-react';
 import {
@@ -20,7 +21,7 @@ import {
 import { usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
-export type SettingsCategory = 'provider' | 'tool' | 'agent' | 'theme' | 'general' | 'about' | 'skills';
+export type SettingsCategory = 'provider' | 'tool' | 'agent' | 'theme' | 'general' | 'exchange' | 'about' | 'skills';
 
 const settingsItems: {
   id: SettingsCategory;
@@ -64,7 +65,13 @@ const settingsItems: {
     url: '/setting/theme',
     description: '切换界面主题',
   },
-  
+  {
+    id: 'exchange',
+    title: '汇率设置',
+    icon: IconCurrencyDollar,
+    url: '/setting/exchange',
+    description: '管理货币汇率配置',
+  },
   {
     id: 'skills',
     title: '技能管理',
