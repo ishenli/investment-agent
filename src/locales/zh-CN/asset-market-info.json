@@ -1,15 +1,63 @@
 {
   "actions": {
-    "addInfo": "添加信息",
-    "reload": "重新加载"
+    "addInfo": "添加市场信息",
+    "reload": "重新加载信息"
   },
   "dateRange": {
     "label": "时间范围:",
     "to": "至"
   },
+  "detail": {
+    "backToList": "返回列表",
+    "edit": "编辑",
+    "noData": {
+      "description": "未找到指定的市场信息。",
+      "title": "暂无数据"
+    },
+    "publishedAt": "发布时间",
+    "updatedAt": "更新时间",
+    "contentMode": "内容模式",
+    "contentModeAI": "AI摘要",
+    "contentModeOriginal": "原文保留",
+    "sections": {
+      "relatedAssets": "关联资产",
+      "summary": "摘要",
+      "marketImpact": "市场影响",
+      "keyTopics": "关键话题",
+      "keyDataPoints": "关键数据点",
+      "originalContent": "原始内容",
+      "source": "信息来源",
+      "sourceName": "来源名称",
+      "sourceUrl": "来源链接"
+    },
+    "sentiment": "情感",
+    "importanceLabel": "重要性"
+  },
+  "edit": {
+    "title": "编辑市场信息",
+    "fields": {
+      "title": "标题",
+      "sentiment": "情感倾向",
+      "sentimentPlaceholder": "请选择情感倾向",
+      "importance": "重要性 (1-10)",
+      "summary": "摘要",
+      "marketImpact": "市场影响",
+      "keyTopics": "关键话题",
+      "keyDataPoints": "关键数据点",
+      "sourceName": "来源名称",
+      "sourceUrl": "来源链接"
+    },
+    "buttons": {
+      "cancel": "取消",
+      "save": "保存",
+      "saving": "保存中..."
+    }
+  },
   "error": {
     "fetchFailed": "获取数据失败",
+    "fetchDetailFailed": "获取市场信息详情失败",
     "reload": "重新加载",
+    "saveFailed": "保存失败",
     "title": "错误",
     "unknown": "未知错误"
   },

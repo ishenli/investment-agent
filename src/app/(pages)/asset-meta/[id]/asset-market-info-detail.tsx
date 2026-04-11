@@ -20,7 +20,6 @@ import { LatestMarketInfoView } from './components/LatestMarketInfoView';
 import { HistoryMarketInfoView } from './components/HistoryMarketInfoView';
 import { CompanyInfoView } from './components/CompanyInfoView';
 import { AddCompanyInfoDialog } from './components/AddCompanyInfoDialog';
-import { AddMarketInfoDialog } from './components/AddMarketInfoDialog';
 import { DeleteConfirmationDialog } from './components/DeleteConfirmationDialog';
 import { InvestmentMemoView } from './components/InvestmentMemoView';
 import { BasicInfoView } from './components/BasicInfoView';
@@ -70,9 +69,6 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
   const [addCompanyInfoDialogOpen, setAddCompanyInfoDialogOpen] = useState(false);
   const [savingCompanyInfo, setSavingCompanyInfo] = useState(false);
   const [editingCompanyInfo, setEditingCompanyInfo] = useState<AssetCompanyInfoType | null>(null);
-
-  // 新增状态用于添加市场纪要模态框
-  const [addMarketInfoDialogOpen, setAddMarketInfoDialogOpen] = useState(false);
 
   // 投资笔记编辑弹窗状态
   const [investmentMemoDialogOpen, setInvestmentMemoDialogOpen] = useState(false);
@@ -276,9 +272,9 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
     }
   };
 
-  // 打开添加市场纪要对话框
-  const openAddMarketInfoDialog = () => {
-    setAddMarketInfoDialogOpen(true);
+  // 跳转到市场纪要抓取页面
+  const goToMarketInfoFetcher = () => {
+    router.push(`/asset-market-info-fetcher?assetMetaId=${assetMetaId}`);
   };
 
   // 打开添加公司信息对话框
@@ -290,22 +286,6 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
   const openEditCompanyInfoDialog = (info: AssetCompanyInfoType) => {
     setEditingCompanyInfo(info);
     setAddCompanyInfoDialogOpen(true);
-  };
-
-  // 关闭添加市场纪要对话框
-  const closeAddMarketInfoDialog = () => {
-    setAddMarketInfoDialogOpen(false);
-  };
-
-  // 保存成功后的回调函数
-  const handleAddMarketInfoSuccess = () => {
-    setAddMarketInfoDialogOpen(false);
-    // 刷新数据以显示新添加的市场纪要
-    if (activeTab === 'latest') {
-      fetchLatestMarketInfo();
-    } else if (activeTab === 'history') {
-      fetchMarketInfoList(pagination.page);
-    }
   };
 
   // 关闭添加公司信息对话框
@@ -469,7 +449,7 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onRefresh={fetchData}
-        onAddMarketInfo={openAddMarketInfoDialog}
+        onAddMarketInfo={goToMarketInfoFetcher}
         onAddCompanyInfo={openAddCompanyInfoDialog}
         onAddInvestmentMemo={
           !assetMeta?.investmentMemo ? () => setInvestmentMemoDialogOpen(true) : undefined
@@ -622,13 +602,6 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <AddMarketInfoDialog
-        open={addMarketInfoDialogOpen}
-        onOpenChange={setAddMarketInfoDialogOpen}
-        assetMetaId={assetMetaId}
-        onSuccess={handleAddMarketInfoSuccess}
-        onCancel={closeAddMarketInfoDialog}
-      />
     </div>
   );
 }

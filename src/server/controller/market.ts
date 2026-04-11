@@ -17,6 +17,23 @@ const GetMarketInfoListSchema = z.object({
   limit: z.number().int().positive().optional().default(20),
 });
 
+const UpdateMarketInfoSchema = z.object({
+  id: z.number().int().positive(),
+  assetMetaIds: z.array(z.number().int().positive()).optional(),
+  title: z.string().optional(),
+  symbol: z.string().optional(),
+  sentiment: z.string().optional(),
+  importance: z.string().optional(),
+  summary: z.string().optional(),
+  keyTopics: z.string().nullable().optional(),
+  marketImpact: z.string().optional(),
+  keyDataPoints: z.string().nullable().optional(),
+  sourceUrl: z.string().nullable().optional(),
+  sourceName: z.string().nullable().optional(),
+  originalContent: z.string().nullable().optional(),
+  contentMode: z.enum(['ai_summary', 'original']).optional(),
+});
+
 const DeleteMarketInfoSchema = z.object({
   id: z.number().int().positive(),
 });
@@ -160,6 +177,31 @@ export class MarketBizController extends BaseBizController {
     } catch (error) {
       logger.error('[MarketBizController] 获取资产市场信息列表失败:', error);
       return this.error('获取资产市场信息列表失败', 'get_asset_market_infos_error');
+    }
+  }
+
+  @WithRequestContext()
+  async updateMarketInfo(body: any) {
+    try {
+      logger.info('[MarketBizController] 收到更新市场信息请求');
+
+      const parsed = { ...body, id: typeof body.id === 'string' ? parseInt(body.id) : body.id };
+      const validationResult = UpdateMarketInfoSchema.safeParse(parsed);
+      if (!validationResult.success) {
+        return this.responseValidateError(validationResult.error);
+      }
+
+      const { id, ...rest } = validationResult.data;
+
+      const updated = await assetMarketInfoService.updateAssetMarketInfo(id, rest as any);
+      if (!updated) {
+        return this.error('未找到指定的资产市场信息', 'asset_market_info_not_found_error');
+      }
+
+      return this.success({ message: '市场信息更新成功', data: updated });
+    } catch (error) {
+      logger.error('[MarketBizController] 更新市场信息失败:', error);
+      return this.error('更新市场信息失败', 'update_market_info_error');
     }
   }
 

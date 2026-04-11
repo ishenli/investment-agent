@@ -227,7 +227,7 @@ Respond with a JSON object containing a "summary" field with the summary text.`;
 {
   "title": "string - 内容的简洁标题",
   "symbol": "string - 资产标识（比如 AAPL、01810[小米]等）",
-  "sentiment": "string - 投资判断（积极、消极、中性）",
+  "sentiment": "string - 投资判断，必须是以下英文值之一：positive（积极）、negative（消极）、neutral（中性）",
   "importance": "number - 重要性评级（1-10）",
   "summary": "string - 内容的简洁摘要",
   "keyTopics": ["string"] - 关键主题或趋势数组（最多5个）,
@@ -267,9 +267,18 @@ Respond with a JSON object containing a "summary" field with the summary text.`;
       const parsedResponse = JSON.parse(response);
 
       // 验证必要的字段
+      // 将中文 sentiment 兜底映射为英文（兼容旧 prompt 或模型不遵守约定的情况）
+      const sentimentMap: Record<string, string> = {
+        积极: 'positive',
+        消极: 'negative',
+        中性: 'neutral',
+      };
+      const rawSentiment = parsedResponse.sentiment || 'neutral';
+      const normalizedSentiment = sentimentMap[rawSentiment] ?? rawSentiment;
+
       const analysisResult = {
         title: parsedResponse.title || '未提取到标题',
-        sentiment: parsedResponse.sentiment || '未知',
+        sentiment: normalizedSentiment,
         importance: parsedResponse.importance || 5,
         summary: parsedResponse.summary || '未生成摘要',
         keyTopics: Array.isArray(parsedResponse.keyTopics) ? parsedResponse.keyTopics : [],

@@ -2,6 +2,7 @@ import {
   assetMarketInfoRepository,
   type AssetMarketInfoEntity,
   type AssetMetaDetail,
+  type CreateAssetMarketInfoData,
 } from '@server/repository/assetMarketInfoRepository';
 import { assetMetaRepository } from '@server/repository/assetMetaRepository';
 import logger from '@server/base/logger';
@@ -398,6 +399,70 @@ export class AssetMarketInfoService {
         error instanceof Error ? error.message : String(error),
       );
       return 0;
+    }
+  }
+
+  // ============== 更新操作 ==============
+
+  /**
+   * 更新 assetMarketInfo 记录
+   * @param id 记录 ID
+   * @param request 更新请求（部分字段）
+   * @returns 更新后的记录，若不存在则为 null
+   */
+  async updateAssetMarketInfo(
+    id: number,
+    request: Partial<CreateAssetMarketInfoRequest>,
+  ): Promise<AssetMarketInfoType | null> {
+    try {
+      logger.info('[AssetMarketInfoService] 开始更新资产市场信息: %d', id);
+
+      // 构造可更新的字段
+      const updateData: Partial<CreateAssetMarketInfoData> = {};
+      if (request.title !== undefined) updateData.title = request.title;
+      if (request.symbol !== undefined) updateData.symbol = request.symbol;
+      if (request.sentiment !== undefined) updateData.sentiment = request.sentiment;
+      if (request.importance !== undefined) updateData.importance = request.importance;
+      if (request.summary !== undefined) updateData.summary = request.summary;
+      if (request.keyTopics !== undefined) updateData.keyTopics = request.keyTopics ?? null;
+      if (request.marketImpact !== undefined) updateData.marketImpact = request.marketImpact;
+      if (request.keyDataPoints !== undefined) updateData.keyDataPoints = request.keyDataPoints ?? null;
+      if (request.sourceUrl !== undefined) updateData.sourceUrl = request.sourceUrl ?? null;
+      if (request.sourceName !== undefined) updateData.sourceName = request.sourceName ?? null;
+      if (request.originalContent !== undefined) updateData.originalContent = request.originalContent ?? null;
+      if (request.contentMode !== undefined) updateData.contentMode = request.contentMode;
+
+      // 如果提供了 assetMetaIds，先验证其存在
+      let assetMetaIds: number[] | undefined;
+      if (request.assetMetaIds !== undefined) {
+        const existingAssetMetas = await assetMetaRepository.findByIds(request.assetMetaIds);
+        if (existingAssetMetas.length !== request.assetMetaIds.length) {
+          throw new Error('Some AssetMetas not found');
+        }
+        assetMetaIds = request.assetMetaIds;
+      }
+
+      let updated: AssetMarketInfoEntity | null;
+      if (assetMetaIds !== undefined) {
+        updated = await assetMarketInfoRepository.updateWithRelations(id, updateData, assetMetaIds);
+      } else {
+        await assetMarketInfoRepository.update(id, updateData);
+        updated = await assetMarketInfoRepository.findById(id);
+      }
+
+      if (!updated) return null;
+
+      const relatedAssetMetaIds = await assetMarketInfoRepository.getRelatedAssetMetaIds(id);
+      const assetMetasDetails = await this.getAssetMetaDetails(relatedAssetMetaIds);
+
+      logger.info('[AssetMarketInfoService] 成功更新资产市场信息: %d', id);
+      return toAssetMarketInfoResponse(updated, relatedAssetMetaIds, assetMetasDetails);
+    } catch (error) {
+      logger.error(
+        '[AssetMarketInfoService] 更新资产市场信息失败: %s',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
     }
   }
 

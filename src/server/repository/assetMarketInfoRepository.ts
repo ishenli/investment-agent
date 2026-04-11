@@ -124,6 +124,36 @@ export class AssetMarketInfoRepository extends BaseIntRepository<AssetMarketInfo
     return marketInfo;
   }
 
+  // ============== 更新操作 ==============
+
+  /**
+   * 更新市场信息并重置关联 assetMeta
+   */
+  async updateWithRelations(
+    id: number,
+    data: Partial<CreateAssetMarketInfoData>,
+    assetMetaIds: number[],
+  ): Promise<AssetMarketInfoEntity | null> {
+    await this.update(id, data);
+
+    // 先删除旧关联
+    await (db as any)
+      .delete(assetMarketInfoToAssetMeta)
+      .where(eq(assetMarketInfoToAssetMeta.assetMarketInfoId, id));
+
+    // 插入新关联
+    if (assetMetaIds.length > 0) {
+      await (db as any).insert(assetMarketInfoToAssetMeta).values(
+        assetMetaIds.map((assetMetaId) => ({
+          assetMarketInfoId: id,
+          assetMetaId,
+        })),
+      );
+    }
+
+    return this.findById(id);
+  }
+
   // ============== 删除操作 ==============
 
   /**
