@@ -228,12 +228,6 @@ export class DatabaseManager {
    */
   public async migrate(): Promise<void> {
     try {
-      // 开发环境使用 db:push，不执行迁移
-      if (isDev()) {
-        logger.info('Development environment: skipping migration (use db:push instead)');
-        return;
-      }
-
       if (!this.db) {
         throw new Error('Database not initialized');
       }
@@ -245,7 +239,7 @@ export class DatabaseManager {
         // Electron 生产环境中使用用户数据目录中的迁移文件，cwd 指向 standalone 目录
         migrationsFolder = path.join(process.cwd(), 'drizzle/migrations');
       } else {
-        // Web 生产环境中使用项目目录中的迁移文件
+        // 开发和 Web 生产环境都使用项目目录中的迁移文件
         migrationsFolder = path.join(getProjectDir(), 'drizzle/migrations');
       }
 

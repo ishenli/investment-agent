@@ -526,6 +526,7 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
       )}
 
       <AddCompanyInfoDialog
+        key={addCompanyInfoDialogOpen ? (editingCompanyInfo?.id ?? 'new') : 'closed'}
         open={addCompanyInfoDialogOpen}
         onOpenChange={setAddCompanyInfoDialogOpen}
         onSave={handleSaveCompanyInfo}

@@ -1,39 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(mkdir:*)",
-      "Bash(openspec validate:*)",
-      "Bash(npx vitest run:*)",
-      "Bash(curl:*)",
-      "Bash(openspec list:*)",
-      "Bash(openspec show:*)",
+      "mcp__plugin_oh-my-claudecode_t__state_write",
       "Bash(openspec archive:*)",
-      "Bash(du:*)",
-      "Bash(sqlite3:*)",
-      "Bash(npx tsc:*)",
-      "Bash(npm run build:ts)",
-      "Bash(npx openspec validate:*)",
-      "Bash(npx eslint:*)",
-      "Bash(npm run lint)",
-      "Bash(npx openspec:*)",
-      "mcp__acp__Bash",
-      "mcp__acp__Write",
-      "mcp__acp__Edit",
-      "WebFetch(domain:github.com)",
-      "Bash(npm run types:check)",
-      "Bash(git diff:*)",
-      "Bash(xargs:*)",
-      "Bash(git commit:*)",
-      "Bash(pnpm add:*)",
-      "Bash(pnpm type-check:*)",
-      "Bash(pnpm test:*)",
-      "Bash(git push:*)",
-      "Bash(openspec --help:*)",
-      "Bash(pnpm tsc:*)",
-      "Bash(head:*)",
-      "Bash(pnpm openspec:*)",
-      "Bash(pnpm types:check:*)",
-      "WebSearch"
+      "Bash(openspec show:*)",
+      "Bash(openspec validate:*)",
+      "Bash(openspec list:*)"
     ]
   }
 }

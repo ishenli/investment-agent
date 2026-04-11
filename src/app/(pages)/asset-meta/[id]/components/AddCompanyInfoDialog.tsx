@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -14,6 +14,7 @@ import { Textarea } from '@renderer/components/ui/textarea';
 import { Button } from '@renderer/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@renderer/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface AddCompanyInfoDialogProps {
   open: boolean;
@@ -38,22 +39,13 @@ export function AddCompanyInfoDialog({
   setError,
   initialData,
 }: AddCompanyInfoDialogProps) {
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-
-  useEffect(() => {
-    if (open && initialData) {
-      setTitle(initialData.title);
-      setContent(initialData.content);
-    } else if (open && !initialData) {
-      setTitle('');
-      setContent('');
-    }
-  }, [open, initialData]);
+  const { t } = useTranslation('asset-meta');
+  const [title, setTitle] = useState(initialData?.title ?? '');
+  const [content, setContent] = useState(initialData?.content ?? '');
 
   const handleSave = async () => {
     if (!title.trim() || !content.trim()) {
-      setError('标题和内容不能为空');
+      setError(t('companyInfo.validation.titleAndContentRequired'));
       return;
     }
 
@@ -73,54 +65,51 @@ export function AddCompanyInfoDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl flex flex-col max-h-[80vh]">
         <DialogHeader>
-          <DialogTitle>{initialData ? '编辑公司纪要' : '添加公司纪要'}</DialogTitle>
-          <DialogDescription>请输入公司纪要的标题和内容</DialogDescription>
+          <DialogTitle>{initialData ? t('companyInfo.editTitle') : t('companyInfo.addTitle')}</DialogTitle>
+          <DialogDescription>{t('companyInfo.description')}</DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
+        <div className="space-y-4 py-4 flex-1 overflow-y-auto">
           {error && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>错误</AlertTitle>
+              <AlertTitle>{t('companyInfo.error')}</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
           <div className="flex flex-col space-y-2">
             <label htmlFor="title" className="text-sm font-medium">
-              标题
+              {t('companyInfo.fields.title')}
             </label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="请输入标题"
+              placeholder={t('companyInfo.placeholders.title')}
               disabled={saving}
             />
           </div>
           <div className="flex flex-col space-y-2">
             <label htmlFor="content" className="text-sm font-medium">
-              内容
+              {t('companyInfo.fields.content')}
             </label>
             <Textarea
               id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="请输入内容"
-              rows={6}
-              style={{
-                height: '300px',
-              }}
+              placeholder={t('companyInfo.placeholders.content')}
+              className="min-h-75 resize-none"
               disabled={saving}
             />
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={handleClose} disabled={saving}>
-            取消
+            {t('companyInfo.buttons.cancel')}
           </Button>
           <Button onClick={handleSave} disabled={saving || !title.trim() || !content.trim()}>
-            {saving ? '保存中...' : '保存'}
+            {saving ? t('companyInfo.buttons.saving') : t('companyInfo.buttons.save')}
           </Button>
         </DialogFooter>
       </DialogContent>

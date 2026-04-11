@@ -162,20 +162,21 @@ export class AssetMetaBizController extends BaseBizController {
         return this.error('缺少必需的 ID 字段', 'missing_id_error');
       }
 
-      // 4. 更新 assetMeta 记录
-      const updatedAssetMeta = await assetMetaService.updateAssetMeta(data.id, {
-        symbol: data.symbol,
-        priceCents: data.priceCents,
-        assetType: data.assetType,
-        currency: data.currency,
-        createdAt: data.timestamp ? new Date(data.timestamp) : undefined,
-        source: data.source,
-        market: data.market,
-        chineseName: data.chineseName,
-        fullName: data.fullName,
-        logoUrl: data.logoUrl || null,
-        investmentMemo: data.investmentMemo,
-      });
+      // 4. 更新 assetMeta 记录（只传入 body 中实际提供的字段，避免覆盖未传入的字段）
+      const updatePayload: Record<string, unknown> = {};
+      if (data.symbol !== undefined) updatePayload.symbol = data.symbol;
+      if (data.priceCents !== undefined) updatePayload.priceCents = data.priceCents;
+      if (data.assetType !== undefined) updatePayload.assetType = data.assetType;
+      if (data.currency !== undefined) updatePayload.currency = data.currency;
+      if (data.timestamp !== undefined) updatePayload.createdAt = new Date(data.timestamp);
+      if (data.source !== undefined) updatePayload.source = data.source;
+      if (data.market !== undefined) updatePayload.market = data.market;
+      if (data.chineseName !== undefined) updatePayload.chineseName = data.chineseName;
+      if (data.fullName !== undefined) updatePayload.fullName = data.fullName;
+      if (data.logoUrl !== undefined) updatePayload.logoUrl = data.logoUrl || null;
+      if (data.investmentMemo !== undefined) updatePayload.investmentMemo = data.investmentMemo;
+
+      const updatedAssetMeta = await assetMetaService.updateAssetMeta(data.id, updatePayload);
 
       if (!updatedAssetMeta) {
         return this.error('未找到指定的资产元数据', 'asset_meta_not_found');

@@ -6,7 +6,7 @@
 ## 概要
 
 基于 OpenClaw **"文件优先（File-First）"** 设计哲学，为投资助手构建双层记忆系统。
-短期记忆使用 Markdown 文件存储（人类可读，便于调试），长期记忆使用 SQLite 持久化（支持混合搜索），并通过 Vector + BM25 实现高质量的记忆检索。
+短期记忆和长期记忆均使用 SQLite 存储（支持事务和并发安全），长期记忆支持 BM25 关键词搜索 + 时间衰减，可选启用向量搜索增强语义匹配。
 
 ### 记忆分层架构
 
@@ -19,12 +19,13 @@
 │              Long-term Memory（长期记忆）              │
 │  agent_memories 表（SQLite，带 category / importance） │
 │  → 跨会话持久化的关键事实、投资决策、用户偏好             │
-│  → 支持 Vector + BM25 混合搜索                         │
+│  → 支持 BM25 关键词搜索 + 时间衰减（默认）               │
+│  → 可选：Vector 语义搜索（需 embedding provider）       │
 ├──────────────────────────────────────────────────────┤
 │              Short-term Memory（短期记忆）             │
-│  Markdown 文件（memory/users/{userId}/*.md）          │
-│  → 人类可读，便于调试，3 天自动清理                      │
-│  → 符合 OpenClaw 文件优先设计哲学                       │
+│  short_term_memories 表（SQLite，带 TTL）              │
+│  → 支持事务和并发安全，3 天自动清理                      │
+│  → 解决多窗口 Electron 并发问题                        │
 └──────────────────────────────────────────────────────┘
 ```
 
@@ -42,11 +43,11 @@
 
 **语言/版本**：TypeScript 5+ / Node.js >= 20
 **主要依赖**：Next.js 16, React 19, LangGraph, Drizzle ORM
-**存储**：SQLite（长期记忆 + 身份配置）+ Markdown 文件（短期记忆）
+**存储**：SQLite（长期记忆 + 身份配置 + 短期记忆）
 **测试**：Vitest
 **目标平台**：桌面 Web（Electron + Web）
-**性能目标**：记忆检索 < 100ms，记忆注入不增加对话延迟
-**约束条件**：必须兼容现有 LangGraph Agent 集成，支持多用户隔离
+**性能目标**：记忆检索 < 100ms，记忆注入 < 100ms
+**约束条件**：必须兼容现有 LangGraph Agent 集成，支持多用户隔离，支持 Electron 多窗口并发
 
 ## 项目结构
 
@@ -64,33 +65,30 @@ openspec/changes/add-memory-management/
 
 ```text
 drizzle/schema/
-└── memory.ts                # 两张新表定义（agent_memories, agent_profiles）
+└── memory.ts                # 四张新表定义（agent_memories, agent_profiles, short_term_memories, memory_extraction_queue）
 
 src/server/core/memory/
 ├── index.ts                 # 统一导出
 ├── memory-manager.ts        # 核心调度器（Bootstrap + ExtractAndStore + Search）
-├── memory-search.ts         # Vector + BM25 混合搜索引擎（仅长期记忆）
-├── memory-flush.ts          # 上下文压缩前的记忆冲刷
+├── memory-search.ts         # BM25 关键词搜索 + 时间衰减（可选 Vector 增强）
+├── memory-flush.ts          # 上下文压缩前的记忆冲刷（仅写短期记忆，不触发晋升）
 ├── memory-extractor.ts      # 从对话中自动提取记忆（LLM Prompt）
-├── embedding-provider.ts    # Embedding 生成（复用现有 MODEL_PROVIDER_URL）
-└── short-term-memory.ts     # 短期记忆 Markdown 文件服务
+├── embedding-provider.ts    # Embedding 生成（可选，复用现有 MODEL_PROVIDER_URL）
+└── short-term-memory.ts     # 短期记忆 SQLite 服务（替代 Markdown 文件）
 
 src/server/
 ├── repository/
-│   └── memoryRepository.ts  # 两张表的 CRUD（继承 BaseIntRepository）
+│   └── memoryRepository.ts  # 四张表的 CRUD（继承 BaseIntRepository）
 └── service/
     └── memoryService.ts     # 业务逻辑（供 API + SDK Hooks 调用）
 
 src/server/core/claude/
-└── memoryHooks.ts           # SDK Hooks：会话启动注入记忆 + 对话结束提取记忆
+└── memoryHooks.ts           # SDK Hooks：会话启动注入记忆 + 对话结束提取记忆（含重试和队列）
 
 src/app/
 ├── api/memory/route.ts      # REST API（CRUD + profile 管理）
 ├── store/memory/            # Zustand 状态管理
 └── (pages)/settings/memory/ # 记忆管理 UI 页面
-
-# 短期记忆存储位置（运行时）
-{getProjectRoot()}/memory/users/{userId}/*.md
 ```
 
 ## 需求拆分
@@ -106,15 +104,15 @@ src/app/
 
 ## 技术架构
 
-### 数据库 Schema（两张新表）
+### 数据库 Schema（四张新表）
 
 ```typescript
 // drizzle/schema/memory.ts
 
 // 1. 长期记忆（对应 OpenClaw MEMORY.md）
 agent_memories: {
-  userId, category, content, source, importance(1-10),
-  accessCount, lastAccessedAt, embedding(JSON), createdAt, updatedAt, deletedAt
+  userId, category, content, source, importance(1-10, 默认5，手动创建默认7),
+  accessCount, lastAccessedAt, embedding(JSON, 可选), createdAt, updatedAt, deletedAt
 }
 
 // 2. Agent 身份配置（对应 OpenClaw SOUL.md / USER.md）
@@ -122,23 +120,41 @@ agent_profiles: {
   userId, profileType(soul|user_context|investment_style),
   content(markdown), createdAt, updatedAt
 }
+
+// 3. 短期记忆（替代 Markdown 文件，支持并发安全）
+short_term_memories: {
+  id, userId, category, content, source, importance, status(active|promoted),
+  createdAt, updatedAt
+}
+// TTL 通过查询时过滤 createdAt 实现
+
+// 4. 记忆提取失败队列（用于重试）
+memory_extraction_queue: {
+  id, userId, messages(JSON), timestamp, retryCount, lastError
+}
 ```
 
-### 短期记忆文件格式
+### 短期记忆存储（SQLite）
 
-存储位置：`{getProjectRoot()}/memory/users/{userId}/{category}.md`
+使用 SQLite 表替代 Markdown 文件，解决并发问题：
 
-```markdown
----
-category: investment_preference
-source: agent_extracted
-importance: 8
-created_at: 2026-03-18T10:00:00Z
-updated_at: 2026-03-18T10:00:00Z
----
+```typescript
+// short_term_memories 表
+interface ShortTermMemory {
+  id: number;
+  userId: number;
+  category: MemoryCategory;
+  content: string;
+  source: 'agent_extracted' | 'manual';
+  importance: number; // 1-10
+  status: 'active' | 'promoted'; // 晋升后标记为 promoted
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-用户偏好价值投资，不喜欢追涨杀跌。
-主要关注科技股，特别是 AI 板块。
+// TTL 通过查询过滤实现
+// SELECT * FROM short_term_memories
+// WHERE userId = ? AND createdAt > datetime('now', '-3 days')
 ```
 
 记忆分类（`agent_memories.category`）：
@@ -155,22 +171,22 @@ type MemoryCategory =
 
 ### 核心模块设计
 
-#### ShortTermMemory（短期记忆文件服务）
+#### ShortTermMemory（短期记忆 SQLite 服务）
 
 ```typescript
-// 管理短期记忆 Markdown 文件
+// 管理短期记忆 SQLite 表
 class ShortTermMemory {
-  // 写入/更新短期记忆文件
+  // 写入/更新短期记忆
   async writeMemory(userId: number, category: MemoryCategory, content: string, importance: number): Promise<void>
 
-  // 读取用户所有短期记忆
+  // 读取用户所有短期记忆（自动过滤 3 天前）
   async readMemories(userId: number): Promise<ShortTermMemoryItem[]>
 
-  // 清理过期记忆（3 天前）
-  async cleanupExpired(userId: number): Promise<number>
+  // 标记为已晋升
+  async markPromoted(userId: number, category: MemoryCategory): Promise<void>
 
-  // 删除指定分类的记忆
-  async deleteMemory(userId: number, category: MemoryCategory): Promise<void>
+  // 清理过期记忆（通过 SQL DELETE）
+  async cleanupExpired(userId: number): Promise<number>
 }
 ```
 
@@ -181,27 +197,37 @@ class MemoryManager {
   // 会话启动：按 OpenClaw Bootstrap 流程加载
   async loadSessionContext(userId: number): Promise<SessionContext>
   // {soul, userCtx, investStyle, shortTermMemories(3天内), coreMemories(importance>=7)}
+  // Token 预算：最多 1000 tokens
 
-  // 对话结束后：渐进式提取并存储
+  // 对话结束后：渐进式提取并存储（唯一晋升触发点）
   async extractAndStore(userId: number, messages: Message[]): Promise<void>
-  // → MemoryExtractor.extract() → writeShortTermMemory() + upsertLongTermMemory(importance>=7)
+  // → MemoryExtractor.extract() → writeShortTermMemory() + promoteToLongTerm(importance>=7)
 
-  // 语义搜索（供 SDK Hooks 调用，仅搜索长期记忆）
+  // 关键词搜索（默认）+ 可选向量增强
   async search(userId: number, query: string, limit = 6): Promise<MemorySearchResult[]>
 
-  // 上下文压缩前冲刷
+  // 上下文压缩前冲刷（仅写短期记忆，不触发晋升）
   async flushBeforeCompaction(userId: number, context: ConversationContext): Promise<void>
 }
 ```
 
-#### MemorySearch（混合搜索引擎）
+#### MemorySearch（搜索策略）
 
 ```typescript
-// Vector(70%) + BM25(30%) + Reciprocal Rank Fusion
-// 仅搜索长期记忆（agent_memories 表）
-// 无向量时自动降级为纯关键词搜索
+// 默认：BM25 关键词搜索 + 时间衰减
+// 可选：Vector 语义增强（需 embedding provider）
 class MemorySearch {
-  async hybridSearch(userId, query, limit): Promise<MemorySearchResult[]>
+  // 搜索策略配置
+  private config = {
+    mode: 'bm25' | 'hybrid', // 默认 bm25
+    timeDecay: { halfLife: 7 }, // 7天半衰期
+    importanceWeight: 0.3,
+  };
+
+  async search(userId, query, limit): Promise<MemorySearchResult[]>
+
+  // 降级场景：embedding provider 不可用时自动使用纯 BM25
+  // 新记忆在 embedding 生成前使用 BM25
 }
 ```
 
@@ -220,7 +246,8 @@ class MemoryExtractor {
 
 ```typescript
 // 监测 token 接近阈值（contextWindow - 20000 - 4000）
-// 触发：LLM 提炼当前上下文 → 写入短期记忆 → importance>=7 晋升长期记忆
+// 触发：LLM 提炼当前上下文 → 写入短期记忆（不触发晋升）
+// 晋升只在 extractAndStore() 中触发
 class MemoryFlusher {
   shouldFlush(currentTokens, contextWindow): boolean
   async flush(userId, context): Promise<void>
@@ -242,12 +269,32 @@ queryOptions.hooks = {
   ...existingHooks,
   PostModelTurn: [{
     hooks: [async () => {
-      // 异步执行，不阻塞响应
-      memoryManager.extractAndStore(userId, messages).catch(logger.error);
+      // 带重试和失败队列的异步执行
+      await memoryHookHandler(userId, messages);
       return {};
     }],
   }],
 };
+
+// 记忆 Hook 处理器（含错误处理）
+async function memoryHookHandler(userId: number, messages: Message[]) {
+  const messageHash = hashMessages(messages);
+
+  // 幂等性检查
+  if (await isProcessed(messageHash)) return;
+
+  try {
+    await retry(
+      () => memoryManager.extractAndStore(userId, messages),
+      { maxRetries: 3, delay: 1000, backoff: 'exponential' }
+    );
+  } catch (error) {
+    // 持久化到失败队列
+    await extractionQueue.push({ userId, messages, messageHash, timestamp: Date.now() });
+    // 通知用户
+    toast.error('记忆提取失败，将在下次对话时重试');
+  }
+}
 ```
 
 ### 记忆注入 System Prompt 格式
@@ -256,14 +303,17 @@ queryOptions.hooks = {
 ## 关于你的用户
 
 ### 投资风格画像
-{agent_profiles.investment_style 内容}
+{agent_profiles.investment_style 内容，最多 200 tokens}
 
 ### 长期记忆（核心偏好）
 - [investment_preference] 偏好科技股投资
 - [position_rule] 单一持仓不超过 20%
+{最多 10 条，每条最多 40 tokens，共 400 tokens}
 
 ### 近期会话记忆（最近3天）
-{短期记忆 Markdown 文件内容}
+{短期记忆内容，最多 200 tokens}
+
+<!-- Token 预算：1000 tokens -->
 ```
 
 ### 数据流
@@ -274,17 +324,22 @@ queryOptions.hooks = {
 memoryManager.loadSessionContext()
     ├── 读取 agent_profiles（SQLite）
     ├── 读取 agent_memories（SQLite，importance>=7）
-    └── 读取短期记忆文件（Markdown，3天内）
+    └── 读取短期记忆（SQLite，3天内）
     ↓
-buildMemoryPrompt() → 注入 queryOptions.systemPrompt
+buildMemoryPrompt() → Token 预算控制 → 注入 queryOptions.systemPrompt
     ↓
-[对话中] → token 接近阈值 → PostModelTurn Hook → MemoryFlusher.flush()（可选）
+[对话中] → token 接近阈值 → PostModelTurn Hook → MemoryFlusher.flush()（仅写短期记忆）
     ↓
 [每轮 AI 回复结束]
     ↓
-PostModelTurn Hook → memoryManager.extractAndStore()（异步）
-    ├── 写入短期记忆文件（Markdown）
-    └── importance>=7 → 晋升长期记忆（SQLite）
+PostModelTurn Hook → memoryHookHandler()
+    ├── 幂等性检查（messageHash）
+    ├── 重试机制（3次，指数退避）
+    └── 失败 → 写入 memory_extraction_queue
+    ↓
+memoryManager.extractAndStore()
+    ├── 写入短期记忆（SQLite）
+    └── importance>=7 → 晋升长期记忆（唯一触发点）
 ```
 
 ## 风险评估

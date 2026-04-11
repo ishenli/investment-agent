@@ -250,7 +250,7 @@ Respond with a JSON object containing a "summary" field with the summary text.`;
     }
 
     prompt += `内容:\n${content.substring(0, 4000)}\n\n`;
-    prompt += `请严格按照上述JSON格式提供结构化分析，包括标题、资产标识、投资判断、重要性评级（1-10）、内容摘要、关键主题（最多5个）、市场影响评估和重要数据点。`;
+    prompt += `请严格按照上述JSON格式提供结构化分析，包括标题、资产标识、投资判断、重要性评级（1-10）、内容摘要、关键主题（5个到10个）、市场影响评估和重要数据点（最多10个）。`;
 
     return prompt;
   }

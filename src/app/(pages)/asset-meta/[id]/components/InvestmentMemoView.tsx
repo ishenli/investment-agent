@@ -75,17 +75,17 @@ export function InvestmentMemoView({
         </Alert>
 
         <Dialog open={isEditing} onOpenChange={onEditChange}>
-          <DialogContent className="max-w-3xl">
+          <DialogContent className="max-w-3xl flex flex-col max-h-[80vh]">
             <DialogHeader>
-              <DialogTitle>编辑投资笔记</DialogTitle>
-              <DialogDescription>请输入关于该资产的投资分析和笔记</DialogDescription>
+              <DialogTitle>{t('investmentMemo.addTitle')}</DialogTitle>
+              <DialogDescription>{t('investmentMemo.addDescription')}</DialogDescription>
             </DialogHeader>
-            <div className="py-4">
+            <div className="py-4 flex-1 overflow-y-auto">
               <Textarea
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 placeholder={t('investmentMemo.placeholder')}
-                className="min-h-[300px]"
+                className="h-full min-h-75 resize-none"
               />
             </div>
             <DialogFooter>
@@ -120,17 +120,17 @@ export function InvestmentMemoView({
       </Card>
 
       <Dialog open={isEditing} onOpenChange={onEditChange}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-3xl flex flex-col max-h-[80vh]">
           <DialogHeader>
             <DialogTitle>{t('investmentMemo.editTitle')}</DialogTitle>
             <DialogDescription>{t('investmentMemo.editDescription')}</DialogDescription>
           </DialogHeader>
-          <div className="py-4">
+          <div className="py-4 flex-1 overflow-hidden">
             <Textarea
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
               placeholder={t('investmentMemo.placeholder')}
-              className="min-h-[300px]"
+              className="h-full min-h-75 resize-none"
             />
           </div>
           <DialogFooter>

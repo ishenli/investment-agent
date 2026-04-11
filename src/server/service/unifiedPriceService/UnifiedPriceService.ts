@@ -273,6 +273,7 @@ export class UnifiedPriceService {
       const requests: QuoteRequest[] = positions.map((pos) => ({
         symbol: pos.symbol,
         market: pos.market || 'US',
+        accountId, // 传入 accountId 用于获取用户配置（如 API Key）
       }));
 
       updateStats.total = positions.length;
@@ -358,7 +359,7 @@ export class UnifiedPriceService {
         const positions = await positionService.getCurrentPositions(account.id);
         const marketPositions = positions
           .filter((pos) => pos.market === market)
-          .map((pos) => ({ symbol: pos.symbol, market: pos.market || market }));
+          .map((pos) => ({ symbol: pos.symbol, market: pos.market || market, accountId: account.id }));
 
         allRequests.push(...marketPositions);
         accountToSymbols.set(account.id, marketPositions);

@@ -481,3 +481,192 @@ The system SHALL provide internationalization support for Memory Management UI i
 
 - **WHEN** a new language is added to the project
 - **THEN** add corresponding translation keys for Memory Management
+
+---
+
+### Requirement: Memory Promotion Policy
+
+The system SHALL provide clear rules for promoting short-term memories to long-term memories.
+
+#### Scenario: Single promotion trigger point
+
+- **WHEN** memory extraction completes in `extractAndStore()`
+- **AND** the extracted memory has `importance >= 7`
+- **THEN** the system SHALL promote the memory to long-term storage
+- **AND** the promotion trigger point SHALL be ONLY in `extractAndStore()`
+- **AND** `MemoryFlusher.flush()` SHALL NOT trigger promotion (it only writes to short-term)
+
+#### Scenario: Short-term memory status after promotion
+
+- **WHEN** a short-term memory is promoted to long-term
+- **THEN** the system SHALL mark the short-term file with `status: promoted` in frontmatter
+- **AND** the short-term file SHALL be retained (not deleted) for audit trail
+- **AND** the short-term file SHALL still be cleaned up after 3 days
+
+#### Scenario: Default importance for manual memories
+
+- **WHEN** user creates a memory manually through UI
+- **THEN** the system SHALL set `importance = 7` by default
+- **AND** the memory SHALL be stored directly in long-term memory
+- **AND** the `source` SHALL be set to `manual`
+
+#### Scenario: Importance threshold consistency
+
+- **WHEN** memory importance is evaluated
+- **THEN** the promotion threshold SHALL be `importance >= 7`
+- **AND** the default importance for auto-extracted memories SHALL be `5`
+- **AND** the default importance for manual memories SHALL be `7`
+
+---
+
+### Requirement: SDK Hooks Error Handling
+
+The system SHALL provide robust error handling for SDK hooks to prevent memory loss.
+
+#### Scenario: Retry mechanism
+
+- **WHEN** `extractAndStore()` fails due to transient error (network, database timeout)
+- **THEN** the system SHALL retry up to 3 times
+- **AND** the retry delay SHALL be 1000ms with exponential backoff
+- **AND** the error SHALL be logged with full context
+
+#### Scenario: Fallback queue for failed extractions
+
+- **WHEN** all retries fail
+- **THEN** the system SHALL persist the extraction request to a local fallback queue
+- **AND** the fallback queue SHALL be stored in SQLite table `memory_extraction_queue`
+- **AND** the queue entry SHALL include: `userId`, `messages`, `timestamp`, `retryCount`
+
+#### Scenario: Queue recovery on next conversation
+
+- **WHEN** a new conversation starts
+- **THEN** the system SHALL check the fallback queue for pending extractions
+- **AND** process pending extractions before loading session context
+- **AND** remove successfully processed entries from queue
+
+#### Scenario: Idempotency guarantee
+
+- **WHEN** the same extraction is processed multiple times
+- **THEN** the system SHALL use `messageHash` as deduplication key
+- **AND** only one memory entry SHALL be created per unique message hash
+- **AND** duplicate extractions SHALL be silently ignored
+
+#### Scenario: Failure notification
+
+- **WHEN** extraction fails after all retries
+- **THEN** the system SHALL notify the user with a toast message
+- **AND** the message SHALL be: "记忆提取失败，将在下次对话时重试"
+- **AND** the notification SHALL be non-blocking
+
+---
+
+### Requirement: Concurrency Control
+
+The system SHALL provide thread-safe access to short-term memory files.
+
+#### Scenario: SQLite-based short-term storage
+
+- **WHEN** short-term memory is written or read
+- **THEN** the system SHALL use SQLite table `short_term_memories` instead of files
+- **AND** the table SHALL have columns: `id`, `userId`, `category`, `content`, `source`, `importance`, `status`, `createdAt`, `updatedAt`
+- **AND** the `status` SHALL be one of: `active`, `promoted`
+
+#### Scenario: TTL-based cleanup
+
+- **WHEN** short-term memories are queried
+- **THEN** the system SHALL automatically filter out memories where `createdAt < now() - 3 days`
+- **AND** the cleanup SHALL be handled by SQLite query, not file deletion
+- **AND** the cleanup SHALL be transactional
+
+#### Scenario: Multi-window Electron support
+
+- **WHEN** multiple Electron windows access the same user's memories
+- **THEN** SQLite SHALL handle concurrent access via built-in locking
+- **AND** no data corruption SHALL occur
+- **AND** no race conditions SHALL occur during cleanup
+
+---
+
+### Requirement: Token Budget for Memory Injection
+
+The system SHALL limit token consumption for memory injection to prevent context overflow.
+
+#### Scenario: Token budget configuration
+
+- **WHEN** memories are injected into conversation context
+- **THEN** the total token count SHALL NOT exceed 1000 tokens
+- **AND** the budget SHALL be distributed as:
+  - `soul` profile: max 200 tokens
+  - `investment_style` profile: max 200 tokens
+  - Long-term memories: max 400 tokens (up to 10 items, max 40 tokens each)
+  - Short-term memories: max 200 tokens
+
+#### Scenario: Priority-based truncation
+
+- **WHEN** token budget is exceeded
+- **THEN** the system SHALL truncate in priority order:
+  1. Short-term memories (lowest priority)
+  2. Long-term memories with lowest importance
+  3. Long-term memories with oldest `lastAccessedAt`
+- **AND** each item SHALL be truncated to max 50 tokens if needed
+
+#### Scenario: Performance target
+
+- **WHEN** memory injection is performed
+- **THEN** the total time SHALL be less than 100ms
+- **AND** the breakdown SHALL be:
+  - Load profiles: < 20ms
+  - Load long-term memories: < 30ms
+  - Load short-term memories: < 30ms
+  - Format and inject: < 20ms
+
+#### Scenario: Token estimation
+
+- **WHEN** preparing memory injection
+- **THEN** the system SHALL estimate tokens using: `tokenCount = Math.ceil(charCount / 4)`
+- **AND** the estimation SHALL be conservative (overestimate)
+
+---
+
+### Requirement: Memory Update and Merge Policy
+
+The system SHALL provide clear rules for updating and merging memories.
+
+#### Scenario: Semantic deduplication
+
+- **WHEN** a new memory is extracted
+- **THEN** the system SHALL check for semantic similarity with existing memories
+- **AND** the similarity SHALL be calculated using embedding cosine similarity
+- **AND** if similarity >= 0.85, the memories SHALL be considered duplicates
+- **AND** the new memory SHALL update the existing memory instead of creating a new one
+
+#### Scenario: Conflict resolution for same category
+
+- **WHEN** a new memory has the same category as an existing memory
+- **AND** the content is semantically similar (similarity >= 0.85)
+- **THEN** the existing memory SHALL be updated with new content
+- **AND** the `updatedAt` timestamp SHALL be refreshed
+- **AND** the `importance` SHALL be set to `max(existing, new)`
+
+#### Scenario: Conflict resolution for different category
+
+- **WHEN** a new memory has a different category from existing memories
+- **THEN** the new memory SHALL be appended as a separate entry
+- **AND** no merge SHALL occur
+
+#### Scenario: User explicit override
+
+- **WHEN** user explicitly states "我现在的偏好是..." or similar override language
+- **THEN** the system SHALL detect this as an override intent
+- **AND** the existing memory in the same category SHALL be replaced
+- **AND** the old memory SHALL be soft-deleted
+
+#### Scenario: Memory decay algorithm
+
+- **WHEN** memory decay job runs (weekly on Sunday 00:00)
+- **THEN** for each long-term memory:
+  - Calculate `daysSinceLastAccess = (now - lastAccessedAt) / 86400000`
+  - Calculate `decayFactor = 2^(-daysSinceLastAccess / 30)`
+  - Update `importance = max(importance * decayFactor, 3)`
+- **AND** memories with `importance < 3` SHALL be flagged for review
+- **AND** the decay job SHALL be idempotent

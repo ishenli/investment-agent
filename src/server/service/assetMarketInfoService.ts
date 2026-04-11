@@ -115,7 +115,7 @@ export class AssetMarketInfoService {
    */
   async getAssetMarketInfoById(id: number): Promise<AssetMarketInfoType | null> {
     try {
-      logger.info('[AssetMarketInfoService] 开始获取资产市场信息: %d', id);
+      logger.info('[AssetMarketInfoService] getAssetMarketInfoById : %d', id);
 
       const assetMarketInfoRecord = await assetMarketInfoRepository.findById(id);
 
@@ -127,12 +127,12 @@ export class AssetMarketInfoService {
       const relatedAssetMetaIds = await assetMarketInfoRepository.getRelatedAssetMetaIds(id);
       const assetMetasDetails = await this.getAssetMetaDetails(relatedAssetMetaIds);
 
-      logger.info('[AssetMarketInfoService] 成功获取资产市场信息: %d', assetMarketInfoRecord.id);
+      logger.info('[AssetMarketInfoService] getAssetMarketInfoById: %d', assetMarketInfoRecord.id);
 
       return toAssetMarketInfoResponse(assetMarketInfoRecord, relatedAssetMetaIds, assetMetasDetails);
     } catch (error) {
       logger.error(
-        '[AssetMarketInfoService] 获取资产市场信息失败: %s',
+        '[AssetMarketInfoService] getAssetMarketInfoById: %s',
         error instanceof Error ? error.message : String(error),
       );
       return null;
@@ -144,7 +144,7 @@ export class AssetMarketInfoService {
    */
   async getLatestAssetMarketInfoBySymbol(symbol: string): Promise<AssetMarketInfoType | null> {
     try {
-      logger.info('[AssetMarketInfoService] 开始获取资产市场信息: %s', symbol);
+      logger.info('[AssetMarketInfoService] getLatestAssetMarketInfoBySymbol : %s', symbol);
 
       // 首先尝试通过关联表查找
       const assetMetas = await assetMetaRepository.findBySymbol(symbol)
@@ -190,12 +190,12 @@ export class AssetMarketInfoService {
       );
       const assetMetasDetails = await this.getAssetMetaDetails(relatedAssetMetaIds);
 
-      logger.info('[AssetMarketInfoService] 成功获取资产市场信息: %d', assetMarketInfoRecord.id);
+      logger.info('[AssetMarketInfoService] getLatestAssetMarketInfoBySymbol: %d', assetMarketInfoRecord.id);
 
       return toAssetMarketInfoResponse(assetMarketInfoRecord, relatedAssetMetaIds, assetMetasDetails);
     } catch (error) {
       logger.error(
-        '[AssetMarketInfoService] 获取资产市场信息失败: %s',
+        '[AssetMarketInfoService] getLatestAssetMarketInfoBySymbol: %s',
         error instanceof Error ? error.message : String(error),
       );
       return null;
@@ -211,7 +211,7 @@ export class AssetMarketInfoService {
     assetMetaId: number,
   ): Promise<AssetMarketInfoType | null> {
     try {
-      logger.info('[AssetMarketInfoService] 开始获取资产市场信息: %d', assetMetaId);
+      logger.info('[AssetMarketInfoService] getLatestAssetMarketInfoByAssetMetaId : %d', assetMetaId);
 
       // 通过关联表查找
       const marketInfoIds = await assetMarketInfoRepository.getMarketInfoIdsByAssetMetaId(assetMetaId);
@@ -243,12 +243,12 @@ export class AssetMarketInfoService {
       const finalAssetMetaIds = relatedAssetMetaIds.length > 0 ? relatedAssetMetaIds : [assetMetaId];
       const assetMetasDetails = await this.getAssetMetaDetails(finalAssetMetaIds);
 
-      logger.info('[AssetMarketInfoService] 成功获取资产市场信息: %d', assetMarketInfoRecord.id);
+      logger.info('[AssetMarketInfoService] getLatestAssetMarketInfoByAssetMetaId: %d', assetMarketInfoRecord.id);
 
       return toAssetMarketInfoResponse(assetMarketInfoRecord, finalAssetMetaIds, assetMetasDetails);
     } catch (error) {
       logger.error(
-        '[AssetMarketInfoService] 获取资产市场信息失败: %s',
+        '[AssetMarketInfoService] getLatestAssetMarketInfoByAssetMetaId: %s',
         error instanceof Error ? error.message : String(error),
       );
       return null;
@@ -262,12 +262,12 @@ export class AssetMarketInfoService {
    */
   async getLatestAssetMarketInfos(limit: number = 20): Promise<AssetMarketInfoType[]> {
     try {
-      logger.info('[AssetMarketInfoService] 开始获取最新的资产市场信息，限制数量: %d', limit);
+      logger.info('[AssetMarketInfoService] getLatestAssetMarketInfos : %d', limit);
 
       const records = await assetMarketInfoRepository.findLatest(limit);
 
       logger.info(
-        '[AssetMarketInfoService] 成功获取资产市场信息列表，数量: %d',
+        '[AssetMarketInfoService] getLatestAssetMarketInfos: %d',
         records.length,
       );
 
@@ -282,7 +282,7 @@ export class AssetMarketInfoService {
       });
     } catch (error) {
       logger.error(
-        '[AssetMarketInfoService] 获取最新的资产市场信息失败: %s',
+        '[AssetMarketInfoService] getLatestAssetMarketInfos: %s',
         error instanceof Error ? error.message : String(error),
       );
       return [];
@@ -303,7 +303,7 @@ export class AssetMarketInfoService {
   ): Promise<AssetMarketInfoType[]> {
     try {
       logger.info(
-        '[AssetMarketInfoService] 开始获取时间范围内的资产市场信息: %s 到 %s',
+        '[AssetMarketInfoService] getAssetMarketInfosByDateRange : %s 到 %s',
         startDate.toISOString(),
         endDate.toISOString(),
       );
@@ -311,7 +311,7 @@ export class AssetMarketInfoService {
       const records = await assetMarketInfoRepository.findByDateRange(startDate, endDate, limit);
 
       logger.info(
-        '[AssetMarketInfoService] 成功获取时间范围内的资产市场信息，数量: %d',
+        '[AssetMarketInfoService] getAssetMarketInfosByDateRange: %d',
         records.length,
       );
 
@@ -326,7 +326,7 @@ export class AssetMarketInfoService {
       });
     } catch (error) {
       logger.error(
-        '[AssetMarketInfoService] 获取时间范围内的资产市场信息失败: %s',
+        '[AssetMarketInfoService] getAssetMarketInfosByDateRange: %s',
         error instanceof Error ? error.message : String(error),
       );
       return [];
@@ -347,7 +347,7 @@ export class AssetMarketInfoService {
   ): Promise<AssetMarketInfoType[]> {
     try {
       logger.info(
-        '[AssetMarketInfoService] 开始获取资产市场信息列表: %d, limit: %d, offset: %d',
+        '[AssetMarketInfoService] getAssetMarketInfosByAssetMetaId : %d, limit: %d, offset: %d',
         assetMetaId,
         limit,
         offset,
@@ -356,7 +356,7 @@ export class AssetMarketInfoService {
       const records = await assetMarketInfoRepository.findByAssetMetaId(assetMetaId, limit, offset);
 
       logger.info(
-        '[AssetMarketInfoService] 成功获取资产市场信息列表，数量: %d',
+        '[AssetMarketInfoService] getAssetMarketInfosByAssetMetaId: %d',
         records.length,
       );
 
@@ -371,7 +371,7 @@ export class AssetMarketInfoService {
       });
     } catch (error) {
       logger.error(
-        '[AssetMarketInfoService] 获取资产市场信息列表失败: %s',
+        '[AssetMarketInfoService] getAssetMarketInfosByAssetMetaId: %s',
         error instanceof Error ? error.message : String(error),
       );
       return [];
@@ -385,16 +385,16 @@ export class AssetMarketInfoService {
    */
   async getAssetMarketInfoCountByAssetMetaId(assetMetaId: number): Promise<number> {
     try {
-      logger.info('[AssetMarketInfoService] 开始获取资产市场信息总数: %d', assetMetaId);
+      logger.info('[AssetMarketInfoService] getAssetMarketInfoCountByAssetMetaId : %d', assetMetaId);
 
       const count = await assetMarketInfoRepository.countByAssetMetaId(assetMetaId);
 
-      logger.info('[AssetMarketInfoService] 成功获取资产市场信息总数: %d', count);
+      logger.info('[AssetMarketInfoService] getAssetMarketInfoCountByAssetMetaId: %d', count);
 
       return count;
     } catch (error) {
       logger.error(
-        '[AssetMarketInfoService] 获取资产市场信息总数失败: %s',
+        '[AssetMarketInfoService] getAssetMarketInfoCountByAssetMetaId: %s',
         error instanceof Error ? error.message : String(error),
       );
       return 0;
@@ -410,16 +410,16 @@ export class AssetMarketInfoService {
    */
   async deleteAssetMarketInfoById(id: number): Promise<boolean> {
     try {
-      logger.info('[AssetMarketInfoService] 开始删除资产市场信息: %d', id);
+      logger.info('[AssetMarketInfoService] deleteAssetMarketInfoById : %d', id);
 
       const success = await assetMarketInfoRepository.deleteById(id);
 
-      logger.info('[AssetMarketInfoService] 成功删除资产市场信息: %d', id);
+      logger.info('[AssetMarketInfoService] deleteAssetMarketInfoById: %d', id);
 
       return success;
     } catch (error) {
       logger.error(
-        '[AssetMarketInfoService] 删除资产市场信息失败: %s',
+        '[AssetMarketInfoService] deleteAssetMarketInfoById: %s',
         error instanceof Error ? error.message : String(error),
       );
       throw error;
