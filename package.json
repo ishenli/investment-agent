@@ -1,6 +1,6 @@
 {
   "name": "investment-agent",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "AI-powered investment management agent with real-time market analysis",
   "main": "dist-electron/main.js",
   "bin": {
