@@ -22,6 +22,7 @@ interface StepThreeDataSaverProps {
   onBack: () => void;
   onComplete: () => void;
   finalSaveResult: MarketInformation | null;
+  initialAssetMetaId?: number;
 }
 
 export function StepThreeDataSaver({
@@ -30,6 +31,7 @@ export function StepThreeDataSaver({
   onBack,
   onComplete,
   finalSaveResult,
+  initialAssetMetaId,
 }: StepThreeDataSaverProps) {
   const { t } = useTranslation('asset-market-info-fetcher');
   const [isFinalSaving, setIsFinalSaving] = useState(false);
@@ -59,6 +61,10 @@ export function StepThreeDataSaver({
               chineseName: asset.chineseName,
             })),
           );
+          // 若从资产详情页跳转而来，则预选该资产
+          if (initialAssetMetaId) {
+            setSelectedAssetIds([initialAssetMetaId]);
+          }
         }
       } catch (error) {
         console.error('获取资产列表失败:', error);

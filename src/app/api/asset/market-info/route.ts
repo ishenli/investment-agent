@@ -15,6 +15,13 @@ class AssetMarketInfosController extends BaseController {
   }
 
   @WithRequestContext()
+  static async PUT(request: Request) {
+    const body = await request.json();
+    const marketController = new MarketBizController();
+    return Response.json(await marketController.updateMarketInfo(body));
+  }
+
+  @WithRequestContext()
   static async DELETE(request: Request) {
     // 解析查询参数
     const url = new URL(request.url);
@@ -29,4 +36,5 @@ class AssetMarketInfosController extends BaseController {
 }
 
 export const GET = AssetMarketInfosController.GET;
+export const PUT = AssetMarketInfosController.PUT;
 export const DELETE = AssetMarketInfosController.DELETE;

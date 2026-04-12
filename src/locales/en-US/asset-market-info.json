@@ -1,15 +1,63 @@
 {
   "actions": {
-    "addInfo": "Add Info",
+    "addInfo": "Add Market Info",
     "reload": "Reload"
   },
   "dateRange": {
     "label": "Date Range:",
     "to": "to"
   },
+  "detail": {
+    "backToList": "Back to List",
+    "edit": "Edit",
+    "noData": {
+      "description": "The specified market information was not found.",
+      "title": "No Data"
+    },
+    "publishedAt": "Published At",
+    "updatedAt": "Updated At",
+    "contentMode": "Content Mode",
+    "contentModeAI": "AI Summary",
+    "contentModeOriginal": "Original",
+    "sections": {
+      "relatedAssets": "Related Assets",
+      "summary": "Summary",
+      "marketImpact": "Market Impact",
+      "keyTopics": "Key Topics",
+      "keyDataPoints": "Key Data Points",
+      "originalContent": "Original Content",
+      "source": "Source",
+      "sourceName": "Source Name",
+      "sourceUrl": "Source URL"
+    },
+    "sentiment": "Sentiment",
+    "importanceLabel": "Importance"
+  },
+  "edit": {
+    "title": "Edit Market Info",
+    "fields": {
+      "title": "Title",
+      "sentiment": "Sentiment",
+      "sentimentPlaceholder": "Select sentiment",
+      "importance": "Importance (1-10)",
+      "summary": "Summary",
+      "marketImpact": "Market Impact",
+      "keyTopics": "Key Topics",
+      "keyDataPoints": "Key Data Points",
+      "sourceName": "Source Name",
+      "sourceUrl": "Source URL"
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving..."
+    }
+  },
   "error": {
     "fetchFailed": "Failed to fetch data",
+    "fetchDetailFailed": "Failed to fetch market info detail",
     "reload": "Reload",
+    "saveFailed": "Save failed",
     "title": "Error",
     "unknown": "Unknown error"
   },

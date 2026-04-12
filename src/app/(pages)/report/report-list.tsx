@@ -22,6 +22,8 @@ import { useTranslation } from 'react-i18next';
 import { get } from '@/app/lib/request';
 import { ProviderModel } from '@/types/modelProvider';
 
+const LAST_MODEL_SLUG_KEY = 'market_ai_last_model_slug';
+
 export function ReportList() {
   const { t } = useTranslation('report');
   const router = useRouter();
@@ -44,13 +46,14 @@ export function ReportList() {
         if (response.success && response.data?.models) {
           const models = response.data.models as ProviderModel[];
           setAvailableModels(models);
-          // 默认选中用户的默认模型，如果没有则选中第一个
+          // 优先使用上次选中的模型，其次是默认模型，最后是第一个可用模型
+          const lastSlug = typeof window !== 'undefined' ? localStorage.getItem(LAST_MODEL_SLUG_KEY) : null;
           const defaultModel = response.data.defaultModel;
-          if (defaultModel) {
-            setSelectedModelSlug(defaultModel);
-          } else if (models.length > 0) {
-            setSelectedModelSlug(models[0].slug);
-          }
+          const slugToUse =
+            (lastSlug && models.some((m) => m.slug === lastSlug) ? lastSlug : null) ??
+            (defaultModel && models.some((m) => m.slug === defaultModel) ? defaultModel : null) ??
+            (models.length > 0 ? models[0].slug : null);
+          setSelectedModelSlug(slugToUse);
         }
       } catch (error) {
         console.error('Failed to fetch available models:', error);
@@ -143,7 +146,12 @@ export function ReportList() {
           {/* 模型选择器 */}
           <Select
             value={selectedModelSlug || undefined}
-            onValueChange={setSelectedModelSlug}
+            onValueChange={(v) => {
+              setSelectedModelSlug(v);
+              if (typeof window !== 'undefined') {
+                localStorage.setItem(LAST_MODEL_SLUG_KEY, v);
+              }
+            }}
             disabled={modelsLoading || availableModels.length === 0}
           >
             <SelectTrigger className="w-[180]">

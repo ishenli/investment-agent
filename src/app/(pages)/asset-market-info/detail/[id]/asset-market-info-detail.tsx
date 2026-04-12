@@ -2,19 +2,66 @@
 
 import { useState, useEffect } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@renderer/components/ui/alert';
-import { AlertCircle, RefreshCw, ArrowLeft, ExternalLink } from 'lucide-react';
+import { AlertCircle, RefreshCw, ArrowLeft, ExternalLink, Pencil } from 'lucide-react';
 import { Button } from '@renderer/components/ui/button';
 import { Badge } from '@renderer/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@renderer/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@renderer/components/ui/dialog';
+import { Input } from '@renderer/components/ui/input';
+import { Label } from '@renderer/components/ui/label';
+import { Textarea } from '@renderer/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@renderer/components/ui/select';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { AssetMarketInfoType } from '@/types/marketInfo';
+import { useTranslation } from 'react-i18next';
+
+type EditForm = {
+  title: string;
+  sentiment: string;
+  importance: string;
+  summary: string;
+  marketImpact: string;
+  keyTopics: string;
+  keyDataPoints: string;
+  sourceUrl: string;
+  sourceName: string;
+};
 
 export function AssetMarketInfoDetail({ marketInfoId }: { marketInfoId: number }) {
+  const { t } = useTranslation('asset-market-info');
   const [marketInfo, setMarketInfo] = useState<AssetMarketInfoType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // 编辑弹窗状态
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<EditForm>({
+    title: '',
+    sentiment: '',
+    importance: '',
+    summary: '',
+    marketImpact: '',
+    keyTopics: '',
+    keyDataPoints: '',
+    sourceUrl: '',
+    sourceName: '',
+  });
 
   const fetchMarketInfoDetail = async () => {
     try {
@@ -25,13 +72,13 @@ export function AssetMarketInfoDetail({ marketInfoId }: { marketInfoId: number }
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || '获取市场信息详情失败');
+        throw new Error(errorData.message || t('error.fetchDetailFailed'));
       }
 
       const result = await response.json();
       setMarketInfo(result.data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '未知错误');
+      setError(err instanceof Error ? err.message : t('error.unknown'));
     } finally {
       setLoading(false);
     }
@@ -40,6 +87,59 @@ export function AssetMarketInfoDetail({ marketInfoId }: { marketInfoId: number }
   useEffect(() => {
     fetchMarketInfoDetail();
   }, [marketInfoId]);
+
+  const openEditDialog = () => {
+    if (!marketInfo) return;
+    setEditForm({
+      title: marketInfo.title,
+      sentiment: marketInfo.sentiment,
+      importance: marketInfo.importance,
+      summary: marketInfo.summary,
+      marketImpact: marketInfo.marketImpact,
+      keyTopics: marketInfo.keyTopics ?? '',
+      keyDataPoints: marketInfo.keyDataPoints ?? '',
+      sourceUrl: marketInfo.sourceUrl ?? '',
+      sourceName: marketInfo.sourceName ?? '',
+    });
+    setSaveError(null);
+    setEditDialogOpen(true);
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      setSaveError(null);
+
+      const response = await fetch('/api/asset/market-info', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: marketInfoId,
+          title: editForm.title,
+          sentiment: editForm.sentiment,
+          importance: editForm.importance,
+          summary: editForm.summary,
+          marketImpact: editForm.marketImpact,
+          keyTopics: editForm.keyTopics || null,
+          keyDataPoints: editForm.keyDataPoints || null,
+          sourceUrl: editForm.sourceUrl || null,
+          sourceName: editForm.sourceName || null,
+        }),
+      });
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.message || t('error.saveFailed'));
+      }
+
+      setMarketInfo(result.data.data);
+      setEditDialogOpen(false);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : t('error.saveFailed'));
+    } finally {
+      setSaving(false);
+    }
+  };
 
   // 获取情感标签的颜色
   const getSentimentColor = (sentiment: string) => {
@@ -78,13 +178,13 @@ export function AssetMarketInfoDetail({ marketInfoId }: { marketInfoId: number }
     return (
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
-        <AlertTitle>错误</AlertTitle>
+        <AlertTitle>{t('error.title')}</AlertTitle>
         <AlertDescription>
           {error}
           <div className="mt-4">
             <Button onClick={fetchMarketInfoDetail} variant="outline">
               <RefreshCw className="mr-2 h-4 w-4" />
-              重新加载
+              {t('error.reload')}
             </Button>
           </div>
         </AlertDescription>
@@ -95,21 +195,25 @@ export function AssetMarketInfoDetail({ marketInfoId }: { marketInfoId: number }
   if (!marketInfo) {
     return (
       <Alert>
-        <AlertTitle>暂无数据</AlertTitle>
-        <AlertDescription>未找到指定的市场信息。</AlertDescription>
+        <AlertTitle>{t('detail.noData.title')}</AlertTitle>
+        <AlertDescription>{t('detail.noData.description')}</AlertDescription>
       </Alert>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* 返回按钮 */}
-      <div className="flex items-center gap-4">
+      {/* 返回按钮 + 编辑按钮 */}
+      <div className="flex items-center justify-between gap-4">
         <Button variant="outline" asChild>
           <Link href="/asset-market-info">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            返回列表
+            {t('detail.backToList')}
           </Link>
+        </Button>
+        <Button onClick={openEditDialog}>
+          <Pencil className="mr-2 h-4 w-4" />
+          {t('detail.edit')}
         </Button>
       </div>
 
@@ -118,13 +222,13 @@ export function AssetMarketInfoDetail({ marketInfoId }: { marketInfoId: number }
         <h1 className="text-3xl font-bold">{marketInfo.title}</h1>
         <div className="flex flex-wrap items-center gap-3">
           <Badge variant="outline" className={getSentimentColor(marketInfo.sentiment)}>
-            情感: {marketInfo.sentiment}
+            {t('detail.sentiment')}: {t(`sentiment.${marketInfo.sentiment}`, { defaultValue: marketInfo.sentiment })}
           </Badge>
           <Badge variant="outline" className={getImportanceColor(marketInfo.importance)}>
-            重要性: {marketInfo.importance}/10
+            {t('detail.importanceLabel')}: {marketInfo.importance}/10
           </Badge>
           <span className="text-muted-foreground text-sm">
-            发布时间: {format(new Date(marketInfo.createdAt), 'yyyy年MM月dd日 HH:mm', { locale: zhCN })}
+            {t('detail.publishedAt')}: {format(new Date(marketInfo.createdAt), 'yyyy年MM月dd日 HH:mm', { locale: zhCN })}
           </span>
         </div>
       </div>
@@ -133,7 +237,7 @@ export function AssetMarketInfoDetail({ marketInfoId }: { marketInfoId: number }
       {marketInfo.assetMetas && marketInfo.assetMetas.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">关联资产</CardTitle>
+            <CardTitle className="text-lg">{t('detail.sections.relatedAssets')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
@@ -155,7 +259,7 @@ export function AssetMarketInfoDetail({ marketInfoId }: { marketInfoId: number }
       {/* 摘要 */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">摘要</CardTitle>
+          <CardTitle className="text-lg">{t('detail.sections.summary')}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground whitespace-pre-wrap">{marketInfo.summary}</p>
@@ -165,7 +269,7 @@ export function AssetMarketInfoDetail({ marketInfoId }: { marketInfoId: number }
       {/* 市场影响 */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">市场影响</CardTitle>
+          <CardTitle className="text-lg">{t('detail.sections.marketImpact')}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground whitespace-pre-wrap">{marketInfo.marketImpact}</p>
@@ -176,7 +280,7 @@ export function AssetMarketInfoDetail({ marketInfoId }: { marketInfoId: number }
       {marketInfo.keyTopics && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">关键话题</CardTitle>
+            <CardTitle className="text-lg">{t('detail.sections.keyTopics')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground whitespace-pre-wrap">{marketInfo.keyTopics}</p>
@@ -188,7 +292,7 @@ export function AssetMarketInfoDetail({ marketInfoId }: { marketInfoId: number }
       {marketInfo.keyDataPoints && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">关键数据点</CardTitle>
+            <CardTitle className="text-lg">{t('detail.sections.keyDataPoints')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground whitespace-pre-wrap">{marketInfo.keyDataPoints}</p>
@@ -200,7 +304,7 @@ export function AssetMarketInfoDetail({ marketInfoId }: { marketInfoId: number }
       {marketInfo.originalContent && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">原始内容</CardTitle>
+            <CardTitle className="text-lg">{t('detail.sections.originalContent')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="bg-muted p-4 rounded-lg">
@@ -214,17 +318,17 @@ export function AssetMarketInfoDetail({ marketInfoId }: { marketInfoId: number }
       {(marketInfo.sourceName || marketInfo.sourceUrl) && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">信息来源</CardTitle>
+            <CardTitle className="text-lg">{t('detail.sections.source')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {marketInfo.sourceName && (
               <p className="text-sm">
-                <span className="font-medium">来源名称:</span> {marketInfo.sourceName}
+                <span className="font-medium">{t('detail.sections.sourceName')}:</span> {marketInfo.sourceName}
               </p>
             )}
             {marketInfo.sourceUrl && (
               <p className="text-sm">
-                <span className="font-medium">来源链接:</span>{' '}
+                <span className="font-medium">{t('detail.sections.sourceUrl')}:</span>{' '}
                 <a
                   href={marketInfo.sourceUrl}
                   target="_blank"
@@ -245,13 +349,133 @@ export function AssetMarketInfoDetail({ marketInfoId }: { marketInfoId: number }
         <CardContent className="py-4">
           <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
             <span>ID: {marketInfo.id}</span>
-            <span>内容模式: {marketInfo.contentMode === 'ai_summary' ? 'AI摘要' : '原文保留'}</span>
             <span>
-              更新时间: {format(new Date(marketInfo.updatedAt), 'yyyy年MM月dd日 HH:mm', { locale: zhCN })}
+              {t('detail.contentMode')}: {marketInfo.contentMode === 'ai_summary' ? t('detail.contentModeAI') : t('detail.contentModeOriginal')}
+            </span>
+            <span>
+              {t('detail.updatedAt')}: {format(new Date(marketInfo.updatedAt), 'yyyy年MM月dd日 HH:mm', { locale: zhCN })}
             </span>
           </div>
         </CardContent>
       </Card>
+
+      {/* 编辑弹窗 */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{t('edit.title')}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            {saveError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{saveError}</AlertDescription>
+              </Alert>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="edit-title">{t('edit.fields.title')}</Label>
+              <Input
+                id="edit-title"
+                value={editForm.title}
+                onChange={(e) => setEditForm((p) => ({ ...p, title: e.target.value }))}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-sentiment">{t('edit.fields.sentiment')}</Label>
+                <Select
+                  key={editForm.sentiment + String(editDialogOpen)}
+                  defaultValue={editForm.sentiment}
+                  onValueChange={(v) => setEditForm((p) => ({ ...p, sentiment: v }))}
+                >
+                  <SelectTrigger id="edit-sentiment">
+                    <SelectValue placeholder={t('edit.fields.sentimentPlaceholder')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="positive">{t('sentiment.positive')}</SelectItem>
+                    <SelectItem value="neutral">{t('sentiment.neutral')}</SelectItem>
+                    <SelectItem value="negative">{t('sentiment.negative')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-importance">{t('edit.fields.importance')}</Label>
+                <Input
+                  id="edit-importance"
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={editForm.importance}
+                  onChange={(e) => setEditForm((p) => ({ ...p, importance: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-summary">{t('edit.fields.summary')}</Label>
+              <Textarea
+                id="edit-summary"
+                rows={4}
+                value={editForm.summary}
+                onChange={(e) => setEditForm((p) => ({ ...p, summary: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-market-impact">{t('edit.fields.marketImpact')}</Label>
+              <Textarea
+                id="edit-market-impact"
+                rows={3}
+                value={editForm.marketImpact}
+                onChange={(e) => setEditForm((p) => ({ ...p, marketImpact: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-key-topics">{t('edit.fields.keyTopics')}</Label>
+              <Textarea
+                id="edit-key-topics"
+                rows={2}
+                value={editForm.keyTopics}
+                onChange={(e) => setEditForm((p) => ({ ...p, keyTopics: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-key-data-points">{t('edit.fields.keyDataPoints')}</Label>
+              <Textarea
+                id="edit-key-data-points"
+                rows={2}
+                value={editForm.keyDataPoints}
+                onChange={(e) => setEditForm((p) => ({ ...p, keyDataPoints: e.target.value }))}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-source-name">{t('edit.fields.sourceName')}</Label>
+                <Input
+                  id="edit-source-name"
+                  value={editForm.sourceName}
+                  onChange={(e) => setEditForm((p) => ({ ...p, sourceName: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-source-url">{t('edit.fields.sourceUrl')}</Label>
+                <Input
+                  id="edit-source-url"
+                  value={editForm.sourceUrl}
+                  onChange={(e) => setEditForm((p) => ({ ...p, sourceUrl: e.target.value }))}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)} disabled={saving}>
+              {t('edit.buttons.cancel')}
+            </Button>
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? t('edit.buttons.saving') : t('edit.buttons.save')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+

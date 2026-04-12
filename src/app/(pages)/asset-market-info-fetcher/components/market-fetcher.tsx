@@ -25,10 +25,14 @@ import { StepOneContentFetcher } from './StepOneContentFetcher';
 import { StepTwoAIAnalyzer } from './StepTwoAIAnalyzer';
 import { StepThreeDataSaver } from './StepThreeDataSaver';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export function CombinedStepperMarketFetcher() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialAssetMetaId = searchParams.get('assetMetaId')
+    ? Number(searchParams.get('assetMetaId'))
+    : undefined;
   const { t } = useTranslation('asset-market-info-fetcher');
   const [activeStep, setActiveStep] = useState(1);
   const [inputMode, setInputMode] = useState<'url' | 'manual' | null>(null);
@@ -79,8 +83,12 @@ export function CombinedStepperMarketFetcher() {
   const handleStepThreeComplete = () => {
     setFinalSaveResult(getCurrentMarketInfo());
     resetForms();
-    // 跳转到 asset-market-info
-    router.push('/asset-market-info');
+    // 若从资产详情页跳转而来，则跳回该页面；否则跳到市场信息列表
+    if (initialAssetMetaId) {
+      router.push(`/asset-meta/${initialAssetMetaId}`);
+    } else {
+      router.push('/asset-market-info');
+    }
   };
 
   // 控制步骤切换的函数
@@ -202,6 +210,7 @@ export function CombinedStepperMarketFetcher() {
                   onBack={() => setActiveStep(2)}
                   onComplete={handleStepThreeComplete}
                   finalSaveResult={finalSaveResult}
+                  initialAssetMetaId={initialAssetMetaId}
                 />
               )}
             </StepperContent>
@@ -211,3 +220,4 @@ export function CombinedStepperMarketFetcher() {
     </div>
   );
 }
+

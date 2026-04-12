@@ -10,6 +10,8 @@ import {
 } from '@renderer/components/ui/sidebar';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useChatStore } from '@renderer/store/chat';
+import { chatSelectors } from '@renderer/store/chat/selectors';
 
 export function NavMain({
   items,
@@ -21,6 +23,7 @@ export function NavMain({
   }[];
 }) {
   const pathname = usePathname();
+  const isAIGenerating = useChatStore(chatSelectors.isAIGenerating);
 
   return (
     <SidebarGroup>
@@ -39,11 +42,19 @@ export function NavMain({
         <SidebarMenu>
           {items.map((item) => {
             const isActive = pathname === item.url;
+            const showGeneratingBadge = item.url === '/chat' && isAIGenerating && !isActive;
             return (
               <Link href={item.url} key={item.title}>
                 <SidebarMenuItem>
                   <SidebarMenuButton tooltip={item.title} isActive={isActive}>
-                    {item.icon && <item.icon />}
+                    {item.icon && (
+                      <span className="relative">
+                        <item.icon />
+                        {showGeneratingBadge && (
+                          <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary animate-pulse" />
+                        )}
+                      </span>
+                    )}
                     <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
