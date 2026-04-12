@@ -22,6 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@renderer/components/ui/alert-dialog';
+import { useTranslation } from 'react-i18next';
 
 interface EditReportDrawerProps {
   open: boolean;
@@ -48,6 +49,7 @@ export function EditReportDrawer({
   initialContent,
   onUpdate,
 }: EditReportDrawerProps) {
+  const { t } = useTranslation('report');
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
@@ -68,7 +70,7 @@ export function EditReportDrawer({
 
   const handleSave = async () => {
     if (!content.trim()) {
-      toast.error('内容不能为空');
+      toast.error(t('editDrawer.contentEmpty'));
       return;
     }
 
@@ -85,14 +87,14 @@ export function EditReportDrawer({
       const result = await response.json();
 
       if (response.ok && result.success) {
-        toast.success('报告已更新');
+        toast.success(t('editDrawer.updateSuccess'));
         onOpenChange(false);
         onUpdate();
       } else {
-        toast.error(result.message || '更新报告失败');
+        toast.error(result.message || t('editDrawer.updateFailed'));
       }
     } catch (error) {
-      toast.error('更新报告失败');
+      toast.error(t('editDrawer.updateFailed'));
       console.error('Failed to update report:', error);
     } finally {
       setLoading(false);
@@ -117,8 +119,8 @@ export function EditReportDrawer({
       <Drawer open={open} onOpenChange={handleCancel} direction="right">
         <DrawerContent className="h-dvh sm:max-w-[800px] sm:h-screen rounded-none">
           <DrawerHeader>
-            <DrawerTitle className="text-xl">编辑报告</DrawerTitle>
-            <DrawerDescription>编辑报告内容，支持 Markdown 格式。</DrawerDescription>
+            <DrawerTitle className="text-xl">{t('editDrawer.title')}</DrawerTitle>
+            <DrawerDescription>{t('editDrawer.description')}</DrawerDescription>
           </DrawerHeader>
 
           <div className="flex-1 overflow-auto px-4">
@@ -126,16 +128,16 @@ export function EditReportDrawer({
               value={content}
               onChange={(e) => setContent(e.target.value)}
               className="min-h-[calc(100dvh-200px)] sm:min-h-[calc(100vh-180px)] font-mono text-sm"
-              placeholder="输入报告内容..."
+              placeholder={t('editDrawer.placeholder')}
             />
           </div>
 
           <DrawerFooter>
             <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
-              取消
+              {t('editDrawer.cancel')}
             </Button>
             <Button type="button" onClick={handleSave} disabled={loading || !content.trim()}>
-              {loading ? '保存中...' : '保存'}
+              {loading ? t('editDrawer.saving') : t('editDrawer.save')}
             </Button>
           </DrawerFooter>
         </DrawerContent>
@@ -145,14 +147,14 @@ export function EditReportDrawer({
       <AlertDialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>放弃更改？</AlertDialogTitle>
+            <AlertDialogTitle>{t('editDrawer.discardTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              您有未保存的更改，确定要放弃这些更改吗？
+              {t('editDrawer.discardDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>继续编辑</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDiscard}>放弃更改</AlertDialogAction>
+            <AlertDialogCancel>{t('editDrawer.continueEditing')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDiscard}>{t('editDrawer.discard')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

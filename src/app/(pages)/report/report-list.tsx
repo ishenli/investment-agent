@@ -138,8 +138,8 @@ export function ReportList() {
               <SelectValue placeholder="Agent 类型" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="claude-sdk">Claude SDK</SelectItem>
-              <SelectItem value="langchain">LangChain</SelectItem>
+              <SelectItem value="claude-sdk">{t('agentType.claudeSdk')}</SelectItem>
+              <SelectItem value="langchain">{t('agentType.langchain')}</SelectItem>
             </SelectContent>
           </Select>
 

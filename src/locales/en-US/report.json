@@ -30,5 +30,51 @@
     "loadError": "Unable to load report list: {{error}}",
     "noDateRange": "No date range"
   },
-  "title": "Report"
+  "title": "Report",
+  "detailPage": {
+    "backToList": "Back to List",
+    "loadError": "Unable to Load Report",
+    "notFound": "Report does not exist or has been deleted",
+    "deleteReport": "Delete Report",
+    "confirmDelete": "Confirm Deletion?",
+    "deleteDescription": "This action cannot be undone. This will permanently delete this analysis report.",
+    "cancel": "Cancel",
+    "confirm": "Confirm Delete",
+    "editReport": "Edit Report",
+    "manuallyEdited": "This report has been manually edited",
+    "dataOutdated": "Data source information may be outdated.",
+    "lastEditedAt": "Last edited at",
+    "generating": "Report Generation in Progress",
+    "generatingNote": "Report is being generated, page will auto-refresh...",
+    "dataSource": "Data Source",
+    "dataFreshness": "Data Freshness",
+    "stale": "Stale",
+    "fresh": "Fresh",
+    "lowFreshnessWarning": "Data freshness is low, some data may not be up to date. It's recommended to refresh data and regenerate the report.",
+    "generatedAt": "Generated at",
+    "updatedAt": "Updated at",
+    "to": "to",
+    "report": "Report",
+    "weeklyReport": "Weekly Report",
+    "monthlyReport": "Monthly Report"
+  },
+  "editDrawer": {
+    "title": "Edit Report",
+    "description": "Edit report content, supports Markdown format.",
+    "placeholder": "Enter report content...",
+    "contentEmpty": "Content cannot be empty",
+    "updateSuccess": "Report updated successfully",
+    "updateFailed": "Failed to update report",
+    "saving": "Saving...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "discardTitle": "Discard Changes?",
+    "discardDescription": "You have unsaved changes. Are you sure you want to discard them?",
+    "continueEditing": "Continue Editing",
+    "discard": "Discard Changes"
+  },
+  "agentType": {
+    "claudeSdk": "Claude SDK",
+    "langchain": "LangChain"
+  }
 }

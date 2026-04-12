@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useReport, useDeleteReport, STAGE_DISPLAY_NAMES } from '@/app/hooks/useReport';
 import { Button } from '@renderer/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@renderer/components/ui/card';
@@ -36,6 +36,7 @@ import {
 } from '@renderer/components/ui/alert-dialog';
 import { EditReportDrawer } from './components/EditReportDrawer';
 import { Progress } from '@renderer/components/ui/progress';
+import { useTranslation } from 'react-i18next';
 
 interface ReportDetailProps {
   id: string;
@@ -46,6 +47,7 @@ interface ReportDetailProps {
  * data source information, and edit/delete actions.
  */
 export function ReportDetail({ id }: ReportDetailProps) {
+  const { t } = useTranslation('report');
   const router = useRouter();
   const { data: report, isLoading, error, refetch } = useReport(id);
   const deleteMutation = useDeleteReport();
@@ -57,11 +59,11 @@ export function ReportDetail({ id }: ReportDetailProps) {
       { id },
       {
         onSuccess: () => {
-          toast.success('报告已删除');
+          toast.success(t('editDrawer.updateSuccess'));
           router.push('/report');
         },
         onError: (err) => {
-          toast.error(`删除失败: ${err instanceof Error ? err.message : '未知错误'}`);
+          toast.error(`${t('editDrawer.updateFailed')}: ${err instanceof Error ? err.message : t('detail.unknownError')}`);
         },
       },
     );
@@ -90,7 +92,7 @@ export function ReportDetail({ id }: ReportDetailProps) {
 
   // Get stage display name
   const getStageDisplayName = (stage: string | null) => {
-    if (!stage) return '处理中';
+    if (!stage) return t('list.status.processing');
     return STAGE_DISPLAY_NAMES[stage] || stage;
   };
 
@@ -108,14 +110,14 @@ export function ReportDetail({ id }: ReportDetailProps) {
         <Button variant="ghost" asChild className="pl-0">
           <Link href="/report">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            返回列表
+            {t('detailPage.backToList')}
           </Link>
         </Button>
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>无法加载报告</AlertTitle>
+          <AlertTitle>{t('detailPage.loadError')}</AlertTitle>
           <AlertDescription>
-            {error instanceof Error ? error.message : '报告不存在或已被删除'}
+            {error instanceof Error ? error.message : t('detailPage.notFound')}
           </AlertDescription>
         </Alert>
       </div>
@@ -129,7 +131,7 @@ export function ReportDetail({ id }: ReportDetailProps) {
         <Button variant="ghost" asChild className="pl-0">
           <Link href="/report">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            返回列表
+            {t('detailPage.backToList')}
           </Link>
         </Button>
 
@@ -138,30 +140,30 @@ export function ReportDetail({ id }: ReportDetailProps) {
             <AlertDialogTrigger asChild>
               <Button variant="destructive" size="sm">
                 <Trash2 className="mr-2 h-4 w-4" />
-                删除报告
+                {t('detailPage.deleteReport')}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>确认删除?</AlertDialogTitle>
+                <AlertDialogTitle>{t('detailPage.confirmDelete')}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  此操作无法撤销。这将永久删除该份分析报告。
+                  {t('detailPage.deleteDescription')}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>取消</AlertDialogCancel>
+                <AlertDialogCancel>{t('detailPage.cancel')}</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleDelete}
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90 text-white"
                 >
-                  确认删除
+                  {t('detailPage.confirm')}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
           <Button variant="outline" size="sm" onClick={() => setIsEditOpen(true)}>
             <PencilIcon className="mr-2 h-4 w-4" />
-            编辑报告
+            {t('detailPage.editReport')}
           </Button>
         </div>
       </div>
@@ -170,12 +172,12 @@ export function ReportDetail({ id }: ReportDetailProps) {
       {report.isManuallyEdited && (
         <Alert className="bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800">
           <AlertTriangle className="h-4 w-4 text-amber-600" />
-          <AlertTitle className="text-amber-800 dark:text-amber-200">此报告已手动编辑</AlertTitle>
+          <AlertTitle className="text-amber-800 dark:text-amber-200">{t('detailPage.manuallyEdited')}</AlertTitle>
           <AlertDescription className="text-amber-700 dark:text-amber-300">
-            数据来源信息可能已过时。
+            {t('detailPage.dataOutdated')}
             {report.lastEditedAt && (
               <span className="ml-1">
-                最后编辑于 {format(new Date(report.lastEditedAt), 'yyyy-MM-dd HH:mm')}
+                {t('detailPage.lastEditedAt')} {format(new Date(report.lastEditedAt), 'yyyy-MM-dd HH:mm')}
               </span>
             )}
           </AlertDescription>
@@ -189,7 +191,7 @@ export function ReportDetail({ id }: ReportDetailProps) {
             <div className="flex items-center gap-2">
               <RefreshCw className="h-4 w-4 text-blue-600 animate-spin" />
               <CardTitle className="text-lg text-blue-800 dark:text-blue-200">
-                报告生成中
+                {t('detailPage.generating')}
               </CardTitle>
             </div>
           </CardHeader>
@@ -204,7 +206,7 @@ export function ReportDetail({ id }: ReportDetailProps) {
             </div>
             <Progress value={report.generationProgress} className="h-2" />
             <p className="text-xs text-blue-600 dark:text-blue-400">
-              报告正在生成中，页面会自动刷新...
+              {t('detailPage.generatingNote')}
             </p>
           </CardContent>
         </Card>
@@ -216,7 +218,7 @@ export function ReportDetail({ id }: ReportDetailProps) {
           <div className="flex justify-between items-start">
             <div className="space-y-1">
               <Badge variant="outline" className="mb-2">
-                {report.type === 'weekly' ? '周报' : report.type === 'monthly' ? '月报' : '报告'}
+                {report.type === 'weekly' ? t('detailPage.weeklyReport') : report.type === 'monthly' ? t('detailPage.monthlyReport') : t('detailPage.report')}
               </Badge>
               <CardTitle className="text-2xl">{report.title}</CardTitle>
             </div>
@@ -226,19 +228,19 @@ export function ReportDetail({ id }: ReportDetailProps) {
               <div className="flex items-center">
                 <Calendar className="mr-2 h-4 w-4" />
                 <span>
-                  {format(new Date(report.startDate), 'yyyy-MM-dd')} 至{' '}
+                  {format(new Date(report.startDate), 'yyyy-MM-dd')} {t('detailPage.to')}{' '}
                   {format(new Date(report.endDate), 'yyyy-MM-dd')}
                 </span>
               </div>
             )}
             <div className="flex items-center">
               <Clock className="mr-2 h-4 w-4" />
-              <span>生成于 {format(new Date(report.createdAt), 'yyyy-MM-dd HH:mm')}</span>
+              <span>{t('detailPage.generatedAt')} {format(new Date(report.createdAt), 'yyyy-MM-dd HH:mm')}</span>
             </div>
             {report.updatedAt && report.updatedAt !== report.createdAt && (
               <div className="flex items-center">
                 <RefreshCw className="mr-2 h-4 w-4" />
-                <span>更新于 {format(new Date(report.updatedAt), 'yyyy-MM-dd HH:mm')}</span>
+                <span>{t('detailPage.updatedAt')} {format(new Date(report.updatedAt), 'yyyy-MM-dd HH:mm')}</span>
               </div>
             )}
           </div>
@@ -254,7 +256,7 @@ export function ReportDetail({ id }: ReportDetailProps) {
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <Database className="h-4 w-4 text-muted-foreground" />
-              <CardTitle className="text-base">数据来源</CardTitle>
+              <CardTitle className="text-base">{t('detailPage.dataSource')}</CardTitle>
               {dataSourceInfo.freshnessScore !== undefined && (
                 <Badge
                   variant={
@@ -266,7 +268,7 @@ export function ReportDetail({ id }: ReportDetailProps) {
                   }
                   className="ml-auto"
                 >
-                  数据时效性: {Math.round(dataSourceInfo.freshnessScore * 100)}%
+                  {t('detailPage.dataFreshness')}: {Math.round(dataSourceInfo.freshnessScore * 100)}%
                 </Badge>
               )}
             </div>
@@ -290,11 +292,11 @@ export function ReportDetail({ id }: ReportDetailProps) {
                     )}
                     {source.isStale ? (
                       <Badge variant="destructive" className="text-xs">
-                        陈旧
+                        {t('detailPage.stale')}
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-800">
-                        新鲜
+                        {t('detailPage.fresh')}
                       </Badge>
                     )}
                   </div>
@@ -305,7 +307,7 @@ export function ReportDetail({ id }: ReportDetailProps) {
               <Alert className="mt-4 bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800">
                 <Info className="h-4 w-4 text-amber-600" />
                 <AlertDescription className="text-amber-700 dark:text-amber-300 text-sm">
-                  数据时效性较低，部分数据可能不是最新的。建议刷新数据后重新生成报告。
+                  {t('detailPage.lowFreshnessWarning')}
                 </AlertDescription>
               </Alert>
             )}
