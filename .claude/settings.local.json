@@ -5,7 +5,8 @@
       "Bash(openspec archive:*)",
       "Bash(openspec show:*)",
       "Bash(openspec validate:*)",
-      "Bash(openspec list:*)"
+      "Bash(openspec list:*)",
+      "Bash(git add:*)"
     ]
   }
 }
