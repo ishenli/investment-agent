@@ -6,6 +6,8 @@ import accountService from './accountService';
 import portfolioSnapshotService from './portfolioSnapshotService';
 import { HistoryService } from './historyService/HistoryService';
 import positionService from './positionService';
+import { unifiedPriceService } from './unifiedPriceService';
+import priceService from './priceService';
 import type {
   ScheduledTaskType,
   TaskExecutionStatus,
@@ -278,17 +280,19 @@ export class SchedulerService {
     try {
       logger.info('[SchedulerService] Executing price sync...');
 
-      // 获取所有账户的持仓股票（包含市场信息，去重）
+      // 获取所有账户的持仓股票（包含市场信息和资产类型，去重）
       const accounts = await accountService.getAllAccounts();
-      const symbolMarketMap = new Map<string, string>(); // symbol -> market
+      const symbolInfoMap = new Map<string, { market: string; sector: string }>(); // symbol -> { market, sector }
 
       for (const account of accounts) {
         try {
           const positions = await positionService.getCurrentPositions(String(account.id));
           positions.forEach((p) => {
-            // 记录股票及其市场信息
-            if (!symbolMarketMap.has(p.symbol)) {
-              symbolMarketMap.set(p.symbol, p.market || 'US');
+            if (!symbolInfoMap.has(p.symbol)) {
+              symbolInfoMap.set(p.symbol, {
+                market: p.market || 'US',
+                sector: p.sector || 'stock',
+              });
             }
           });
         } catch (error) {
@@ -298,27 +302,68 @@ export class SchedulerService {
         }
       }
 
-      logger.info(`[SchedulerService] Found ${symbolMarketMap.size} unique symbols to sync`);
+      logger.info(`[SchedulerService] Found ${symbolInfoMap.size} unique symbols to sync`);
 
       // 同步每个股票的历史价格（最近 7 天）
-      // 注意：HistoryService 目前只支持美股（使用 Finnhub API）
       const syncStartDate = new Date(today);
       syncStartDate.setDate(syncStartDate.getDate() - 7);
 
-      for (const [symbol, market] of symbolMarketMap) {
+      // 收集非美股资产用于批量价格查询
+      const nonUsQuoteRequests: Array<{ symbol: string; market: 'CN' | 'HK'; sector: string }> = [];
+
+      for (const [symbol, info] of symbolInfoMap) {
         try {
-          // 目前 HistoryService 只支持美股
-          if (market === 'US') {
+          if (info.market === 'US') {
+            // 美股使用 HistoryService（Finnhub API）
             await this.historyService.syncHistoricalData(symbol, syncStartDate, today, 'US');
             symbolsProcessed++;
-            logger.info(`[SchedulerService] Synced price for ${symbol} (market: ${market})`);
+            logger.info(`[SchedulerService] Synced price for ${symbol} (market: ${info.market})`);
+          } else if (info.market === 'CN' || info.market === 'HK') {
+            // CN/HK 市场通过 unifiedPriceService 批量获取
+            nonUsQuoteRequests.push({ symbol, market: info.market, sector: info.sector });
           } else {
-            // 非美股暂时跳过，等待后续支持
-            skippedSymbols.push(`${symbol}(${market})`);
-            logger.warn(`[SchedulerService] Skipped ${symbol}: market ${market} not supported by HistoryService`);
+            skippedSymbols.push(`${symbol}(${info.market})`);
+            logger.warn(`[SchedulerService] Skipped ${symbol}: market ${info.market} not supported`);
           }
         } catch (error) {
-          const errorMsg = `Failed to sync price for ${symbol} (market: ${market}): ${error instanceof Error ? error.message : String(error)}`;
+          const errorMsg = `Failed to sync price for ${symbol} (market: ${info.market}): ${error instanceof Error ? error.message : String(error)}`;
+          logger.error(`[SchedulerService] ${errorMsg}`);
+          errors.push(errorMsg);
+        }
+      }
+
+      // 批量获取 CN/HK 市场价格
+      if (nonUsQuoteRequests.length > 0) {
+        try {
+          const quoteRequests = nonUsQuoteRequests.map((r) => ({
+            symbol: r.symbol,
+            market: r.market as 'CN' | 'HK',
+            assetType: r.sector as 'stock' | 'etf' | 'fund' | 'crypto',
+          }));
+          const result = await unifiedPriceService.batchGetQuote(quoteRequests, { forceRefresh: true });
+
+          for (const success of result.succeeded) {
+            // 确保 assetMeta 记录使用正确的 assetType
+            const info = symbolInfoMap.get(success.symbol);
+            await priceService.updatePrice({
+              symbol: success.symbol,
+              price: success.price,
+              assetType: (info?.sector as 'stock' | 'etf' | 'fund' | 'crypto') || 'stock',
+              currency: success.currency,
+              source: success.source,
+              market: info?.market as 'CN' | 'HK',
+            });
+            symbolsProcessed++;
+            logger.info(`[SchedulerService] Synced price for ${success.symbol} (market: ${info?.market}): ${success.price}`);
+          }
+
+          for (const fail of result.failed) {
+            const errorMsg = `Failed to get price for ${fail.symbol} (market: ${fail.market}): ${fail.error}`;
+            logger.error(`[SchedulerService] ${errorMsg}`);
+            errors.push(errorMsg);
+          }
+        } catch (error) {
+          const errorMsg = `Failed to batch sync CN/HK prices: ${error instanceof Error ? error.message : String(error)}`;
           logger.error(`[SchedulerService] ${errorMsg}`);
           errors.push(errorMsg);
         }
@@ -332,15 +377,15 @@ export class SchedulerService {
         executionDate: today,
         status,
         metadata: {
-          totalProcessed: symbolMarketMap.size,
+          totalProcessed: symbolInfoMap.size,
           successCount: symbolsProcessed,
           failedCount: errors.length,
           failedItems: errors.map((e, i) => {
-            const symbols = Array.from(symbolMarketMap.keys());
+            const symbols = Array.from(symbolInfoMap.keys());
             return { symbol: symbols[i], error: e };
           }),
           durationMs: Date.now() - startedAt.getTime(),
-          note: skippedSymbols.length > 0 ? `Skipped non-US stocks: ${skippedSymbols.join(', ')}` : undefined,
+          note: skippedSymbols.length > 0 ? `Skipped unsupported symbols: ${skippedSymbols.join(', ')}` : undefined,
         },
         startedAt,
         completedAt: new Date(),

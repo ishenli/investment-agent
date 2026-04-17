@@ -50,6 +50,20 @@ const mockPosition = {
   updatedAt: new Date(),
 };
 
+const mockFundPosition = {
+  id: 2,
+  accountId: 1,
+  symbol: '012349',
+  quantity: 5000,
+  averagePriceCents: 67,
+  averageCost: 0.67,
+  investmentMemo: null,
+  sector: 'fund' as const,
+  currency: 'CNY',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+
 const mockPositionType: PositionType = {
   id: '1',
   accountId: '1',
@@ -64,6 +78,27 @@ const mockPositionType: PositionType = {
   market: 'US',
   investmentMemo: 'test',
   assetMetaId: 1,
+  sector: 'stock' as const,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+
+const mockFundPositionType: PositionType = {
+  id: '2',
+  accountId: '1',
+  symbol: '012349',
+  chineseName: '天弘恒生科技ETF联接C',
+  quantity: 5000,
+  averageCost: 0.67,
+  currentPrice: 0.69,
+  marketValue: 3450,
+  unrealizedPnL: 100,
+  positionRatio: 0.05,
+  market: 'CN',
+  currency: 'CNY',
+  sector: 'fund' as const,
+  investmentMemo: null,
+  assetMetaId: 2,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -337,6 +372,22 @@ describe('PositionService', () => {
       expect(result[0].currentPrice).toBe(180);
       expect(result[0].chineseName).toBe('苹果');
       expect(result[0].market).toBe('US');
+      expect(result[0].sector).toBe('stock');
+    });
+
+    it('基金持仓无 assetMeta 时应根据 sector 和 currency 推断 market 为 CN', async () => {
+      (db.query.assetPositions.findMany as any).mockResolvedValue([mockFundPosition]);
+      (priceService.getLatestPrices as any).mockResolvedValue({});
+      (assetMetaService.getAllAssetMetas as any).mockResolvedValue([]); // 无 assetMeta
+      (db.query.accountFunds.findMany as any).mockResolvedValue([]);
+
+      const result = await positionService.getCurrentPositions('1');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].symbol).toBe('012349');
+      expect(result[0].sector).toBe('fund');
+      expect(result[0].currency).toBe('CNY');
+      expect(result[0].market).toBe('CN'); // 应该推断为 CN，而非 undefined
     });
 
     it('没有持仓时应该返回空数组', async () => {
@@ -366,7 +417,29 @@ describe('PositionService', () => {
         stockAccountValue: 1800,
         totalInvestment: 1750,
         unrealizedPnL: 50,
+        usdUnrealizedPnL: 50,
+        cnyStockValue: 0,
+        cnyTotalInvestment: 0,
+        cnyUnrealizedPnL: 0,
+        hasCnyAssets: false,
       });
+    });
+
+    it('应该按 sector 区分股票和基金持仓', async () => {
+      vi.spyOn(positionService, 'getCurrentPositions').mockResolvedValue([
+        mockPositionType,
+        mockFundPositionType,
+      ]);
+
+      const result = await positionService.getPositionAmountSummary('1');
+
+      // 股票部分（sector !== 'fund'）
+      expect(result.stockAccountValue).toBe(1800);
+      expect(result.usdUnrealizedPnL).toBe(50);
+      // 基金部分（sector === 'fund'）
+      expect(result.cnyStockValue).toBe(3450);
+      expect(result.cnyUnrealizedPnL).toBe(100);
+      expect(result.hasCnyAssets).toBe(true);
     });
 
     it('没有持仓时应该返回零值', async () => {
@@ -378,6 +451,11 @@ describe('PositionService', () => {
         stockAccountValue: 0,
         totalInvestment: 0,
         unrealizedPnL: 0,
+        usdUnrealizedPnL: 0,
+        cnyStockValue: 0,
+        cnyTotalInvestment: 0,
+        cnyUnrealizedPnL: 0,
+        hasCnyAssets: false,
       });
     });
   });

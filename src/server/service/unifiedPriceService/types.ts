@@ -10,6 +10,8 @@ export interface QuoteRequest {
   market: MarketType;
   /** 账户 ID，用于获取用户配置（如 API Key），可选 */
   accountId?: string;
+  /** 资产类型（可选），用于区分基金等特殊资产 */
+  assetType?: 'stock' | 'etf' | 'fund' | 'crypto';
 }
 
 /**

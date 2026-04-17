@@ -1,9 +1,10 @@
 import { TransactionRecordType, TransactionType } from '@typings/transaction';
 import logger from '@server/base/logger';
 import positionService from './positionService';
-import { AssetType } from '@typings/asset';
 import { transactionRepository, type UpdateTransactionData } from '../repository/transactionRepository';
+import { AssetType, MarketType } from '@typings/asset';
 import { accountFundRepository } from '../repository/accountFundRepository';
+import priceService from './priceService';
 
 export class TransactionService {
   constructor() {
@@ -168,8 +169,11 @@ export class TransactionService {
         }
       }
 
-      // 如果是股票交易，则更新仓位
+      // 如果是股票/基金交易，则更新仓位
       if (transactionData.type === 'buy' || transactionData.type === 'sell') {
+        // 人民币基金使用 CNY 计价
+        const positionCurrency =
+          transactionData.sector === 'fund' && transactionData.market === 'CN' ? 'CNY' : 'USD';
         await positionService.processTransaction(
           parseInt(transactionData.accountId),
           transactionData.symbol || '',
@@ -177,7 +181,24 @@ export class TransactionService {
           priceCents || 0,
           transactionData.type,
           transactionData.sector,
+          positionCurrency,
         );
+
+        // 确保 assetMeta 记录存在（用于价格同步和展示）
+        if (transactionData.symbol) {
+          try {
+            await priceService.updatePrice({
+              symbol: transactionData.symbol,
+              price: transactionData.price || 0,
+              assetType: transactionData.sector,
+              currency: positionCurrency,
+              source: 'manual',
+              market: transactionData.market as MarketType,
+            });
+          } catch (error) {
+            logger.warn(`[TransactionService] Failed to ensure assetMeta for ${transactionData.symbol}: ${error}`);
+          }
+        }
       }
 
       return {
@@ -420,6 +441,10 @@ export class TransactionService {
             newSector = transactionData.sector;
           }
 
+          const newMarket = transactionData.market || (existingTransaction.market as 'US' | 'CN' | 'HK' | undefined);
+          const positionCurrency =
+            newSector === 'fund' && newMarket === 'CN' ? 'CNY' : 'USD';
+
           await positionService.processTransaction(
             existingTransaction.accountId,
             newSymbol,
@@ -427,6 +452,7 @@ export class TransactionService {
             newPriceCents,
             newType,
             newSector,
+            positionCurrency,
           );
         }
       }

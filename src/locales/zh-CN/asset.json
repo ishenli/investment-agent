@@ -29,6 +29,8 @@
     "cashBalance": "现金余额",
     "cashBalanceLabel": "现金余额",
     "cashRatio": "现金占比",
+    "fundAssets": "基金资产",
+    "marketValue": "持仓市值",
     "noAccountData": "无账户信息",
     "noAccountDataDesc": "无账户信息",
     "noCashData": "无现金数据",
@@ -40,6 +42,7 @@
     "noPositionData": "无持仓数据",
     "noPositionDataDesc": "无法获取持仓数据",
     "performanceSummary": "收益表现",
+    "stockAssets": "股票资产",
     "stockGain": "持仓股票收益",
     "stockGainLabel": "持仓股票收益",
     "stockMarketValue": "股票市值",
@@ -48,7 +51,8 @@
     "stockReturnRate": "股票收益率",
     "totalAssets": "总资产",
     "totalBalance": "总余额",
-    "totalInvestment": "投资本金"
+    "totalInvestment": "投资本金",
+    "unrealizedPnL": "浮动盈亏"
   },
   "editCashBalanceDialog": {
     "balanceUpdated": "现金余额已更新",

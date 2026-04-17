@@ -83,6 +83,7 @@ export class PositionService {
     quantity: number,
     averagePriceCents: number,
     sector: AssetType,
+    currency: string = 'USD',
   ) {
     try {
       // 查找现有仓位
@@ -125,10 +126,11 @@ export class PositionService {
             createdAt: new Date(),
             updatedAt: new Date(),
             sector: sector || 'stock',
+            currency,
           })
           .returning();
 
-        logger.info(`New position for ${symbol} created successfully`);
+        logger.info(`New position for ${symbol} created successfully (currency: ${currency})`);
         return newPosition;
       }
     } catch (error) {
@@ -155,11 +157,12 @@ export class PositionService {
     priceCents: number,
     transactionType: 'buy' | 'sell',
     sector: AssetType,
+    currency: string = 'USD',
   ) {
     try {
       if (transactionType === 'buy') {
         // 买入时增加仓位
-        return await this.increasePosition(accountId, symbol, quantity, priceCents, sector);
+        return await this.increasePosition(accountId, symbol, quantity, priceCents, sector, currency);
       } else if (transactionType === 'sell') {
         // 卖出时减少仓位
         return await this.decreasePosition(accountId, symbol, quantity);
@@ -352,7 +355,9 @@ export class PositionService {
           // 获取中文名称、市场信息、投资笔记、assetMetaId和logoUrl
           const assetMeta = assetMetaMap.get(record.symbol);
           const chineseName = assetMeta?.chineseName || null;
-          const market = assetMeta?.market || undefined;
+          // 优先使用 assetMeta 的 market，fallback 根据 sector/currency 推断
+          const market = assetMeta?.market
+            || (record.sector === 'fund' && record.currency === 'CNY' ? 'CN' : undefined);
           const investmentMemo = assetMeta?.investmentMemo || null;
           const assetMetaId = assetMeta?.id || null;
           const logoUrl = assetMeta?.logoUrl || null;
@@ -363,7 +368,7 @@ export class PositionService {
             symbol: record.symbol,
             chineseName, // 添加中文名称
             quantity: record.quantity,
-            averageCost: record.averagePriceCents / 100, // 转换为美元
+            averageCost: record.averagePriceCents / 100,
             currentPrice: latestPrice,
             marketValue: marketValue,
             unrealizedPnL: new Decimal(latestPrice)
@@ -372,6 +377,8 @@ export class PositionService {
               .toNumber(),
             positionRatio, // 添加持仓占比
             market,
+            currency: record.currency || 'USD', // 计价货币
+            sector: (record.sector as PositionType['sector']) || 'stock', // 资产类型
             investmentMemo, // 添加投资笔记
             assetMetaId, // 添加 assetMetaId
             logoUrl, // 添加 logoUrl
@@ -392,29 +399,62 @@ export class PositionService {
     // 获取持仓信息
     const positions = await this.getCurrentPositions(accountId);
 
-    // 计算股票账户市值（使用Decimal提高精度）
-    const stockAccountValue = positions.reduce(
+    // 按资产类型分组
+    const usdPositions = positions.filter((p) => (p.sector || 'stock') !== 'fund');
+    const cnyPositions = positions.filter((p) => p.sector === 'fund');
+
+    // 计算 USD 持仓市值
+    const stockAccountValue = usdPositions.reduce(
       (sum, pos) => new Decimal(sum).plus(pos.marketValue || 0).toNumber(),
       0,
     );
 
-    // 计算总投资额（使用Decimal提高精度）
-    const totalInvestment = positions.reduce(
+    // 计算 USD 总投资额
+    const totalInvestment = usdPositions.reduce(
       (sum, position) =>
         new Decimal(sum).plus(new Decimal(position.quantity).mul(position.averageCost)).toNumber(),
       0,
     );
 
-    // 计算未实现盈亏（使用Decimal提高精度）
-    const unrealizedPnL = positions.reduce(
+    // 计算 USD 未实现盈亏
+    const usdUnrealizedPnL = usdPositions.reduce(
       (sum, position) => new Decimal(sum).plus(position.unrealizedPnL).toNumber(),
       0,
     );
+
+    // 计算 CNY 持仓市值
+    const cnyStockValue = cnyPositions.reduce(
+      (sum, pos) => new Decimal(sum).plus(pos.marketValue || 0).toNumber(),
+      0,
+    );
+
+    // 计算 CNY 总投资额
+    const cnyTotalInvestment = cnyPositions.reduce(
+      (sum, position) =>
+        new Decimal(sum).plus(new Decimal(position.quantity).mul(position.averageCost)).toNumber(),
+      0,
+    );
+
+    // 计算 CNY 未实现盈亏
+    const cnyUnrealizedPnL = cnyPositions.reduce(
+      (sum, position) => new Decimal(sum).plus(position.unrealizedPnL).toNumber(),
+      0,
+    );
+
+    // 计算总未实现盈亏（用于向后兼容）
+    const unrealizedPnL = new Decimal(usdUnrealizedPnL).plus(cnyUnrealizedPnL).toNumber();
 
     return {
       stockAccountValue,
       totalInvestment,
       unrealizedPnL,
+      // USD 股票未实现盈亏
+      usdUnrealizedPnL,
+      // 人民币资产汇总
+      cnyStockValue,
+      cnyTotalInvestment,
+      cnyUnrealizedPnL,
+      hasCnyAssets: cnyPositions.length > 0,
     };
   }
 

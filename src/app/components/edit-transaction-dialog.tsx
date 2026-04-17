@@ -47,6 +47,8 @@ export function EditTransactionDialog({
   // 资金类型状态
   const [currencyType, setCurrencyType] = useState<MarketType>('US');
 
+  const isFund = assetType === 'fund';
+
   // 获取当前市场对应的货币符号
   const getCurrencySymbol = (market: MarketType) => {
     return CURRENCY_SYMBOLS[market] || '$';
@@ -116,15 +118,22 @@ export function EditTransactionDialog({
         };
       } else {
         // 对于买入和卖出，我们需要计算总金额
-        const totalAmount = parseFloat(quantity) * parseFloat(price);
+        const originalQuantity = parseFloat(quantity);
+        const originalPrice = parseFloat(price);
+        const originalTotalAmount = originalQuantity * originalPrice;
+
+        // 人民币基金以 CNY 原始价格存储，不做 USD 转换
+        const isCnyFund = assetType === 'fund' && marketType === 'CN';
+        const finalPrice = isCnyFund ? originalPrice : convertToUSD(originalPrice, marketType);
+        const finalTotalAmount = isCnyFund ? originalTotalAmount : convertToUSD(originalTotalAmount, marketType);
 
         transactionData = {
           type,
-          amount: totalAmount,
+          amount: finalTotalAmount,
           description,
           symbol,
-          quantity: parseFloat(quantity),
-          price: parseFloat(price),
+          quantity: originalQuantity,
+          price: finalPrice,
           sector: assetType,
           market: marketType,
           tradeTime: tradeTime ? new Date(tradeTime) : undefined,
@@ -179,7 +188,12 @@ export function EditTransactionDialog({
             <Label htmlFor="assetType" className="text-right">
               资产类型
             </Label>
-            <Select key={assetType} value={assetType} onValueChange={(value: AssetType) => setAssetType(value)}>
+            <Select key={assetType} value={assetType} onValueChange={(value: AssetType) => {
+              setAssetType(value);
+              if (value === 'fund') {
+                setMarketType('CN');
+              }
+            }}>
               <SelectTrigger className="col-span-3">
                 <SelectValue placeholder="选择类型" />
               </SelectTrigger>
@@ -190,6 +204,14 @@ export function EditTransactionDialog({
                 <SelectItem value="etf">etf</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+        )}
+        {type !== 'deposit' && type !== 'withdrawal' && assetType === 'fund' && marketType === 'CN' && (
+          <div className="grid grid-cols-4 items-center gap-4">
+            <div className="col-span-1" />
+            <div className="col-span-3 text-sm text-amber-600 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-400 px-3 py-1.5 rounded-md">
+              人民币计价：价格以人民币输入，持仓以人民币展示
+            </div>
           </div>
         )}
         {(type === 'deposit' || type === 'withdrawal') && (
@@ -249,20 +271,20 @@ export function EditTransactionDialog({
           <>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="symbol" className="text-right">
-                股票代码
+                {isFund ? '基金代码' : '股票代码'}
               </Label>
               <Input
                 id="symbol"
                 value={symbol}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSymbol(e.target.value)}
                 className="col-span-3"
-                placeholder="请输入股票代码，如 AAPL"
+                placeholder={isFund ? '请输入基金代码，如 110011' : '请输入股票代码，如 AAPL'}
                 required
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="quantity" className="text-right">
-                数量
+                {isFund ? '份额' : '数量'}
               </Label>
               <Input
                 id="quantity"
@@ -270,22 +292,22 @@ export function EditTransactionDialog({
                 value={quantity}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuantity(e.target.value)}
                 className="col-span-3"
-                placeholder="请输入数量"
+                placeholder={isFund ? '请输入基金份额' : '请输入数量'}
                 required
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="price" className="text-right">
-                价格
+                {isFund ? `单位净值 (${getCurrencySymbol(marketType)})` : '价格'}
               </Label>
               <Input
                 id="price"
                 type="number"
-                step="0.01"
+                step={isFund ? '0.0001' : '0.01'}
                 value={price}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPrice(e.target.value)}
                 className="col-span-3"
-                placeholder="请输入价格"
+                placeholder={isFund ? `请输入单位净值 (${getCurrencySymbol(marketType)})` : '请输入价格'}
                 required
               />
             </div>

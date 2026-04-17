@@ -44,6 +44,8 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
   const queryClient = useQueryClient();
   const { convertToUSD } = useExchangeRates();
 
+  const isFund = assetType === 'fund';
+
   // 获取当前市场对应的货币符号
   const getCurrencySymbol = (market: MarketType) => {
     return CURRENCY_SYMBOLS[market] || '$';
@@ -89,13 +91,18 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
         const usdTotalAmount = convertToUSD(originalTotalAmount, marketToCurrency(marketType));
         const usdPrice = convertToUSD(originalPrice, marketToCurrency(marketType));
 
+        // 人民币基金以 CNY 原始价格存储，不做 USD 转换
+        const isCnyFund = assetType === 'fund' && marketType === 'CN';
+        const finalPrice = isCnyFund ? originalPrice : usdPrice;
+        const finalTotalAmount = isCnyFund ? originalTotalAmount : usdTotalAmount
+
         transactionData = {
           type,
-          amount: usdTotalAmount,
+          amount: finalTotalAmount,
           description,
           symbol,
           quantity: originalQuantity,
-          price: usdPrice,
+          price: finalPrice,
           sector: assetType,
           market: marketType,
           tradeTime: tradeTime ? new Date(tradeTime) : undefined,
@@ -184,7 +191,12 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
             <Label htmlFor="type" className="text-right">
               {t('dialog.assetType')}
             </Label>
-            <Select value={assetType} onValueChange={(value: AssetType) => setAssetType(value)}>
+            <Select value={assetType} onValueChange={(value: AssetType) => {
+              setAssetType(value);
+              if (value === 'fund') {
+                setMarketType('CN');
+              }
+            }}>
               <SelectTrigger className="col-span-3">
                 <SelectValue placeholder={t('dialog.tradeTypePlaceholder')} />
               </SelectTrigger>
@@ -195,6 +207,14 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
                 <SelectItem value="etf">{t('dialog.etf')}</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+        )}
+        {type !== 'deposit' && type !== 'withdrawal' && assetType === 'fund' && marketType === 'CN' && (
+          <div className="grid grid-cols-4 items-center gap-4">
+            <div className="col-span-1" />
+            <div className="col-span-3 text-sm text-amber-600 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-400 px-3 py-1.5 rounded-md">
+              {t('dialog.cnyFundHint', '人民币计价：价格以人民币输入，持仓以人民币展示')}
+            </div>
           </div>
         )}
         {(type === 'deposit' || type === 'withdrawal') && (
@@ -234,20 +254,20 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
           <>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="symbol" className="text-right">
-                {t('dialog.symbol')}
+                {isFund ? t('dialog.fundCode') : t('dialog.symbol')}
               </Label>
               <Input
                 id="symbol"
                 value={symbol}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSymbol(e.target.value)}
                 className="col-span-3"
-                placeholder={t('dialog.symbolPlaceholder')}
+                placeholder={isFund ? t('dialog.fundCodePlaceholder') : t('dialog.symbolPlaceholder')}
                 required
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="quantity" className="text-right">
-                {t('dialog.quantity')}
+                {isFund ? t('dialog.fundQuantity') : t('dialog.quantity')}
               </Label>
               <Input
                 id="quantity"
@@ -255,22 +275,24 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
                 value={quantity}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuantity(e.target.value)}
                 className="col-span-3"
-                placeholder={t('dialog.quantityPlaceholder')}
+                placeholder={isFund ? t('dialog.fundQuantityPlaceholder') : t('dialog.quantityPlaceholder')}
                 required
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="price" className="text-right">
-                {t('dialog.price')} ({getCurrencySymbol(marketType)})
+                {isFund ? t('dialog.fundPrice') : t('dialog.price')} ({getCurrencySymbol(marketType)})
               </Label>
               <Input
                 id="price"
                 type="number"
-                step="0.01"
+                step="0.0001"
                 value={price}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPrice(e.target.value)}
                 className="col-span-3"
-                placeholder={t('dialog.pricePlaceholder', { symbol: getCurrencySymbol(marketType) })}
+                placeholder={isFund
+                  ? t('dialog.fundPricePlaceholder', { symbol: getCurrencySymbol(marketType) })
+                  : t('dialog.pricePlaceholder', { symbol: getCurrencySymbol(marketType) })}
                 required
               />
             </div>

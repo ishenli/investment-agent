@@ -33,9 +33,16 @@ vi.mock('@server/service/positionService', () => ({
   },
 }));
 
+vi.mock('@server/service/priceService', () => ({
+  default: {
+    updatePrice: vi.fn(),
+  },
+}));
+
 import { transactionRepository } from '@server/repository/transactionRepository';
 import { accountFundRepository } from '@server/repository/accountFundRepository';
 import positionService from '../positionService';
+import priceService from '../priceService';
 
 const mockTransaction = {
   id: 1,
@@ -167,7 +174,7 @@ describe('TransactionService', () => {
         }),
       );
       expect(positionService.processTransaction).toHaveBeenCalledWith(
-        1, 'AAPL', 10, 17500, 'buy', 'stock',
+        1, 'AAPL', 10, 17500, 'buy', 'stock', 'USD',
       );
     });
 
@@ -189,7 +196,7 @@ describe('TransactionService', () => {
 
       expect(result.type).toBe('sell');
       expect(positionService.processTransaction).toHaveBeenCalledWith(
-        1, 'AAPL', 10, 17500, 'sell', 'stock',
+        1, 'AAPL', 10, 17500, 'sell', 'stock', 'USD',
       );
     });
 
@@ -280,6 +287,116 @@ describe('TransactionService', () => {
       expect(result.type).toBe('withdrawal');
       expect(result.amount).toBe(500);
       expect(positionService.processTransaction).not.toHaveBeenCalled();
+    });
+
+    it('买入交易应该确保 assetMeta 记录存在', async () => {
+      vi.mocked(transactionRepository.createTransaction).mockResolvedValue(mockTransaction);
+      vi.mocked(positionService.processTransaction).mockResolvedValue(mockPosition);
+      vi.mocked(priceService.updatePrice).mockResolvedValue(null);
+
+      await transactionService.addTransaction({
+        accountId: '1',
+        type: 'buy',
+        sector: 'stock',
+        amount: 1750,
+        market: 'US',
+        symbol: 'AAPL',
+        quantity: 10,
+        price: 175,
+      });
+
+      expect(priceService.updatePrice).toHaveBeenCalledWith({
+        symbol: 'AAPL',
+        price: 175,
+        assetType: 'stock',
+        currency: 'USD',
+        source: 'manual',
+        market: 'US',
+      });
+    });
+
+    it('基金买入交易应该使用 CNY 货币创建 assetMeta', async () => {
+      const fundTransaction = {
+        ...mockTransaction,
+        symbol: '012349',
+        quantity: 5000,
+        priceCents: 69,
+        totalAmountCents: 345000,
+        market: 'CN' as const,
+      };
+      vi.mocked(transactionRepository.createTransaction).mockResolvedValue(fundTransaction);
+      vi.mocked(positionService.processTransaction).mockResolvedValue(mockPosition);
+      vi.mocked(priceService.updatePrice).mockResolvedValue(null);
+
+      await transactionService.addTransaction({
+        accountId: '1',
+        type: 'buy',
+        sector: 'fund',
+        amount: 3450,
+        market: 'CN',
+        symbol: '012349',
+        quantity: 5000,
+        price: 0.69,
+      });
+
+      expect(positionService.processTransaction).toHaveBeenCalledWith(
+        1, '012349', 5000, 69, 'buy', 'fund', 'CNY',
+      );
+      expect(priceService.updatePrice).toHaveBeenCalledWith({
+        symbol: '012349',
+        price: 0.69,
+        assetType: 'fund',
+        currency: 'CNY',
+        source: 'manual',
+        market: 'CN',
+      });
+    });
+
+    it('assetMeta 创建失败不应影响交易结果', async () => {
+      vi.mocked(transactionRepository.createTransaction).mockResolvedValue(mockTransaction);
+      vi.mocked(positionService.processTransaction).mockResolvedValue(mockPosition);
+      vi.mocked(priceService.updatePrice).mockRejectedValue(new Error('DB error'));
+
+      const result = await transactionService.addTransaction({
+        accountId: '1',
+        type: 'buy',
+        sector: 'stock',
+        amount: 1750,
+        market: 'US',
+        symbol: 'AAPL',
+        quantity: 10,
+        price: 175,
+      });
+
+      // 交易仍应成功返回
+      expect(result).not.toBeNull();
+      expect(result.symbol).toBe('AAPL');
+    });
+
+    it('存款交易不应调用 priceService.updatePrice', async () => {
+      const depositTransaction = {
+        ...mockTransaction,
+        type: 'deposit' as TransactionType,
+        symbol: null,
+        quantity: null,
+        priceCents: null,
+        totalAmountCents: 100000,
+      };
+      vi.mocked(transactionRepository.createTransaction).mockResolvedValue(depositTransaction);
+      vi.mocked(accountFundRepository.findByAccountId).mockResolvedValue(mockAccountFund);
+      vi.mocked(accountFundRepository.updateBalance).mockResolvedValue({
+        ...mockAccountFund,
+        amountCents: 200000,
+      });
+
+      await transactionService.addTransaction({
+        accountId: '1',
+        type: 'deposit',
+        sector: 'stock',
+        amount: 1000,
+      });
+
+      expect(priceService.updatePrice).not.toHaveBeenCalled();
     });
 
     it('买入交易缺少数量时应该抛出错误', async () => {
