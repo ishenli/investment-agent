@@ -29,6 +29,8 @@
     "cashBalance": "Cash Balance",
     "cashBalanceLabel": "Cash Balance",
     "cashRatio": "Cash Ratio",
+    "fundAssets": "Fund Assets",
+    "marketValue": "Market Value",
     "noAccountData": "No Account Data",
     "noAccountDataDesc": "No account information",
     "noCashData": "No Cash Data",
@@ -40,6 +42,7 @@
     "noPositionData": "No Position Data",
     "noPositionDataDesc": "Unable to fetch position data",
     "performanceSummary": "Performance Summary",
+    "stockAssets": "Stock Assets",
     "stockGain": "Stock Position Gain",
     "stockGainLabel": "Stock Position Gain",
     "stockMarketValue": "Stock Market Value",
@@ -48,7 +51,8 @@
     "stockReturnRate": "Stock Return Rate",
     "totalAssets": "Total Assets",
     "totalBalance": "Total Balance",
-    "totalInvestment": "Total Investment"
+    "totalInvestment": "Total Investment",
+    "unrealizedPnL": "Unrealized P&L"
   },
   "editCashBalanceDialog": {
     "balanceUpdated": "Cash balance updated",

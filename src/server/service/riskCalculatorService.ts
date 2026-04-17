@@ -1,6 +1,22 @@
 import { PositionAsset, Portfolio, RiskInsights } from '@renderer/store/position/types';
 import priceService from '@server/service/priceService';
 import logger from '../base/logger';
+import { EXCHANGE_RATES } from '@shared/constant';
+
+/** 将持仓市值统一转换为 USD（CNY 持仓需要汇率换算） */
+function normalizeMarketValue(position: PositionAsset): number {
+  if (position.currency === 'CNY') {
+    return position.marketValue * EXCHANGE_RATES.CNY_TO_USD;
+  }
+  return position.marketValue;
+}
+
+const SECTOR_LABELS: Record<string, string> = {
+  stock: '股票',
+  fund: '基金',
+  etf: 'ETF',
+  crypto: '加密货币',
+};
 
 // 风险计算服务
 export class RiskCalculatorService {
@@ -157,14 +173,14 @@ export class RiskCalculatorService {
         topAssets: positions
           .map((position) => ({
             ...position,
-            weight: (position.marketValue / portfolio.totalValue) * 100,
+            weight: (normalizeMarketValue(position) / portfolio.totalValue) * 100,
           }))
           .sort((a, b) => b.weight - a.weight)
           .slice(0, 5)
           .map((position) => ({
             symbol: position.symbol,
             name: position.name,
-            weight: parseFloat(position.weight.toFixed(2)), // 格式化为两位小数
+            weight: parseFloat(position.weight.toFixed(2)),
           })),
         singleAssetThreshold: portfolio.riskMode === 'retail' ? 10 : 5,
         concentrationAlerts: this.getConcentrationAlerts(positions, portfolio.riskMode, portfolio),
@@ -197,7 +213,7 @@ export class RiskCalculatorService {
     }
 
     positions.forEach((position) => {
-      const weight = (position.marketValue / portfolio.totalValue) * 100;
+      const weight = (normalizeMarketValue(position) / portfolio.totalValue) * 100;
       if (weight > threshold) {
         alerts.push(`${position.symbol}持仓占比${weight.toFixed(1)}%，超过${threshold}%阈值`);
       }
@@ -216,24 +232,22 @@ export class RiskCalculatorService {
       return [];
     }
 
-    // 按资产类别分组计算市值
+    // 按资产类别分组计算市值（统一换算为 USD）
     const categoryMarketValues: Record<string, number> = {};
 
-    // 计算各类别资产的总市值
     positions.forEach((position) => {
       const sector = position.sector || 'stock';
-      categoryMarketValues[sector] = (categoryMarketValues[sector] || 0) + position.marketValue;
+      categoryMarketValues[sector] = (categoryMarketValues[sector] || 0) + normalizeMarketValue(position);
     });
 
     // 基于整个账户总价值计算各类别资产的占比
     const categoryAllocations: Array<{ category: string; weight: number }> = [];
 
-    // 添加各类别资产的占比
     Object.entries(categoryMarketValues).forEach(([category, marketValue]) => {
       const weight = (marketValue / portfolio.totalValue) * 100;
       categoryAllocations.push({
-        category: category === 'stock' ? '股票' : category, // 将'stock'显示为'股票'
-        weight: parseFloat(weight.toFixed(2)), // 格式化为两位小数
+        category: SECTOR_LABELS[category] || category,
+        weight: parseFloat(weight.toFixed(2)),
       });
     });
 

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "27c8bab0-4fa7-4052-99b8-af45b1f3a40f",
+  "id": "ded1121e-5bdb-4ab2-8dbd-d3b7e8f3853e",
   "prevId": "140bf14a-aa72-4b57-af73-5d4c95569ed7",
   "tables": {
     "account_funds": {
@@ -878,6 +878,14 @@
           "notNull": false,
           "autoincrement": false,
           "default": "'stock'"
+        },
+        "currency": {
+          "name": "currency",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'USD'"
         },
         "created_at": {
           "name": "created_at",
@@ -2032,13 +2040,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
-        },
-        "anthropic_url": {
-          "name": "anthropic_url",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
           "autoincrement": false
         },
         "api_key": {

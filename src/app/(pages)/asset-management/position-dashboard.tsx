@@ -9,273 +9,69 @@ import {
   CardHeader,
   CardTitle,
 } from '@renderer/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@renderer/components/ui/table';
-import { Button } from '@renderer/components/ui/button';
-import { Input } from '@renderer/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@renderer/components/ui/select';
 import { Badge } from '@renderer/components/ui/badge';
-import {
-  ArrowUpIcon,
-  ArrowDownIcon,
-  SearchIcon,
-  FilterIcon,
-  AlertTriangleIcon,
-  PencilIcon,
-  InfoIcon,
-} from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@renderer/components/ui/tabs';
+import { AlertTriangleIcon } from 'lucide-react';
 import { usePositionsQuery } from '@renderer/hooks/useAssetQueries';
 import { usePositionStore } from '@renderer/store/position/store';
 import { EditPositionDialog } from './components/EditPositionDialog';
 import { PositionType } from '@typings/position';
 import { Skeleton } from '@renderer/components/ui/skeleton';
-import Link from 'next/link';
-import { marketToChinese } from '@/shared';
 import { useTranslation } from 'react-i18next';
-import { useExchangeRates } from '@/app/hooks/useExchangeRates';
+import { StockPositionsTable } from './components/StockPositionsTable';
+import { FundPositionsTable } from './components/FundPositionsTable';
 
-// 辅助函数：格式化价格显示
-const formatPrice = (price: number, currencySymbol: string, rate: number) => {
-  return `${currencySymbol}${(price * rate).toFixed(2)}`;
-};
-
-// 辅助函数：格式化市值/收益整数显示
-const formatValueWhole = (value: number, currencySymbol: string, rate: number) => {
-  return `${currencySymbol}${Math.round(value * rate).toLocaleString()}`;
-};
-
-// 定义排序配置类型
-type SortConfig = {
-  key: keyof PositionType | null;
-  direction: 'ascending' | 'descending';
-};
-
-/**
- * Renders the Positions Management UI for viewing, filtering, sorting, and editing stock positions.
- *
- * Displays a searchable and market-filterable table of positions with sortable columns, per-position actions
- * (edit and asset info), aggregated totals (total market value and total unrealized gain), and risk alerts.
- * Handles loading and error states by showing a skeleton screen or an error card respectively, and opens an
- * edit dialog when a position is edited.
- *
- * @returns The JSX element for the positions management interface.
- */
 export function PositionManagement() {
   const { t } = useTranslation('asset-management');
+  const [activeTab, setActiveTab] = useState('stock');
   const [isEditPositionOpen, setIsEditPositionOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<PositionType | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterMarket, setFilterMarket] = useState('all');
-  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: 'ascending' });
 
-  // 获取动态汇率
-  const { getRate } = useExchangeRates();
-
-  // 根据市场筛选条件获取货币信息（使用动态汇率）
-  const currency = (() => {
-    if (filterMarket === '港股' || filterMarket === 'HK') {
-      const rate = getRate('HKD', 'USD') || 0.13;
-      return { symbol: 'HK$', rate: 1 / rate, currency: 'HKD' }; // USD -> HKD
-    }
-    if (filterMarket === 'A股' || filterMarket === 'CN') {
-      const rate = getRate('CNY', 'USD') || 0.14;
-      return { symbol: '¥', rate: 1 / rate, currency: 'CNY' }; // USD -> CNY
-    }
-    return { symbol: '$', rate: 1, currency: 'USD' };
-  })();
-
-  // 使用React Query获取持仓数据
   const { data: positions = [], isLoading, isError, refetch } = usePositionsQuery();
   const { alerts } = usePositionStore();
 
-  // 处理排序
-  const handleSort = (key: keyof PositionType) => {
-    let direction: 'ascending' | 'descending' = 'ascending';
-    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
-      direction = 'descending';
-    }
-    setSortConfig({ key, direction });
-  };
+  // 按资产类型分组：股票 vs 基金
+  const stockPositions = positions.filter((p) => (p.sector || 'stock') !== 'fund');
+  const fundPositions = positions.filter((p) => p.sector === 'fund');
 
-  // 获取排序图标
-  const getSortIcon = (columnKey: keyof PositionType) => {
-    if (sortConfig.key !== columnKey) {
-      return <ArrowUpIcon className="ml-1 h-4 w-4 text-gray-400" />;
-    }
-    return sortConfig.direction === 'ascending' ? (
-      <ArrowUpIcon className="ml-1 h-4 w-4" />
-    ) : (
-      <ArrowDownIcon className="ml-1 h-4 w-4" />
-    );
-  };
-
-  const filteredPositions = [...positions]
-    .map((position) => {
-      // 根据不同的股票地址，添加股票的详情地址
-      // 美股是 https://www.futunn.com/stock/AAPL-US
-      // A股是 https://www.futunn.com/stock/000001-CN
-      // 港股是 https://www.futunn.com/stock/000001-HK
-      return {
-        ...position,
-        detailUrl:
-          position.market === 'US'
-            ? `https://www.futunn.com/stock/${position.symbol.toUpperCase()}-US`
-            : `https://www.futunn.com/stock/${position.symbol}-${position.market}`,
-      };
-    })
-    .filter((position) => {
-      const matchesSearch = position.symbol.toLowerCase().includes(searchTerm.toLowerCase());
-
-      // 修复市场筛选逻辑
-      // 当选择"全部市场"时显示所有数据
-      // 当选择特定市场时，只显示该市场的数据
-      let matchesFilter = true;
-      if (filterMarket !== 'all') {
-        if (filterMarket === '美股') {
-          // 美股: market为'US'或不以'.SZ'结尾的股票
-          matchesFilter =
-            position.market === 'US' || (!position.market && !position.symbol.endsWith('.SZ'));
-        } else if (filterMarket === 'A股') {
-          // A股: market为'CN'或以'.SZ'结尾的股票
-          matchesFilter =
-            position.market === 'CN' || (!position.market && position.symbol.endsWith('.SZ'));
-        } else if (filterMarket === '港股') {
-          // 港股: market为'HK'
-          matchesFilter = position.market === 'HK';
-        }
-      }
-
-      return matchesSearch && matchesFilter;
-    })
-    .sort((a, b) => {
-      if (sortConfig.key === null) return 0;
-
-      const aValue = a[sortConfig.key];
-      const bValue = b[sortConfig.key];
-
-      // 处理可能未定义或为空的值
-      if (aValue === undefined && bValue === undefined) return 0;
-      if (aValue === undefined || aValue === null) return 1;
-      if (bValue === undefined || bValue === null) return -1;
-
-      if (aValue < bValue) {
-        return sortConfig.direction === 'ascending' ? -1 : 1;
-      }
-      if (aValue > bValue) {
-        return sortConfig.direction === 'ascending' ? 1 : -1;
-      }
-      return 0;
-    });
-
-  // 新增处理编辑持仓的函数
   const handleEditPosition = (position: PositionType) => {
     setSelectedPosition(position);
     setIsEditPositionOpen(true);
   };
 
-  // 计算总市值和总收益（基于筛选后的数据）
-  const totalMarketValue = filteredPositions.reduce((sum, position) => sum + position.marketValue, 0);
-  const stockGain = filteredPositions.reduce((sum, position) => sum + position.unrealizedPnL, 0);
-
   const handleUpdatePositions = () => {
     refetch();
   };
 
-  // 如果还在加载中，显示骨架屏
   if (isLoading) {
     return (
       <div className="space-y-6">
-        {/* Risk Mode Selector Skeleton */}
         <Card>
           <CardHeader>
+            <Skeleton className="h-9 w-48 mb-4" />
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
                 <Skeleton className="h-6 w-24 mb-2" />
                 <Skeleton className="h-4 w-48" />
               </div>
               <div className="flex items-center gap-2">
-                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-10 w-64" />
                 <Skeleton className="h-10 w-32" />
               </div>
             </div>
           </CardHeader>
         </Card>
-
-        {/* Positions Management Skeleton */}
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <Skeleton className="h-6 w-24" />
-              </div>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Skeleton className="h-10 w-64" />
-                <Skeleton className="h-10 w-36" />
-              </div>
-            </div>
-            <div className="flex items-center gap-2 mt-4">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-6 w-32" />
-            </div>
-            <div className="flex items-center gap-2 mt-2">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-6 w-32" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[...Array(5)].map((_, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
-                  <div className="flex items-center gap-4">
-                    <Skeleton className="h-10 w-10 rounded-full" />
-                    <div>
-                      <Skeleton className="h-4 w-20 mb-2" />
-                      <Skeleton className="h-3 w-16" />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-6">
-                    <Skeleton className="h-4 w-16" />
-                    <Skeleton className="h-4 w-16" />
-                    <Skeleton className="h-4 w-16" />
-                    <Skeleton className="h-4 w-16" />
-                    <Skeleton className="h-4 w-16" />
-                    <div className="flex gap-2">
-                      <Skeleton className="h-8 w-16" />
-                      <Skeleton className="h-8 w-16" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
       </div>
     );
   }
 
-  // 如果获取数据失败
   if (isError) {
     return (
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-red-500">{t('error.title')}</CardTitle>
-            <CardDescription>{t('error.description')}</CardDescription>
+            <div className="text-red-500 font-semibold text-lg">{t('error.title')}</div>
+            <div className="text-sm text-muted-foreground">{t('error.description')}</div>
           </CardHeader>
         </Card>
       </div>
@@ -284,262 +80,48 @@ export function PositionManagement() {
 
   return (
     <div className="space-y-6">
-      {/* Positions Management */}
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              {/* 新增一个股票总金额的展示 */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-muted-foreground">{t('totalValue')}:</span>
-                <span className="text-lg font-bold">{formatValueWhole(totalMarketValue, currency.symbol, currency.rate)}</span>
-              </div>
-              {/* 新增一个股票总收益的展示 */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-muted-foreground">{t('totalGain')}:</span>
-                <span className="text-lg font-bold">{formatValueWhole(stockGain, currency.symbol, currency.rate)}</span>
-              </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <TabsList>
+                <TabsTrigger value="stock">
+                  {t('tab.stock')}
+                  {stockPositions.length > 0 && (
+                    <Badge variant="secondary" className="ml-1.5 text-xs px-1.5 py-0">
+                      {stockPositions.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="fund">
+                  {t('tab.fund')}
+                  {fundPositions.length > 0 && (
+                    <Badge variant="secondary" className="ml-1.5 text-xs px-1.5 py-0">
+                      {fundPositions.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+              </TabsList>
             </div>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <div className="relative">
-                <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder={t('search.placeholder')}
-                  className="pl-8 w-full md:w-64"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <div className="flex gap-2">
-                <Select value={filterMarket} onValueChange={setFilterMarket}>
-                  <SelectTrigger className="w-full md:w-40">
-                    <FilterIcon className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder={t('filter.market')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('filter.all')}</SelectItem>
-                    <SelectItem value="美股">{t('filter.us')}</SelectItem>
-                    <SelectItem value="港股">{t('filter.hk')}</SelectItem>
-                    <SelectItem value="A股">{t('filter.cn')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {positions.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">{t('noData')}</div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead
-                    className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-                    onClick={() => handleSort('symbol')}
-                  >
-                    <div className="flex items-center">
-                      {t('table.symbol')}
-                      {getSortIcon('symbol')}
-                    </div>
-                  </TableHead>
-                  <TableHead className="hover:bg-gray-100 dark:hover:bg-gray-800">
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-xs">{t('table.holdingInfo')}</span>
-                      <div className="flex items-center gap-2">
-                        <button
-                          className="flex items-center text-xs hover:text-foreground text-muted-foreground"
-                          onClick={() => handleSort('marketValue')}
-                        >
-                          {t('table.marketValue')}
-                          {getSortIcon('marketValue')}
-                        </button>
-                        <span className="text-muted-foreground">/</span>
-                        <button
-                          className="flex items-center text-xs hover:text-foreground text-muted-foreground"
-                          onClick={() => handleSort('quantity')}
-                        >
-                          {t('table.quantity')}
-                          {getSortIcon('quantity')}
-                        </button>
-                      </div>
-                    </div>
-                  </TableHead>
-                  <TableHead className="hover:bg-gray-100 dark:hover:bg-gray-800">
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-xs">{t('table.priceInfo')}</span>
-                      <div className="flex items-center gap-2">
-                        <button
-                          className="flex items-center text-xs hover:text-foreground text-muted-foreground"
-                          onClick={() => handleSort('currentPrice')}
-                        >
-                          {t('table.currentPrice')}
-                          {getSortIcon('currentPrice')}
-                        </button>
-                        <span className="text-muted-foreground">/</span>
-                        <button
-                          className="flex items-center text-xs hover:text-foreground text-muted-foreground"
-                          onClick={() => handleSort('averageCost')}
-                        >
-                          {t('table.averageCost')}
-                          {getSortIcon('averageCost')}
-                        </button>
-                      </div>
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-                    onClick={() => handleSort('unrealizedPnL')}
-                  >
-                    <div className="flex items-center">
-                      {t('table.unrealizedPnL')}
-                      {getSortIcon('unrealizedPnL')}
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-                    onClick={() => handleSort('positionRatio')}
-                  >
-                    <div className="flex items-center">
-                      {t('table.positionRatio')}
-                      {getSortIcon('positionRatio')}
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-                    onClick={() => handleSort('market')}
-                  >
-                    <div className="flex items-center">
-                      {t('table.market')}
-                      {getSortIcon('market')}
-                    </div>
-                  </TableHead>
-                  <TableHead>{t('table.actions')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredPositions.map((position) => (
-                  <TableRow key={position.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-3 min-w-0">
-                        {position.logoUrl ? (
-                          <div className="shrink-0 w-10 h-10 rounded-lg overflow-hidden border bg-white flex items-center justify-center shadow-sm">
-                            <img
-                              src={position.logoUrl}
-                              alt={`${position.symbol} logo`}
-                              className="w-full h-full object-contain"
-                              onError={(e) => {
-                                // 图片加载失败时显示占位符
-                                (e.target as HTMLImageElement).style.display = 'none';
-                                const parent = (e.target as HTMLImageElement).parentElement;
-                                if (parent) {
-                                  parent.innerHTML = `<div class="w-full h-full bg-muted flex items-center justify-center text-xs font-medium">${position.symbol}</div>`;
-                                }
-                              }}
-                            />
-                          </div>
-                        ) : (
-                          <div className="shrink-0 w-10 h-10 rounded-lg border bg-muted flex items-center justify-center shadow-sm">
-                            <span className="text-xs text-muted-foreground font-medium">{position.symbol}</span>
-                          </div>
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <div className="font-semibold text-foreground truncate">
-                            <Link
-                              href={position.detailUrl}
-                              target="_blank"
-                              className="hover:text-blue-600 transition-colors"
-                            >
-                              {position.symbol}
-                            </Link>
-                          </div>
-                          {position.chineseName && (
-                            <div className="text-sm text-muted-foreground truncate mt-0.5">
-                              {position.chineseName}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-0.5">
-                        <span className="font-medium">
-                          {formatValueWhole(position.marketValue, currency.symbol, currency.rate)}
-                        </span>
-                        <span className="text-xs text-muted-foreground">{position.quantity}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-0.5">
-                        <span
-                          className={
-                            position.currentPrice > position.averageCost
-                              ? 'text-green-500 font-medium'
-                              : position.currentPrice < position.averageCost
-                                ? 'text-red-500 font-medium'
-                                : 'font-medium'
-                          }
-                        >
-                          {formatPrice(position.currentPrice, currency.symbol, currency.rate)}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {formatPrice(position.averageCost, currency.symbol, currency.rate)}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        {position.unrealizedPnL >= 0 ? (
-                          <ArrowUpIcon className="h-4 w-4 text-green-500 mr-1" />
-                        ) : (
-                          <ArrowDownIcon className="h-4 w-4 text-red-500 mr-1" />
-                        )}
-                        <span
-                          className={
-                            position.unrealizedPnL >= 0 ? 'text-green-500' : 'text-red-500'
-                          }
-                        >
-                          {formatValueWhole(Math.abs(position.unrealizedPnL), currency.symbol, currency.rate)}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {position.positionRatio !== undefined ? (
-                        <span>{(position.positionRatio * 100).toFixed(2)}%</span>
-                      ) : (
-                        <span>N/A</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={position.market === 'HK' ? 'secondary' : 'default'}>
-                        {marketToChinese(position.market)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="icon-sm"
-                          onClick={() => handleEditPosition(position)}
-                        >
-                          <PencilIcon className="h-4 w-4" />
-                        </Button>
-                        {position.assetMetaId && (
-                          <Link href={`/asset-meta/${position.assetMetaId}`}>
-                            <Button variant="outline" size="icon-sm">
-                              <InfoIcon className="h-4 w-4" />
-                            </Button>
-                          </Link>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+          </CardHeader>
+
+          {/* ===== 股票持仓 Tab ===== */}
+          <TabsContent value="stock">
+            <StockPositionsTable
+              positions={stockPositions}
+              onEditPosition={handleEditPosition}
+            />
+          </TabsContent>
+
+          {/* ===== 基金持仓 Tab ===== */}
+          <TabsContent value="fund">
+            <FundPositionsTable
+              positions={fundPositions}
+              onEditPosition={handleEditPosition}
+            />
+          </TabsContent>
+        </Card>
+      </Tabs>
 
       {/* Alerts */}
       {alerts && alerts.length > 0 && (
@@ -553,12 +135,13 @@ export function PositionManagement() {
               {alerts.map((alert) => (
                 <div key={alert.id} className="flex items-start gap-3 p-3 rounded-lg border">
                   <AlertTriangleIcon
-                    className={`h-5 w-5 mt-0.5 ${alert.severity === 'high'
-                      ? 'text-red-500'
-                      : alert.severity === 'medium'
-                        ? 'text-yellow-500'
-                        : 'text-green-500'
-                      }`}
+                    className={`h-5 w-5 mt-0.5 ${
+                      alert.severity === 'high'
+                        ? 'text-red-500'
+                        : alert.severity === 'medium'
+                          ? 'text-yellow-500'
+                          : 'text-green-500'
+                    }`}
                   />
                   <div className="flex-1">
                     <p className="font-medium">{alert.message}</p>
@@ -575,7 +158,11 @@ export function PositionManagement() {
                           : 'default'
                     }
                   >
-                    {alert.severity === 'high' ? t('alerts.high') : alert.severity === 'medium' ? t('alerts.medium') : t('alerts.low')}
+                    {alert.severity === 'high'
+                      ? t('alerts.high')
+                      : alert.severity === 'medium'
+                        ? t('alerts.medium')
+                        : t('alerts.low')}
                   </Badge>
                 </div>
               ))}

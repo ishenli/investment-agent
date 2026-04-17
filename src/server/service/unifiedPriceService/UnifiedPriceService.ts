@@ -217,12 +217,14 @@ export class UnifiedPriceService {
 
         // 持久化成功获取的价格
         for (const success of result.succeeded) {
+          const originalRequest = toFetch.find((r) => r.symbol === success.symbol);
           await this.cache.save(
             success.symbol,
             success.price,
             success.currency,
             success.source,
             market,
+            originalRequest?.assetType,
           );
         }
 
@@ -274,6 +276,7 @@ export class UnifiedPriceService {
         symbol: pos.symbol,
         market: pos.market || 'US',
         accountId, // 传入 accountId 用于获取用户配置（如 API Key）
+        assetType: pos.sector,
       }));
 
       updateStats.total = positions.length;
@@ -359,7 +362,7 @@ export class UnifiedPriceService {
         const positions = await positionService.getCurrentPositions(account.id);
         const marketPositions = positions
           .filter((pos) => pos.market === market)
-          .map((pos) => ({ symbol: pos.symbol, market: pos.market || market, accountId: account.id }));
+          .map((pos) => ({ symbol: pos.symbol, market: pos.market || market, assetType: pos.sector }));
 
         allRequests.push(...marketPositions);
         accountToSymbols.set(account.id, marketPositions);

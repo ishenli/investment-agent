@@ -7,6 +7,7 @@ import { AssetType } from '@typings/asset';
 import logger from '../base/logger';
 import positionService from './positionService';
 import { RiskCalculatorService } from '@server/service/riskCalculatorService';
+import { EXCHANGE_RATES } from '@shared/constant';
 
 // 转换PositionType到PositionAsset
 function convertPositionTypeToPositionAsset(position: any, totalValue: number): PositionAsset {
@@ -26,6 +27,7 @@ function convertPositionTypeToPositionAsset(position: any, totalValue: number): 
         : 0,
     weight: totalValue > 0 ? (position.marketValue / totalValue) * 100 : 0,
     sector: position.sector || 'stock',
+    currency: position.currency || 'USD',
     investmentMemo: position.investmentMemo || null,
     lastUpdated: position.updatedAt || new Date(),
   };
@@ -51,16 +53,28 @@ export class PortfolioService {
       // Get user's positions with live prices from PositionService
       const positionRecords = await positionService.getCurrentPositions(accountId);
 
-      // Calculate total values
+      // Calculate total values, separating USD and CNY positions
       let totalNonCashValue = 0;
+      let cnyPositionsValue = 0; // 人民币持仓市值（CNY）
       const cashValue = accountFundsRecord.amountCents / 100;
-      let totalValue = cashValue; // Start with cash value
+      let totalValue = cashValue; // Start with cash value (USD)
 
       // Calculate total non-cash value from positions
       positionRecords.forEach((position) => {
-        totalNonCashValue += position.marketValue;
-        totalValue += position.marketValue;
+        if (position.currency === 'CNY') {
+          // CNY 持仓：记录原始 CNY 值，并换算为 USD 计入总值
+          cnyPositionsValue += position.marketValue;
+          const usdValue = position.marketValue * EXCHANGE_RATES.CNY_TO_USD;
+          totalNonCashValue += usdValue;
+          totalValue += usdValue;
+        } else {
+          totalNonCashValue += position.marketValue;
+          totalValue += position.marketValue;
+        }
       });
+
+      const hasCnyAssets = cnyPositionsValue > 0;
+      const cnyPositionsValueInUsd = cnyPositionsValue * EXCHANGE_RATES.CNY_TO_USD;
 
       // Convert PositionType to PositionAsset and calculate weights
       const positions: PositionAsset[] = positionRecords.map((position) =>
@@ -102,6 +116,9 @@ export class PortfolioService {
         riskLevel,
         lastUpdated: new Date(),
         riskMode: 'retail', // Default mode
+        cnyPositionsValue: hasCnyAssets ? cnyPositionsValue : undefined,
+        cnyPositionsValueInUsd: hasCnyAssets ? cnyPositionsValueInUsd : undefined,
+        hasCnyAssets,
       };
     } catch (error) {
       logger.error('Error calculating portfolio:', error);

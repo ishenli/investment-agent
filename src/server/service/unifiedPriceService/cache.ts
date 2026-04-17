@@ -76,6 +76,7 @@ export class SameDayPriceCache {
    * @param currency 货币代码
    * @param source 数据源
    * @param market 市场类型
+   * @param assetType 资产类型
    */
   async save(
     symbol: string,
@@ -83,6 +84,7 @@ export class SameDayPriceCache {
     currency: string,
     source: string,
     market: MarketType,
+    assetType: 'stock' | 'etf' | 'fund' | 'crypto' = 'stock',
   ): Promise<void> {
     try {
       await priceService.updatePrice({
@@ -91,7 +93,7 @@ export class SameDayPriceCache {
         currency,
         source,
         market,
-        assetType: 'stock',
+        assetType,
       });
     } catch (error) {
       logger.error(`[SameDayPriceCache] Failed to save cache for ${symbol}:`, error);

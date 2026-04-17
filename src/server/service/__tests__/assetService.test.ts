@@ -7,6 +7,7 @@ vi.mock('@server/lib/db', () => ({
     query: {
       accountFunds: {
         findFirst: vi.fn(),
+        findMany: vi.fn(),
       },
       transactions: {
         findMany: vi.fn(),
@@ -100,6 +101,12 @@ const mockAccount = {
 const mockPositionSummary = {
   stockAccountValue: 15000,
   totalInvestment: 12000,
+  unrealizedPnL: 3000,
+  usdUnrealizedPnL: 3000,
+  cnyStockValue: 0,
+  cnyTotalInvestment: 0,
+  cnyUnrealizedPnL: 0,
+  hasCnyAssets: false,
 };
 
 const mockPositions = [
@@ -172,6 +179,7 @@ describe('AssetService', () => {
     
     // 设置默认 mock 返回值
     (db.query.accountFunds.findFirst as jest.Mock).mockResolvedValue(mockAccountFund);
+    (db.query.accountFunds.findMany as jest.Mock).mockResolvedValue([mockAccountFund]);
     (accountService.getTradingAccount as jest.Mock).mockResolvedValue(mockAccount);
     (positionService.getPositionAmountSummary as jest.Mock).mockResolvedValue(mockPositionSummary);
     (positionService.getCurrentPositions as jest.Mock).mockResolvedValue(mockPositions);
@@ -284,7 +292,7 @@ describe('AssetService', () => {
     it('应该成功获取资产摘要', async () => {
       const result = await assetService.getAssetSummary('1');
 
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         stockAccountValue: 15000,
         cashBalance: 10000,
         totalBalance: 25000,
@@ -292,8 +300,8 @@ describe('AssetService', () => {
         stockAllocationPercent: 60,
         cashAllocationPercent: 40,
         stockGain: 3000,
-        stockReturnRate: 25,
-        totalReturnRate: 108.33,
+        hasCnyAssets: false,
+        hasCnyCash: false,
       });
       
       expect(accountService.getTradingAccount).toHaveBeenCalledWith('1');

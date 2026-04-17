@@ -83,6 +83,8 @@ export const assetPositions = sqliteTable('asset_positions', {
   averagePriceCents: integer('average_price_cents').notNull(),
   // sector information for the stock
   sector: text('sector', { enum: ['stock', 'etf', 'fund', 'crypto'] }).default('stock'),
+  // currency for the position (USD for stocks/ETF, CNY for CN funds)
+  currency: text('currency').notNull().default('USD'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
   deletedAt: integer('deleted_at', { mode: 'timestamp' }), // 软删除时间戳

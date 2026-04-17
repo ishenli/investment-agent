@@ -22,6 +22,7 @@ import {
   calculateSharpeRatio,
   calculateMaxDrawdown,
 } from '@server/lib/utils/financialCalculations';
+import { EXCHANGE_RATES } from '@shared/constant';
 
 export class AssetService {
   constructor() {
@@ -63,36 +64,79 @@ export class AssetService {
         throw new Error('Account not found');
       }
 
-      const { stockAccountValue, totalInvestment } =
-        await positionService.getPositionAmountSummary(accountId);
+      // 获取所有币种的现金余额
+      const allAccountFunds = await db.query.accountFunds.findMany({
+        where: eq(accountFunds.accountId, parseInt(accountId)),
+      });
 
-      // 现金余额
-      const cashBalance = account.balance;
+      // 按币种分组计算现金余额
+      let usdCashBalance = 0;
+      let cnyCashBalance = 0;
+      
+      for (const fund of allAccountFunds) {
+        const amount = fund.amountCents / 100;
+        if (fund.currency === 'CNY') {
+          cnyCashBalance += amount;
+        } else {
+          // USD 和其他币种（如 HKD）统一作为 USD 处理
+          usdCashBalance += amount;
+        }
+      }
 
-      // 总资产
-      const totalBalance = new Decimal(cashBalance).add(stockAccountValue).toNumber();
+      // 计算 CNY 现金换算为 USD
+      const cnyCashBalanceInUsd = cnyCashBalance * EXCHANGE_RATES.CNY_TO_USD;
+
+      const {
+        stockAccountValue: usdStockValue, 
+        totalInvestment,
+        cnyStockValue, 
+        cnyTotalInvestment, 
+        hasCnyAssets,
+        cnyUnrealizedPnL,
+        usdUnrealizedPnL,
+      } = await positionService.getPositionAmountSummary(accountId);
+
+      // USD 股票市值和盈亏
+      const usdStockGain = usdUnrealizedPnL || 0;
+      const usdStockReturnRate = totalInvestment > 0
+        ? new Decimal(usdStockValue).minus(totalInvestment).div(totalInvestment).mul(100).toDecimalPlaces(2).toNumber()
+        : 0;
+
+      // 人民币股票市值换算为美元
+      const cnyStockValueInUsd = hasCnyAssets ? (cnyStockValue || 0) * EXCHANGE_RATES.CNY_TO_USD : 0;
+
+      // 总现金余额（USD 计价）
+      const cashBalance = usdCashBalance + cnyCashBalanceInUsd;
+
+      // 总资产（USD 计价）：USD 持仓 + USD 现金 + CNY 持仓换算 + CNY 现金换算
+      const totalBalance = new Decimal(usdStockValue)
+        .add(usdCashBalance)
+        .add(cnyStockValueInUsd)
+        .add(cnyCashBalanceInUsd)
+        .toNumber();
 
       // 使用 Decimal.js 计算资产配置比例，避免精度问题
+      const totalStockValue = new Decimal(usdStockValue).add(cnyStockValueInUsd).toNumber();
       const stockAllocationPercent =
         totalBalance > 0
-          ? new Decimal(stockAccountValue).div(totalBalance).mul(100).toDecimalPlaces(2).toNumber()
+          ? new Decimal(totalStockValue).div(totalBalance).mul(100).toDecimalPlaces(2).toNumber()
           : 0;
       const cashAllocationPercent =
         totalBalance > 0
           ? new Decimal(cashBalance).div(totalBalance).mul(100).toDecimalPlaces(2).toNumber()
           : 0;
 
-      // 计算股票收益（货币金额）：当前股票市值 - 总投资成本
-      const stockGain = new Decimal(stockAccountValue)
-        .minus(new Decimal(totalInvestment))
-        .toNumber();
+      // 计算总股票收益（USD 计价）：USD 股票盈亏 + CNY 股票盈亏换算
+      const cnyStockGainInUsd = hasCnyAssets ? (cnyUnrealizedPnL || 0) * EXCHANGE_RATES.CNY_TO_USD : 0;
+      const stockGain = usdStockGain + cnyStockGainInUsd;
 
-      // 计算股票收益率：(股票市值 - 总投资) / 总投资
+      // 计算总收益率（使用总投资额，包括 USD 和 CNY）
+      const totalInvestmentAllCurrencies = totalInvestment + (cnyTotalInvestment || 0) * EXCHANGE_RATES.CNY_TO_USD;
       const stockReturnRate =
-        totalInvestment > 0
-          ? new Decimal(stockAccountValue)
-              .minus(new Decimal(totalInvestment))
-              .div(totalInvestment)
+        totalInvestmentAllCurrencies > 0
+          ? new Decimal(totalStockValue)
+              .minus(totalInvestmentAllCurrencies)
+              .div(totalInvestmentAllCurrencies)
               .mul(100)
               .toDecimalPlaces(2)
               .toNumber()
@@ -100,17 +144,28 @@ export class AssetService {
 
       // 计算总收益率：(总资产 - 总投资) / 总投资
       const totalReturnRate =
-        totalInvestment > 0
+        totalInvestmentAllCurrencies > 0
           ? new Decimal(totalBalance)
-              .minus(new Decimal(totalInvestment))
-              .div(totalInvestment)
+              .minus(totalInvestmentAllCurrencies)
+              .div(totalInvestmentAllCurrencies)
               .mul(100)
               .toDecimalPlaces(2)
               .toNumber()
           : 0;
 
+      // 计算人民币资产指标
+      const cnyStockGain = hasCnyAssets ? cnyUnrealizedPnL : undefined;
+      const cnyStockReturnRate = hasCnyAssets && (cnyTotalInvestment || 0) > 0
+        ? new Decimal(cnyStockValue || 0)
+            .minus(cnyTotalInvestment || 0)
+            .div(cnyTotalInvestment || 1)
+            .mul(100)
+            .toDecimalPlaces(2)
+            .toNumber()
+        : undefined;
+
       return {
-        stockAccountValue,
+        stockAccountValue: usdStockValue,
         cashBalance,
         totalBalance,
         totalInvestment,
@@ -119,6 +174,24 @@ export class AssetService {
         stockGain,
         stockReturnRate,
         totalReturnRate,
+        // 按币种分组的现金余额
+        usdCashBalance: usdCashBalance > 0 ? usdCashBalance : undefined,
+        cnyCashBalance: cnyCashBalance > 0 ? cnyCashBalance : undefined,
+        // 按币种分组的股票资产
+        usdStockValue,
+        usdStockGain,
+        usdStockReturnRate,
+        // 人民币资产字段
+        cnyStockValue: hasCnyAssets ? cnyStockValue : undefined,
+        cnyTotalInvestment: hasCnyAssets ? cnyTotalInvestment : undefined,
+        cnyStockGain,
+        cnyStockReturnRate,
+        // 人民币资产换算为美元后的值
+        cnyStockValueInUsd: hasCnyAssets ? cnyStockValueInUsd : undefined,
+        cnyCashBalanceInUsd: cnyCashBalance > 0 ? cnyCashBalanceInUsd : undefined,
+        // 标志字段
+        hasCnyAssets,
+        hasCnyCash: cnyCashBalance > 0,
       };
     } catch (error) {
       logger.error(`[AssetService] Failed to get asset summary for account ${accountId}: ${error}`);

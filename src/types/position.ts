@@ -15,6 +15,8 @@ export const PositionSchema = z.object({
   unrealizedPnL: z.number(),
   positionRatio: z.number().optional(), // 持仓占比
   market: z.enum(['US', 'CN', 'HK']).optional(),
+  currency: z.string().optional(), // 计价货币：USD, CNY 等
+  sector: z.enum(['stock', 'etf', 'fund', 'crypto']).optional(), // 资产类型
   investmentMemo: z.string().nullable().optional(),
   assetMetaId: z.number().nullable().optional(), // 添加 assetMetaId 字段
   logoUrl: z.string().nullable().optional(), // 添加 logoUrl 字段

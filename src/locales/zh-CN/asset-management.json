@@ -62,6 +62,28 @@
     "symbol": "股票代码",
     "unrealizedPnL": "持仓盈亏"
   },
+  "tab": {
+    "stock": "股票持仓",
+    "fund": "基金持仓"
+  },
+  "fund": {
+    "table": {
+      "fundCode": "基金代码",
+      "shares": "份额",
+      "nav": "单位净值",
+      "avgNav": "持仓成本",
+      "marketValue": "市值",
+      "unrealizedPnL": "浮动盈亏",
+      "returnRate": "收益率",
+      "actions": "操作"
+    },
+    "totalValue": "基金总市值",
+    "totalGain": "基金总收益",
+    "noData": "暂无基金持仓",
+    "search": {
+      "placeholder": "搜索基金代码..."
+    }
+  },
   "title": "持仓管理",
   "totalGain": "持仓总收益",
   "totalValue": "股票总金额"

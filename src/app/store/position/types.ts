@@ -15,6 +15,7 @@ export interface PositionAsset {
   weight: number;
   sector?: AssetType;
   exchange?: string;
+  currency?: string; // 计价货币：USD, CNY 等
   investmentMemo?: string | null;
   lastUpdated: Date;
 }
@@ -34,6 +35,10 @@ export interface Portfolio {
   riskLevel: 'low' | 'medium' | 'high';
   lastUpdated: Date;
   riskMode: 'retail' | 'advanced';
+  // 双币展示字段（人民币基金相关）
+  cnyPositionsValue?: number; // 人民币持仓总市值（CNY）
+  cnyPositionsValueInUsd?: number; // 人民币持仓换算为 USD 的值
+  hasCnyAssets?: boolean; // 是否存在人民币计价资产
 }
 
 // Risk Insights Type
