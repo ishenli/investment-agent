@@ -447,6 +447,34 @@ export const exchangeRates = sqliteTable('exchange_rates', {
   uniqueIndex('idx_exchange_rates_pair_unique').on(table.fromCurrency, table.toCurrency),
 ]);
 
+// 通知表：存储用户通知
+export const notifications = sqliteTable('notifications', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id),
+  type: text('type', {
+    enum: ['report_completed', 'analysis_completed', 'data_refreshed', 'system_announcement', 'trade_executed', 'price_alert']
+  }).notNull(),
+  title: text('title').notNull(),
+  message: text('message').notNull(),
+  data: text('data'), // 存储额外数据的 JSON 字符串，如报告ID、股票代码等
+  isRead: integer('is_read', { mode: 'boolean' }).notNull().default(false),
+  priority: text('priority', { enum: ['low', 'medium', 'high', 'urgent'] }).notNull().default('medium'),
+  link: text('link'), // 点击通知跳转的链接
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  readAt: integer('read_at', { mode: 'timestamp' }),
+}, (table) => [
+  // 按用户查询通知
+  index('idx_notifications_user_id').on(table.userId),
+  // 按未读状态和用户查询
+  index('idx_notifications_user_read').on(table.userId, table.isRead),
+  // 按类型和优先级查询
+  index('idx_notifications_type_priority').on(table.type, table.priority),
+  // 按创建时间排序查询
+  index('idx_notifications_created_at').on(table.createdAt),
+]);
+
 // ============== Chat Storage Tables ==============
 // 聊天存储相关表，从 drizzle/schema/chat.ts 导入
 export {
