@@ -28,7 +28,8 @@
       "Bash(head:*)",
       "Bash(pnpm openspec:*)",
       "Bash(pnpm lint *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(gh pr *)"
     ]
   }
 }
