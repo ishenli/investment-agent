@@ -260,6 +260,13 @@
       "when": 1775781585016,
       "tag": "0036_brief_scarlet_spider",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "6",
+      "when": 1776442730741,
+      "tag": "0037_familiar_venom",
+      "breakpoints": true
     }
   ]
 }
