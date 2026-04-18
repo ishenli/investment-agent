@@ -198,7 +198,7 @@ async function main() {
   // 4. 推送到远程
   console.log('🚢 Pushing to remote...');
   run(`git push`, dryRun);
-  run(`git push origin ${tag}`, dryRun);
+  run(`git push github ${tag}`, dryRun);
 
   console.log(`\n✅ Released ${tag} successfully!`);
   console.log(`   https://github.com/ishenli/investment-agent/releases/tag/${tag}`);
