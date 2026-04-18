@@ -1,1 +1,0 @@
-ALTER TABLE `asset_positions` ADD `currency` text DEFAULT 'USD' NOT NULL;
