@@ -15,10 +15,12 @@
 
 import { execSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import * as readline from 'node:readline';
 
-const ROOT = resolve(import.meta.dirname, '..');
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const ROOT = resolve(__dirname, '..');
 const PKG_PATH = resolve(ROOT, 'package.json');
 
 // ─── Helpers ───────────────────────────────────────────────────
