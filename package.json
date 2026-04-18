@@ -35,7 +35,8 @@
     "i18n:sync": "tsx scripts/sync-i18n.ts",
     "test": "vitest run",
     "test:watch": "vitest watch",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "release": "tsx scripts/release.ts"
   },
   "keywords": [
     "investment",
