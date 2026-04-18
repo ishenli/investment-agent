@@ -3,19 +3,19 @@
 import * as React from 'react';
 import {
   IconDatabase,
-  IconFileWord,
+  IconNotebook,
   IconReport,
   IconSearch,
   IconSettings,
   IconWallet,
-  IconTrademark,
+  IconArrowsExchange,
   IconMessage,
-  IconAnalyze,
+  IconChartBar,
   IconAsset,
   IconCirclePlusFilled,
   type Icon,
   IconEye,
-  IconAnalyzeFilled,
+  IconTelescope,
   IconCamera,
 } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
@@ -74,7 +74,7 @@ export const data = {
     {
       title: 'sidebar.navMain.deepAnalysis',
       url: '/research',
-      icon: IconAnalyzeFilled,
+      icon: IconTelescope,
     },
   ],
   documents: [
@@ -86,7 +86,7 @@ export const data = {
     {
       name: 'sidebar.navMain.tradeRecords',
       url: '/trade',
-      icon: IconTrademark,
+      icon: IconArrowsExchange,
     },
     {
       name: 'sidebar.documents.marketInfo',
@@ -104,12 +104,12 @@ export const data = {
     {
       name: 'sidebar.documents.assetData',
       url: '/asset-meta',
-      icon: IconAnalyze as Icon,
+      icon: IconChartBar as Icon,
     },
     {
       name: 'sidebar.documents.investmentNotes',
       url: '/note',
-      icon: IconFileWord as Icon,
+      icon: IconNotebook as Icon,
     },
     {
       name: 'sidebar.documents.portfolioSnapshot',

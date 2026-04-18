@@ -58,7 +58,7 @@ export function NavSettings({
             <SidebarMenuItem key={item.name}>
               <SidebarMenuButton asChild isActive={isActive}>
                 <Link href={item.url}>
-                  <item.icon />
+                  <item.icon size={16} strokeWidth={1.5} />
                   <span>{item.name}</span>
                 </Link>
               </SidebarMenuButton>

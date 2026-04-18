@@ -49,7 +49,7 @@ export function NavMain({
                   <SidebarMenuButton tooltip={item.title} isActive={isActive}>
                     {item.icon && (
                       <span className="relative">
-                        <item.icon />
+                        <item.icon size={20} strokeWidth={1.5} />
                         {showGeneratingBadge && (
                           <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary animate-pulse" />
                         )}

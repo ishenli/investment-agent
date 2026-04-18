@@ -61,7 +61,7 @@ export function NavDocuments({
             <SidebarMenuItem key={item.name}>
               <SidebarMenuButton asChild isActive={isActive}>
                 <Link href={item.url}>
-                  <item.icon />
+                  <item.icon size={16} strokeWidth={1.5} />
                   <button>{item.name}</button>
                 </Link>
               </SidebarMenuButton>
