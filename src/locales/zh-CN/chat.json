@@ -5,10 +5,10 @@
     "generating": "生成中...",
     "unknownTitle": "未命名的工件"
   },
-  "backToBottom": "[to be translated]:Back to Bottom",
+  "backToBottom": "回到底部",
   "beforeUnloadWarning": "你有正在生成中的请求，确定要离开吗？",
-  "cancelPin": "[to be translated]:Cancel Pin",
-  "clearChatMessages": "[to be translated]:Clear Chat Messages",
+  "cancelPin": "取消置顶",
+  "clearChatMessages": "清空对话消息",
   "clearHistory": "清空历史",
   "confirm": {
     "deleteSessionSuccess": "删除成功",
@@ -120,7 +120,7 @@
   "stop": "停止生成",
   "systemPrompt": "系统提示词",
   "temperature": "温度",
-  "text": "[to be translated]:Text",
+  "text": "文本",
   "title": "对话",
   "toggleAssistantPanel": "显示/隐藏助手面板",
   "toggleTopicPanel": "显示/隐藏话题面板",
