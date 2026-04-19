@@ -131,19 +131,22 @@ export class UserContextReader {
       const account = await this.getUserAccount(accountId);
       const currency = account?.currency || 'USD';
 
-      // 计算投资组合总市值
-      const totalMarketValue = positions.reduce((sum, position) => sum + position.marketValue, 0);
+      // 计算投资组合总市值（使用 USD 转换值，避免混合币种直接相加）
+      const totalMarketValue = positions.reduce(
+        (sum, position) => sum + (position.marketValueUSD ?? position.marketValue),
+        0,
+      );
 
-      // 计算未实现盈亏
+      // 计算未实现盈亏（使用 USD 转换值）
       const totalUnrealizedPnL = positions.reduce(
-        (sum, position) => sum + position.unrealizedPnL,
+        (sum, position) => sum + (position.unrealizedPnLUSD ?? position.unrealizedPnL),
         0,
       );
 
       // 计算持仓数量
       const positionCount = positions.length;
 
-      // 计算总资产价值 = 股票市值 + 现金余额
+      // 计算总资产价值 = 股票市值(USD) + 现金余额
       const totalAssetsValue = totalMarketValue + cashBalance;
 
       const summary = {
@@ -158,8 +161,8 @@ export class UserContextReader {
           quantity: position.quantity,
           averageCost: position.averageCost,
           currentPrice: position.currentPrice,
-          marketValue: position.marketValue,
-          unrealizedPnL: position.unrealizedPnL,
+          marketValue: position.marketValueUSD ?? position.marketValue,
+          unrealizedPnL: position.unrealizedPnLUSD ?? position.unrealizedPnL,
           unrealizedPnLRatio:
             position.averageCost > 0
               ? ((position.currentPrice - position.averageCost) / position.averageCost) * 100

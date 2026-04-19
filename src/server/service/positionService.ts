@@ -6,7 +6,9 @@ import { AssetType } from '@typings/asset';
 import priceService from './priceService';
 import { PositionType } from '@/types';
 import assetMetaService from './assetMetaService';
+import exchangeRateService from './exchangeRateService';
 import Decimal from 'decimal.js';
+import { CURRENCY_SYMBOLS } from '@shared/constant';
 
 export interface PositionUpdateData {
   quantity?: number;
@@ -301,7 +303,7 @@ export class PositionService {
   /**
    * 获取实时价格的当前持仓
    * @param accountId 账户ID
-   * @returns 包含实时价格的当前持仓
+   * @returns 包含实时价格的当前持仓（原始币种 + USD 转换值）
    */
   async getCurrentPositions(accountId: string): Promise<PositionType[]> {
     try {
@@ -321,36 +323,71 @@ export class PositionService {
       const assetMetas = await assetMetaService.getAllAssetMetas();
       const assetMetaMap = new Map(assetMetas.map((meta) => [meta.symbol, meta]));
 
-      // 计算总市值（仅股票持仓）
-      const totalStockMarketValue = positionRecords.reduce((sum, record) => {
+      // 收集所有涉及的币种，批量获取汇率
+      const currencies = new Set<string>();
+      for (const record of positionRecords) {
+        const currency = record.currency || 'USD';
+        if (currency !== 'USD') {
+          currencies.add(currency);
+        }
+      }
+      const rateMap: Record<string, number> = {};
+      for (const currency of currencies) {
+        rateMap[currency] = await exchangeRateService.getRate(currency, 'USD');
+      }
+
+      // 计算各持仓的 USD 市值和 USD 未实现盈亏
+      const positionUSDValues = positionRecords.map((record) => {
         const latestPrice = priceMap[record.symbol]?.price || record.averagePriceCents / 100;
-        return new Decimal(sum).plus(new Decimal(record.quantity).mul(latestPrice)).toNumber();
-      }, 0);
+        const currency = record.currency || 'USD';
+        const rate = currency === 'USD' ? 1 : (rateMap[currency] ?? 1);
+        const marketValue = new Decimal(record.quantity).mul(latestPrice).toNumber();
+        const marketValueUSD = new Decimal(marketValue).mul(rate).toNumber();
+        const unrealizedPnL = new Decimal(latestPrice)
+          .minus(record.averagePriceCents / 100)
+          .mul(record.quantity)
+          .toNumber();
+        const unrealizedPnLUSD = new Decimal(unrealizedPnL).mul(rate).toNumber();
+        return { marketValue, marketValueUSD, unrealizedPnL, unrealizedPnLUSD, rate };
+      });
+
+      // 计算 USD 计价的总市值（仅股票持仓）
+      const totalStockMarketValueUSD = positionUSDValues.reduce(
+        (sum, v) => new Decimal(sum).plus(v.marketValueUSD).toNumber(),
+        0,
+      );
 
       // 获取账户现金余额
       const accountFundsRecords = await db.query.accountFunds.findMany({
         where: eq(accountFunds.accountId, parseInt(accountId)),
       });
 
-      // 计算包含现金的账户总价值
-      const cashBalance = accountFundsRecords.reduce(
-        (sum: number, fund: typeof accountFunds.$inferSelect) => sum + fund.amountCents / 100,
-        0,
-      );
-      const totalAccountValue = new Decimal(totalStockMarketValue)
-        .plus(new Decimal(cashBalance))
+      // 计算包含现金的账户总价值（统一转换为 USD）
+      let cashBalanceUSD = 0;
+      for (const fund of accountFundsRecords) {
+        const fundCurrency = fund.currency || 'USD';
+        const rate = fundCurrency === 'USD' ? 1 : (rateMap[fundCurrency] ?? await exchangeRateService.getRate(fundCurrency, 'USD'));
+        cashBalanceUSD = new Decimal(cashBalanceUSD).plus(new Decimal(fund.amountCents / 100).mul(rate)).toNumber();
+      }
+      const totalAccountValueUSD = new Decimal(totalStockMarketValueUSD)
+        .plus(new Decimal(cashBalanceUSD))
         .toNumber();
 
       const positionsResult = positionRecords
-        .map((record): PositionType => {
+        .map((record, index): PositionType => {
           const latestPrice = priceMap[record.symbol]?.price || record.averagePriceCents / 100;
+          const currency = record.currency || 'USD';
+          const rate = positionUSDValues[index].rate;
+          const marketValue = positionUSDValues[index].marketValue;
+          const marketValueUSD = positionUSDValues[index].marketValueUSD;
+          const unrealizedPnL = positionUSDValues[index].unrealizedPnL;
+          const unrealizedPnLUSD = positionUSDValues[index].unrealizedPnLUSD;
 
-          // 计算市值（使用Decimal提高精度）
-          const marketValue = new Decimal(record.quantity).mul(latestPrice).toNumber();
-
-          // 计算持仓占比（使用Decimal提高精度）
+          // 计算持仓占比（基于 USD 总值，确保跨币种准确）
           const positionRatio =
-            totalAccountValue > 0 ? new Decimal(marketValue).div(totalAccountValue).toNumber() : 0;
+            totalAccountValueUSD > 0
+              ? new Decimal(marketValueUSD).div(totalAccountValueUSD).toNumber()
+              : 0;
 
           // 获取中文名称、市场信息、投资笔记、assetMetaId和logoUrl
           const assetMeta = assetMetaMap.get(record.symbol);
@@ -366,27 +403,26 @@ export class PositionService {
             id: record.id.toString(),
             accountId: record.accountId.toString(),
             symbol: record.symbol,
-            chineseName, // 添加中文名称
+            chineseName,
             quantity: record.quantity,
             averageCost: record.averagePriceCents / 100,
             currentPrice: latestPrice,
-            marketValue: marketValue,
-            unrealizedPnL: new Decimal(latestPrice)
-              .minus(record.averagePriceCents / 100)
-              .mul(record.quantity)
-              .toNumber(),
-            positionRatio, // 添加持仓占比
+            marketValue,
+            marketValueUSD,
+            unrealizedPnL,
+            unrealizedPnLUSD,
+            positionRatio,
             market,
-            currency: record.currency || 'USD', // 计价货币
-            sector: (record.sector as PositionType['sector']) || 'stock', // 资产类型
-            investmentMemo, // 添加投资笔记
-            assetMetaId, // 添加 assetMetaId
-            logoUrl, // 添加 logoUrl
+            currency,
+            sector: (record.sector as PositionType['sector']) || 'stock',
+            investmentMemo,
+            assetMetaId,
+            logoUrl,
             createdAt: record.createdAt,
             updatedAt: record.updatedAt,
           };
         })
-        .sort((a, b) => b.marketValue - a.marketValue); // 根据市值大小排列
+        .sort((a, b) => (b.marketValueUSD ?? b.marketValue) - (a.marketValueUSD ?? a.marketValue)); // 根据 USD 市值大小排列
 
       return positionsResult;
     } catch (error) {
@@ -399,9 +435,10 @@ export class PositionService {
     // 获取持仓信息
     const positions = await this.getCurrentPositions(accountId);
 
-    // 按资产类型分组
-    const usdPositions = positions.filter((p) => (p.sector || 'stock') !== 'fund');
-    const cnyPositions = positions.filter((p) => p.sector === 'fund');
+    // 按币种分组
+    const usdPositions = positions.filter((p) => (p.currency || 'USD') === 'USD');
+    const cnyPositions = positions.filter((p) => p.currency === 'CNY');
+    const hkdPositions = positions.filter((p) => p.currency === 'HKD');
 
     // 计算 USD 持仓市值
     const stockAccountValue = usdPositions.reduce(
@@ -422,27 +459,49 @@ export class PositionService {
       0,
     );
 
-    // 计算 CNY 持仓市值
+    // 计算 CNY 持仓市值（原始币种）
     const cnyStockValue = cnyPositions.reduce(
       (sum, pos) => new Decimal(sum).plus(pos.marketValue || 0).toNumber(),
       0,
     );
 
-    // 计算 CNY 总投资额
+    // 计算 CNY 总投资额（原始币种）
     const cnyTotalInvestment = cnyPositions.reduce(
       (sum, position) =>
         new Decimal(sum).plus(new Decimal(position.quantity).mul(position.averageCost)).toNumber(),
       0,
     );
 
-    // 计算 CNY 未实现盈亏
+    // 计算 CNY 未实现盈亏（原始币种）
     const cnyUnrealizedPnL = cnyPositions.reduce(
       (sum, position) => new Decimal(sum).plus(position.unrealizedPnL).toNumber(),
       0,
     );
 
-    // 计算总未实现盈亏（用于向后兼容）
-    const unrealizedPnL = new Decimal(usdUnrealizedPnL).plus(cnyUnrealizedPnL).toNumber();
+    // 计算 HKD 持仓市值（原始币种）
+    const hkdStockValue = hkdPositions.reduce(
+      (sum, pos) => new Decimal(sum).plus(pos.marketValue || 0).toNumber(),
+      0,
+    );
+
+    // 计算 HKD 总投资额（原始币种）
+    const hkdTotalInvestment = hkdPositions.reduce(
+      (sum, position) =>
+        new Decimal(sum).plus(new Decimal(position.quantity).mul(position.averageCost)).toNumber(),
+      0,
+    );
+
+    // 计算 HKD 未实现盈亏（原始币种）
+    const hkdUnrealizedPnL = hkdPositions.reduce(
+      (sum, position) => new Decimal(sum).plus(position.unrealizedPnL).toNumber(),
+      0,
+    );
+
+    // 计算统一 USD 计价的未实现盈亏（用于向后兼容）
+    const unrealizedPnL = positions.reduce(
+      (sum, position) => new Decimal(sum).plus(position.unrealizedPnLUSD ?? position.unrealizedPnL).toNumber(),
+      0,
+    );
 
     return {
       stockAccountValue,
@@ -455,6 +514,11 @@ export class PositionService {
       cnyTotalInvestment,
       cnyUnrealizedPnL,
       hasCnyAssets: cnyPositions.length > 0,
+      // 港币资产汇总
+      hkdStockValue,
+      hkdTotalInvestment,
+      hkdUnrealizedPnL,
+      hasHkdAssets: hkdPositions.length > 0,
     };
   }
 
@@ -475,35 +539,53 @@ export class PositionService {
 
     sections.push('## 持仓概要', '');
 
-    // 计算总览数据
-    const stockAccountValue = positions.reduce(
-      (sum, pos) => new Decimal(sum).plus(pos.marketValue || 0).toNumber(),
+    // 计算总览数据（使用 USD 转换值）
+    const totalMarketValueUSD = positions.reduce(
+      (sum, pos) => new Decimal(sum).plus(pos.marketValueUSD ?? pos.marketValue).toNumber(),
       0,
     );
 
-    const totalInvestment = positions.reduce(
-      (sum, pos) =>
-        new Decimal(sum).plus(new Decimal(pos.quantity).mul(pos.averageCost)).toNumber(),
+    // 按币种分别计算总投资额
+    const totalInvestmentUSD = positions.reduce(
+      (sum, pos) => {
+        const investment = new Decimal(pos.quantity).mul(pos.averageCost);
+        const currency = pos.currency || 'USD';
+        // 简化处理：使用 marketValueUSD/marketValue 的比率来估算 USD 成本
+        if (currency === 'USD' || !pos.marketValueUSD) {
+          return new Decimal(sum).plus(investment).toNumber();
+        }
+        const rate = pos.marketValueUSD / pos.marketValue;
+        return new Decimal(sum).plus(investment.mul(rate)).toNumber();
+      },
       0,
     );
 
-    const unrealizedPnL = positions.reduce(
-      (sum, pos) => new Decimal(sum).plus(pos.unrealizedPnL).toNumber(),
+    const unrealizedPnLUSD = positions.reduce(
+      (sum, pos) => new Decimal(sum).plus(pos.unrealizedPnLUSD ?? pos.unrealizedPnL).toNumber(),
       0,
     );
 
     const unrealizedPnLPercent =
-      totalInvestment > 0 ? ((unrealizedPnL / totalInvestment) * 100).toFixed(2) : '0.00';
+      totalInvestmentUSD > 0 ? ((unrealizedPnLUSD / totalInvestmentUSD) * 100).toFixed(2) : '0.00';
 
     // 总览表格
     sections.push('### 账户总览', '');
     sections.push('| 指标 | 数值 |');
     sections.push('|------|------|');
-    sections.push(`| 总市值 | $${stockAccountValue.toFixed(2)} |`);
-    sections.push(`| 总投资额 | $${totalInvestment.toFixed(2)} |`);
-    sections.push(`| 未实现盈亏 | $${unrealizedPnL.toFixed(2)} |`);
+    sections.push(`| 总市值(USD) | $${totalMarketValueUSD.toFixed(2)} |`);
+    sections.push(`| 总投资额(USD) | $${totalInvestmentUSD.toFixed(2)} |`);
+    sections.push(`| 未实现盈亏(USD) | $${unrealizedPnLUSD.toFixed(2)} |`);
     sections.push(`| 盈亏比例 | ${unrealizedPnLPercent}% |`);
     sections.push('');
+
+    // 获取币种符号的辅助函数
+    const getCurrencySymbol = (currency?: string): string => {
+      switch (currency) {
+        case 'CNY': return '¥';
+        case 'HKD': return 'HK$';
+        default: return '$';
+      }
+    };
 
     // 持仓明细表格
     sections.push('### 持仓明细', '');
@@ -511,6 +593,7 @@ export class PositionService {
     sections.push('|----------|------|--------|------|------|------------|-------|');
 
     positions.forEach((pos) => {
+      const cs = getCurrencySymbol(pos.currency);
       const costPrice = pos.averageCost.toFixed(2);
       const currentPrice = pos.currentPrice ? pos.currentPrice.toFixed(2) : 'N/A';
       const marketValue = (pos.marketValue || 0).toFixed(2);
@@ -521,7 +604,7 @@ export class PositionService {
           : '0.00';
 
       sections.push(
-        `| ${pos.symbol} | ${pos.quantity} | $${costPrice} | $${currentPrice} | $${marketValue} | $${unrealizedPnL} | ${pnlPercent}% |`,
+        `| ${pos.symbol} | ${pos.quantity} | ${cs}${costPrice} | ${cs}${currentPrice} | ${cs}${marketValue} | ${cs}${unrealizedPnL} | ${pnlPercent}% |`,
       );
     });
 

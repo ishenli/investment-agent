@@ -33,9 +33,16 @@ vi.mock('@server/service/assetMetaService', () => ({
   },
 }));
 
+vi.mock('@server/service/exchangeRateService', () => ({
+  default: {
+    getRate: vi.fn().mockResolvedValue(0.14), // 默认 CNY->USD 汇率
+  },
+}));
+
 import { db } from '@server/lib/db';
 import priceService from '../priceService';
 import assetMetaService from '../assetMetaService';
+import exchangeRateService from '../exchangeRateService';
 
 const mockPosition = {
   id: 1,
@@ -362,7 +369,7 @@ describe('PositionService', () => {
         },
       ]);
       (db.query.accountFunds.findMany as any).mockResolvedValue([
-        { accountId: 1, amountCents: 200000 },
+        { accountId: 1, amountCents: 200000, currency: 'USD' },
       ]);
 
       const result = await positionService.getCurrentPositions('1');
@@ -422,10 +429,14 @@ describe('PositionService', () => {
         cnyTotalInvestment: 0,
         cnyUnrealizedPnL: 0,
         hasCnyAssets: false,
+        hkdStockValue: 0,
+        hkdTotalInvestment: 0,
+        hkdUnrealizedPnL: 0,
+        hasHkdAssets: false,
       });
     });
 
-    it('应该按 sector 区分股票和基金持仓', async () => {
+    it('应该按币种区分持仓', async () => {
       vi.spyOn(positionService, 'getCurrentPositions').mockResolvedValue([
         mockPositionType,
         mockFundPositionType,
@@ -456,6 +467,10 @@ describe('PositionService', () => {
         cnyTotalInvestment: 0,
         cnyUnrealizedPnL: 0,
         hasCnyAssets: false,
+        hkdStockValue: 0,
+        hkdTotalInvestment: 0,
+        hkdUnrealizedPnL: 0,
+        hasHkdAssets: false,
       });
     });
   });

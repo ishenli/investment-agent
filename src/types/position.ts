@@ -12,10 +12,12 @@ export const PositionSchema = z.object({
   averageCost: z.number().positive(),
   currentPrice: z.number().positive(),
   marketValue: z.number(),
+  marketValueUSD: z.number().optional(), // USD 转换后的市值（用于跨币种聚合）
   unrealizedPnL: z.number(),
-  positionRatio: z.number().optional(), // 持仓占比
+  unrealizedPnLUSD: z.number().optional(), // USD 转换后的未实现盈亏
+  positionRatio: z.number().optional(), // 持仓占比（基于 USD 总值计算）
   market: z.enum(['US', 'CN', 'HK']).optional(),
-  currency: z.string().optional(), // 计价货币：USD, CNY 等
+  currency: z.string().optional(), // 计价货币：USD, CNY, HKD 等
   sector: z.enum(['stock', 'etf', 'fund', 'crypto']).optional(), // 资产类型
   investmentMemo: z.string().nullable().optional(),
   assetMetaId: z.number().nullable().optional(), // 添加 assetMetaId 字段

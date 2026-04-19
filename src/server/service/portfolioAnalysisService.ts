@@ -99,12 +99,22 @@ export class PortfolioAnalysisService {
       totalAssetsValue: number;
     },
   ): PortfolioAnalysis {
-    // 计算总资产成本（股票成本 + 现金）
+    // 计算总资产成本（使用 USD 转换值，避免混合币种直接相加）
     const totalStockCost = holdingsSummary.reduce(
-      (sum, position) => sum + position.averageCost * position.quantity,
+      (sum, position) => {
+        const investment = position.averageCost * position.quantity;
+        const currency = position.currency || 'USD';
+        // 使用 marketValueUSD/marketValue 的比率来估算 USD 成本
+        if (currency !== 'USD' && position.marketValueUSD && position.marketValue) {
+          const rate = position.marketValueUSD / position.marketValue;
+          return sum + investment * rate;
+        }
+        return sum + investment;
+      },
       0,
     );
-    const totalAssetsCost = totalStockCost + cashAsset.amount;
+    // cashAsset.amount 可能是不同币种，这里简化处理（与 portfolioSummary 中的 cashBalance 一致）
+    const totalAssetsCost = totalStockCost + portfolioSummary.cashBalance;
 
     // 计算资产配置比例
     const stockAllocationRatio =

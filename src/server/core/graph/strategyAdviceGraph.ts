@@ -96,8 +96,10 @@ export class StrategyAdviceGraph {
 **持仓详情：**
 ${positions
   .map(
-    (pos) =>
-      `${pos.symbol}: ${pos.quantity}股 @ $${pos.currentPrice} (${(((pos.currentPrice * pos.quantity) / (portfolio.totalValue || 1)) * 100).toFixed(1)}%)${pos.investmentMemo ? ` - 投资笔记: ${pos.investmentMemo}` : ''}`,
+    (pos) => {
+        const cs = pos.currency === 'CNY' ? '¥' : pos.currency === 'HKD' ? 'HK$' : '$';
+        return `${pos.symbol}: ${pos.quantity}股 @ ${cs}${pos.currentPrice} (${(((pos.currentPrice * pos.quantity) / (portfolio.totalValue || 1)) * 100).toFixed(1)}%)${pos.investmentMemo ? ` - 投资笔记: ${pos.investmentMemo}` : ''}`;
+      },
   )
   .join('\n')}
 
@@ -132,7 +134,7 @@ ${positions
 ${portfolioAnalysis}
 
 **持仓详情：**
-${positions.map((pos) => `${pos.symbol}: ${pos.quantity}股 @ $${pos.currentPrice}${pos.investmentMemo ? ` - 投资笔记: ${pos.investmentMemo}` : ''}`).join('\n')}
+${positions.map((pos) => { const cs = pos.currency === 'CNY' ? '¥' : pos.currency === 'HKD' ? 'HK$' : '$'; return `${pos.symbol}: ${pos.quantity}股 @ ${cs}${pos.currentPrice}${pos.investmentMemo ? ` - 投资笔记: ${pos.investmentMemo}` : ''}`; }).join('\n')}
 
 请识别以下风险类型：
 1. 集中度风险
