@@ -15,6 +15,7 @@ import { Button } from '@renderer/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@renderer/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { AssetMetaType } from '@/types/assetMeta';
 
 interface AddCompanyInfoDialogProps {
   open: boolean;
@@ -23,11 +24,16 @@ interface AddCompanyInfoDialogProps {
   saving: boolean;
   error: string | null;
   setError: (error: string | null) => void;
+  assetType?: AssetMetaType['assetType'];
   initialData?: {
     id: number;
     title: string;
     content: string;
   } | null;
+}
+
+function isFundLike(assetType?: string): boolean {
+  return assetType === 'fund' || assetType === 'etf';
 }
 
 export function AddCompanyInfoDialog({
@@ -37,9 +43,11 @@ export function AddCompanyInfoDialog({
   saving,
   error,
   setError,
+  assetType,
   initialData,
 }: AddCompanyInfoDialogProps) {
   const { t } = useTranslation('asset-meta');
+  const fundLike = isFundLike(assetType);
   const [title, setTitle] = useState(initialData?.title ?? '');
   const [content, setContent] = useState(initialData?.content ?? '');
 
@@ -67,8 +75,14 @@ export function AddCompanyInfoDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl flex flex-col max-h-[80vh]">
         <DialogHeader>
-          <DialogTitle>{initialData ? t('companyInfo.editTitle') : t('companyInfo.addTitle')}</DialogTitle>
-          <DialogDescription>{t('companyInfo.description')}</DialogDescription>
+          <DialogTitle>
+            {initialData
+              ? (fundLike ? t('companyInfo.fundEditTitle') : t('companyInfo.editTitle'))
+              : (fundLike ? t('companyInfo.fundAddTitle') : t('companyInfo.addTitle'))}
+          </DialogTitle>
+          <DialogDescription>
+            {fundLike ? t('companyInfo.fundDescription') : t('companyInfo.description')}
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4 flex-1 overflow-y-auto">
           {error && (

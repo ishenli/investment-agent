@@ -25,12 +25,27 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@renderer/components/ui/dialog';
+import { Badge } from '@renderer/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@renderer/components/ui/tabs';
+import {
+  Card,
+  CardHeader,
+} from '@renderer/components/ui/card';
 import { PlusIcon, PencilIcon, TrashIcon, RefreshCwIcon, EyeIcon } from 'lucide-react';
 import { AssetMetaType } from '@/types/assetMeta';
 import dayjs from 'dayjs';
 import { fetchLatestPrice } from '@renderer/services/assetService';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
+
+const assetTypeColorMap: Record<string, string> = {
+  stock: 'bg-blue-100 text-blue-800',
+  etf: 'bg-purple-100 text-purple-800',
+  fund: 'bg-emerald-100 text-emerald-800',
+  crypto: 'bg-orange-100 text-orange-800',
+};
+
+type AssetTabKey = 'all' | 'stock' | 'fund' | 'crypto';
 
 /**
  * Render the asset metadata management interface.
@@ -49,6 +64,7 @@ export function AssetMetaTable() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingAssetMeta, setEditingAssetMeta] = useState<AssetMetaType | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState<AssetTabKey>('all');
   const router = useRouter();
 
   // 获取 assetMeta 数据
@@ -158,8 +174,8 @@ export function AssetMetaTable() {
     }
   };
 
-  // 过滤数据
-  const filteredAssetMetas = assetMetas.filter(
+  // 按搜索词过滤
+  const searchFiltered = assetMetas.filter(
     (assetMeta) =>
       assetMeta.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (assetMeta.chineseName &&
@@ -167,6 +183,23 @@ export function AssetMetaTable() {
       (assetMeta.investmentMemo &&
         assetMeta.investmentMemo.toLowerCase().includes(searchTerm.toLowerCase())),
   );
+
+  // 按资产类型分组
+  const stockAssets = searchFiltered.filter((a) => a.assetType === 'stock');
+  const fundAssets = searchFiltered.filter((a) => a.assetType === 'fund' || a.assetType === 'etf');
+  const cryptoAssets = searchFiltered.filter((a) => a.assetType === 'crypto');
+
+  // 根据当前 tab 获取过滤后的数据
+  const getFilteredByTab = (tab: AssetTabKey) => {
+    switch (tab) {
+      case 'stock': return stockAssets;
+      case 'fund': return fundAssets;
+      case 'crypto': return cryptoAssets;
+      default: return searchFiltered;
+    }
+  };
+
+  const filteredAssetMetas = getFilteredByTab(activeTab);
 
   if (loading) {
     return <div>{t('loading')}</div>;
@@ -177,163 +210,218 @@ export function AssetMetaTable() {
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex gap-2">
-          <Input
-            placeholder={t('search.placeholder')}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-64"
-          />
-        </div>
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogTrigger asChild>
-            <Button
-              className="cursor-pointer"
-              onClick={() => {
-                const newAssetMeta: AssetMetaType = {
-                  id: 0,
-                  symbol: '',
-                  priceCents: 0,
-                  assetType: 'stock',
-                  currency: 'USD',
-                  createdAt: new Date(),
-                  updatedAt: new Date(),
-                  source: 'finnhub',
-                  market: 'US',
-                  chineseName: null,
-                  fullName: null,
-                  logoUrl: null,
-                  investmentMemo: null,
-                };
-                setEditingAssetMeta(newAssetMeta);
-                setIsEditDialogOpen(true);
-              }}
-            >
-              <PlusIcon className="mr-2 h-4 w-4" />
-              {t('actions.add')}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>
-                {editingAssetMeta?.id ? t('form.editTitle') : t('form.addTitle')}
-              </DialogTitle>
-            </DialogHeader>
-            {editingAssetMeta && (
-              <AssetMetaEditForm
-                key={editingAssetMeta.id || 'new'}
-                assetMeta={editingAssetMeta}
-                onSave={handleSave}
-                onCancel={() => {
-                  setIsEditDialogOpen(false);
-                  setEditingAssetMeta(null);
-                }}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
-      </div>
+    <div className="space-y-4">
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as AssetTabKey)}>
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <TabsList>
+                <TabsTrigger value="all">
+                  {t('tabs.all')}
+                  {searchFiltered.length > 0 && (
+                    <Badge variant="secondary" className="ml-1.5 text-xs px-1.5 py-0">
+                      {searchFiltered.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="stock">
+                  {t('assetTypeLabels.stock')}
+                  {stockAssets.length > 0 && (
+                    <Badge variant="secondary" className="ml-1.5 text-xs px-1.5 py-0">
+                      {stockAssets.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="fund">
+                  {t('tabs.fundAndEtf')}
+                  {fundAssets.length > 0 && (
+                    <Badge variant="secondary" className="ml-1.5 text-xs px-1.5 py-0">
+                      {fundAssets.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="crypto">
+                  {t('assetTypeLabels.crypto')}
+                  {cryptoAssets.length > 0 && (
+                    <Badge variant="secondary" className="ml-1.5 text-xs px-1.5 py-0">
+                      {cryptoAssets.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+              </TabsList>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('table.headers.symbol')}</TableHead>
-              <TableHead>{t('table.headers.price')}</TableHead>
-              <TableHead>{t('table.headers.assetType')}</TableHead>
-              <TableHead>{t('table.headers.currency')}</TableHead>
-              <TableHead>{t('table.headers.market')}</TableHead>
-              <TableHead>{t('table.headers.source')}</TableHead>
-              <TableHead>{t('table.headers.updatedAt')}</TableHead>
-              <TableHead className="text-center">{t('table.headers.actions')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredAssetMetas.map((assetMeta) => (
-              <TableRow
-                key={assetMeta.id}
-              >
-                <TableCell className="font-medium">
-                  <div className="flex items-center">
-                    {assetMeta.logoUrl ? (
-                      <div className="w-6 h-6 rounded overflow-hidden border bg-white flex items-center justify-center">
-                        <img
-                          src={assetMeta.logoUrl}
-                          alt={`${assetMeta.symbol} logo`}
-                          className="w-full h-full object-contain"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-6 h-6 rounded border bg-muted flex items-center justify-center">
-                        <span className="text-xs text-muted-foreground">-</span>
-                      </div>
-                    )}
-                    &nbsp;&nbsp;{assetMeta.symbol}
-                    <span className="ml-2 text-sm text-gray-500">
-                      ({assetMeta.chineseName || '-'})
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell>${(assetMeta.priceCents / 100).toFixed(2)}</TableCell>
-                <TableCell>{assetMeta.assetType}</TableCell>
-                <TableCell>{assetMeta.currency}</TableCell>
-                <TableCell>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      assetMeta.market === 'US'
-                        ? 'bg-blue-100 text-blue-800'
-                        : assetMeta.market === 'HK'
-                          ? 'bg-purple-100 text-purple-800'
-                          : assetMeta.market === 'CN'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
-                    }`}
-                  >
-                    {assetMeta.market === 'US'
-                      ? t('form.markets.US')
-                      : assetMeta.market === 'HK'
-                        ? t('form.markets.HK')
-                        : assetMeta.market === 'CN'
-                          ? t('form.markets.CN')
-                          : assetMeta.market}
-                  </span>
-                </TableCell>
-                <TableCell>{assetMeta.source}</TableCell>
-                <TableCell>
-                  {assetMeta.updatedAt
-                    ? dayjs(assetMeta.updatedAt).format('YYYY-MM-DD HH:mm')
-                    : '-'}
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
+              <div className="flex gap-2">
+                <Input
+                  placeholder={t('search.placeholder')}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-64"
+                />
+                <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                  <DialogTrigger asChild>
                     <Button
-                      variant="outline"
-                      size="sm"
+                      className="cursor-pointer"
                       onClick={() => {
-                        // 导航到资产市场信息页面
-                        router.push(`/asset-meta/${assetMeta.id}`);
+                        const newAssetMeta: AssetMetaType = {
+                          id: 0,
+                          symbol: '',
+                          priceCents: 0,
+                          assetType: activeTab === 'fund' ? 'fund' : activeTab === 'crypto' ? 'crypto' : 'stock',
+                          currency: 'USD',
+                          createdAt: new Date(),
+                          updatedAt: new Date(),
+                          source: 'finnhub',
+                          market: 'US',
+                          chineseName: null,
+                          fullName: null,
+                          logoUrl: null,
+                          investmentMemo: null,
+                        };
+                        setEditingAssetMeta(newAssetMeta);
+                        setIsEditDialogOpen(true);
                       }}
                     >
-                      <EyeIcon className="h-4 w-4" />
+                      <PlusIcon className="mr-2 h-4 w-4" />
+                      {t('actions.add')}
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleEdit(assetMeta)}>
-                      <PencilIcon className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleDelete(assetMeta.id)}>
-                      <TrashIcon className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingAssetMeta?.id ? t('form.editTitle') : t('form.addTitle')}
+                      </DialogTitle>
+                    </DialogHeader>
+                    {editingAssetMeta && (
+                      <AssetMetaEditForm
+                        key={editingAssetMeta.id || 'new'}
+                        assetMeta={editingAssetMeta}
+                        onSave={handleSave}
+                        onCancel={() => {
+                          setIsEditDialogOpen(false);
+                          setEditingAssetMeta(null);
+                        }}
+                      />
+                    )}
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+          </CardHeader>
+
+          {/* 所有 tab 共享同一个表格，数据由 filteredAssetMetas 驱动 */}
+          <TabsContent value={activeTab} forceMount className="mt-0 px-6">
+            <div className="rounded-md">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('table.headers.symbol')}</TableHead>
+                    <TableHead>{t('table.headers.price')}</TableHead>
+                    {activeTab === 'all' && <TableHead>{t('table.headers.assetType')}</TableHead>}
+                    <TableHead>{t('table.headers.currency')}</TableHead>
+                    <TableHead>{t('table.headers.market')}</TableHead>
+                    <TableHead>{t('table.headers.source')}</TableHead>
+                    <TableHead>{t('table.headers.updatedAt')}</TableHead>
+                    <TableHead className="text-center">{t('table.headers.actions')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredAssetMetas.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={activeTab === 'all' ? 8 : 7} className="text-center py-8 text-muted-foreground">
+                        {t('table.empty')}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredAssetMetas.map((assetMeta) => (
+                      <TableRow key={assetMeta.id}>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center">
+                            {assetMeta.logoUrl ? (
+                              <div className="w-6 h-6 rounded overflow-hidden border bg-white flex items-center justify-center">
+                                <img
+                                  src={assetMeta.logoUrl}
+                                  alt={`${assetMeta.symbol} logo`}
+                                  className="w-full h-full object-contain"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                  }}
+                                />
+                              </div>
+                            ) : (
+                              <div className="w-6 h-6 rounded border bg-muted flex items-center justify-center">
+                                <span className="text-xs text-muted-foreground">-</span>
+                              </div>
+                            )}
+                            &nbsp;&nbsp;{assetMeta.symbol}
+                            <span className="ml-2 text-sm text-gray-500">
+                              ({assetMeta.chineseName || '-'})
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>${(assetMeta.priceCents / 100).toFixed(2)}</TableCell>
+                        {activeTab === 'all' && (
+                          <TableCell>
+                            <Badge className={assetTypeColorMap[assetMeta.assetType] || 'bg-gray-100 text-gray-800'}>
+                              {t(`assetTypeLabels.${assetMeta.assetType}`)}
+                            </Badge>
+                          </TableCell>
+                        )}
+                        <TableCell>{assetMeta.currency}</TableCell>
+                        <TableCell>
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              assetMeta.market === 'US'
+                                ? 'bg-blue-100 text-blue-800'
+                                : assetMeta.market === 'HK'
+                                  ? 'bg-purple-100 text-purple-800'
+                                  : assetMeta.market === 'CN'
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-gray-100 text-gray-800'
+                            }`}
+                          >
+                            {assetMeta.market === 'US'
+                              ? t('form.markets.US')
+                              : assetMeta.market === 'HK'
+                                ? t('form.markets.HK')
+                                : assetMeta.market === 'CN'
+                                  ? t('form.markets.CN')
+                                  : assetMeta.market}
+                          </span>
+                        </TableCell>
+                        <TableCell>{assetMeta.source}</TableCell>
+                        <TableCell>
+                          {assetMeta.updatedAt
+                            ? dayjs(assetMeta.updatedAt).format('YYYY-MM-DD HH:mm')
+                            : '-'}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                router.push(`/asset-meta/${assetMeta.id}`);
+                              }}
+                            >
+                              <EyeIcon className="h-4 w-4" />
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => handleEdit(assetMeta)}>
+                              <PencilIcon className="h-4 w-4" />
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => handleDelete(assetMeta.id)}>
+                              <TrashIcon className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+        </Card>
+      </Tabs>
     </div>
   );
 }

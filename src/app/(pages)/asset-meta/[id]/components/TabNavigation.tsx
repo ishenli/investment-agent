@@ -1,68 +1,48 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
+import { AssetMetaType } from '@/types/assetMeta';
+
+type TabKey = 'latest' | 'history' | 'company' | 'basic-info' | 'investment-memo';
 
 interface TabNavigationProps {
-  activeTab: 'latest' | 'history' | 'company' | 'basic-info' | 'investment-memo';
-  setActiveTab: (tab: 'latest' | 'history' | 'company' | 'basic-info' | 'investment-memo') => void;
+  activeTab: TabKey;
+  setActiveTab: (tab: TabKey) => void;
+  assetType?: AssetMetaType['assetType'];
 }
 
-export function TabNavigation({ activeTab, setActiveTab }: TabNavigationProps) {
+function isFundLike(assetType?: string): boolean {
+  return assetType === 'fund' || assetType === 'etf';
+}
+
+export function TabNavigation({ activeTab, setActiveTab, assetType }: TabNavigationProps) {
   const { t } = useTranslation('asset-meta');
-  
+  const fundLike = isFundLike(assetType);
+
+  const tabs: { key: TabKey; label: string }[] = [
+    { key: 'latest', label: t('detail.tabs.latest') },
+    { key: 'history', label: t('detail.tabs.history') },
+    { key: 'company', label: fundLike ? t('detail.tabs.fundOverview') : t('detail.tabs.company') },
+    { key: 'basic-info', label: t('detail.tabs.basicInfo') },
+    { key: 'investment-memo', label: t('detail.tabs.investmentMemo') },
+  ];
+
   return (
     <div className="border-b">
       <nav className="-mb-px flex space-x-8">
-        <button
-          className={`py-4 px-1 border-b-2 font-medium text-sm ${
-            activeTab === 'latest'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
-          }`}
-          onClick={() => setActiveTab('latest')}
-        >
-          {t('detail.tabs.latest')}
-        </button>
-        <button
-          className={`py-4 px-1 border-b-2 font-medium text-sm ${
-            activeTab === 'history'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
-          }`}
-          onClick={() => setActiveTab('history')}
-        >
-          {t('detail.tabs.history')}
-        </button>
-        <button
-          className={`py-4 px-1 border-b-2 font-medium text-sm ${
-            activeTab === 'company'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
-          }`}
-          onClick={() => setActiveTab('company')}
-        >
-          {t('detail.tabs.company')}
-        </button>
-        <button
-          className={`py-4 px-1 border-b-2 font-medium text-sm ${
-            activeTab === 'basic-info'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
-          }`}
-          onClick={() => setActiveTab('basic-info')}
-        >
-          {t('detail.tabs.basicInfo')}
-        </button>
-        <button
-          className={`py-4 px-1 border-b-2 font-medium text-sm ${
-            activeTab === 'investment-memo'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
-          }`}
-          onClick={() => setActiveTab('investment-memo')}
-        >
-          {t('detail.tabs.investmentMemo')}
-        </button>
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              activeTab === tab.key
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
+            }`}
+            onClick={() => setActiveTab(tab.key)}
+          >
+            {tab.label}
+          </button>
+        ))}
       </nav>
     </div>
   );

@@ -8,6 +8,12 @@
     "save": "Save",
     "view": "View"
   },
+  "assetTypeLabels": {
+    "stock": "Stock",
+    "etf": "ETF",
+    "fund": "Fund",
+    "crypto": "Crypto"
+  },
   "basicInfo": {
     "buttons": {
       "cancel": "Cancel",
@@ -16,10 +22,13 @@
     },
     "description": "View and edit asset basic information",
     "fields": {
+      "assetType": "Asset Type",
       "chineseName": "Chinese Name",
+      "currency": "Currency",
       "fullName": "Full Name",
       "logoPreview": "Preview",
       "market": "Market",
+      "source": "Data Source",
       "symbol": "Stock Symbol"
     },
     "messages": {
@@ -41,6 +50,9 @@
     "editTitle": "Edit Company Info",
     "addTitle": "Add Company Info",
     "description": "Please enter the title and content of the company info",
+    "fundEditTitle": "Edit Fund Info",
+    "fundAddTitle": "Add Fund Info",
+    "fundDescription": "Please enter the title and content of the fund info",
     "error": "Error",
     "fields": {
       "content": "Content",
@@ -62,6 +74,7 @@
   "detail": {
     "actions": {
       "addCompanyInfo": "Add Company Info",
+      "addFundInfo": "Add Fund Info",
       "addInvestmentMemo": "Add Investment Memo",
       "addMarketInfo": "Add Market Info",
       "editBasicInfo": "Edit Basic Info"
@@ -74,6 +87,7 @@
       },
       "noData": {
         "description": "There is currently no available company information.",
+        "fundDescription": "There is currently no available fund overview information.",
         "title": "No data"
       }
     },
@@ -132,6 +146,7 @@
     "tabs": {
       "basicInfo": "Basic Info",
       "company": "Company Info",
+      "fundOverview": "Fund Overview",
       "history": "Market Info History",
       "investmentMemo": "Investment Memo",
       "latest": "Latest Market Info"
@@ -213,6 +228,7 @@
     "positive": "Positive"
   },
   "table": {
+    "empty": "No data",
     "headers": {
       "actions": "Actions",
       "assetType": "Asset Type",
@@ -223,6 +239,10 @@
       "symbol": "Stock Symbol",
       "updatedAt": "Updated At"
     }
+  },
+  "tabs": {
+    "all": "All",
+    "fundAndEtf": "Fund & ETF"
   },
   "title": "Asset Metadata Management"
 }

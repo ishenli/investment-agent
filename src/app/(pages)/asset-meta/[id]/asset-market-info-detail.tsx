@@ -446,6 +446,7 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
     <div className="space-y-6">
       <MarketInfoTabs
         assetName={assetMeta?.chineseName || ''}
+        assetType={assetMeta?.assetType}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onRefresh={fetchData}
@@ -457,7 +458,7 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
         onEditBasicInfo={openEditBasicInfoDialog}
       />
 
-      <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
+      <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} assetType={assetMeta?.assetType} />
 
       {/* 最新信息视图 */}
       {activeTab === 'latest' && (
@@ -487,6 +488,7 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
       {activeTab === 'company' && (
         <CompanyInfoView
           companyInfos={companyInfos}
+          assetType={assetMeta?.assetType}
           onEdit={openEditCompanyInfoDialog}
           onDelete={openDeleteCompanyInfoDialog}
         />
@@ -513,6 +515,7 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
         saving={savingCompanyInfo}
         error={error}
         setError={setError}
+        assetType={assetMeta?.assetType}
         initialData={editingCompanyInfo}
       />
 

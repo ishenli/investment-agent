@@ -20,6 +20,7 @@ import { Eye, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
+import { AssetMetaType } from '@/types/assetMeta';
 
 type AssetCompanyInfoType = {
   id: number;
@@ -32,19 +33,26 @@ type AssetCompanyInfoType = {
 
 interface CompanyInfoViewProps {
   companyInfos: AssetCompanyInfoType[];
+  assetType?: AssetMetaType['assetType'];
   onEdit?: (info: AssetCompanyInfoType) => void;
   onDelete?: (info: AssetCompanyInfoType) => void;
 }
 
-export function CompanyInfoView({ companyInfos, onEdit, onDelete }: CompanyInfoViewProps) {
+function isFundLike(assetType?: string): boolean {
+  return assetType === 'fund' || assetType === 'etf';
+}
+
+export function CompanyInfoView({ companyInfos, assetType, onEdit, onDelete }: CompanyInfoViewProps) {
   const { t } = useTranslation('asset-meta');
-  const [viewingInfo, setViewingInfo] = useState<AssetCompanyInfoType | null>(null);
+  const fundLike = isFundLike(assetType);  const [viewingInfo, setViewingInfo] = useState<AssetCompanyInfoType | null>(null);
 
   if (companyInfos.length === 0) {
     return (
       <Alert>
         <AlertTitle>{t('detail.company.noData.title')}</AlertTitle>
-        <AlertDescription>{t('detail.company.noData.description')}</AlertDescription>
+        <AlertDescription>
+          {fundLike ? t('detail.company.noData.fundDescription') : t('detail.company.noData.description')}
+        </AlertDescription>
       </Alert>
     );
   }

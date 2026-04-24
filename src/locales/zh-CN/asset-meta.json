@@ -8,6 +8,12 @@
     "save": "保存",
     "view": "查看"
   },
+  "assetTypeLabels": {
+    "stock": "股票",
+    "etf": "ETF基金",
+    "fund": "基金",
+    "crypto": "加密货币"
+  },
   "basicInfo": {
     "buttons": {
       "cancel": "取消",
@@ -16,10 +22,13 @@
     },
     "description": "查看和编辑资产的基本信息",
     "fields": {
+      "assetType": "资产类型",
       "chineseName": "中文名称",
+      "currency": "货币",
       "fullName": "英文全称",
       "logoPreview": "预览",
       "market": "市场",
+      "source": "数据来源",
       "symbol": "股票代码"
     },
     "messages": {
@@ -41,6 +50,9 @@
     "editTitle": "编辑公司纪要",
     "addTitle": "添加公司纪要",
     "description": "请输入公司纪要的标题和内容",
+    "fundEditTitle": "编辑基金概况",
+    "fundAddTitle": "添加基金概况",
+    "fundDescription": "请输入基金概况的标题和内容",
     "error": "错误",
     "fields": {
       "content": "内容",
@@ -62,6 +74,7 @@
   "detail": {
     "actions": {
       "addCompanyInfo": "添加公司纪要",
+      "addFundInfo": "添加基金概况",
       "addInvestmentMemo": "添加投资笔记",
       "addMarketInfo": "添加市场纪要",
       "editBasicInfo": "编辑基本信息"
@@ -74,6 +87,7 @@
       },
       "noData": {
         "description": "当前没有可用的公司信息。",
+        "fundDescription": "当前没有可用的基金概况信息。",
         "title": "暂无数据"
       }
     },
@@ -132,6 +146,7 @@
     "tabs": {
       "basicInfo": "基本信息",
       "company": "公司纪要",
+      "fundOverview": "基金概况",
       "history": "历史市场纪要",
       "investmentMemo": "投资笔记",
       "latest": "最新市场纪要"
@@ -213,6 +228,7 @@
     "positive": "积极"
   },
   "table": {
+    "empty": "暂无数据",
     "headers": {
       "actions": "操作",
       "assetType": "资产类型",
@@ -220,9 +236,13 @@
       "market": "市场",
       "price": "价格 (USD)",
       "source": "数据来源",
-      "symbol": "股票代码",
+      "symbol": "代码",
       "updatedAt": "更新时间"
     }
+  },
+  "tabs": {
+    "all": "全部",
+    "fundAndEtf": "基金 & ETF"
   },
   "title": "资产元数据管理"
 }
