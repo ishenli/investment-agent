@@ -78,7 +78,7 @@ const currentSessionProvider = (s: SessionStore): string => {
 /**
  * 获取当前 Session 使用的 Engine 类型
  */
-const currentSessionEngineType = (s: SessionStore): 'deepagents' | 'claude' => {
+const currentSessionEngineType = (s: SessionStore): 'deepagents' | 'claude' | 'hermes' => {
   return currentSessionConfig(s).engineType || 'deepagents';
 };
 

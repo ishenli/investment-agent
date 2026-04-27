@@ -2,7 +2,7 @@ import { createStyles } from 'antd-style';
 import { Select, Icon } from '@lobehub/ui';
 import { memo } from 'react';
 import { Flexbox } from 'react-layout-kit';
-import { Brain, Sparkles, Check } from 'lucide-react';
+import { Brain, Sparkles, Check, Zap } from 'lucide-react';
 
 import { useSessionStore } from '@renderer/store/session';
 import { sessionSelectors } from '@renderer/store/session/selectors';
@@ -36,7 +36,7 @@ const EngineSwitch = () => {
   const engineType = useSessionStore(sessionSelectors.currentSessionEngineType);
 
   const updateAgentConfig = useSessionStore((s) => s.updateAgentConfig);
-  const handleEngineChange = async (value: 'deepagents' | 'claude') => {
+  const handleEngineChange = async (value: 'deepagents' | 'claude' | 'hermes') => {
     const sessionId = useSessionStore.getState().activeId;
     if (sessionId) {
       console.log('[EngineSwitch] Changing engine to:', value);
@@ -56,6 +56,12 @@ const EngineSwitch = () => {
       icon: Sparkles,
       label: 'Claude SDK',
       description: 'Anthropic Claude Agent SDK',
+    },
+    {
+      value: 'hermes',
+      icon: Zap,
+      label: 'Hermes Agent',
+      description: '多 Provider Tool-Calling Agent',
     },
   ];
 

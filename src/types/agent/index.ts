@@ -27,7 +27,7 @@ export interface LobeAgentConfig {
    * AI 引擎类型
    * @default deepagents
    */
-  engineType?: 'deepagents' | 'claude';
+  engineType?: 'deepagents' | 'claude' | 'hermes';
 
   /**
    * Claude SDK 模式

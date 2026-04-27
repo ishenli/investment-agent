@@ -16,7 +16,7 @@ export const IdParamSchema = z.object({
 const AgentConfigSchema = z.object({
   model: z.string(),
   provider: z.string().optional(),
-  engineType: z.enum(['deepagents', 'claude']).optional(),
+  engineType: z.enum(['deepagents', 'claude', 'hermes']).optional(),
   systemRole: z.string().optional(),
   params: z
     .object({
