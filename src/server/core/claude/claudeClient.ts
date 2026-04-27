@@ -473,8 +473,9 @@ export function streamClaude(options: ClaudeStreamOptions): ReadableStream<strin
 
           // If there are images, build a multimodal SDKUserMessage
           if (imageFiles.length > 0) {
+            type ImageMediaType = 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp';
             const contentBlocks: Array<
-              | { type: 'image'; source: { type: 'base64'; media_type: string; data: string } }
+              | { type: 'image'; source: { type: 'base64'; media_type: ImageMediaType; data: string } }
               | { type: 'text'; text: string }
             > = [];
 
@@ -483,7 +484,7 @@ export function streamClaude(options: ClaudeStreamOptions): ReadableStream<strin
                 type: 'image',
                 source: {
                   type: 'base64',
-                  media_type: img.type || 'image/png',
+                  media_type: (img.type || 'image/png') as ImageMediaType,
                   data: img.data,
                 },
               });
@@ -608,9 +609,9 @@ export function streamClaude(options: ClaudeStreamOptions): ReadableStream<strin
                     const resultContent = typeof block.content === 'string'
                       ? block.content
                       : Array.isArray(block.content)
-                        ? block.content
-                            .filter((c: { type: string }) => c.type === 'text')
-                            .map((c: { text: string }) => c.text)
+                        ? (block.content as Array<{ type: string; text?: string }>)
+                            .filter((c) => c.type === 'text')
+                            .map((c) => c.text ?? '')
                             .join('\n')
                         : String(block.content ?? '');
                     controller.enqueue(formatSSE({
