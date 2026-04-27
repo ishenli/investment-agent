@@ -51,6 +51,9 @@
       "@drizzle/*": [
         "./drizzle/*"
       ],
+      "@investment-agent/hermes-agent": [
+        "./packages/hermes-agent/src/index.ts"
+      ],
     },
   },
   "include": [
