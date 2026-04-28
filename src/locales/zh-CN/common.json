@@ -60,6 +60,12 @@
   "saveFailed": "保存失败",
   "saveSuccess": "保存成功",
   "search": "搜索",
+  "globalSearch": {
+    "placeholder": "搜索资产...",
+    "noResults": "未找到相关资产",
+    "assets": "资产",
+    "searchHint": "搜索"
+  },
   "settings": "设置",
   "share": "分享",
   "submit": "提交",
