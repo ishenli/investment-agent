@@ -60,6 +60,12 @@
   "saveFailed": "Save Failed",
   "saveSuccess": "Save Success",
   "search": "Search",
+  "globalSearch": {
+    "placeholder": "Search assets...",
+    "noResults": "No assets found.",
+    "assets": "Assets",
+    "searchHint": "Search"
+  },
   "settings": "Settings",
   "share": "Share",
   "submit": "Submit",
