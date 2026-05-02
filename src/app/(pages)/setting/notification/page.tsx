@@ -8,7 +8,7 @@ import { Switch } from '@renderer/components/ui/switch';
 import { Separator } from '@renderer/components/ui/separator';
 import { Bell, Volume2, Check } from 'lucide-react';
 import { get, put } from '@/app/lib/request';
-import { toast } from 'sonner';
+import { notificationManager } from '@/app/lib/notification';
 import type { NotificationPreferences, NotificationTypeValue } from '@/types/notification';
 
 const NOTIFICATION_TYPE_LABELS: Record<NotificationTypeValue, string> = {
@@ -50,7 +50,7 @@ export default function NotificationSettings() {
         });
       })
       .catch(() => {
-        toast.error('加载通知设置失败');
+        notificationManager.toast({ title: '加载通知设置失败', variant: 'error' });
       })
       .finally(() => setIsLoading(false));
   }, []);
@@ -77,7 +77,7 @@ export default function NotificationSettings() {
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch {
-      toast.error('保存通知设置失败');
+      notificationManager.toast({ title: '保存通知设置失败', variant: 'error' });
     } finally {
       setIsSaving(false);
     }

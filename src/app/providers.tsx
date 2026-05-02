@@ -8,6 +8,7 @@ import { AntDesignThemeSync } from './components/antd-theme-sync';
 import I18nProvider from './components/i18n-provider';
 import { AppInit } from './components/app-init';
 import { NotificationProvider } from './components/notification-provider';
+import { Toaster } from './components/ui/sonner';
 
 // 创建 QueryClient 实例的函数
 function makeQueryClient() {
@@ -58,6 +59,7 @@ export function Providers({ children }: { children: ReactNode }) {
             <AntDesignThemeSync>
               <AppInit>
                 <NotificationProvider>{children}</NotificationProvider>
+                <Toaster />
               </AppInit>
             </AntDesignThemeSync>
           </ThemeProvider>

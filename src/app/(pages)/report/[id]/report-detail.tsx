@@ -22,7 +22,7 @@ import {
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { toast } from 'sonner';
+import { notificationManager } from '@/app/lib/notification';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -59,11 +59,11 @@ export function ReportDetail({ id }: ReportDetailProps) {
       { id },
       {
         onSuccess: () => {
-          toast.success(t('editDrawer.updateSuccess'));
+          notificationManager.toast({ title: t('editDrawer.updateSuccess'), variant: 'success' });
           router.push('/report');
         },
         onError: (err) => {
-          toast.error(`${t('editDrawer.updateFailed')}: ${err instanceof Error ? err.message : t('detail.unknownError')}`);
+          notificationManager.toast({ title: `${t('editDrawer.updateFailed')}: ${err instanceof Error ? err.message : t('detail.unknownError')}`, variant: 'error' });
         },
       },
     );

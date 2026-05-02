@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from '@renderer/components/ui/select';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+import { notificationManager } from '@/app/lib/notification';
 import { useTranslation } from 'react-i18next';
 import { get } from '@/app/lib/request';
 import { ProviderModel } from '@/types/modelProvider';
@@ -70,13 +70,13 @@ export function ReportList() {
       { type: reportType, modelSlug: selectedModelSlug || undefined, agentType },
       {
         onSuccess: (data) => {
-          toast.success(t('detail.generateSuccess'));
+          notificationManager.toast({ title: t('detail.generateSuccess'), variant: 'success' });
           // 立即跳转到详情页
           router.push(`/report/${data.id}`);
         },
         onError: (err) => {
           const errorMessage = err instanceof Error ? err.message : t('detail.unknownError');
-          toast.error(`${t('detail.generateFailed')}: ${errorMessage}`);
+          notificationManager.toast({ title: `${t('detail.generateFailed')}: ${errorMessage}`, variant: 'error' });
         },
       },
     );

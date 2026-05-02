@@ -9,11 +9,28 @@ export class ToastAdapter implements NotificationAdapter {
   }
 
   show(payload: NotificationPayload): void {
-    const { title, message, type, actions } = payload;
+    const { title, message, type, variant, actions } = payload;
 
     const description = actions && actions.length > 0
-      ? `${message} ${actions.map(a => `[${a.label}]`).join(' ')}`
+      ? `${message || ''} ${actions.map(a => `[${a.label}]`).join(' ')}`
       : message;
+
+    if (variant && variant !== 'default') {
+      switch (variant) {
+        case 'success':
+          toast.success(title, { description });
+          return;
+        case 'error':
+          toast.error(title, { description });
+          return;
+        case 'warning':
+          toast.warning(title, { description });
+          return;
+        case 'info':
+          toast.info(title, { description });
+          return;
+      }
+    }
 
     switch (type) {
       case 'price_alert':

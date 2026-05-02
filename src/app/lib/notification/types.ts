@@ -13,10 +13,11 @@ export interface NotificationAction {
 export interface NotificationPayload {
   id?: string | number;
   title: string;
-  message: string;
+  message?: string;
   type?: NotificationTypeValue;
   priority?: NotificationPriorityValue;
   category: NotificationCategory;
+  variant?: 'success' | 'error' | 'warning' | 'info' | 'default';
   link?: string;
   data?: Record<string, any>;
   actions?: NotificationAction[];
