@@ -4,7 +4,6 @@ import {
   Portfolio,
   RiskInsights,
   Alert,
-  Notification,
   DiversificationRecommendation,
   StrategyAdvice,
 } from './types';
@@ -17,8 +16,6 @@ export interface PositionActions {
   setRiskInsights: (riskInsights: RiskInsights | null) => void;
   addAlert: (alert: Alert) => void;
   resolveAlert: (alertId: string) => void;
-  addNotification: (notification: Notification) => void;
-  markNotificationAsRead: (notificationId: string) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setDiversificationRecommendations: (recommendations: DiversificationRecommendation[]) => void;
@@ -56,14 +53,6 @@ export const createPositionSlice: StateCreator<
     set((state) => ({
       alerts: state.alerts.map((alert) =>
         alert.id === alertId ? { ...alert, resolved: true } : alert,
-      ),
-    })),
-  addNotification: (notification: Notification) =>
-    set((state) => ({ notifications: [...state.notifications, notification] })),
-  markNotificationAsRead: (notificationId: string) =>
-    set((state) => ({
-      notifications: state.notifications.map((notification) =>
-        notification.id === notificationId ? { ...notification, read: true } : notification,
       ),
     })),
   setLoading: (loading: boolean) => set({ loading }),
