@@ -36,8 +36,10 @@ export const memorySchema = Type.Object({
 export interface MemoryStoreConfig {
   /** Directory to store MEMORY.md and USER.md */
   dir: string;
-  /** Max chars per store (default: 2200) */
+  /** Max chars for MEMORY.md (default: 2200) */
   maxChars?: number;
+  /** Max chars for USER.md (default: matches maxChars). Claude SDK uses 1375. */
+  maxCharsUser?: number;
 }
 
 /**
@@ -47,16 +49,22 @@ export class MemoryStore {
   private readonly memoryPath: string;
   private readonly userPath: string;
   private readonly maxChars: number;
+  private readonly maxCharsUser: number;
 
   constructor(config: MemoryStoreConfig) {
     fs.mkdirSync(config.dir, { recursive: true });
     this.memoryPath = path.join(config.dir, 'MEMORY.md');
     this.userPath = path.join(config.dir, 'USER.md');
     this.maxChars = config.maxChars ?? DEFAULT_MAX_CHARS;
+    this.maxCharsUser = config.maxCharsUser ?? this.maxChars;
   }
 
   private getPath(target: string): string {
     return target === 'user' ? this.userPath : this.memoryPath;
+  }
+
+  private getMaxChars(target: string): number {
+    return target === 'user' ? this.maxCharsUser : this.maxChars;
   }
 
   read(target: string): string[] {
@@ -76,11 +84,12 @@ export class MemoryStore {
     }
 
     // Size check
+    const maxChars = this.getMaxChars(target);
     const totalSize = entries.join(ENTRY_DELIMITER).length + content.length + 1;
-    if (totalSize > this.maxChars) {
+    if (totalSize > maxChars) {
       return {
         success: false,
-        message: `Memory full (${totalSize}/${this.maxChars} chars). Remove entries first.`,
+        message: `Memory full (${totalSize}/${maxChars} chars). Remove entries first.`,
       };
     }
 

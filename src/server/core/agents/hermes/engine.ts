@@ -15,7 +15,9 @@ import {
 import { SSEEmitter } from '@server/base/sseEmitter';
 import { resolveAgentModel } from '@server/service/agentModelResolver';
 import { registerBusinessTools } from '@server/core/agents/hermes';
+import { getProjectRoot } from '@server/base/env';
 import logger from '@server/base/logger';
+import path from 'path';
 import type { IAgentEngine, EngineRunContext, EngineRunResult } from '@server/core/engine/types';
 
 export class HermesEngine implements IAgentEngine {
@@ -94,6 +96,8 @@ export class HermesEngine implements IAgentEngine {
       model: piModel,
       systemPrompt,
       toolRegistry: registry,
+      memoryDir: path.join(getProjectRoot(), 'workspace', String(userId), '.hermes', 'memories'),
+      memorySessionId: String(userId),
       maxIterations,
       callbacks,
       streaming: true,
@@ -110,7 +114,6 @@ export class HermesEngine implements IAgentEngine {
       context: {
         systemPrompt: agent.getSystemPrompt(),
         messages: piMessages.slice(0, -1) as any, // pi-ai Message[] requires full provider metadata not available at input time
-        tools: [],
       },
     });
 

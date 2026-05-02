@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { StockUtils, isChinaStock, isHkStock, isUsStock, getStockMarketInfo } from '../index';
-import { StockMarket } from '../../../../../types/stock';
+import { StockMarket } from '@typings/stock';
 
 describe('StockUtils', () => {
   describe('identifyStockMarket', () => {

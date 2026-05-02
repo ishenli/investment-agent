@@ -10,10 +10,22 @@ vi.mock('@/drizzle/schema', () => ({
   stocks: {},
   assetMeta: {},
   assetMarketInfo: {},
+  assetMarketInfoToAssetMeta: {},
+  assetCompanyInfo: {},
+  assetPriceHistory: {},
+  analysisReports: {},
+  revenueMetrics: {},
   notes: {},
   settings: {},
   userSelectedAccounts: {},
   assetPositions: {},
+  modelProviders: {},
+  providerModels: {},
+  scheduledTaskLogs: {},
+  portfolioSnapshots: {},
+  skills: {},
+  exchangeRates: {},
+  agent: {},
 }));
 
 // Mock drizzle-orm

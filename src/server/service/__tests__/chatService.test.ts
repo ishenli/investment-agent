@@ -2,16 +2,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ChatService, type ChatRequest, type GraphType } from '../chatService';
 
 // 导入实际模块
-import { SSEEmitter } from '../../base/sseEmitter';
-import { investmentAdvisorAgent } from '../../core/deepagents/investmentAdvisorAgent';
-import { MarketInformationGraph } from '../../core/graph/marketInformationGraph';
-import { ScenarioAnalyzerGraph } from '../../core/graph/scenarioAnalyzerGraph';
-import { DiversificationGraph } from '../../core/graph/diversificationGraph';
-import { AIInsightsGraph } from '../../core/graph/aiInsightsGraph';
-import authService from '../authService';
-import portfolioAnalysisService from '../portfolioAnalysisService';
-import logger from '../../base/logger';
-import { chatModelOpenAI } from '../../core/provider/chatModel';
+import { SSEEmitter } from '@server/base/sseEmitter';
+import { MarketInformationGraph } from '@server/core/agents/langchain/graphs/marketInformationGraph';
+import { ScenarioAnalyzerGraph } from '@server/core/agents/langchain/graphs/scenarioAnalyzerGraph';
+import { DiversificationGraph } from '@server/core/agents/langchain/graphs/diversificationGraph';
+import { AIInsightsGraph } from '@server/core/agents/langchain/graphs/aiInsightsGraph';
+import authService from '@server/service/authService';
+import portfolioAnalysisService from '@server/service/portfolioAnalysisService';
+import logger from '@server/base/logger';
+import { chatModelOpenAI } from '@server/core/agents/langchain/provider/chatModel';
+import { runEngine } from '@server/core/engine';
 
 // Mock 依赖模块
 vi.mock('@server/base/sseEmitter', () => ({
@@ -19,14 +19,10 @@ vi.mock('@server/base/sseEmitter', () => ({
     send: vi.fn(),
     sendError: vi.fn(),
     sendOpenAICompatibleMessage: vi.fn(),
+    sendStatus: vi.fn(),
+    sendAgentError: vi.fn(),
     close: vi.fn(),
   })),
-}));
-
-vi.mock('@server/core/deepagents/investmentAdvisorAgent', () => ({
-  investmentAdvisorAgent: {
-    chat: vi.fn(),
-  },
 }));
 
 vi.mock('@server/core/agents/langchain/graphs/marketInformationGraph', () => ({
@@ -77,6 +73,8 @@ vi.mock('@server/base/logger', () => ({
   default: {
     info: vi.fn(),
     error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
   },
 }));
 
@@ -86,6 +84,38 @@ vi.mock('@server/core/agents/langchain/provider/chatModel', () => ({
       content: 'LLM响应内容'
     }]),
   }),
+  chatModelOpenAISync: vi.fn().mockReturnValue({ stream: vi.fn() }),
+}));
+
+vi.mock('@server/core/engine', () => ({
+  runEngine: vi.fn().mockResolvedValue({ content: '投资顾问结果', completed: true }),
+}));
+
+vi.mock('@/drizzle/schema', () => ({
+  users: {},
+  accounts: {},
+  accountFunds: {},
+  transactions: {},
+  positions: {},
+  stocks: {},
+  assetMeta: {},
+  assetMarketInfo: {},
+  assetMarketInfoToAssetMeta: {},
+  assetCompanyInfo: {},
+  assetPriceHistory: {},
+  analysisReports: {},
+  revenueMetrics: {},
+  notes: {},
+  settings: {},
+  userSelectedAccounts: {},
+  assetPositions: {},
+  modelProviders: {},
+  providerModels: {},
+  scheduledTaskLogs: {},
+  portfolioSnapshots: {},
+  skills: {},
+  exchangeRates: {},
+  agent: {},
 }));
 
 
@@ -121,10 +151,10 @@ describe('ChatService', () => {
   beforeEach(() => {
     chatService = new ChatService();
     mockEmitter = new SSEEmitter();
-    
+
     // 重置所有 mocks
     vi.clearAllMocks();
-    
+
     // 设置默认 mock 返回值
     (authService.getCurrentUserAccount as jest.Mock).mockResolvedValue(mockAccountInfo);
     (portfolioAnalysisService.getPortfolioAnalysis as jest.Mock).mockResolvedValue(mockPortfolioAnalysis);
@@ -140,13 +170,15 @@ describe('ChatService', () => {
 
       await chatService.chat(request, mockEmitter);
 
-      expect(investmentAdvisorAgent.chat).toHaveBeenCalledWith({
-        userQuery: '我想了解投资建议',
-        accountId: '1',
-        emitter: mockEmitter,
-        model: 'Kimi-K2-Instruct',
-        messages: [],
-      });
+      expect(runEngine).toHaveBeenCalledWith(
+        'deepagents',
+        expect.objectContaining({
+          userId: 1,
+          model: 'Kimi-K2-Instruct',
+          extra: { accountId: '1' },
+        }),
+        mockEmitter,
+      );
       expect(logger.info).toHaveBeenCalledWith(
         '[ChatService] 开始处理聊天请求: 我想了解投资建议, Graph类型: investment_advisor'
       );
@@ -207,7 +239,7 @@ describe('ChatService', () => {
       };
 
       await chatService.chat(request, mockEmitter);
-      
+
       // 由于 scenario_analyzer 不在 switch 语句中，会转到 default 分支
       expect(chatModelOpenAI).toHaveBeenCalledWith('Kimi-K2-Instruct');
       expect(mockEmitter.sendOpenAICompatibleMessage).toHaveBeenCalledWith({
@@ -272,7 +304,7 @@ describe('ChatService', () => {
 
     it('应该在账户信息获取失败时报错', async () => {
       (authService.getCurrentUserAccount as jest.Mock).mockResolvedValue(null);
-      
+
       const request: ChatRequest = {
         query: '测试',
         agentId: 'default',
@@ -281,14 +313,14 @@ describe('ChatService', () => {
 
       const chatPromise = chatService.chat(request, mockEmitter);
       await chatPromise;
-      
+
       // 验证错误被正确发送
       expect(mockEmitter.sendError).toHaveBeenCalledWith('获取账户信息失败');
     });
 
     it('应该在发生错误时发送错误信息并关闭连接', async () => {
-      (investmentAdvisorAgent.chat as jest.Mock).mockRejectedValue(new Error('测试错误'));
-      
+      (runEngine as jest.Mock).mockRejectedValue(new Error('测试错误'));
+
       const request: ChatRequest = {
         query: '测试',
         agentId: 'investment_advisor',
@@ -313,7 +345,7 @@ describe('ChatService', () => {
       };
 
       await chatService.chat(request, mockEmitter);
-      
+
       expect(logger.info).toHaveBeenCalledWith('[ChatService] 使用 DeepAgents 处理投资顾问聊天');
     });
 
@@ -325,7 +357,7 @@ describe('ChatService', () => {
       };
 
       await chatService.chat(request, mockEmitter);
-      
+
       // 验证日志被调用（使用更宽松的匹配）
       expect(logger.info).toHaveBeenCalledWith(
         expect.stringContaining('处理默认聊天请求'),

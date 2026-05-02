@@ -70,7 +70,7 @@ export {
   registerBuiltinTools,
   type BuiltinToolsConfig,
 } from './builtin-tools';
-export { MemoryStore, type MemoryStoreConfig } from './builtin-tools/memory';
+export { MemoryStore, memorySchema, createMemoryHandler, type MemoryStoreConfig } from './builtin-tools/memory';
 export { BuiltinMemoryProvider } from './builtin-tools/builtin-memory-provider';
 
 // ============== Skill Tools ==============

@@ -18,7 +18,9 @@ import {
 import type { ChannelMessage } from '@investment-agent/agent-channel';
 import { registerBusinessTools, INVESTMENT_ASSISTANT_SYSTEM_PROMPT } from '@server/core/agents/hermes';
 import { resolveAgentModel } from '@server/service/agentModelResolver';
+import { getProjectRoot } from '@server/base/env';
 import logger from '@server/base/logger';
+import path from 'path';
 import type { WeixinAgentHandler, WeixinMessageContext, WeixinReplySender } from './types';
 
 // ── Defaults ─────────────────────────────────────────────────────────────────
@@ -82,9 +84,11 @@ export class HermesWeixinHandler implements WeixinAgentHandler {
       model: piModel,
       name: 'weixin-agent',
       systemPrompt: INVESTMENT_ASSISTANT_SYSTEM_PROMPT,
+      memoryDir: path.join(getProjectRoot(), 'workspace', String(ctx.userId), '.hermes', 'memories'),
+      memorySessionId: String(ctx.userId),
       maxIterations: 10,
       streaming: true,
-      platform: 'whatsapp', // plain text, no markdown
+      platform: 'weixin', // plain text, no markdown
       loadContextFiles: false,
       toolRegistry: registry,
       streamOptions: {
@@ -99,7 +103,6 @@ export class HermesWeixinHandler implements WeixinAgentHandler {
       context: {
         systemPrompt: agent.getSystemPrompt(),
         messages: piMessages, // all history turns (not including current)
-        tools: [],
       },
     });
 

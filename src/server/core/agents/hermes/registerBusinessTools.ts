@@ -12,6 +12,11 @@ import {
   fetchStockCompanyInfo,
   tavilySearch,
   searchNotes,
+  createNote,
+  listNotes,
+  getNote,
+  updateNote,
+  deleteNote,
   queryDb,
 } from '@server/core/business';
 import logger from '@server/base/logger';
@@ -42,6 +47,36 @@ const noteQuerySchema = Type.Object({
   query: Type.String({ description: '笔记搜索关键词' }),
 });
 
+const noteCreateSchema = Type.Object({
+  title: Type.String({ description: '笔记标题' }),
+  content: Type.String({ description: '笔记内容' }),
+  tags: Type.Optional(Type.Array(Type.String(), { description: '标签列表' })),
+});
+
+const noteListSchema = Type.Object({
+  limit: Type.Optional(Type.Number({ description: '每页数量，默认20' })),
+  offset: Type.Optional(Type.Number({ description: '偏移量，默认0' })),
+  search: Type.Optional(Type.String({ description: '搜索关键词（标题或内容）' })),
+  tag: Type.Optional(Type.String({ description: '按标签过滤' })),
+  sort_by: Type.Optional(Type.String({ description: '排序字段: createdAt | updatedAt | title，默认 createdAt' })),
+  sort_order: Type.Optional(Type.String({ description: '排序方向: asc | desc，默认 desc' })),
+});
+
+const noteGetSchema = Type.Object({
+  note_id: Type.String({ description: '笔记ID' }),
+});
+
+const noteUpdateSchema = Type.Object({
+  note_id: Type.String({ description: '笔记ID' }),
+  title: Type.Optional(Type.String({ description: '新标题' })),
+  content: Type.Optional(Type.String({ description: '新内容' })),
+  tags: Type.Optional(Type.Array(Type.String(), { description: '新标签列表' })),
+});
+
+const noteDeleteSchema = Type.Object({
+  note_id: Type.String({ description: '笔记ID' }),
+});
+
 const tavilySearchSchema = Type.Object({
   query: Type.String({ description: '搜索关键词' }),
 });
@@ -63,6 +98,11 @@ export type BusinessToolName =
   | 'stock_company_info'
   | 'stock_search_news'
   | 'note_query'
+  | 'note_create'
+  | 'note_list'
+  | 'note_get'
+  | 'note_update'
+  | 'note_delete'
   | 'tavily_search'
   | 'db_query';
 
@@ -84,6 +124,11 @@ export function registerBusinessTools(
         'stock_company_info',
         'stock_search_news',
         'note_query',
+        'note_create',
+        'note_list',
+        'note_get',
+        'note_update',
+        'note_delete',
         'tavily_search',
         'db_query',
       ]);
@@ -149,6 +194,74 @@ export function registerBusinessTools(
       noteQuerySchema,
       async (_id, args) =>
         wrap(async () => searchNotes(String(args.query)))(),
+    );
+  }
+
+  if (enabled.has('note_create')) {
+    registry.register(
+      'note_create',
+      '创建新的投资笔记',
+      noteCreateSchema,
+      async (_id, args) =>
+        wrap(async () =>
+          createNote(String(args.title), String(args.content), (args.tags as string[]) ?? undefined),
+        )(),
+    );
+  }
+
+  if (enabled.has('note_list')) {
+    registry.register(
+      'note_list',
+      '列出当前用户的投资笔记（支持分页、搜索、标签过滤）',
+      noteListSchema,
+      async (_id, args) =>
+        wrap(async () =>
+          listNotes(
+            args.limit ? Number(args.limit) : undefined,
+            args.offset ? Number(args.offset) : undefined,
+            args.search ? String(args.search) : undefined,
+            args.tag ? String(args.tag) : undefined,
+            args.sort_by ? String(args.sort_by) as 'createdAt' | 'updatedAt' | 'title' : undefined,
+            args.sort_order ? String(args.sort_order) as 'asc' | 'desc' : undefined,
+          ),
+        )(),
+    );
+  }
+
+  if (enabled.has('note_get')) {
+    registry.register(
+      'note_get',
+      '获取单条投资笔记的完整内容',
+      noteGetSchema,
+      async (_id, args) =>
+        wrap(async () => getNote(String(args.note_id)))(),
+    );
+  }
+
+  if (enabled.has('note_update')) {
+    registry.register(
+      'note_update',
+      '更新投资笔记的标题、内容或标签',
+      noteUpdateSchema,
+      async (_id, args) =>
+        wrap(async () =>
+          updateNote(
+            String(args.note_id),
+            args.title !== undefined ? String(args.title) : undefined,
+            args.content !== undefined ? String(args.content) : undefined,
+            args.tags !== undefined ? (args.tags as string[]) : undefined,
+          ),
+        )(),
+    );
+  }
+
+  if (enabled.has('note_delete')) {
+    registry.register(
+      'note_delete',
+      '删除投资笔记',
+      noteDeleteSchema,
+      async (_id, args) =>
+        wrap(async () => deleteNote(String(args.note_id)))(),
     );
   }
 

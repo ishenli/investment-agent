@@ -11,6 +11,8 @@ import { runAgentLoop, createToolExecutor } from './loop';
 import { buildSystemPrompt, type PromptBuilderConfig } from './prompt';
 import { ToolRegistry } from './tools';
 import { MemoryManager } from './memory-manager';
+import { BuiltinMemoryProvider } from './builtin-tools/builtin-memory-provider';
+import { memorySchema } from './builtin-tools/memory';
 import type {
   AgentCallbacks,
   HermesAgentInput,
@@ -40,6 +42,17 @@ export interface HermesAgentConfig {
   memoryBlock?: string;
   /** MemoryManager for provider-based memory (alternative to memoryBlock) */
   memoryManager?: MemoryManager;
+  /**
+   * Directory for built-in file-backed memory (MEMORY.md / USER.md).
+   * If provided, auto-initializes BuiltinMemoryProvider + MemoryManager and
+   * registers the 'memory' tool in toolRegistry. Ignored if memoryManager is set.
+   */
+  memoryDir?: string;
+  /**
+   * Session ID for memory snapshot scoping (e.g. String(userId)).
+   * Used by BuiltinMemoryProvider.initialize(). Defaults to 'default'.
+   */
+  memorySessionId?: string;
   /** Tools available to the agent (pi-ai Tool array) */
   tools?: Tool[];
   /** Tool registry (alternative to tools + toolExecutor) */
@@ -65,7 +78,10 @@ export class HermesAgent {
 
   constructor(config: HermesAgentConfig) {
     this.config = config;
-    this.memoryManager = config.memoryManager;
+
+    // Auto-setup memory from memoryDir (if no explicit memoryManager provided).
+    // Must run BEFORE tool resolution so the 'memory' tool appears in this.tools.
+    this.memoryManager = config.memoryManager ?? this.initMemory(config);
 
     // Resolve tools from either direct tools array or registry
     if (config.toolRegistry) {
@@ -76,6 +92,45 @@ export class HermesAgent {
       this.tools = config.tools ?? [];
       this.toolExecutor = config.toolExecutor;
     }
+  }
+
+  /**
+   * Initialize built-in file-backed memory from config.memoryDir.
+   * Registers the 'memory' tool into config.toolRegistry if available.
+   * Returns the created MemoryManager, or undefined if memoryDir is not set.
+   */
+  private initMemory(config: HermesAgentConfig): MemoryManager | undefined {
+    if (!config.memoryDir) return undefined;
+
+    const provider = new BuiltinMemoryProvider({
+      dir: config.memoryDir,
+      maxChars: 2200,      // MEMORY.md — consistent with Claude SDK
+      maxCharsUser: 1375,  // USER.md  — consistent with Claude SDK
+    });
+    provider.initialize(config.memorySessionId ?? 'default');
+
+    const manager = new MemoryManager();
+    manager.addProvider(provider);
+
+    // Auto-register 'memory' tool if a registry is present and not already registered
+    if (config.toolRegistry && !config.toolRegistry.has('memory')) {
+      config.toolRegistry.register(
+        'memory',
+        'Read, add, replace, or remove entries in persistent agent memory (MEMORY.md) or user profile (USER.md).',
+        memorySchema,
+        async (_id, args) => {
+          const jsonResult = await manager.handleToolCall('memory', args);
+          let isError = false;
+          try {
+            const parsed = JSON.parse(jsonResult) as { success?: boolean };
+            isError = parsed.success === false;
+          } catch { /* keep isError = false */ }
+          return { content: [{ type: 'text' as const, text: jsonResult }], isError };
+        },
+      );
+    }
+
+    return manager;
   }
 
   /**
