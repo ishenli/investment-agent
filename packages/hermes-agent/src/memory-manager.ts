@@ -74,6 +74,8 @@ export class MemoryManager {
   private _providers: MemoryProvider[] = [];
   private _toolToProvider = new Map<string, MemoryProvider>();
   private _hasExternal = false;
+  private _version = 0;
+  private _lastCheckedVersion = 0;
 
   // -- Registration --------------------------------------------------------
 
@@ -135,6 +137,20 @@ export class MemoryManager {
       }
     }
     return blocks.join('\n\n');
+  }
+
+  /** Mark memory as changed (e.g., after a tool writes new memory). */
+  markDirty(): void {
+    this._version++;
+  }
+
+  /** Returns true if memory content changed since the last check. */
+  hasChanged(): boolean {
+    if (this._version !== this._lastCheckedVersion) {
+      this._lastCheckedVersion = this._version;
+      return true;
+    }
+    return false;
   }
 
   // -- Prefetch / recall ---------------------------------------------------

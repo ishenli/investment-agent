@@ -75,6 +75,18 @@ export type ToolExecutor = (
 
 // ============== Agent Configuration ==============
 
+/** Options forwarded to pi-ai's stream()/complete() calls. */
+export interface StreamOptions {
+  /** API key override (takes precedence over env vars) */
+  apiKey?: string;
+  /** Abort signal for cancellation */
+  signal?: AbortSignal;
+  /** Timeout in milliseconds for each LLM call */
+  timeoutMs?: number;
+  /** Additional options passed through to the provider */
+  [key: string]: unknown;
+}
+
 export interface AgentCallbacks {
   onToolStart?: (name: string, args: Record<string, unknown>) => void;
   onToolEnd?: (result: ToolCallResult) => void;
@@ -100,4 +112,6 @@ export interface AgentConfig {
   callbacks?: AgentCallbacks;
   /** Whether to use streaming (default: true) */
   streaming?: boolean;
+  /** Options forwarded to pi-ai stream()/complete() calls (apiKey, signal, etc.) */
+  streamOptions?: StreamOptions;
 }

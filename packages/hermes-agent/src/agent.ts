@@ -52,6 +52,8 @@ export interface HermesAgentConfig {
   callbacks?: AgentCallbacks;
   /** Whether to use streaming (default: true) */
   streaming?: boolean;
+  /** Options forwarded to pi-ai stream()/complete() calls (apiKey, etc.) */
+  streamOptions?: Record<string, unknown>;
 }
 
 export class HermesAgent {
@@ -80,6 +82,11 @@ export class HermesAgent {
    * Run a conversation turn. Accepts a string or structured input.
    */
   async run(input: string | HermesAgentInput): Promise<HermesAgentResult> {
+    // Reset prompt cache if memory manager content has changed
+    if (this.memoryManager?.hasChanged()) {
+      this.resetSystemPrompt();
+    }
+
     const context = this.buildContext(input);
 
     const agentConfig: AgentConfig = {
@@ -91,6 +98,7 @@ export class HermesAgent {
       maxIterations: this.config.maxIterations ?? 90,
       callbacks: this.config.callbacks,
       streaming: this.config.streaming ?? true,
+      streamOptions: this.config.streamOptions,
     };
 
     return runAgentLoop(agentConfig, context);

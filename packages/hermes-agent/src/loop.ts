@@ -44,18 +44,33 @@ export async function runAgentLoop(
     callbacks,
     toolExecutor,
     streaming = true,
+    streamOptions,
   } = config;
 
   const budget = new IterationBudget(maxIterations);
   let apiCalls = 0;
 
+  // Extract abort signal from streamOptions for cancellation checks
+  const signal = streamOptions?.signal as AbortSignal | undefined;
+
   // Context compression (optional — only if model has a known context window)
   const compressor =
-    model.contextWindow > 0
+    model.contextWindow && model.contextWindow > 0
       ? new ContextCompressor({ contextLength: model.contextWindow })
       : null;
 
   while (!budget.exhausted) {
+    // Check abort signal before each iteration
+    if (signal?.aborted) {
+      return {
+        context,
+        completed: false,
+        apiCalls,
+        finalResponse: '',
+        error: 'Aborted',
+      };
+    }
+
     if (!budget.consume()) {
       callbacks?.onError?.(
         new HermesAgentError(
@@ -74,9 +89,9 @@ export async function runAgentLoop(
       response = await withRetry(
         async () => {
           if (streaming && callbacks?.onTextDelta) {
-            return await streamWithCallbacks(model, context, callbacks);
+            return await streamWithCallbacks(model, context, callbacks, streamOptions);
           }
-          return await complete(model, context);
+          return await complete(model, context, streamOptions);
         },
         {
           maxRetries: 3,
@@ -140,16 +155,39 @@ export async function runAgentLoop(
 
     // Execute tool calls
     for (const toolCall of toolCalls) {
+      // Check abort between tool calls
+      if (signal?.aborted) {
+        return {
+          context,
+          completed: false,
+          apiCalls,
+          finalResponse: '',
+          error: 'Aborted',
+        };
+      }
+
       callbacks?.onToolStart?.(toolCall.name, toolCall.arguments);
 
       let resultMessage: ToolResultMessage;
 
       if (toolExecutor) {
-        const result = await toolExecutor(
-          toolCall.name,
-          toolCall.arguments,
-          toolCall.id,
-        );
+        const toolTimeoutMs = (streamOptions?.toolTimeoutMs as number) ?? 60_000;
+        let result;
+        try {
+          result = await withTimeout(
+            toolExecutor(toolCall.name, toolCall.arguments, toolCall.id),
+            toolTimeoutMs,
+            `Tool "${toolCall.name}" timed out after ${toolTimeoutMs}ms`,
+          );
+        } catch (error) {
+          const errMsg = error instanceof Error ? error.message : String(error);
+          result = {
+            toolCallId: toolCall.id,
+            toolName: toolCall.name,
+            content: [{ type: 'text' as const, text: errMsg }],
+            isError: true,
+          };
+        }
 
         callbacks?.onToolEnd?.(result);
 
@@ -198,8 +236,9 @@ async function streamWithCallbacks(
   model: AgentConfig['model'],
   context: Context,
   callbacks: AgentCallbacks,
+  options?: Record<string, unknown>,
 ): Promise<AssistantMessage> {
-  const s = stream(model, context);
+  const s = stream(model, context, options);
 
   for await (const event of s) {
     if (event.type === 'text_delta') {
@@ -234,4 +273,15 @@ export function createToolExecutor(registry: ToolRegistry): ToolExecutor {
   return async (name, args, toolCallId) => {
     return registry.execute(name, args, toolCallId);
   };
+}
+
+/**
+ * Wrap a promise with a timeout.
+ */
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(message)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }

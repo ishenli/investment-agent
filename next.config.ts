@@ -9,13 +9,28 @@ const isElectron = process.env.BUILD_TARGET === 'electron';
 const nextConfig: NextConfig = {
   // Configure allowed development origins for cross-origin requests
   output: isElectron ? 'standalone' : undefined,
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'api.qrserver.com',
+        pathname: '/v1/create-qr-code/**',
+      },
+    ],
+  },
   // Next.js standalone build will trace runtime dependencies (e.g. files opened via fs).
   // We do NOT want to bundle runtime log files into the standalone build.
   outputFileTracingExcludes:{
     // exclude our runtime logs directory (rotating log files may not exist during build)
     'api/**': ['**/logs/**'],
   },
-  serverExternalPackages: isElectron ? undefined : ['@libsql/client'],
+  serverExternalPackages: [
+    // @libsql/client uses native bindings, must not be bundled by webpack
+    ...(isElectron ? [] : ['@libsql/client']),
+    // hermes-agent uses fully-dynamic import() for plugin discovery (import(modulePath))
+    // which webpack cannot statically analyse — let Node.js resolve it at runtime instead
+    '@investment-agent/hermes-agent',
+  ],
   env: {
     NEXT_PUBLIC_APP_VERSION: pkg.version,
   },

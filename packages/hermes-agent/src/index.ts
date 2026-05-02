@@ -118,6 +118,10 @@ export type {
   PreprocessingConfig,
 } from './skill-tools';
 
+// ============== Schema ==============
+export { Type } from '@sinclair/typebox';
+export type { Static, TSchema } from '@sinclair/typebox';
+
 // ============== Types ==============
 export type {
   // pi-ai re-exports
@@ -140,8 +144,9 @@ export type {
   ToolExecutor,
   AgentCallbacks,
   AgentConfig,
+  StreamOptions,
 } from './types';
 
 // ============== pi-ai Re-exports ==============
-export { getModel, getModels, getProviders } from '@mariozechner/pi-ai';
+export { getModel, getModels, getProviders, getEnvApiKey } from '@mariozechner/pi-ai';
 export type { KnownProvider } from '@mariozechner/pi-ai';

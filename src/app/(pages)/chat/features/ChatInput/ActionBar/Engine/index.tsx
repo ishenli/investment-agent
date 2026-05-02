@@ -6,6 +6,7 @@ import { Brain, Sparkles, Check, Zap } from 'lucide-react';
 
 import { useSessionStore } from '@renderer/store/session';
 import { sessionSelectors } from '@renderer/store/session/selectors';
+import type { EngineType } from '@typings/agent';
 
 const useStyles = createStyles(({ css, token }) => ({
   select: css`
@@ -36,7 +37,7 @@ const EngineSwitch = () => {
   const engineType = useSessionStore(sessionSelectors.currentSessionEngineType);
 
   const updateAgentConfig = useSessionStore((s) => s.updateAgentConfig);
-  const handleEngineChange = async (value: 'deepagents' | 'claude' | 'hermes') => {
+  const handleEngineChange = async (value: EngineType) => {
     const sessionId = useSessionStore.getState().activeId;
     if (sessionId) {
       console.log('[EngineSwitch] Changing engine to:', value);

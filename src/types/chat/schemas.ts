@@ -4,6 +4,7 @@
  * Request validation schemas for chat API endpoints
  */
 import { z } from 'zod';
+import { ENGINE_TYPES } from '../agent';
 
 // ============== Common ==============
 
@@ -16,7 +17,7 @@ export const IdParamSchema = z.object({
 const AgentConfigSchema = z.object({
   model: z.string(),
   provider: z.string().optional(),
-  engineType: z.enum(['deepagents', 'claude', 'hermes']).optional(),
+  engineType: z.enum(ENGINE_TYPES).optional(),
   systemRole: z.string().optional(),
   params: z
     .object({

@@ -8,7 +8,7 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { BaseController } from '../../base/baseController';
 import { WithRequestContextStatic } from '@server/base/decorators';
-import { resolvePendingPermission } from '@/server/core/claude/permissionRegistry';
+import { resolvePendingPermission } from '@/server/core/agents/claude/permissionRegistry';
 import logger from '@server/base/logger';
 import type { PermissionResult } from '@anthropic-ai/claude-agent-sdk';
 

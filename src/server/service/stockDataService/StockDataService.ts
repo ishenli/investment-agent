@@ -49,6 +49,18 @@ export class StockDataService {
   ): Promise<string> {
     const start = new Date(startDate);
     const end = new Date(endDate);
+
+    // 输入层日期验证：无效日期直接返回错误，防止 NaN 传入下游
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return this.formatter.formatError(
+        symbol,
+        startDate,
+        endDate,
+        `日期参数无效: startDate=${startDate}, endDate=${endDate}`,
+        market,
+      );
+    }
+
     const diffTime = Math.abs(end.getTime() - start.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 

@@ -11,14 +11,30 @@ import { readFileSchema, readFileHandler } from './read-file';
 import { writeFileSchema, writeFileHandler } from './write-file';
 import { patchSchema, patchHandler } from './patch';
 import { searchFilesSchema, searchFilesHandler } from './search-files';
+import { listDirectorySchema, listDirectoryHandler } from './list-directory';
 import { terminalSchema, terminalHandler } from './terminal';
+import { webSearchSchema, webSearchHandler } from './web-search';
+import { webFetchSchema, webFetchHandler } from './web-fetch';
+import { thinkSchema, thinkHandler } from './think';
 import { memorySchema, createMemoryHandler, MemoryStore } from './memory';
+
+export type BuiltinToolName =
+  | 'read_file'
+  | 'write_file'
+  | 'patch'
+  | 'search_files'
+  | 'list_directory'
+  | 'terminal'
+  | 'web_search'
+  | 'web_fetch'
+  | 'think'
+  | 'memory';
 
 export interface BuiltinToolsConfig {
   /** Directory for memory store (MEMORY.md, USER.md). If not set, memory tool is skipped. */
   memoryDir?: string;
   /** Which tools to enable (default: all) */
-  enable?: ('read_file' | 'write_file' | 'patch' | 'search_files' | 'terminal' | 'memory')[];
+  enable?: BuiltinToolName[];
 }
 
 export function registerBuiltinTools(
@@ -27,7 +43,10 @@ export function registerBuiltinTools(
 ): void {
   const enabled = config.enable
     ? new Set(config.enable)
-    : new Set(['read_file', 'write_file', 'patch', 'search_files', 'terminal', 'memory']);
+    : new Set<BuiltinToolName>([
+        'read_file', 'write_file', 'patch', 'search_files', 'list_directory',
+        'terminal', 'web_search', 'web_fetch', 'think', 'memory',
+      ]);
 
   if (enabled.has('read_file')) {
     registry.register(
@@ -65,12 +84,48 @@ export function registerBuiltinTools(
     );
   }
 
+  if (enabled.has('list_directory')) {
+    registry.register(
+      'list_directory',
+      'List files and directories in a tree structure with depth control. Ignores node_modules/.git.',
+      listDirectorySchema,
+      listDirectoryHandler,
+    );
+  }
+
   if (enabled.has('terminal')) {
     registry.register(
       'terminal',
       'Execute a shell command and return stdout/stderr with exit code.',
       terminalSchema,
       terminalHandler,
+    );
+  }
+
+  if (enabled.has('web_search')) {
+    registry.register(
+      'web_search',
+      'Search the web for information. Uses Tavily API if TAVILY_API_KEY is set, otherwise DuckDuckGo.',
+      webSearchSchema,
+      webSearchHandler,
+    );
+  }
+
+  if (enabled.has('web_fetch')) {
+    registry.register(
+      'web_fetch',
+      'Fetch content from a URL. Extracts readable text from HTML, returns raw content for JSON/text.',
+      webFetchSchema,
+      webFetchHandler,
+    );
+  }
+
+  if (enabled.has('think')) {
+    registry.register(
+      'think',
+      'Internal reasoning scratchpad. Use to think through complex problems step by step before acting. No side effects.',
+      thinkSchema,
+      thinkHandler,
     );
   }
 

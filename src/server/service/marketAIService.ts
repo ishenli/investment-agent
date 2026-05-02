@@ -1,6 +1,6 @@
 import { ChatOpenAI } from '@langchain/openai';
 import logger from '@server/base/logger';
-import { chatModelOpenAI } from '../core/provider/chatModel';
+import { chatModelOpenAI } from '@server/core/agents/langchain/provider/chatModel';
 import { HumanMessage, SystemMessage } from 'langchain';
 import { recordPrompt } from '../utils/file';
 

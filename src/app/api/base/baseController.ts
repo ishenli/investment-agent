@@ -3,6 +3,15 @@ import { z } from 'zod';
 import { ResultUtil } from '@server/base/responseUtil';
 
 export abstract class BaseController {
+  /**
+   * Resolve a session ID from the frontend format to the DB format.
+   * Frontend sends "inbox_XXX" or "agent_XXX", DB stores only "XXX".
+   */
+  static resolveSessionId(rawSessionId: string): string {
+    if (!rawSessionId.includes('_')) return rawSessionId;
+    return rawSessionId.split('_').slice(1).join('_');
+  }
+
   static async getQuery(request: Request): Promise<any> {
     const url = new URL(request.url);
     return Object.fromEntries(url.searchParams);

@@ -29,7 +29,7 @@ vi.mock('@server/core/deepagents/investmentAdvisorAgent', () => ({
   },
 }));
 
-vi.mock('@server/core/graph/marketInformationGraph', () => ({
+vi.mock('@server/core/agents/langchain/graphs/marketInformationGraph', () => ({
   MarketInformationGraph: vi.fn().mockImplementation(() => ({
     setup: vi.fn(),
     createInitialState: vi.fn(() => ({})),
@@ -37,7 +37,7 @@ vi.mock('@server/core/graph/marketInformationGraph', () => ({
   })),
 }));
 
-vi.mock('@server/core/graph/scenarioAnalyzerGraph', () => ({
+vi.mock('@server/core/agents/langchain/graphs/scenarioAnalyzerGraph', () => ({
   ScenarioAnalyzerGraph: {
     create: vi.fn().mockResolvedValue({
       analyzeScenario: vi.fn().mockResolvedValue({ result: '场景分析结果' }),
@@ -45,7 +45,7 @@ vi.mock('@server/core/graph/scenarioAnalyzerGraph', () => ({
   },
 }));
 
-vi.mock('@server/core/graph/diversificationGraph', () => ({
+vi.mock('@server/core/agents/langchain/graphs/diversificationGraph', () => ({
   DiversificationGraph: {
     create: vi.fn().mockResolvedValue({
       generateRecommendations: vi.fn().mockResolvedValue({ recommendations: '分散投资建议' }),
@@ -53,7 +53,7 @@ vi.mock('@server/core/graph/diversificationGraph', () => ({
   },
 }));
 
-vi.mock('@server/core/graph/aiInsightsGraph', () => ({
+vi.mock('@server/core/agents/langchain/graphs/aiInsightsGraph', () => ({
   AIInsightsGraph: {
     create: vi.fn().mockResolvedValue({
       generateInsights: vi.fn().mockResolvedValue([{ insight: 'AI洞察结果' }]),
@@ -80,7 +80,7 @@ vi.mock('@server/base/logger', () => ({
   },
 }));
 
-vi.mock('@server/core/provider/chatModel', () => ({
+vi.mock('@server/core/agents/langchain/provider/chatModel', () => ({
   chatModelOpenAI: vi.fn().mockResolvedValue({
     stream: vi.fn().mockResolvedValue([{
       content: 'LLM响应内容'

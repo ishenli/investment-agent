@@ -111,6 +111,14 @@ export class HistoryService {
     const start = new Date(startDate);
     const end = new Date(endDate);
 
+    // 校验日期有效性，防止 Invalid Date 导致 NaN 传入数据库
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      logger.error(
+        `[HistoryService] Invalid date range for ${symbol}: startDate=${startDate}, endDate=${endDate}`,
+      );
+      return null;
+    }
+
     // 1. 尝试从数据库获取
     const fromDb = await this.getHistoricalPrices(symbol, start, end, market);
     if (fromDb && fromDb.length > 0) {
@@ -146,6 +154,13 @@ export class HistoryService {
     endDate: Date,
     market: MarketType = 'US',
   ): Promise<HistoricalPrice[]> {
+    // 安全防护：防止 Invalid Date（NaN）进入数据库查询
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      logger.error(
+        `[HistoryService] Invalid Date object passed for ${symbol}: startDate=${startDate}, endDate=${endDate}`,
+      );
+      return [];
+    }
     try {
       const records = await db.query.assetPriceHistory.findMany({
         where: and(

@@ -3,6 +3,12 @@ import { LobeAgentChatConfig } from './chatConfig';
 
 export type TTSServer = 'openai' | 'edge' | 'microsoft';
 
+/**
+ * AI 引擎类型 — 单一来源定义，所有文件统一引用
+ */
+export const ENGINE_TYPES = ['deepagents', 'claude', 'hermes'] as const;
+export type EngineType = (typeof ENGINE_TYPES)[number];
+
 export interface LobeAgentTTSConfig {
   showAllLocaleVoice?: boolean;
   sttLocale: 'auto' | string;
@@ -27,7 +33,7 @@ export interface LobeAgentConfig {
    * AI 引擎类型
    * @default deepagents
    */
-  engineType?: 'deepagents' | 'claude' | 'hermes';
+  engineType?: EngineType;
 
   /**
    * Claude SDK 模式
