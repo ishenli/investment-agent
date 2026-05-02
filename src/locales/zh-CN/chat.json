@@ -58,7 +58,7 @@
   "importChat": "导入对话",
   "inbox": {
     "description": "投资研究综合分析",
-    "title": "投研综合分析智能体"
+    "title": "投研助手"
   },
   "includeTool": "包含工具",
   "includeUser": "包含用户",
@@ -94,7 +94,7 @@
   "notLikeMessage": "点踩消息",
   "pin": "置顶",
   "pinnedSessions": "置顶",
-  "professionalAssistantList": "专业助手列表",
+  "professionalAssistantList": "助手列表",
   "rag": {
     "userQuery": {
       "actions": {

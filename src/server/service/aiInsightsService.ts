@@ -1,7 +1,7 @@
-import { AIInsightsGraph } from '@server/core/graph/aiInsightsGraph';
-import { DiversificationGraph } from '@server/core/graph/diversificationGraph';
-import { StrategyAdviceGraph } from '@server/core/graph/strategyAdviceGraph';
-import { ScenarioAnalyzerGraph } from '@server/core/graph/scenarioAnalyzerGraph';
+import { AIInsightsGraph } from '@server/core/agents/langchain/graphs/aiInsightsGraph';
+import { DiversificationGraph } from '@server/core/agents/langchain/graphs/diversificationGraph';
+import { StrategyAdviceGraph } from '@server/core/agents/langchain/graphs/strategyAdviceGraph';
+import { ScenarioAnalyzerGraph } from '@server/core/agents/langchain/graphs/scenarioAnalyzerGraph';
 import { AIInsight } from '@renderer/store/position/aiInsightsTypes';
 import { PositionAsset, Portfolio } from '@renderer/store/position/types';
 import { randomUUID } from 'node:crypto';

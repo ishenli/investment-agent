@@ -1,7 +1,7 @@
 import { WithRequestContextStatic } from '@server/base/decorators';
 import { BaseController } from '@renderer/api/base/baseController';
 import { HumanMessage, AIMessage } from 'langchain';
-import { chatModelOpenAI } from '@server/core/provider/chatModel';
+import { chatModelOpenAI } from '@server/core/agents/langchain/provider/chatModel';
 import logger from '@server/base/logger';
 
 class LLMChatController extends BaseController {

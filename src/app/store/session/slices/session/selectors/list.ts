@@ -2,7 +2,7 @@ import { DEFAULT_AGENT_LOBE_SESSION, INBOX_SESSION_ID } from '@renderer/const/se
 import { sessionHelpers } from '@renderer/store/session/slices/session/helpers';
 import { MetaData } from '@typings/meta';
 import { CustomSessionGroup, LobeAgentSession, LobeSessions } from '@typings/session';
-import { LobeAgentConfig } from '@typings/agent';
+import { EngineType, LobeAgentConfig } from '@typings/agent';
 import { DEFAULT_MODEL } from '@renderer/const/settings';
 
 import { SessionStore } from '../../../store';
@@ -78,7 +78,7 @@ const currentSessionProvider = (s: SessionStore): string => {
 /**
  * 获取当前 Session 使用的 Engine 类型
  */
-const currentSessionEngineType = (s: SessionStore): 'deepagents' | 'claude' => {
+const currentSessionEngineType = (s: SessionStore): EngineType => {
   return currentSessionConfig(s).engineType || 'deepagents';
 };
 

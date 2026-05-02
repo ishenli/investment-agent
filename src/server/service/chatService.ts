@@ -1,15 +1,15 @@
 import { SSEEmitter } from '@server/base/sseEmitter';
-import { investmentAdvisorAgent } from '@/server/core/deepagents/investmentAdvisorAgent';
-import { MarketInformationGraph } from '@server/core/graph/marketInformationGraph';
-import { ScenarioAnalyzerGraph } from '@server/core/graph/scenarioAnalyzerGraph';
-import { DiversificationGraph } from '@server/core/graph/diversificationGraph';
-import { AIInsightsGraph } from '@server/core/graph/aiInsightsGraph';
+import { runEngine } from '@server/core/engine';
+import { MarketInformationGraph } from '@server/core/agents/langchain/graphs/marketInformationGraph';
+import { ScenarioAnalyzerGraph } from '@server/core/agents/langchain/graphs/scenarioAnalyzerGraph';
+import { DiversificationGraph } from '@server/core/agents/langchain/graphs/diversificationGraph';
+import { AIInsightsGraph } from '@server/core/agents/langchain/graphs/aiInsightsGraph';
 import authService from '@server/service/authService';
 import logger from '@server/base/logger';
 import portfolioAnalysisService from '@server/service/portfolioAnalysisService';
 import type { Logger } from '@server/base/logger';
-import type { PositionAsset, Portfolio } from '@renderer/store/position/types';
-import { chatModelOpenAI, ModelNameType } from '@server/core/provider/chatModel';
+import { toPositionAssets, toPortfolio } from './portfolioAnalysisMapper';
+import { chatModelOpenAI, ModelNameType } from '@server/core/agents/langchain/provider/chatModel';
 import { BaseMessage, HumanMessage } from 'langchain';
 
 // 定义支持的 Graph 类型
@@ -100,15 +100,33 @@ export class ChatService {
     accountId: string,
   ): Promise<void> {
     try {
-      // 使用 DeepAgents 处理投资顾问聊天
       this.logger.info('[ChatService] 使用 DeepAgents 处理投资顾问聊天');
-      await investmentAdvisorAgent.chat({
-        messages: request.messages || [],
-        userQuery: request.query,
-        accountId,
-        emitter,
-        model: request.model,
+
+      const engineMessages = (request.messages || []).map((m) => {
+        const role =
+          m._getType() === 'human'
+            ? 'user'
+            : m._getType() === 'ai'
+              ? 'assistant'
+              : 'system';
+        const content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content);
+        return { role, content } as { role: 'user' | 'assistant' | 'system'; content: string };
       });
+
+      await runEngine(
+        'deepagents',
+        {
+          sessionId: '',
+          userId: Number(accountId),
+          messageId: `msg_${Date.now()}`,
+          model: request.model,
+          messages: engineMessages,
+          systemPrompt: undefined,
+          signal: new AbortController().signal,
+          extra: { accountId },
+        },
+        emitter,
+      );
     } catch (error) {
       this.logger.error('[ChatService] 投资顾问聊天处理失败:', error);
       throw error;
@@ -171,39 +189,8 @@ export class ChatService {
         throw new Error('场景分析需要提供场景参数');
       }
 
-      // 转换持仓数据格式
-      const positionAssets: PositionAsset[] = portfolioAnalysis.holdingsSummary.map((pos) => ({
-        id: pos.id,
-        symbol: pos.symbol,
-        name: pos.chineseName || pos.symbol,
-        quantity: pos.quantity,
-        liquidityScore: 80, // 默认值
-        averageCost: pos.averageCost,
-        currentPrice: pos.currentPrice,
-        marketValue: pos.marketValue,
-        unrealizedPnL: pos.unrealizedPnL,
-        unrealizedPnLPercentage:
-          pos.averageCost > 0 ? ((pos.currentPrice - pos.averageCost) / pos.averageCost) * 100 : 0,
-        weight: pos.positionRatio || 0,
-        lastUpdated: new Date(),
-      }));
-
-      // 创建完整的 Portfolio 对象
-      const portfolio: Portfolio = {
-        id: 'portfolio-' + accountId,
-        userId: accountId,
-        totalValue: portfolioAnalysis.portfolioMetrics.totalAssetsValue,
-        totalNonCashValue: portfolioAnalysis.portfolioMetrics.totalMarketValue,
-        cashValue: portfolioAnalysis.cashAsset.amount,
-        concentrationRiskScore: 0, // 默认值
-        correlationRiskScore: 0, // 默认值
-        liquidityRiskScore: 0, // 默认값
-        allocationRiskScore: 0, // 默认값
-        overallRiskScore: 0, // 默认값
-        riskLevel: 'medium', // 默认值
-        lastUpdated: new Date(),
-        riskMode: 'retail', // 默认값
-      };
+      const positionAssets = toPositionAssets(portfolioAnalysis.holdingsSummary);
+      const portfolio = toPortfolio(portfolioAnalysis.portfolioMetrics, portfolioAnalysis.cashAsset, accountId);
 
       // 执行分析
       const result = await scenarioGraph.analyzeScenario(positionAssets, portfolio, scenarioParams);
@@ -234,39 +221,8 @@ export class ChatService {
       // 创建分散投资图实例
       const diversificationGraph = await DiversificationGraph.create();
 
-      // 转换持仓数据格式
-      const positionAssets: PositionAsset[] = portfolioAnalysis.holdingsSummary.map((pos) => ({
-        id: pos.id,
-        symbol: pos.symbol,
-        name: pos.chineseName || pos.symbol,
-        quantity: pos.quantity,
-        liquidityScore: 80, // 默认值
-        averageCost: pos.averageCost,
-        currentPrice: pos.currentPrice,
-        marketValue: pos.marketValue,
-        unrealizedPnL: pos.unrealizedPnL,
-        unrealizedPnLPercentage:
-          pos.averageCost > 0 ? ((pos.currentPrice - pos.averageCost) / pos.averageCost) * 100 : 0,
-        weight: pos.positionRatio || 0,
-        lastUpdated: new Date(),
-      }));
-
-      // 创建完整的 Portfolio 对象
-      const portfolio: Portfolio = {
-        id: 'portfolio-' + accountId,
-        userId: accountId,
-        totalValue: portfolioAnalysis.portfolioMetrics.totalAssetsValue,
-        totalNonCashValue: portfolioAnalysis.portfolioMetrics.totalMarketValue,
-        cashValue: portfolioAnalysis.cashAsset.amount,
-        concentrationRiskScore: 0, // 默认值
-        correlationRiskScore: 0, // 默认값
-        liquidityRiskScore: 0, // 默认값
-        allocationRiskScore: 0, // 默认값
-        overallRiskScore: 0, // 默认값
-        riskLevel: 'medium', // 默认값
-        lastUpdated: new Date(),
-        riskMode: 'retail', // 默认값
-      };
+      const positionAssets = toPositionAssets(portfolioAnalysis.holdingsSummary);
+      const portfolio = toPortfolio(portfolioAnalysis.portfolioMetrics, portfolioAnalysis.cashAsset, accountId);
 
       // 生成推荐
       const recommendations = await diversificationGraph.generateRecommendations(
@@ -300,39 +256,8 @@ export class ChatService {
       // 创建AI洞察图实例
       const aiInsightsGraph = await AIInsightsGraph.create();
 
-      // 转换持仓数据格式
-      const positionAssets: PositionAsset[] = portfolioAnalysis.holdingsSummary.map((pos) => ({
-        id: pos.id,
-        symbol: pos.symbol,
-        name: pos.chineseName || pos.symbol,
-        quantity: pos.quantity,
-        liquidityScore: 80, // 默认值
-        averageCost: pos.averageCost,
-        currentPrice: pos.currentPrice,
-        marketValue: pos.marketValue,
-        unrealizedPnL: pos.unrealizedPnL,
-        unrealizedPnLPercentage:
-          pos.averageCost > 0 ? ((pos.currentPrice - pos.averageCost) / pos.averageCost) * 100 : 0,
-        weight: pos.positionRatio || 0,
-        lastUpdated: new Date(),
-      }));
-
-      // 创建完整的 Portfolio 对象
-      const portfolio: Portfolio = {
-        id: 'portfolio-' + accountId,
-        userId: accountId,
-        totalValue: portfolioAnalysis.portfolioMetrics.totalAssetsValue,
-        totalNonCashValue: portfolioAnalysis.portfolioMetrics.totalMarketValue,
-        cashValue: portfolioAnalysis.cashAsset.amount,
-        concentrationRiskScore: 0, // 默认值
-        correlationRiskScore: 0, // 默认값
-        liquidityRiskScore: 0, // 默认값
-        allocationRiskScore: 0, // 默认값
-        overallRiskScore: 0, // 默认값
-        riskLevel: 'medium', // 默认값
-        lastUpdated: new Date(),
-        riskMode: 'retail', // 默认값
-      };
+      const positionAssets = toPositionAssets(portfolioAnalysis.holdingsSummary);
+      const portfolio = toPortfolio(portfolioAnalysis.portfolioMetrics, portfolioAnalysis.cashAsset, accountId);
 
       // 生成洞察
       const insights = await aiInsightsGraph.generateInsights(positionAssets, portfolio);

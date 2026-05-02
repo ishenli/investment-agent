@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Input } from '@renderer/components/ui/input';
 import { Button } from '@renderer/components/ui/button';
 import {
@@ -27,8 +27,8 @@ export default function SearchPage() {
   const { t } = useTranslation('search');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState<'all' | 'local' | 'web'>('all');
-  const [searchResults, setSearchResults] = useState<SearchResultItem[]>([]);
-  const [webSearchResults, setWebSearchResults] = useState<SearchResultItem[]>([]);
+  const [localResults, setLocalResults] = useState<SearchResultItem[]>([]);
+  const [webResults, setWebResults] = useState<SearchResultItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<SearchResultItem | null>(null);
@@ -37,100 +37,99 @@ export default function SearchPage() {
   // 分页状态
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
-  const [totalResults, setTotalResults] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
+  const [localTotal, setLocalTotal] = useState(0);
+  const [webTotal, setWebTotal] = useState(0);
 
   // 用于跟踪是否已提交搜索
   const [hasSearched, setHasSearched] = useState(false);
 
-  const searchLocalData = useCallback(async (query: string, page: number, size: number) => {
-    try {
-      const response = await get<SearchResponse>('/api/search/local', {
-        params: { query, page: page.toString(), pageSize: size.toString() },
-      });
-      return response.data;
-    } catch (_error) {
-      throw new Error(t('error.localSearchError'));
-    }
-  }, [t]);
+  // 用于取消上一次请求
+  const abortRef = useRef<AbortController | null>(null);
 
-  const searchWebData = useCallback(async (query: string, page: number, size: number) => {
-    try {
-      const response = await get<SearchResponse>('/api/search/web', {
-        params: { query, page: page.toString(), pageSize: size.toString() },
-      });
-      return response.data;
-    } catch (_error) {
-      throw new Error(t('error.webSearchError'));
-    }
-  }, [t]);
+  const executeSearch = useCallback(
+    async (query: string, type: 'all' | 'local' | 'web', page: number) => {
+      if (!query.trim()) return;
 
-  const handleSearch = useCallback(async () => {
-    if (!searchQuery.trim()) {
-      setSearchResults([]);
-      setWebSearchResults([]);
-      setTotalResults(0);
-      setTotalPages(0);
-      setHasSearched(false);
-      return;
-    }
+      // 取消上一次请求
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
 
-    setIsLoading(true);
-    setError(null);
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      if (searchType === 'local' || searchType === 'all') {
-        // 搜索本地数据
-        const localResponse = await searchLocalData(searchQuery, currentPage, pageSize);
-        setSearchResults(localResponse.results);
-        setTotalResults(localResponse.total);
-        setTotalPages(localResponse.totalPages);
-      }
+      try {
+        const pageStr = page.toString();
+        const pageSizeStr = pageSize.toString();
 
-      if (searchType === 'web' || searchType === 'all') {
-        // 搜索网络数据
-        const webResponse = await searchWebData(searchQuery, currentPage, pageSize);
-        setWebSearchResults(webResponse.results);
+        const localPromise =
+          type === 'local' || type === 'all'
+            ? get<SearchResponse>('/api/search/local', {
+                params: { query, page: pageStr, pageSize: pageSizeStr },
+              }).then((r) => r.data)
+            : null;
 
-        // 如果只搜索网络数据，更新总数和页数
-        if (searchType === 'web') {
-          setTotalResults(webResponse.total);
-          setTotalPages(webResponse.totalPages);
+        const webPromise =
+          type === 'web' || type === 'all'
+            ? get<SearchResponse>('/api/search/web', {
+                params: { query, page: pageStr, pageSize: pageSizeStr },
+              }).then((r) => r.data)
+            : null;
+
+        const [localData, webData] = await Promise.all([localPromise, webPromise]);
+
+        if (controller.signal.aborted) return;
+
+        setLocalResults(localData?.results ?? []);
+        setLocalTotal(localData?.total ?? 0);
+        setWebResults(webData?.results ?? []);
+        setWebTotal(webData?.total ?? 0);
+        setHasSearched(true);
+      } catch (_error) {
+        if (controller.signal.aborted) return;
+        setError(t('error.searchFailed'));
+        setLocalResults([]);
+        setWebResults([]);
+        setLocalTotal(0);
+        setWebTotal(0);
+        setHasSearched(false);
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
         }
       }
+    },
+    [pageSize, t],
+  );
 
-      setHasSearched(true);
-    } catch (_error) {
-      setError(t('error.searchFailed'));
-      setSearchResults([]);
-      setWebSearchResults([]);
-      setTotalResults(0);
-      setTotalPages(0);
-      setHasSearched(false);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [searchQuery, searchType, currentPage, pageSize, searchLocalData, searchWebData, t]);
+  const handleSearch = useCallback(() => {
+    setCurrentPage(1);
+    executeSearch(searchQuery, searchType, 1);
+  }, [searchQuery, searchType, executeSearch]);
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= totalPages) {
+  const handlePageChange = useCallback(
+    (newPage: number) => {
       setCurrentPage(newPage);
-    }
-  };
+      executeSearch(searchQuery, searchType, newPage);
+    },
+    [searchQuery, searchType, executeSearch],
+  );
 
-  // 当搜索类型或页面改变时执行搜索（但不包括搜索查询的变化）
-  // 只有在已提交搜索的情况下才自动执行搜索
-  useEffect(() => {
-    if (hasSearched && searchQuery.trim()) {
-      handleSearch();
-    } else if (!searchQuery.trim()) {
-      setSearchResults([]);
-      setWebSearchResults([]);
-      setTotalResults(0);
-      setTotalPages(0);
-      setHasSearched(false);
-    }
-  }, [searchType, currentPage, hasSearched, handleSearch, searchQuery]); // 移除 searchQuery 依赖项，避免在输入时触发搜索
+  const handleSearchTypeChange = useCallback(
+    (value: string) => {
+      const newType = value as 'all' | 'local' | 'web';
+      setSearchType(newType);
+      if (hasSearched && searchQuery.trim()) {
+        setCurrentPage(1);
+        executeSearch(searchQuery, newType, 1);
+      }
+    },
+    [hasSearched, searchQuery, executeSearch],
+  );
+
+  // 根据当前搜索类型计算分页
+  const total = searchType === 'web' ? webTotal : searchType === 'local' ? localTotal : localTotal + webTotal;
+  const totalPages = Math.ceil(total / pageSize);
 
   // 渲染搜索结果卡片列表
   const renderResultsCards = (results: SearchResultItem[], title?: string) => (
@@ -271,10 +270,7 @@ export default function SearchPage() {
             <IconSearch className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           </div>
           {/* 搜索类型选项卡 */}
-          <Select
-            value={searchType}
-            onValueChange={(value) => setSearchType(value as 'all' | 'local' | 'web')}
-          >
+          <Select value={searchType} onValueChange={handleSearchTypeChange}>
             <SelectTrigger className="w-[130px]">
               <SelectValue />
             </SelectTrigger>
@@ -319,13 +315,10 @@ export default function SearchPage() {
       {hasSearched && searchQuery.trim() && (
         <div className="flex flex-col gap-4">
           {searchType === 'all' ? (
-            // 显示所有结果
             <>
-              {searchResults.length > 0 && renderResultsCards(searchResults, t('searchType.local'))}
-
-              {webSearchResults.length > 0 && renderResultsCards(webSearchResults, t('searchType.web'))}
-
-              {searchResults.length === 0 && webSearchResults.length === 0 && !isLoading && (
+              {localResults.length > 0 && renderResultsCards(localResults, t('searchType.local'))}
+              {webResults.length > 0 && renderResultsCards(webResults, t('searchType.web'))}
+              {localResults.length === 0 && webResults.length === 0 && !isLoading && (
                 <div className="flex flex-1 items-center justify-center">
                   <div className="text-center">
                     <div className="text-lg font-medium">{t('empty.noResults')}</div>
@@ -335,9 +328,8 @@ export default function SearchPage() {
               )}
             </>
           ) : searchType === 'local' ? (
-            // 只显示本地数据
-            searchResults.length > 0 ? (
-              renderResultsCards(searchResults)
+            localResults.length > 0 ? (
+              renderResultsCards(localResults)
             ) : !isLoading ? (
               <div className="flex flex-1 items-center justify-center">
                 <div className="text-center">
@@ -346,9 +338,8 @@ export default function SearchPage() {
                 </div>
               </div>
             ) : null
-          ) : // 只显示网络数据
-          webSearchResults.length > 0 ? (
-            renderResultsCards(webSearchResults)
+          ) : webResults.length > 0 ? (
+            renderResultsCards(webResults)
           ) : !isLoading ? (
             <div className="flex flex-1 items-center justify-center">
               <div className="text-center">
@@ -362,7 +353,7 @@ export default function SearchPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
-                {t('pagination.total', { count: totalResults })}
+                {t('pagination.total', { count: total })}
               </div>
               <div className="flex items-center gap-2">
                 <Button
@@ -376,17 +367,13 @@ export default function SearchPage() {
 
                 <div className="flex items-center gap-1">
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    // 计算要显示的页码范围
                     let startPage = Math.max(1, currentPage - 2);
                     const endPage = Math.min(totalPages, startPage + 4);
-
                     if (endPage - startPage < 4) {
                       startPage = Math.max(1, endPage - 4);
                     }
-
                     const page = startPage + i;
                     if (page > endPage) return null;
-
                     return (
                       <Button
                         key={page}

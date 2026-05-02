@@ -32,7 +32,7 @@ export async function register() {
       // 不抛出错误，允许应用继续启动
     }
 
-    // 3. 同步内置 Skills（文件系统 + DB 偏好表，非阻塞，后台执行）
+    // 3. 同步内置 Skills（非阻塞，后台执行）
     import('@server/service/skillService')
       .then(({ skillService }) => skillService.initForAllUsers())
       .then(() => {
@@ -42,7 +42,18 @@ export async function register() {
         logger.error('[Instrumentation] Failed to sync builtin skills:', error);
       });
 
-    // 4.0 调用账户的初始化方法（非阻塞，后台执行，不阻断应用启动）
+    // 4. 启动微信长轮询 Channel（非阻塞，后台执行）
+    //    使用函数导出而非 class，简化调用
+    import('@/server/channel/weixinChannelTask')
+      .then(({ startWeixinChannel }) => startWeixinChannel())
+      .then(() => {
+        logger.info('[Instrumentation] Weixin channel startup completed');
+      })
+      .catch((error) => {
+        logger.error('[Instrumentation] Weixin channel startup failed:', error);
+      });
+
+    // 5. 账户价格更新（非阻塞，后台执行）
     logger.info('[Instrumentation] Triggering account price update in background...');
     import('@server/controller/assetAccount')
       .then(({ AssetAccountBizController }) => {

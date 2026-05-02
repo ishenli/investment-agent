@@ -4,7 +4,7 @@ import { connectAgentStream } from '@/app/lib/agentStreamClient';
 import type { AgentStreamEvent } from '@/types/agentStream';
 import { StockAnalyst } from '@/types';
 import { produce } from 'immer';
-import { StateAnnotation } from '@server/core/graph/tradeDecision/agentState';
+import { StateAnnotation } from '@server/core/agents/langchain/graphs/tradeDecision/agentState';
 import { ChatMessage } from '@lobehub/ui/chat';
 import type { AgentStatusEntry } from './initialState';
 

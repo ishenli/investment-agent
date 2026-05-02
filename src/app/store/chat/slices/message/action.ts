@@ -271,24 +271,21 @@ export const chatMessage: StateCreator<
     }
   },
   internal_updateMessageContent: async (id, content, extra) => {
-    const { internal_dispatchMessage, refreshMessages } = get();
+    const { internal_dispatchMessage } = get();
 
-    // 在 refreshMessages 之前先快照纯内存态字段（不持久化到 DB）
-    const msgBefore = chatSelectors.getMessageById(id)(get());
-    const agentEventsSnapshot = msgBefore?.agentEvents;
-
+    // 直接更新本地状态（流式阶段已通过 dispatch 保持最新，无需重新拉取 DB）
     internal_dispatchMessage({
       id,
       type: 'updateMessage',
-      value: { 
-        content, 
-        related: extra?.related, 
+      value: {
+        content,
+        related: extra?.related,
         traceId: extra?.traceId,
         permissionRequest: extra?.permissionRequest,
       },
     });
 
-    // 保存到 DB
+    // 后台持久化到 DB，不触发 SWR re-fetch 避免气泡闪烁
     await messageService.updateMessage(id, {
       content,
       // tools: extra?.toolCalls ? internal_transformToolCalls(extra?.toolCalls) : undefined,
@@ -301,18 +298,6 @@ export const chatMessage: StateCreator<
       related: extra?.related,
       traceId: extra?.traceId,
     });
-
-    // 重新刷一下页面
-    await refreshMessages();
-
-    // refreshMessages 从 DB 加载会覆盖内存，把纯内存态字段补回来（会话内可见，刷新页面后自然丢失）
-    if (agentEventsSnapshot && agentEventsSnapshot.length > 0) {
-      internal_dispatchMessage({
-        id,
-        type: 'updateMessage',
-        value: { agentEvents: agentEventsSnapshot },
-      });
-    }
   },
   modifyMessageContent: async (id, content) => {
     await get().internal_updateMessageContent(id, content);

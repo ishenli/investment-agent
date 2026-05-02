@@ -10,6 +10,7 @@ import {
   IconInbox,
   IconBulb,
   IconCurrencyDollar,
+  IconMessage,
   type Icon,
 } from '@tabler/icons-react';
 import {
@@ -21,7 +22,7 @@ import {
 import { usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
-export type SettingsCategory = 'provider' | 'tool' | 'agent' | 'theme' | 'general' | 'exchange' | 'about' | 'skills';
+export type SettingsCategory = 'provider' | 'tool' | 'agent' | 'channel' | 'theme' | 'general' | 'exchange' | 'about' | 'skills';
 
 const settingsItems: {
   id: SettingsCategory;
@@ -57,6 +58,13 @@ const settingsItems: {
     icon: IconRobot,
     url: '/setting/agent',
     description: '管理 AI 智能体配置',
+  },
+  {
+    id: 'channel',
+    title: '渠道设置',
+    icon: IconMessage,
+    url: '/setting/channel',
+    description: '管理 Agent 消息渠道',
   },
   {
     id: 'theme',

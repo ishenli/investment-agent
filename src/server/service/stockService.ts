@@ -1,4 +1,4 @@
-import { TradingAgentsGraph } from '../core/graph/tradeDecision/tradingGraph';
+import { TradingAgentsGraph } from '@server/core/agents/langchain/graphs/tradeDecision/tradingGraph';
 import {
   StockAnalysisRequestSchema,
   StockAnalysisRequestType,
@@ -8,8 +8,8 @@ import { validateWithFormat } from '@/shared';
 import fs from 'fs-extra';
 import { getProjectDir } from '@server/base/env';
 import logger, { Logger } from '../base/logger';
-import { prepareStockData } from '../core/utils/stockUtils/validator';
-import { AnalystType } from '../core/graph/tradeDecision/setup';
+import { prepareStockData } from '@server/core/agents/langchain/utils/stockUtils/validator';
+import { AnalystType } from '@server/core/agents/langchain/graphs/tradeDecision/setup';
 import { SSEEmitter } from '../base/sseEmitter';
 
 export class StockService {

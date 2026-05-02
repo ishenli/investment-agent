@@ -3,7 +3,7 @@ import { UIMessageChunk } from 'ai';
 import {
   convertToOpenAICompatibleMessage,
   OpenAICompatibleMessage,
-} from '../core/utils/messageUtils';
+} from '@server/core/agents/langchain/utils/messageUtils';
 
 export class SSEEmitter {
   public readonly readable: ReadableStream<Uint8Array>;

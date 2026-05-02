@@ -22,6 +22,7 @@ import {
   UserMessageContentPart,
 } from '@typings/openai/chat';
 import { GroundingSearch } from '@typings/search';
+import { EngineType } from '@typings/agent';
 import { get, isEmpty, merge } from 'lodash';
 import { post } from '../lib/request';
 import { connectAgentStream, formatToolMessage } from '@/app/lib/agentStreamClient';
@@ -45,7 +46,7 @@ interface GetChatCompletionPayload extends Partial<Omit<ChatStreamPayload, 'mess
   messages: ChatMessage[];
   sessionId?: string;
   agentId: string;
-  engineType?: 'deepagents' | 'claude';
+  engineType?: EngineType;
   mode?: 'code' | 'plan' | 'ask';
   /** 会话级激活的 skill slugs，仅对 claude 引擎生效，用于按需构建 systemPrompt */
   skills?: string[];
@@ -246,11 +247,12 @@ const createSmoothMessage = (params: {
 interface BaiLingParams {
   sessionId: string;
   model: string;
+  provider?: string;
   messages: OpenAIChatMessage[];
   stream: boolean;
   tools: string[];
   agentId: string;
-  engineType?: 'deepagents' | 'claude';
+  engineType?: EngineType;
   /** Claude 引擎的对话模式 */
   mode?: 'code' | 'plan' | 'ask';
   /** 会话级激活的 skill slugs，用于服务端按需注入 skill prompt */
@@ -415,6 +417,7 @@ class ChatService {
           sessionId: payload.sessionId || '',
           agentId: payload.agentId,
           model: payload.model,
+          provider: payload.provider,
           messages: oaiMessages,
           stream: true,
           tools: pluginIds,
@@ -459,7 +462,7 @@ class ChatService {
     isWelcomeQuestion?: boolean;
     trace?: string;
     historySummary?: string;
-    engineType?: 'deepagents' | 'claude';
+    engineType?: EngineType;
   }) => {
     const getUserContent = async (m: ChatMessage) => {
       // only if message doesn't have images and files, then return the plain content
@@ -556,7 +559,7 @@ class ChatService {
 
     postMessages = produce(postMessages, (draft) => {
 
-      if (engineType === 'claude') return;
+      if (engineType === 'claude' || engineType === 'hermes') return;
 
       // if it's a welcome question, inject InboxGuide SystemRole
       const inboxGuideSystemRole =
@@ -629,7 +632,12 @@ class ChatService {
 
     // 根据 engineType 选择不同的 API 端点
     const engineType = params.engineType || 'deepagents';
-    const apiEndpoint = engineType === 'claude' ? '/api/chat/claude' : '/api/chat/agent';
+    const apiEndpoint =
+      engineType === 'claude'
+        ? '/api/chat/claude'
+        : engineType === 'hermes'
+          ? '/api/chat/hermes'
+          : '/api/chat/agent';
 
     await connectAgentStream({
       api: apiEndpoint,
@@ -644,6 +652,13 @@ class ChatService {
           ? {
               ...(params.mode !== undefined ? { mode: params.mode } : {}),
               ...(params.skills !== undefined ? { skills: params.skills } : {}),
+            }
+          : {}),
+        // hermes 引擎：传递 provider 和 enableTools
+        ...(engineType === 'hermes'
+          ? {
+              provider: params.provider || 'openai',
+              enableTools: true,
             }
           : {}),
       },

@@ -31,7 +31,28 @@
       "Bash(git add *)",
       "Bash(gh pr *)",
       "Bash(openspec validate *)",
-      "Bash(openspec list *)"
+      "Bash(openspec list *)",
+      "Bash(pnpm typecheck *)",
+      "Bash(node -e ' *)",
+      "mcp__superconductor__set_tab_title",
+      "Bash(rtk git *)",
+      "Bash(mkdir -p agents/claude)",
+      "Bash(mkdir -p agents/hermes)",
+      "Bash(mkdir -p agents/langchain/deepagents)",
+      "Bash(mkdir -p agents/langchain/graphs)",
+      "Bash(mkdir -p agents/langchain/nodes)",
+      "Bash(git mv *)",
+      "Bash(mv claude/* agents/claude/)",
+      "Bash(mv hermes/* agents/hermes/)",
+      "Bash(mv deepagents/* agents/langchain/deepagents/)",
+      "Bash(mv graph/* agents/langchain/graphs/)",
+      "Bash([ -d \"agents/$dir\" ])",
+      "mcp__plugin_oh-my-claudecode_t__python_repl",
+      "Bash(perl -pi -e 's|@server/core/deepagents/|@server/core/agents/langchain/deepagents/|g' src/server/service/__tests__/chatService.test.ts src/server/service/chatService.ts)",
+      "Bash(perl -pi -e 's|@server/core/graph/|@server/core/agents/langchain/graphs/|g' src/app/store/stock/slices/chat/action.ts src/server/service/aiInsightsService.ts src/server/service/chatService.ts src/server/service/__tests__/chatService.test.ts)",
+      "Bash(perl -pi -e 's|@server/core/provider/|@server/core/agents/langchain/provider/|g' src/app/api/chat/llm/route.ts src/server/core/agents/langchain/nodes/analysts/fundamental_anallyst.ts src/server/core/agents/langchain/graphs/diversificationGraph.ts src/server/core/agents/langchain/graphs/strategyAdviceGraph.ts src/server/core/agents/langchain/graphs/aiInsightsGraph.ts src/server/core/agents/langchain/graphs/scenarioAnalyzerGraph.ts src/server/dataflows/finnhubUtil.ts src/server/service/chatService.ts src/server/service/reportService/index.ts src/server/service/__tests__/chatService.test.ts)",
+      "Bash(cat)",
+      "Bash(python3 /tmp/fix_setup.py)"
     ]
   }
 }

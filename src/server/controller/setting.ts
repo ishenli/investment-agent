@@ -15,6 +15,10 @@ const SettingKeySchema = z.enum([
   'FINANCIAL_DATASETS_KEY',
   'TAVILY_API_KEY',
   'AVATAR',
+  'FEISHU_APP_ID',
+  'FEISHU_APP_SECRET',
+  'FEISHU_VERIFICATION_TOKEN',
+  'FEISHU_ENCRYPT_KEY',
 ]);
 
 const SettingSchema = z.object({

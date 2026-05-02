@@ -204,10 +204,12 @@ export class MessageRepository extends BaseRepository<ChatMessage> {
    * 创建消息
    */
   async create(data: CreateMessageParams): Promise<string> {
-    const result = await this._create({
-      ...data,
-      search: data.search ?? null,
-    } as any);
+    // Strip undefined/null fields — explicit null on json-mode columns
+    // causes Drizzle to serialize as empty string instead of SQL NULL
+    const cleanData = Object.fromEntries(
+      Object.entries(data).filter(([_, v]) => v !== undefined && v !== null),
+    );
+    const result = await this._create(cleanData as any);
     return result.id;
   }
 

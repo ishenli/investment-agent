@@ -1,7 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-expect-error
 import * as finnhub from 'finnhub';
-import { ChatAgentProxy } from '@server/core/provider/chatAgent';
+import { ChatAgentProxy } from '@server/core/agents/langchain/provider/chatAgent';
 import logger from '@server/base/logger';
 
 /**

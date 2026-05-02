@@ -26,7 +26,7 @@ import { reportWorkspaceManager } from '@/server/service/reportService/reportWor
 import { claudeService } from '../claudeService';
 import type { ApiProvider } from '@/types';
 // LangChain imports for fallback implementation
-import { chatModelOpenAI } from '@server/core/provider/chatModel';
+import { chatModelOpenAI } from '@server/core/agents/langchain/provider/chatModel';
 import { SystemMessage, HumanMessage } from 'langchain';
 import { createAgent } from 'langchain';
 import {
@@ -34,7 +34,7 @@ import {
   stockRecallCompanyInfoTool,
   stockSearchNewsTool,
   TravilySearchTool,
-} from '../../core/tools';
+} from '@server/core/agents/langchain/tools';
 
 // ============== Claude Agent SDK Configuration ==============
 
@@ -905,7 +905,7 @@ export class ReportService {
       const abortController = new AbortController();
       
       // Import streamClaude dynamically to avoid circular dependencies
-      const { streamClaude } = await import('@/server/core/claude/claudeClient');
+      const { streamClaude } = await import('@/server/core/agents/claude/claudeClient');
       
       const stream = streamClaude({
         prompt,
