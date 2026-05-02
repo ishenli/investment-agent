@@ -101,18 +101,23 @@ export const useReport = (id: string) => {
     queryKey: ['report', id],
     queryFn: () => fetchReport(id),
     enabled: !!id,
-    // 如果报告正在生成中（内容包含特定关键词），则轮询
+    // 如果报告正在生成中，则轮询
     refetchInterval: (query) => {
-      const data = query.state.data;
+      const data = query.state.data as ReportDetail | undefined;
+      if (!data) return false;
+
+      // 已完成或失败则停止轮询
+      const terminalStages = ['已完成', '生成失败'];
       if (
-        data &&
-        (data.content === '报告生成中...' ||
-          data.content === '正在收集数据...' ||
-          data.content === '正在生成AI分析...')
+        terminalStages.includes(data.generationStage || '') ||
+        data.generationProgress >= 100
       ) {
-        return 5000;
+        return false;
       }
-      return false;
+
+      // 指数退避：初始5秒，每轮1.3倍增长，最高30秒
+      const attempts = query.state.dataUpdateCount;
+      return Math.min(5000 * Math.pow(1.3, Math.min(attempts, 10)), 30000);
     },
   });
 };

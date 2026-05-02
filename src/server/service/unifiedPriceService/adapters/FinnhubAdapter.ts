@@ -92,11 +92,12 @@ export class FinnhubAdapter extends PriceSourceAdapter {
 
       return {
         symbol,
-        price: result,
+        price: result.price,
         currency: 'USD',
         timestamp: new Date(),
         source: 'finnhub',
         cached: false,
+        dayChangePercent: result.dayChangePercent,
       };
     } catch (error) {
       logger.error(`[FinnhubAdapter] Failed to get price for ${symbol}:`, error);
@@ -110,27 +111,33 @@ export class FinnhubAdapter extends PriceSourceAdapter {
    * @param symbol 资产代码
    * @returns 价格，如果获取失败则返回 null
    */
-  private async callFinnhubQuote(symbol: string, retries: number = 3): Promise<number | null> {
+  private async callFinnhubQuote(
+    symbol: string,
+    retries: number = 3,
+  ): Promise<{ price: number; dayChangePercent: number } | null> {
     for (let i = 0; i < retries; i++) {
       try {
         return await new Promise((resolve) => {
-          finnhubClient.quote(symbol, (error: unknown, data: { c: number }) => {
-            if (error) {
-              logger.error(
-                `[FinnhubAdapter] Finnhub API error for ${symbol} (attempt ${i + 1}/${retries}). Code: ${(error as any).code}, Message: ${(error as any).message}`
-              );
-              resolve(null);
-              return;
-            }
+          finnhubClient.quote(
+            symbol,
+            (error: unknown, data: { c: number; dp: number }) => {
+              if (error) {
+                logger.error(
+                  `[FinnhubAdapter] Finnhub API error for ${symbol} (attempt ${i + 1}/${retries}). Code: ${(error as any).code}, Message: ${(error as any).message}`,
+                );
+                resolve(null);
+                return;
+              }
 
-            const c = data?.c ?? 0;
-            if (!c) {
-              resolve(null);
-              return;
-            }
+              const c = data?.c ?? 0;
+              if (!c) {
+                resolve(null);
+                return;
+              }
 
-            resolve(c);
-          });
+              resolve({ price: c, dayChangePercent: data?.dp ?? 0 });
+            },
+          );
         });
       } catch (error) {
         logger.error(
@@ -147,7 +154,9 @@ export class FinnhubAdapter extends PriceSourceAdapter {
       }
     }
 
-    logger.error(`[FinnhubAdapter] Failed to get price for ${symbol} after ${retries} attempts`);
+    logger.error(
+      `[FinnhubAdapter] Failed to get price for ${symbol} after ${retries} attempts`,
+    );
     return null;
   }
 

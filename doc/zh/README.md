@@ -1,435 +1,257 @@
 # 投资助手 Investment Agent
-![投资 Agent](https://mdn.alipayobjects.com/huamei_ptvnul/afts/img/A*75cHQpMc8-4AAAAAcFAAAAgAeg-GAQ/original)
 
-这是一个使用 AI Coding 打造的本地化投资分析工具，利用 AI 提供全面的股票市场分析、资产管理和投资建议。
+基于多引擎 AI 架构的本地化投资分析工具，支持多渠道通信，提供全面的股市分析、资产管理和智能投资建议。
 
-[English Version](../../README.en.md) | 中文版本
+[English Version](../../README.md) | 中文版本
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/ishenli/investment-agent)](https://github.com/ishenli/investment-agent/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/ishenli/investment-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/ishenli/investment-agent/actions/workflows/ci.yml)
-[![Dependabot Updates](https://github.com/ishenli/investment-agent/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/ishenli/investment-agent/actions/workflows/dependabot/dependabot-updates)
 
+## 功能特性
 
-## 目录
+### 多引擎 AI 架构
+- **DeepAgents 引擎** - 基于 LangChain/LangGraph 的智能体编排
+- **Claude 引擎** - Anthropic Claude Agent SDK 集成
+- **Hermes 引擎** - 轻量级智能体框架，支持工具调用
+- 统一引擎接口，无缝切换
 
-- [概述](#概述)
-- [安装与使用](#安装与使用)
-  - [全局安装](#全局安装)
-  - [本地开发](#本地开发)
-  - [环境变量](#环境变量)
-- [功能特性](#功能特性)
-- [架构设计](#架构设计)
-- [可用的脚本命令](#可用的脚本命令)
-- [数据库操作](#数据库操作)
-- [使用方法](#使用方法)
-- [项目结构](#项目结构)
-- [技术栈](#技术栈)
-  - [前端框架与工具](#前端框架与工具)
-  - [AI 与 LLM](#ai--llm)
-  - [数据库与存储](#数据库与存储)
-  - [数据可视化与图表](#数据可视化与图表)
-  - [UI 组件库](#ui-组件库)
-  - [开发工具与测试](#开发工具与测试)
-- [CI/CD 自动化](#cicd-自动化)
-- [部署](#部署)
-- [贡献指南](#贡献指南)
-- [许可证](#许可证)
-- [致谢](#致谢)
+### 多渠道通信
+- **微信集成** - 通过 iLink 长轮询实现个人微信接入
+- **飞书支持** - 飞书机器人集成（即将推出）
+- **Web 界面** - 对话式 AI 交互
+- 统一消息路由，跨平台支持
 
-## 概述
+### AI 驱动的分析工具
+- **资产信息查询** - 通过 Finnhub 实时获取股票、基金、黄金价格
+- **投资笔记搜索** - 语义化搜索投资笔记
+- **数据库查询** - 自然语言转 SQL，查询持仓数据
+- **网络搜索** - Tavily 驱动的市场研究
+- **股票分析** - 技术指标和市场情绪分析
 
-投资助手是一个先进的投资分析平台，使用多Agent AI 系统来分析股票并提供投资建议。它结合了技术分析、新闻情绪、基本面数据和市场趋势，提供全面的投资洞察。平台还支持资产组合管理和市场信息获取功能。
+### 投资管理
+- **持仓追踪** - 实时监控持仓和盈亏
+- **资产管理** - 多账户支持，绩效分析
+- **市场研究** - 聚合新闻和市场信息
+- **投资笔记** - 基于标签的知识库管理
 
-### 功能特性
+### 现代化界面
+- 简洁仪表板，支持明暗主题
+- 实时数据可视化
+- 中英文国际化支持
+- 桌面应用（Electron）支持
 
-<center>明亮模式</center>
+![](../asset/intro-light.png)
 
-![](../asset//intro-light.png)
+## 快速开始
 
-<center>暗黑模式</center>
+### 环境要求
+- Node.js 18+
+- pnpm（推荐）或 npm
 
-![](../asset//intro-dark.png)
+### 安装步骤
 
-### 整体功能列表
-
-- **多Agent AI 分析**：利用专门的 AI Agent进行股票分析的不同方面
-  - 市场分析师：技术指标分析
-  - 新闻分析师：市场情绪分析
-  - 看涨/看跌研究员：多角度观点
-  - 风险经理：投资风险评估
-  - 交易员：最终决策制定
-
-- **实时数据获取**：与金融数据提供商集成，获取最新的市场信息
-
-- **全面技术分析**：
-  - 移动平均线（MA）
-  - 相对强弱指数（RSI）
-  - 移动指数平均线（MACD）
-  - 其他专业指标
-
-- **智能新闻情绪分析**：评估新闻来源的市场情绪及其对股价的潜在影响
-
-- **多层风险评估系统**：
-  - 技术风险评估
-  - 市场风险评估
-  - 投资组合风险分析
-
-- **交互式仪表板**：用户友好的界面，具有实时数据可视化功能
-
-- **资产组合管理**：跟踪和分析投资组合的收益和风险
-
-- **市场信息自动获取**：自动获取、分析和存储市场信息
-
-- **持久化数据存储**：使用 SQLite 和 Drizzle ORM 进行可靠的数据持久化
-
-## 安装与使用
-
-### 全局安装
-
-本项目可以作为 CLI 工具全局安装，使用以下命令：
-
+1. 克隆并安装：
 ```bash
-# 使用 npm 全局安装
-npm install -g investment-agent
-
-# 收集支持的命令
-# investment-agent: 主命令
-# ig: 简写命令
+git clone https://github.com/ishenli/investment-agent.git
+cd investment-agent
+pnpm install
 ```
 
-### 本地开发
-
-1. 克隆仓库：
-
-   ```bash
-   git clone https://github.com/ishenli/investment-agent.git
-   cd investment-agent
-   ```
-
-2. 安装依赖：
-
-   ```bash
-   pnpm install
-   # 或
-   npm install
-   ```
-
-3. 创建环境变量配置：
-
-   在根目录下创建 `.env.local` 文件（参考下方环境变量章节）
-
-4. 运行开发服务器：
-
-   ```bash
-   pnpm dev
-   # 访问 http://localhost:3000
-   ```
-
-### 本地项目环境变量
-
-在 `.env.local` 文件中配置以下环境变量：
-
+2. 创建 `.env.local` 配置：
 ```env
-# =================== LLM 配置 ===================
-# OpenAI 兼容的 API 地址
+# AI 配置
 MODEL_PROVIDER_URL=your_openai_compatible_api_url
-
-# API 密钥
 MODEL_PROVIDER_API_KEY=your_api_key
 
-# 会话用户 ID
-SESSION_USER_ID=your_user_id
+# 市场数据
+FINNHUB_API_KEY=your_finnhub_key
 
-# =================== 数据提供商 ===================
-# Finnhub API 密钥（股票市场数据）
-FINNHUB_API_KEY=your_finnhub_api_key
+# 可选：微信集成（iLink）
+ILINK_API_URL=your_ilink_url
+ILINK_API_KEY=your_ilink_key
 
-# =================== LangSmith (可选) ===================
-# 用于 LangChain 追踪和调试
-LANGSMITH_API_KEY=your_langsmith_api_key
-
-# =================== 其他 API (可选) ===================
-# 金融数据集密钥
-FINANCIAL_DATASETS_KEY=your_financial_datasets_key
+# 可选：LangSmith 调试
+LANGSMITH_API_KEY=your_langsmith_key
 ```
 
-## 全局环境变量
+3. 启动开发服务器：
+```bash
+pnpm dev
+# 访问 http://localhost:3000
+```
 
-使用 Electron 时，环境变量需要配置在全局环境变量中，而不是 `.env.local` 文件中。
+### 全局安装（可选）
+```bash
+npm install -g investment-agent
+investment-agent [command]  # 或：ig [command]
+```
 
 ## 架构设计
 
-该系统基于多Agent架构构建，每个Agent专门负责投资分析的特定方面：
-
-### 核心Agent架构
-
-1. **市场分析师** (Market Analyst)
-   - 使用技术指标（移动平均线、RSI、MACD 等）
-   - 生成技术分析报告
-
-2. **新闻分析师** (News Analyst)
-   - 分析新闻情绪
-   - 评估新闻对股价的潜在影响
-
-3. **看涨研究员** (Bull Researcher)
-   - 寻找支持看涨投资头寸的证据
-   - 生成多头观点报告
-
-4. **看跌研究员** (Bear Researcher)
-   - 寻找支持看跌投资头寸的证据
-   - 生成空头观点报告
-
-5. **研究经理** (Research Manager)
-   - 调解看涨和看跌分析师之间的辩论
-   - 综合多方观点
-
-6. **风险经理** (Risk Manager)
-   - 基于所有分析评估投资风险
-   - 确保适当的风险管理
-
-7. **交易员** (Trader)
-   - 基于所有分析做出最终投资决策
-   - 生成可执行的投资建议
-
-### 技术架构
-
-- **前端层**：Next.js 16 + React 19 + TypeScript
-- **AI 层**：LangChain + LangGraph (多Agent编排)
-- **数据层**：SQLite + Drizzle ORM
-- **服务层**：RESTful API + WebSocket (实时数据)
-- **状态管理**：Zustand + TanStack Query
-
-## 可用的脚本命令
-
-### 开发与构建
-
-```bash
-# 开发服务器 (Next.js)
-pnpm dev
-
-# 生产构建
-pnpm build
-
-# 启动生产服务器
-pnpm start
-
-# 构建 Electron 应用
-pnpm electron:build
+### 多引擎智能体系统
+```
+┌─────────────────────────────────────────────┐
+│           统一引擎接口                        │
+├──────────────┬──────────────┬───────────────┤
+│  DeepAgents  │    Claude    │    Hermes     │
+│   (LangGraph)│  (Agent SDK) │   (轻量级)     │
+├──────────────┴──────────────┴───────────────┤
+│          AI 工具层                           │
+│  • 资产查询    • 笔记搜索                     │
+│  • 数据库查询  • 网络搜索                     │
+│  • 股票分析                                  │
+├──────────────────────────────────────────────┤
+│          多渠道通信层                         │
+│  • 微信       • 飞书      • Web 界面         │
+├──────────────────────────────────────────────┤
+│     业务逻辑 & 数据持久化                     │
+└──────────────────────────────────────────────┘
 ```
 
-### LangGraph 开发
+### 核心组件
+- **引擎注册中心** - 动态注册和切换 AI 引擎
+- **工具系统** - 标准化工具接口，支持 LangChain/Claude SDK 适配
+- **渠道路由器** - 统一消息路由，跨平台支持
+- **会话管理** - 多轮对话，上下文持久化
+- **数据层** - SQLite + Drizzle ORM，类型安全查询
 
-> 只需要用于调试 langgraph，非必需
+## 微信集成
 
-```bash
-# LangGraph 开发服务器 (端口 54367)
-pnpm langgraph:dev
+微信渠道支持通过个人微信号使用 AI 助手：
 
-# 启动 LangGraph 服务
-pnpm langgraph:start
-```
+### 配置步骤
+1. 在设置中配置 iLink API 凭证
+2. 扫码登录微信账号
+3. 开始接收和回复消息
 
-### 代码质量
+### 架构特点
+- **长轮询模式** - 无需 Webhook，后台轮询获取消息
+- **上下文追踪** - 为每个会话维护对话上下文
+- **消息去重** - 基于 TTL 的去重机制，确保可靠性
+- **自动重连** - 内置重试逻辑和指数退避
 
-```bash
-# TypeScript 类型检查
-pnpm types:check
+### 功能特性
+- 文本消息支持
+- 会话跨重连保持
+- 可配置分块响应
+- 调试日志集成
 
-# ESLint 检查
-pnpm lint
+## 技术栈（AI 相关）
 
-# ESLint 自动修复
-pnpm lint:fix
+### AI & LLM
+- **LangChain & LangGraph** - 智能体编排和工作流
+- **Claude Agent SDK** - Anthropic 智能体框架
+- **DeepAgents** - 多智能体系统框架
+- **AI SDK** - Vercel AI 工具包，支持流式输出
 
-# Prettier 格式化
-pnpm format
+### 通信渠道
+- **微信（iLink）** - 个人微信号集成
+- **飞书** - 企业消息平台（计划中）
 
-# 检查格式化
-pnpm format:check
-```
+### 数据与存储
+- **SQLite + Drizzle ORM** - 类型安全的数据库操作
+- **Finnhub API** - 实时市场数据
+- **Tavily API** - 网络搜索能力
 
-### 数据库操作
+### 前端
+- **Next.js 16 + React 19** - 现代化 Web 框架
+- **Ant Design + Radix UI** - UI 组件库
+- **TailwindCSS** - 样式方案
 
-```bash
-# 生成数据库迁移文件
-pnpm db:generate
-
-# 执行数据库迁移
-pnpm db:migrate
-
-# 打开 Drizzle Studio (数据库可视化管理)
-pnpm db:studio
-```
-
-### 测试
-
-```bash
-# 测试资产服务
-pnpm test
-```
-
-## 数据库操作
-
-本项目集成了 SQLite 数据库和 Drizzle ORM，用于数据持久化。
-
-### Drizzle ORM 关键特性
-
-- 类型安全的数据库操作
-- 自动化迁移管理
-- 可视化数据库管理工具（Drizzle Studio）
-
-### 数据库操作流程
-
-1. **修改数据库 Schema**：编辑 `drizzle/config.ts` 或相关 schema 文件
-2. **生成迁移文件**：`pnpm db:generate`
-3. **执行迁移**：`pnpm db:migrate`
-4. **可视化管理**：`pnpm db:studio`（可选）
-
-## 使用方法
-
-### Web 应用
-
-1. 启动开发服务器：
-
-   ```bash
-   pnpm dev
-   ```
-
-2. 打开浏览器访问 [http://localhost:3000](http://localhost:3000)
-
-### Electron 应用
-
-1. 构建应用：
-
-   ```bash
-   pnpm electron:build
-   ```
-
-2. 构建完成后，可以在 `release` 目录下找到对应平台的安装包。
-
-### CLI 工具
-
-如果已全局安装，可以使用：
+## 常用命令
 
 ```bash
-# 使用完整命令
-investment-agent [command] [options]
+# 开发
+pnpm dev              # 启动开发服务器
 
-# 或使用简写
-ig [command] [options]
+# 构建和部署
+pnpm build            # 构建生产版本
+pnpm start            # 启动生产服务器
+
+# 数据库
+pnpm db:generate      # 生成迁移文件
+pnpm db:migrate       # 执行迁移
+pnpm db:studio        # 打开 Drizzle Studio
+
+# 代码质量
+pnpm lint             # ESLint 检查
+pnpm format           # Prettier 格式化
+pnpm test             # 运行测试
 ```
+
+## 项目结构
+
+```
+src/
+├── app/              # Next.js 页面和路由
+│   └── api/channel/  # 微信/飞书 Webhook 路由
+├── server/
+│   ├── core/
+│   │   ├── agents/   # AI 智能体实现
+│   │   │   ├── langchain/  # DeepAgents 引擎
+│   │   │   ├── claude/     # Claude 引擎
+│   │   │   └── hermes/     # Hermes 引擎
+│   │   ├── engine/   # 引擎注册和运行器
+│   │   └── business/ # 核心业务逻辑
+│   ├── channel/      # 渠道处理器
+│   ├── service/      # API 服务
+│   └── repository/   # 数据访问层
+├── types/            # TypeScript 类型定义
+└── locales/          # 国际化翻译
+packages/
+└── agent-channel/    # 多平台消息 SDK
+    └── src/weixin/   # 微信渠道实现
+```
+
+## 核心模块
+
+| 模块 | 路径 | 说明 |
+|-----|------|-----|
+| 对话 | `/chat` | AI 驱动的对话界面 |
+| 资产 | `/asset` | 持仓和仓位管理 |
+| 研究 | `/research` | 市场研究和分析 |
+| 笔记 | `/note` | 投资知识库 |
+| 报告 | `/report` | 分析报告历史 |
+| 设置 | `/setting` | 账户、AI 模型和渠道配置 |
+
+## 环境变量
+
+| 变量 | 必填 | 说明 |
+|-----|------|-----|
+| `MODEL_PROVIDER_URL` | ✓ | OpenAI 兼容的 API 地址 |
+| `MODEL_PROVIDER_API_KEY` | ✓ | LLM API 密钥 |
+| `FINNHUB_API_KEY` | ✓ | Finnhub 市场数据 API |
+| `ILINK_API_URL` | | iLink API 地址（微信） |
+| `ILINK_API_KEY` | | iLink API 密钥（微信） |
+| `TAVILY_API_KEY` | | Tavily 网络搜索 API |
+| `LANGSMITH_API_KEY` | | LangSmith 追踪（可选）|
 
 ## 部署
 
-直接本地部署即可
+应用可作为桌面应用（Electron）或 Web 服务器本地运行。无需云端部署 - 所有数据保留在本地。
 
 ## 贡献指南
 
-欢迎贡献！请遵循以下步骤：
-
-1. **Fork 项目**
-   
-   ```bash
-   # 在 GitHub 上点击 Fork 按钮
-   ```
-   
-2. **克隆您的 Fork**
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/investment-agent.git
-   cd investment-agent
-   ```
-
-3. **创建功能分支**
-   ```bash
-   git checkout -b feature/amazing-feature
-   # 或
-   git checkout -b bugfix/fix-bug
-   ```
-
-4. **进行修改**
-   - 遵循现有代码风格
-   - 添加必要的测试
-   - 更新文档（如需要）
-
-5. **提交更改**
-   ```bash
-   git commit -m 'feat: add amazing feature'
-   # 使用 conventional commit 格式
-   ```
-
-6. **推送到分支**
-   ```bash
-   git push origin feature/amazing-feature
-   ```
-
-7. **发起 Pull Request**
-   - 在 GitHub 上创建 PR
-   - 填写 PR 模板
-   - 等待代码审查
-
-### 代码规范
-
-- 使用 **Conventional Commits** 规范
-- 遵循 **ESLint** 和 **Prettier** 配置
-- 编写 **TypeScript** 类型定义
-- 添加必要的 **单元测试**
-
-### 部分调试细节
-
-- Electron Mac 地址：/Users/[UserName]/Library/Application Support/investment-agent
+欢迎贡献！请：
+1. Fork 本仓库
+2. 创建功能分支 (`git checkout -b feature/amazing-feature`)
+3. 遵循 [Conventional Commits](https://www.conventionalcommits.org/) 提交更改
+4. 推送并创建 Pull Request
 
 ## 许可证
 
-本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件。
-
-```text
-MIT License
-
-Copyright (c) 2025 ishenli
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
+MIT 许可证 - 详见 [LICENSE](../../LICENSE) 文件。
 
 ## 致谢
 
-### 核心灵感来源
-
-本项目基于以下优秀项目的研究和代码：
-
-| 作者 | 仓库/项目 | 贡献 |
-|------|----------|------|
-| [Tauric Research Team](https://github.com/TauricResearch) | **[TradingAgents](https://github.com/TauricResearch/TradingAgents)** | 提供了多Agent交易系统的核心架构思路，论文参考: [arxiv.org/pdf/2412.20138](https://arxiv.org/pdf/2412.20138) |
-| [@delenzhang](https://github.com/delenzhang) | **[TradingAgents](https://github.com/delenzhang/TradingAgents)** | 中文优化和适配工作 |
-| [@canisminor1990](https://github.com/canisminor1990) | [lobehub-ui](https://ui.lobehub.com/) | 高级 UI 组件和设计系统 |
-
-### 技术支持
-
-感谢开源社区的以下项目和工具：
-
-- **Next.js** - React 框架
-- **LangChain** - AI 应用开发
-- **Ant Design** - UI 组件库
-- **Radix UI** - 无样式组件
-- 以及所有开源依赖的维护者们
+| 项目 | 贡献 |
+|-----|------|
+| [TradingAgents](https://github.com/TauricResearch/TradingAgents) | 多智能体架构灵感 |
+| [LobsterAI](https://github.com/netease-youdao/LobsterAI) | 技能系统参考 |
+| [LobeUI](https://ui.lobehub.com/) | UI 组件库 |
 
 ---
 
-**Made with ❤️ by ishenli**
+Made with ❤️ by [ishenli](https://github.com/ishenli)
 
-如有问题或建议，欢迎提交 [Issue](https://github.com/ishenli/investment-agent/issues) 或联系作者。
+有问题？[提交 Issue](https://github.com/ishenli/investment-agent/issues)

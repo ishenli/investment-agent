@@ -2,6 +2,8 @@ import { TransactionRecordType, TransactionType } from '@typings/transaction';
 import logger from '@server/base/logger';
 import positionService from './positionService';
 import { transactionRepository, type UpdateTransactionData } from '../repository/transactionRepository';
+import { transactions } from '@/drizzle/schema';
+import { eq, and, gte, lte } from 'drizzle-orm';
 import { AssetType, MarketType } from '@typings/asset';
 import { accountFundRepository } from '../repository/accountFundRepository';
 import priceService from './priceService';
@@ -527,6 +529,73 @@ export class TransactionService {
     } catch (error) {
       logger.error(`Failed to get account balance for account ${accountId}: ${error}`);
       return 0;
+    }
+  }
+
+  /**
+   * Get transaction history within a date range
+   * @param accountId Account ID
+   * @param startDate Start date (inclusive)
+   * @param endDate End date (inclusive)
+   * @param limit Number of transactions to return
+   * @param offset Number of transactions to skip
+   * @returns Transaction history within the date range
+   */
+  async getTransactionHistoryByDateRange(
+    accountId: string,
+    startDate: Date,
+    endDate: Date,
+    limit?: number,
+    offset?: number,
+  ): Promise<{ transactions: TransactionRecordType[]; totalCount: number }> {
+    try {
+      const accountIdNum = parseInt(accountId);
+
+      // Get total count using repository
+      const totalCount = await transactionRepository.count(
+        and(
+          eq(transactions.accountId, accountIdNum),
+          gte(transactions.createdAt, startDate),
+          lte(transactions.createdAt, endDate),
+        )!,
+      );
+
+      // Get transactions using repository date range query
+      const transactionRecords = await transactionRepository.findByAccountIdAndDateRange(
+        accountIdNum,
+        startDate,
+        endDate,
+        limit,
+        offset,
+      );
+
+      // Calculate balance after each transaction
+      const transactionsWithBalance = transactionRecords.map((record) => {
+        return {
+          id: record.id.toString(),
+          accountId: record.accountId?.toString() || '',
+          type: record.type as TransactionType,
+          amount: (record.totalAmountCents ?? 0) / 100,
+          description: record.description || '',
+          referenceId: record.id.toString(),
+          createdAt: record.createdAt,
+          tradeTime: record.tradeTime,
+          quantity: record.quantity || 0,
+          price: record.priceCents ? (record.priceCents ?? 0) / 100 : 0,
+          symbol: record.symbol || '',
+          market: record.market as 'US' | 'CN' | 'HK' | undefined,
+        };
+      });
+
+      return {
+        transactions: transactionsWithBalance,
+        totalCount: totalCount || 0,
+      };
+    } catch (error) {
+      logger.error(
+        `Failed to get transaction history by date range for account ${accountId}: ${error}`,
+      );
+      return { transactions: [], totalCount: 0 };
     }
   }
 

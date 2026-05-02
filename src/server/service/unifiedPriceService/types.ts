@@ -30,6 +30,8 @@ export interface QuoteResponse {
   source: string;
   /** 是否来自缓存 */
   cached: boolean;
+  /** 当日涨跌百分比，如 +1.25 表示上涨1.25% */
+  dayChangePercent?: number;
 }
 
 /**
