@@ -461,7 +461,7 @@ export class ReportService {
           marketValueCents: Math.round(pos.marketValue * 100),
           unrealizedGainLossCents: Math.round(pos.unrealizedPnL * 100),
           realtimePrice: Math.round(realtimePrice * 100),
-          priceChangePercent: 0, // Would need additional quote data
+          priceChangePercent: quote?.dayChangePercent ?? 0,
           lastQuoteUpdate,
           dataStaleness,
         };
@@ -739,11 +739,13 @@ export class ReportService {
     endDate: Date,
   ): Promise<WeeklyReportData> {
     try {
-      // 获取本周交易记录
-      const transactions = await transactionService.getTransactionHistory(accountId, 100, 0);
-      const weeklyTransactions = transactions.transactions.filter(
-        (t) => t.createdAt && t.createdAt >= startDate && t.createdAt <= endDate,
+      // 获取本周交易记录（数据库层直接按日期过滤）
+      const transactions = await transactionService.getTransactionHistoryByDateRange(
+        accountId,
+        startDate,
+        endDate,
       );
+      const weeklyTransactions = transactions.transactions;
 
       // 获取本周市场事件
       const marketEvents = await assetMarketInfoService.getAssetMarketInfosByDateRange(
@@ -1427,8 +1429,13 @@ ${rows.join('\n')}
         return null;
       }
 
-      // 更新报告内容
-      const updatedReport = await analysisReportRepository.update(parseInt(reportId), { content });
+      // 更新报告内容并同步更新手动编辑追踪字段
+      const updatedReport = await analysisReportRepository.update(parseInt(reportId), {
+        content,
+        isManuallyEdited: true,
+        lastEditedAt: new Date(),
+        editCount: (report.editCount ?? 0) + 1,
+      });
 
       if (!updatedReport) {
         return null;

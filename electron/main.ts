@@ -287,7 +287,7 @@ function getTrayIconPath(): string {
 
 function createWindow(port: number) {
   const windowOptions: Electron.BrowserWindowConstructorOptions = {
-    width: 1280,
+    width: 1480,
     height: 860,
     minWidth: 800,
     minHeight: 600,

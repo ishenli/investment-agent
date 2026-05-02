@@ -202,7 +202,12 @@ describe('ReportService', () => {
 
       expect(result).toBeTruthy();
       expect(result?.id).toBe('1');
-      expect(analysisReportRepository.update).toHaveBeenCalledWith(1, { content: '更新的内容' });
+      expect(analysisReportRepository.update).toHaveBeenCalledWith(1, {
+        content: '更新的内容',
+        isManuallyEdited: true,
+        lastEditedAt: expect.any(Date),
+        editCount: 1,
+      });
     });
 
     it('应该在内容为空时返回 null', async () => {
