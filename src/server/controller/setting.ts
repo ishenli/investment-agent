@@ -4,6 +4,7 @@ import settingService from '@server/service/settingService';
 import { z } from 'zod';
 import logger from '@server/base/logger';
 import authService from '../service/authService';
+import type { NotificationPreferences } from '@/types/notification';
 
 // 定义设置键的枚举，对应注释中的配置项
 const SettingKeySchema = z.enum([
@@ -19,6 +20,7 @@ const SettingKeySchema = z.enum([
   'FEISHU_APP_SECRET',
   'FEISHU_VERIFICATION_TOKEN',
   'FEISHU_ENCRYPT_KEY',
+  'NOTIFICATION_PREFERENCES',
 ]);
 
 const SettingSchema = z.object({
@@ -121,6 +123,58 @@ export class SettingBizController extends BaseBizController {
     } catch (error) {
       logger.error('[SettingBizController] 删除设置失败:', error);
       return this.error('删除设置失败', 'delete_settings_error');
+    }
+  }
+
+  @WithRequestContext()
+  async getNotificationPreferences() {
+    try {
+      const userId = await authService.getCurrentUserId();
+      if (!userId) {
+        return this.error('用户未认证', 'unauthorized');
+      }
+
+      const setting = await settingService.getSettingByKey(userId, 'NOTIFICATION_PREFERENCES');
+
+      if (!setting || !setting.value) {
+        return this.success({
+          osNotificationsEnabled: true,
+          soundEnabled: false,
+          types: {},
+        });
+      }
+
+      try {
+        const preferences = JSON.parse(setting.value) as NotificationPreferences;
+        return this.success(preferences);
+      } catch {
+        return this.success({
+          osNotificationsEnabled: true,
+          soundEnabled: false,
+          types: {},
+        });
+      }
+    } catch (error) {
+      logger.error('[SettingBizController] 获取通知设置失败:', error);
+      return this.error('获取通知设置失败', 'get_notification_prefs_error');
+    }
+  }
+
+  @WithRequestContext()
+  async updateNotificationPreferences(body: NotificationPreferences) {
+    try {
+      const accountInfo = await authService.getCurrentUserAccount();
+      if (!accountInfo) {
+        return this.error('账户未认证', 'unauthorized');
+      }
+
+      const value = JSON.stringify(body);
+      await settingService.setSetting(accountInfo.id.toString(), 'NOTIFICATION_PREFERENCES', value);
+
+      return this.success(body);
+    } catch (error) {
+      logger.error('[SettingBizController] 更新通知设置失败:', error);
+      return this.error('更新通知设置失败', 'update_notification_prefs_error');
     }
   }
 }

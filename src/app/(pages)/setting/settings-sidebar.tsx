@@ -11,6 +11,7 @@ import {
   IconBulb,
   IconCurrencyDollar,
   IconMessage,
+  IconBell,
   type Icon,
 } from '@tabler/icons-react';
 import {
@@ -22,7 +23,7 @@ import {
 import { usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
-export type SettingsCategory = 'provider' | 'tool' | 'agent' | 'channel' | 'theme' | 'general' | 'exchange' | 'about' | 'skills';
+export type SettingsCategory = 'provider' | 'tool' | 'agent' | 'channel' | 'theme' | 'general' | 'exchange' | 'about' | 'skills' | 'notification';
 
 const settingsItems: {
   id: SettingsCategory;
@@ -37,6 +38,13 @@ const settingsItems: {
     icon: IconAdjustments,
     url: '/setting/general',
     description: '语言和其他通用配置',
+  },
+  {
+    id: 'notification',
+    title: '通知设置',
+    icon: IconBell,
+    url: '/setting/notification',
+    description: '管理通知偏好和推送设置',
   },
   {
     id: 'provider',

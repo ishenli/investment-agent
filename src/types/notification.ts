@@ -100,6 +100,15 @@ export const NotificationStatsSchema = z.object({
 
 export type NotificationStatsType = z.infer<typeof NotificationStatsSchema>;
 
+// 通知偏好设置 Schema
+export const NotificationPreferencesSchema = z.object({
+  osNotificationsEnabled: z.boolean().default(true),
+  soundEnabled: z.boolean().default(false),
+  types: z.record(z.boolean()).default({}),
+});
+
+export type NotificationPreferences = z.infer<typeof NotificationPreferencesSchema>;
+
 // 通知数据解析 helper 类型
 export interface NotificationData {
   reportId?: string;
