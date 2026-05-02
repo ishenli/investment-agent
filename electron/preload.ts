@@ -26,4 +26,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.on('update-not-available', (_event: unknown, info: unknown) => callback(info));
     },
   },
+  notification: {
+    showNativeNotification: (options: unknown) => ipcRenderer.invoke('show-native-notification', options),
+    setBadgeCount: (count: number) => ipcRenderer.invoke('set-badge-count', count),
+    clearBadgeCount: () => ipcRenderer.invoke('clear-badge-count'),
+    onNotificationClick: (callback: (link?: string) => void) => {
+      ipcRenderer.on('notification-clicked', (_event: unknown, link: string | undefined) => callback(link));
+    },
+  },
 });

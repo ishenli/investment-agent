@@ -3,15 +3,23 @@ import type { NotificationAdapter, NotificationPayload, NotificationPermissionSt
 export class WebAdapter implements NotificationAdapter {
   readonly name = 'web';
 
+  private getNotificationClass(): typeof Notification | undefined {
+    if (typeof globalThis !== 'undefined' && 'Notification' in globalThis) {
+      return (globalThis as any).Notification;
+    }
+    return undefined;
+  }
+
   canHandle(): boolean {
-    return typeof window !== 'undefined' && 'Notification' in window;
+    return !!this.getNotificationClass();
   }
 
   getPermissionState(): NotificationPermissionState {
-    if (typeof window === 'undefined' || !('Notification' in window)) {
+    const NotificationClass = this.getNotificationClass();
+    if (!NotificationClass) {
       return 'unsupported';
     }
-    return window.Notification.permission as NotificationPermissionState;
+    return NotificationClass.permission as NotificationPermissionState;
   }
 
   async requestPermission(): Promise<boolean> {
@@ -22,7 +30,8 @@ export class WebAdapter implements NotificationAdapter {
     if (state === 'denied') return false;
 
     try {
-      const result = await window.Notification.requestPermission();
+      const NotificationClass = this.getNotificationClass();
+      const result = await NotificationClass!.requestPermission();
       return result === 'granted';
     } catch {
       return false;
@@ -39,24 +48,29 @@ export class WebAdapter implements NotificationAdapter {
 
     const { title, message, link, actions } = payload;
 
+    const NotificationClass = this.getNotificationClass();
+    if (!NotificationClass) return;
+
     const notificationOptions: NotificationOptions = {
       body: message,
       icon: '/icon.png',
       requireInteraction: payload.priority === 'urgent',
     };
 
-    if (actions && actions.length > 0 && 'actions' in Notification.prototype) {
+    if (actions && actions.length > 0 && 'actions' in NotificationClass.prototype) {
       (notificationOptions as any).actions = actions.map(a => ({
         action: a.id,
         title: a.label,
       }));
     }
 
-    const notification = new window.Notification(title, notificationOptions);
+    const notification = new NotificationClass(title, notificationOptions);
 
     notification.onclick = () => {
-      window.focus();
-      if (link) {
+      if (typeof window !== 'undefined') {
+        window.focus();
+      }
+      if (link && typeof window !== 'undefined') {
         window.location.href = link;
       }
       notification.close();

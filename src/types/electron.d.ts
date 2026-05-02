@@ -2,6 +2,20 @@
  * Electron API 类型定义
  */
 
+export interface ShowNativeNotificationOptions {
+  title: string;
+  body: string;
+  link?: string;
+  actions?: Array<{ id: string; label: string }>;
+}
+
+export interface ElectronNotificationAPI {
+  showNativeNotification: (options: ShowNativeNotificationOptions) => Promise<void>;
+  setBadgeCount: (count: number) => Promise<void>;
+  clearBadgeCount: () => Promise<void>;
+  onNotificationClick: (callback: (link?: string) => void) => void;
+}
+
 export interface UpdateInfo {
   version: string;
   releaseDate: string;
@@ -36,6 +50,7 @@ export interface ElectronAPI {
     chrome: string;
   };
   updater: ElectronUpdater;
+  notification?: ElectronNotificationAPI;
 }
 
 declare global {
