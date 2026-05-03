@@ -1,4 +1,4 @@
-import { app, BrowserWindow, nativeImage, dialog, session, utilityProcess, ipcMain, Tray, Menu } from 'electron';
+import { app, BrowserWindow, nativeImage, dialog, session, utilityProcess, ipcMain, Tray, Menu, Notification } from 'electron';
 import path from 'path';
 import { execFileSync } from 'child_process';
 import fs from 'fs';
@@ -577,7 +577,63 @@ ipcMain.handle('quit-and-install', () => {
   updateManager.quitAndInstall();
 });
 
+// 注册通知相关 IPC handler
+ipcMain.handle('show-native-notification', async (_event, options: { title: string; body: string; link?: string; actions?: Array<{ id: string; label: string }> }) => {
+  const { title, body, link, actions } = options;
+
+  const notificationActions = actions?.map(a => ({
+    type: 'button' as const,
+    text: a.label,
+  }));
+
+  const notification = new Notification({
+    title,
+    body,
+    actions: notificationActions,
+    silent: false,
+  });
+
+  notification.on('click', () => {
+    if (mainWindow) {
+      mainWindow.show();
+      mainWindow.focus();
+      mainWindow.webContents.send('notification-clicked', link);
+    }
+  });
+
+  notification.on('action', (_event, index) => {
+    if (mainWindow) {
+      mainWindow.show();
+      mainWindow.focus();
+      const action = actions?.[index];
+      if (action?.id === 'mark-as-read') {
+        mainWindow.webContents.send('mark-notification-read');
+      } else {
+        mainWindow.webContents.send('notification-clicked', link);
+      }
+    }
+  });
+
+  notification.show();
+});
+
+ipcMain.handle('set-badge-count', (_event, count: number) => {
+  if (process.platform === 'darwin' && app.dock) {
+    app.dock.setBadge(count > 0 ? String(count) : '');
+  }
+  // Windows overlay badge can be added here when Windows support is needed
+});
+
+ipcMain.handle('clear-badge-count', () => {
+  if (process.platform === 'darwin' && app.dock) {
+    app.dock.setBadge('');
+  }
+});
+
 registeredIPCCallbacks.push(() => {
   ipcMain.removeHandler('check-for-updates');
   ipcMain.removeHandler('quit-and-install');
+  ipcMain.removeHandler('show-native-notification');
+  ipcMain.removeHandler('set-badge-count');
+  ipcMain.removeHandler('clear-badge-count');
 });

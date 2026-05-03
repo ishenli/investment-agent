@@ -166,7 +166,7 @@ export class PositionService {
         // 买入时增加仓位
         return await this.increasePosition(accountId, symbol, quantity, priceCents, sector, currency);
       } else if (transactionType === 'sell') {
-        // 卖出时减少仓位
+        // 卖出时减少仓位，仓位不存在时严格报错
         return await this.decreasePosition(accountId, symbol, quantity);
       } else {
         throw new Error(`Unsupported transaction type: ${transactionType}`);

@@ -366,7 +366,56 @@
     "general": "通用设置",
     "provider": "模型设置",
     "theme": "主题设置",
+    "notification": "通知设置",
+    "channel": "渠道设置",
+    "skills": "技能设置",
     "tool": "工具设置"
+  },
+  "channel": {
+    "title": "渠道设置",
+    "description": "配置 Agent 消息渠道（飞书、微信等）",
+    "loading": "加载中...",
+    "status": {
+      "configured": "已配置",
+      "notConfigured": "未配置"
+    },
+    "messages": {
+      "loadFailed": "加载配置失败",
+      "saved": "渠道配置已保存",
+      "saveFailed": "保存失败"
+    },
+    "actions": {
+      "save": "保存配置",
+      "saving": "保存中..."
+    },
+    "feishu": {
+      "title": "飞书机器人",
+      "description": "配置飞书开放平台机器人，通过 AI 智能体接收消息并自动回复",
+      "credentials": "应用凭证",
+      "appIdPlaceholder": "飞书应用 ID",
+      "appSecretPlaceholder": "飞书应用密钥",
+      "eventConfig": "事件订阅配置",
+      "verificationTokenPlaceholder": "事件订阅验证令牌",
+      "encryptKeyPlaceholder": "事件加密密钥（可选）",
+      "webhookHint": "请在飞书开放平台事件订阅请求地址中输入此 URL，并订阅 im.message.receive_v1 事件。"
+    },
+    "weixin": {
+      "title": "微信个人号",
+      "description": "通过腾讯 iLink Bot API 连接微信个人号，使用长轮询模式接收和自动回复消息",
+      "qrLogin": "二维码登录（推荐）",
+      "credentialsManual": "手动输入凭证（备用方案）",
+      "accountIdPlaceholder": "iLink Bot 账户 ID",
+      "tokenPlaceholder": "iLink Bot Token",
+      "baseUrlPlaceholder": "API 基础 URL（可选）",
+      "allowedUsersPlaceholder": "允许的用户 ID（逗号分隔，可选）",
+      "advanced": "高级配置",
+      "webhookHint": "微信个人号使用长轮询模式，无需配置 Webhook URL。",
+      "howToGetTitle": "如何获取凭证：",
+      "howToGetHint": "在腾讯 iLink 平台完成微信个人号扫码登录后，将生成的 Account ID 和 Bot Token 填入上方字段。",
+      "modeTitle": "接入模式：",
+      "modeHint": "微信渠道使用长轮询（Long Poll）模式，无需配置 Webhook 地址，服务启动后自动连接。",
+      "qrHint": "点击「开始扫码登录」，然后用微信扫描二维码，登录成功后凭证会自动保存"
+    }
   },
   "exchange": {
     "title": "汇率设置",

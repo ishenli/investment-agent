@@ -1,0 +1,29 @@
+{
+  "notifications": "通知设置",
+  "notificationDescription": "管理通知偏好设置，配置您希望接收的通知类型",
+  "general": {
+    "enableNotification": "启用通知"
+  },
+  "type": {
+    "price_alert": "价格提醒",
+    "trade_executed": "交易执行",
+    "report_completed": "报告完成",
+    "analysis_completed": "分析完成",
+    "data_refreshed": "数据刷新",
+    "system_announcement": "系统公告"
+  },
+  "descriptions": {
+    "price_alert": "当股票价格达到您的目标水平时收到通知",
+    "trade_executed": "当您的买卖订单执行时收到通知",
+    "report_completed": "当投资报告准备就绪时收到通知",
+    "analysis_completed": "当市场分析完成时收到通知",
+    "data_refreshed": "当市场数据更新时收到通知",
+    "system_announcement": "当有重要系统更新和公告时收到通知"
+  },
+  "actions": {
+    "selectAll": "全选所有类型",
+    "cancel": "取消更改",
+    "saveSettings": "保存通知设置",
+    "saving": "保存中..."
+  }
+}

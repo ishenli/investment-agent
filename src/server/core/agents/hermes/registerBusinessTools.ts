@@ -18,6 +18,11 @@ import {
   updateNote,
   deleteNote,
   queryDb,
+  getTransactionHistory,
+  getTransactionHistoryByDateRange,
+  getAccountBalance,
+  getTransactionSummary,
+  addTransaction,
 } from '@server/core/business';
 import logger from '@server/base/logger';
 
@@ -90,6 +95,44 @@ const dbQuerySchema = Type.Object({
   limit: Type.Optional(Type.Number({ description: '返回数量，默认10，最多100' })),
 });
 
+// Transaction Schemas
+const transactionHistorySchema = Type.Object({
+  account_id: Type.String({ description: '账户 ID' }),
+  limit: Type.Optional(Type.Number({ description: '返回记录数量限制（默认 50）' })),
+  offset: Type.Optional(Type.Number({ description: '偏移量（用于分页，默认 0）' })),
+});
+
+const transactionHistoryByDateSchema = Type.Object({
+  account_id: Type.String({ description: '账户 ID' }),
+  start_date: Type.String({ description: '开始日期（YYYY-MM-DD 格式）' }),
+  end_date: Type.String({ description: '结束日期（YYYY-MM-DD 格式）' }),
+  limit: Type.Optional(Type.Number({ description: '返回记录数量限制' })),
+  offset: Type.Optional(Type.Number({ description: '偏移量（用于分页）' })),
+});
+
+const accountBalanceSchema = Type.Object({
+  account_id: Type.String({ description: '账户 ID' }),
+  before_transaction_id: Type.Optional(Type.String({ description: '计算到指定交易之前的余额' })),
+});
+
+const transactionSummarySchema = Type.Object({
+  account_id: Type.String({ description: '账户 ID' }),
+  limit: Type.Optional(Type.Number({ description: '记录数量限制（默认 50）' })),
+});
+
+const addTransactionSchema = Type.Object({
+  account_id: Type.String({ description: '账户 ID' }),
+  type: Type.String({ description: '交易类型: deposit | withdrawal | buy | sell' }),
+  amount: Type.Optional(Type.Number({ description: '金额（存款/取款时必填）' })),
+  sector: Type.Optional(Type.String({ description: '资产类型: stock | etf | fund | crypto，默认 stock' })),
+  market: Type.Optional(Type.String({ description: '市场: US | CN | HK' })),
+  symbol: Type.Optional(Type.String({ description: '股票代码（买入/卖出时必填）' })),
+  quantity: Type.Optional(Type.Number({ description: '数量（买入/卖出时必填）' })),
+  price: Type.Optional(Type.Number({ description: '价格（买入/卖出时必填）' })),
+  description: Type.Optional(Type.String({ description: '交易描述' })),
+  trade_time: Type.Optional(Type.String({ description: '交易时间（ISO 格式）' })),
+});
+
 // ============== Tool Names ==============
 
 export type BusinessToolName =
@@ -104,7 +147,12 @@ export type BusinessToolName =
   | 'note_update'
   | 'note_delete'
   | 'tavily_search'
-  | 'db_query';
+  | 'db_query'
+  | 'transaction_history'
+  | 'transaction_history_by_date'
+  | 'account_balance'
+  | 'transaction_summary'
+  | 'add_transaction';
 
 export interface BusinessToolsConfig {
   enable?: BusinessToolName[];
@@ -131,6 +179,11 @@ export function registerBusinessTools(
         'note_delete',
         'tavily_search',
         'db_query',
+        'transaction_history',
+        'transaction_history_by_date',
+        'account_balance',
+        'transaction_summary',
+        'add_transaction',
       ]);
 
   const wrap =
@@ -290,6 +343,94 @@ export function registerBusinessTools(
             orderBy: args.orderBy ? String(args.orderBy) : undefined,
             orderDirection: (String(args.orderDirection ?? 'DESC').toUpperCase() as 'ASC' | 'DESC') || 'DESC',
             limit: Math.min(100, Math.max(1, Number(args.limit ?? 10))),
+          }),
+        )(),
+    );
+  }
+
+  // Transaction tools
+  if (enabled.has('transaction_history')) {
+    registry.register(
+      'transaction_history',
+      '获取账户的交易历史记录，包括存款、取款、买入、卖出等',
+      transactionHistorySchema,
+      async (_id, args) =>
+        wrap(async () =>
+          getTransactionHistory(
+            String(args.account_id),
+            args.limit ? Number(args.limit) : undefined,
+            args.offset ? Number(args.offset) : undefined,
+          ),
+        )(),
+    );
+  }
+
+  if (enabled.has('transaction_history_by_date')) {
+    registry.register(
+      'transaction_history_by_date',
+      '按日期范围查询账户的交易历史记录',
+      transactionHistoryByDateSchema,
+      async (_id, args) =>
+        wrap(async () =>
+          getTransactionHistoryByDateRange(
+            String(args.account_id),
+            String(args.start_date),
+            String(args.end_date),
+            args.limit ? Number(args.limit) : undefined,
+            args.offset ? Number(args.offset) : undefined,
+          ),
+        )(),
+    );
+  }
+
+  if (enabled.has('account_balance')) {
+    registry.register(
+      'account_balance',
+      '获取账户当前余额（基于交易记录计算）',
+      accountBalanceSchema,
+      async (_id, args) =>
+        wrap(async () =>
+          getAccountBalance(
+            String(args.account_id),
+            args.before_transaction_id ? String(args.before_transaction_id) : undefined,
+          ),
+        )(),
+    );
+  }
+
+  if (enabled.has('transaction_summary')) {
+    registry.register(
+      'transaction_summary',
+      '获取账户交易记录的 Markdown 格式摘要',
+      transactionSummarySchema,
+      async (_id, args) =>
+        wrap(async () =>
+          getTransactionSummary(
+            String(args.account_id),
+            args.limit ? Number(args.limit) : undefined,
+          ),
+        )(),
+    );
+  }
+
+  if (enabled.has('add_transaction')) {
+    registry.register(
+      'add_transaction',
+      '添加交易记录（存款、取款、买入、卖出）',
+      addTransactionSchema,
+      async (_id, args) =>
+        wrap(async () =>
+          addTransaction({
+            accountId: String(args.account_id),
+            type: String(args.type) as 'deposit' | 'withdrawal' | 'buy' | 'sell',
+            amount: args.amount ? Number(args.amount) : undefined,
+            sector: args.sector ? String(args.sector) as 'stock' | 'etf' | 'fund' | 'crypto' : undefined,
+            market: args.market ? String(args.market) as 'US' | 'CN' | 'HK' : undefined,
+            symbol: args.symbol ? String(args.symbol) : undefined,
+            quantity: args.quantity ? Number(args.quantity) : undefined,
+            price: args.price ? Number(args.price) : undefined,
+            description: args.description ? String(args.description) : undefined,
+            tradeTime: args.trade_time ? String(args.trade_time) : undefined,
           }),
         )(),
     );

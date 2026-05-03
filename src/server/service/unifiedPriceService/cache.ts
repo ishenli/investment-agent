@@ -46,7 +46,7 @@ export class SameDayPriceCache {
       }
 
       // 检查缓存是否有效
-      if (!this.isValidForToday(latestPrice.createdAt)) {
+      if (!this.isValidForToday(latestPrice.updatedAt)) {
         return null;
       }
 
@@ -56,7 +56,7 @@ export class SameDayPriceCache {
         market: latestPrice.market as MarketType,
         price: latestPrice.price,
         currency: latestPrice.currency,
-        timestamp: latestPrice.createdAt,
+        timestamp: latestPrice.updatedAt,
         source: latestPrice.source,
       };
     } catch (error) {

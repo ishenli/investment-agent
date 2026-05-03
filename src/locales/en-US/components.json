@@ -18,7 +18,8 @@
       "tradeRecords": "Activities"
     },
     "settings": {
-      "settings": "Settings"
+      "settings": "Settings",
+      "notification": "Notification"
     }
   },
   "thinking": {

@@ -54,5 +54,8 @@
       "Bash(cat)",
       "Bash(python3 /tmp/fix_setup.py)"
     ]
-  }
+  },
+  "disabledMcpjsonServers": [
+    "superconductor"
+  ]
 }

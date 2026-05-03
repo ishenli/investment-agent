@@ -14,7 +14,7 @@ import {
 } from '@renderer/components/ui/dialog';
 import { Input } from '@renderer/components/ui/input';
 import { Label } from '@renderer/components/ui/label';
-import { toast } from 'sonner';
+import { notificationManager } from '@/app/lib/notification';
 import { useTranslation } from 'react-i18next';
 
 interface EditCashBalanceDialogProps {
@@ -43,17 +43,17 @@ export function EditCashBalanceDialog({ open, onOpenChange }: EditCashBalanceDia
 
     const balanceValue = parseFloat(newBalance);
     if (isNaN(balanceValue) || balanceValue < 0) {
-      toast.error(t('editCashBalanceDialog.invalidAmount'));
+      notificationManager.toast({ title: t('editCashBalanceDialog.invalidAmount'), variant: 'error' });
       return;
     }
 
     updateBalance(balanceValue, {
       onSuccess: () => {
-        toast.success(t('editCashBalanceDialog.balanceUpdated'));
+        notificationManager.toast({ title: t('editCashBalanceDialog.balanceUpdated'), variant: 'success' });
         onOpenChange(false);
       },
       onError: (error) => {
-        toast.error(t('editCashBalanceDialog.updateFailed') + ': ' + (error as Error).message);
+        notificationManager.toast({ title: t('editCashBalanceDialog.updateFailed') + ': ' + (error as Error).message, variant: 'error' });
       },
     });
   };

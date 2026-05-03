@@ -11,7 +11,7 @@ import {
   DrawerTitle,
 } from '@renderer/components/ui/drawer';
 import { Textarea } from '@renderer/components/ui/textarea';
-import { toast } from 'sonner';
+import { notificationManager } from '@/app/lib/notification';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -70,7 +70,7 @@ export function EditReportDrawer({
 
   const handleSave = async () => {
     if (!content.trim()) {
-      toast.error(t('editDrawer.contentEmpty'));
+      notificationManager.toast({ title: t('editDrawer.contentEmpty'), variant: 'error' });
       return;
     }
 
@@ -87,14 +87,14 @@ export function EditReportDrawer({
       const result = await response.json();
 
       if (response.ok && result.success) {
-        toast.success(t('editDrawer.updateSuccess'));
+        notificationManager.toast({ title: t('editDrawer.updateSuccess'), variant: 'success' });
         onOpenChange(false);
         onUpdate();
       } else {
-        toast.error(result.message || t('editDrawer.updateFailed'));
+        notificationManager.toast({ title: result.message || t('editDrawer.updateFailed'), variant: 'error' });
       }
     } catch (error) {
-      toast.error(t('editDrawer.updateFailed'));
+      notificationManager.toast({ title: t('editDrawer.updateFailed'), variant: 'error' });
       console.error('Failed to update report:', error);
     } finally {
       setLoading(false);

@@ -80,16 +80,6 @@ export interface Alert {
   resolved: boolean;
 }
 
-// Notification Type
-export interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  timestamp: Date;
-  read: boolean;
-  type: 'alert' | 'suggestion' | 'update';
-}
-
 // Diversification Recommendation Type
 export interface DiversificationRecommendation {
   id: string;

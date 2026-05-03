@@ -45,6 +45,7 @@
   "history": {
     "addButton": "添加",
     "editButton": "编辑",
+    "reverseButton": "撤销",
     "error": "加载交易记录时出错",
     "filter": {
       "all": "全部类型",
@@ -73,7 +74,15 @@
       "time": "时间",
       "type": "类型"
     },
-    "title": "交易历史"
+    "title": "交易历史",
+    "reverseConfirm": {
+      "title": "确认撤销交易",
+      "description": "撤销该交易记录将同时回滚相关的持仓和余额变化，此操作不可恢复。确定要继续吗？",
+      "confirm": "确认撤销",
+      "cancel": "取消",
+      "success": "交易记录已成功撤销",
+      "error": "撤销失败：{{message}}"
+    }
   },
   "title": "交易"
 }

@@ -1,0 +1,29 @@
+{
+  "notifications": "Notification Settings",
+  "notificationDescription": "Manage notification preferences and configure which notifications you receive",
+  "general": {
+    "enableNotification": "Enable notifications"
+  },
+  "type": {
+    "price_alert": "Price Alert",
+    "trade_executed": "Trade Executed",
+    "report_completed": "Report Completed",
+    "analysis_completed": "Analysis Completed",
+    "data_refreshed": "Data Refreshed",
+    "system_announcement": "System Announcement"
+  },
+  "descriptions": {
+    "price_alert": "Get notified when stock prices reach your target levels",
+    "trade_executed": "Get notified when your buy/sell orders are executed",
+    "report_completed": "Get notified when investment reports are ready",
+    "analysis_completed": "Get notified when market analysis is complete",
+    "data_refreshed": "Get notified when market data has been updated",
+    "system_announcement": "Get notified about important system updates and announcements"
+  },
+  "actions": {
+    "selectAll": "Select All Types",
+    "cancel": "Cancel Changes",
+    "saveSettings": "Save Notification Settings",
+    "saving": "Saving..."
+  }
+}

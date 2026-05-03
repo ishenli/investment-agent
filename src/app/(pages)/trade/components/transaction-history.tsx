@@ -24,13 +24,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@renderer/components/ui/select';
-import { SearchIcon, FilterIcon, PlusIcon, EditIcon } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@renderer/components/ui/alert-dialog';
+import { SearchIcon, FilterIcon, PlusIcon, EditIcon, UndoIcon } from 'lucide-react';
 import { useAssetStore } from '@renderer/store/asset/store';
 import dayjs from 'dayjs';
 import { AddTransactionDialog } from '../../../components/add-transaction-dialog';
 import { EditTransactionDialog } from '../../../components/edit-transaction-dialog';
 import { TransactionRecordType } from '@/types';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 export function TransactionHistory() {
   const { t } = useTranslation('transaction');
@@ -38,10 +49,13 @@ export function TransactionHistory() {
   const [filterType, setFilterType] = useState('all');
   const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
   const [isEditTransactionOpen, setIsEditTransactionOpen] = useState(false);
+  const [isReverseDialogOpen, setIsReverseDialogOpen] = useState(false);
+  const [reversingId, setReversingId] = useState<string | null>(null);
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionRecordType | null>(
     null,
   );
   const fetchTransactions = useAssetStore((state) => state.fetchTransactions);
+  const reverseTransaction = useAssetStore((state) => state.reverseTransaction);
 
   // Get transactions from store
   const { transactions, transactionsLoading, transactionsError } = useAssetStore();
@@ -57,6 +71,26 @@ export function TransactionHistory() {
   useEffect(() => {
     fetchTransactions();
   }, [fetchTransactions]);
+
+  const handleReverseClick = (transaction: TransactionRecordType) => {
+    setSelectedTransaction(transaction);
+    setIsReverseDialogOpen(true);
+  };
+
+  const handleReverseConfirm = async () => {
+    if (!selectedTransaction) return;
+    setReversingId(selectedTransaction.id);
+    try {
+      await reverseTransaction(selectedTransaction.id);
+      toast.success(t('history.reverseConfirm.success'));
+    } catch (error) {
+      toast.error(t('history.reverseConfirm.error', { message: (error as Error).message }));
+    } finally {
+      setReversingId(null);
+      setIsReverseDialogOpen(false);
+      setSelectedTransaction(null);
+    }
+  };
 
   return (
     <>
@@ -187,16 +221,27 @@ export function TransactionHistory() {
                       </TableCell>
                       <TableCell>{transaction.description || '-'}</TableCell>
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={() => {
-                            setSelectedTransaction(transaction);
-                            setIsEditTransactionOpen(true);
-                          }}
-                        >
-                          <EditIcon className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => {
+                              setSelectedTransaction(transaction);
+                              setIsEditTransactionOpen(true);
+                            }}
+                          >
+                            <EditIcon className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            disabled={reversingId === transaction.id}
+                            onClick={() => handleReverseClick(transaction)}
+                          >
+                            <UndoIcon className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -214,6 +259,26 @@ export function TransactionHistory() {
         onOpenChange={setIsEditTransactionOpen}
         transaction={selectedTransaction}
       />
+      {/* Reverse Transaction Confirm Dialog */}
+      <AlertDialog open={isReverseDialogOpen} onOpenChange={setIsReverseDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('history.reverseConfirm.title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('history.reverseConfirm.description')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('history.reverseConfirm.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleReverseConfirm}
+            >
+              {t('history.reverseConfirm.confirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

@@ -367,6 +367,8 @@
     "provider": "Provider",
     "theme": "Theme",
     "skills": "Skills",
+    "notification": "Notification",
+    "channel": "Channel",
     "tool": "Tool"
   },
   "exchange": {
@@ -550,5 +552,55 @@
       "tavily": "TAVILY"
     },
     "title": "API KEY Configuration"
+  },
+  "channel": {
+    "title": "Channel Settings",
+    "description": "Configure Agent messaging channels (Feishu, WeChat, etc.)",
+    "loading": "Loading...",
+    "status": {
+      "configured": "Configured",
+      "notConfigured": "Not Configured"
+    },
+    "messages": {
+      "loadFailed": "Failed to load configuration",
+      "saved": "Channel configuration saved",
+      "saveFailed": "Save failed"
+    },
+    "actions": {
+      "save": "Save Configuration",
+      "saving": "Saving..."
+    },
+    "feishu": {
+      "title": "Feishu Bot",
+      "description": "Configure Feishu Open Platform bot to receive messages and auto-reply via AI Agent",
+      "credentials": "App Credentials",
+      "appIdPlaceholder": "Feishu App ID",
+      "appSecretPlaceholder": "Feishu App Secret",
+      "eventConfig": "Event Subscription Configuration",
+      "verificationTokenPlaceholder": "Event subscription verification token",
+      "encryptKeyPlaceholder": "Event encryption key (optional)",
+      "webhookHint": "Enter this URL in the Feishu Open Platform event subscription request address and subscribe to the im.message.receive_v1 event."
+    },
+    "weixin": {
+      "title": "WeChat Personal Account",
+      "description": "Connect WeChat personal account via Tencent iLink Bot API using long-polling mode to receive and auto-reply messages",
+      "qrLogin": "QR Code Login (Recommended)",
+      "qrFetching": "Fetching QR Code...",
+      "qrStart": "Start QR Code Login",
+      "qrRefresh": "Refresh QR Code",
+      "credentialsManual": "Enter Credentials Manually (Fallback)",
+      "accountIdPlaceholder": "iLink Bot Account ID",
+      "tokenPlaceholder": "iLink Bot Token",
+      "baseUrlPlaceholder": "API Base URL (optional)",
+      "allowedUsers": "Allowed Users",
+      "allowedUsersPlaceholder": "Allowed user IDs (comma-separated, optional)",
+      "advanced": "Advanced Configuration",
+      "webhookHint": "WeChat personal account uses long-polling mode, no need to configure Webhook URL.",
+      "howToGetTitle": "How to Get Credentials",
+      "howToGetHint": "Please follow the instructions on the WeChat official website to create an iLink Bot and obtain the necessary credentials.",
+      "modeTitle": "Mode",
+      "modeHint": "WeChat personal account uses long-polling mode, no need to configure Webhook URL.",
+      "qrHint": "Click 'Start QR Code Login', then scan the QR code with WeChat. Credentials will be automatically saved after successful login."
+    }
   }
 }

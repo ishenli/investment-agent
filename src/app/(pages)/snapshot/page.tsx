@@ -32,7 +32,7 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { toast } from 'sonner';
+import { notificationManager } from '@/app/lib/notification';
 import { cn } from '@renderer/lib/utils';
 import { useTranslation } from 'react-i18next';
 
@@ -298,18 +298,18 @@ export default function SnapshotPage() {
   const handleCreateSnapshot = async () => {
     try {
       await createMutation.mutateAsync({ source: 'manual' });
-      toast.success(t('toasts.createSuccess'));
+      notificationManager.toast({ title: t('toasts.createSuccess'), variant: 'success' });
     } catch (err) {
-      toast.error(t('toasts.createFailed', { message: err instanceof Error ? err.message : '未知错误' }));
+      notificationManager.toast({ title: t('toasts.createFailed', { message: err instanceof Error ? err.message : '未知错误' }), variant: 'error' });
     }
   };
 
   const handleDeleteSnapshot = async (id: number) => {
     try {
       await deleteMutation.mutateAsync({ id });
-      toast.success(t('toasts.deleteSuccess'));
+      notificationManager.toast({ title: t('toasts.deleteSuccess'), variant: 'success' });
     } catch (err) {
-      toast.error(t('toasts.deleteFailed', { message: err instanceof Error ? err.message : '未知错误' }));
+      notificationManager.toast({ title: t('toasts.deleteFailed', { message: err instanceof Error ? err.message : '未知错误' }), variant: 'error' });
     }
   };
 

@@ -121,7 +121,7 @@ export function WeixinConfigTab({ settings, saving, onSettingChange, onSave }: W
         {/* Advanced Config */}
         <div className="space-y-4">
           <h3 className="text-sm font-medium text-muted-foreground">
-            {t('channel.weixin.advancedConfig', '高级配置（可选）')}
+            {t('channel.weixin.advanced', '高级配置（可选）')}
           </h3>
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -162,7 +162,7 @@ export function WeixinConfigTab({ settings, saving, onSettingChange, onSave }: W
               )}
             </p>
             <p>
-              <strong>{t('channel.weixin.modeTitle', '接入模式：')}</strong>
+              <strong>{t('channel.weixin.modeTitle', '接入模式')}:</strong>
               {t(
                 'channel.weixin.modeHint',
                 '微信渠道使用长轮询（Long Poll）模式，无需配置 Webhook 地址，服务启动后自动连接。',

@@ -297,16 +297,16 @@ export class AssetAccountBizController extends BaseBizController {
   @WithRequestContext()
   async addTransaction(body: any) {
     try {
-      // 1. 获取当前用户ID
-      const userId = await authService.getCurrentUserId();
-      if (!userId) {
+      // 1. 获取当前用户账户信息
+      const accountInfo = await authService.getCurrentUserAccount();
+      if (!accountInfo) {
         return this.error('用户未登录', 'unauthorized');
       }
 
       // 2. 参数验证
       const validationResult = TransactionRequestSchema.safeParse({
         ...body,
-        accountId: userId, // 自动添加当前用户ID
+        accountId: accountInfo.id, // 自动添加当前账户ID
       });
       if (!validationResult.success) {
         return this.responseValidateError(validationResult.error);
@@ -316,7 +316,7 @@ export class AssetAccountBizController extends BaseBizController {
       // 3. 添加交易记录
       const transactionData = {
         ...validatedBody,
-        accountId: userId,
+        accountId: accountInfo.id,
         tradeTime: validatedBody.tradeTime,
         createdAt: new Date(),
       };
@@ -375,6 +375,35 @@ export class AssetAccountBizController extends BaseBizController {
 
       logger.error('[AssetAccountBizController] 更新交易记录失败:', error);
       return this.error('更新交易记录失败', 'update_transaction_error');
+    }
+  }
+
+  @WithRequestContext()
+  async reverseTransaction(request: { id: string } & any) {
+    try {
+      // 1. 验证登录状态
+      const accountInfo = await authService.getCurrentUserAccount();
+      if (!accountInfo) {
+        return this.error('用户未登录', 'unauthorized');
+      }
+
+      // 2. 获取交易ID
+      const transactionId = request.id;
+      if (!transactionId) {
+        return this.error('交易ID不能为空', 'invalid_transaction_id');
+      }
+
+      // 3. 执行撤销
+      const result = await transactionService.reverseTransaction(transactionId);
+
+      // 4. 返回成功响应
+      return this.success(result);
+    } catch (error) {
+      logger.error('[AssetAccountBizController] 撤销交易记录失败:', error);
+      return this.error(
+        (error as Error).message || '撤销交易记录失败',
+        'reverse_transaction_error',
+      );
     }
   }
 }

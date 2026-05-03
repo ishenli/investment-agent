@@ -86,6 +86,7 @@ export function useScheduler(options?: {
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const hasRunOnMount = useRef(false);
+  const isRunningRef = useRef(false);
 
   /**
    * 刷新任务状态
@@ -107,9 +108,17 @@ export function useScheduler(options?: {
 
   /**
    * 检查并执行任务
+   * 使用 ref 防止并发执行
    */
   const checkAndRun = useCallback(
     async (checkOptions?: { force?: boolean }) => {
+      // 防止并发执行
+      if (isRunningRef.current) {
+        console.log('[useScheduler] Task already running, skipping...');
+        return;
+      }
+
+      isRunningRef.current = true;
       setIsExecuting(true);
       setIsChecking(true);
       setError(null);
@@ -141,33 +150,54 @@ export function useScheduler(options?: {
       } finally {
         setIsExecuting(false);
         setIsChecking(false);
+        isRunningRef.current = false;
       }
     },
     [refreshStatus],
   );
 
-  // 挂载时自动执行检查
+  // 挂载时自动执行检查（只执行一次）
   useEffect(() => {
     if (runOnMount && !hasRunOnMount.current) {
       hasRunOnMount.current = true;
-      checkAndRun();
+      // 延迟执行，避免阻塞初始化
+      const timer = setTimeout(() => {
+        checkAndRun();
+      }, 5000); // 5 秒后执行
+      return () => clearTimeout(timer);
     }
-  }, [runOnMount, checkAndRun]);
+  }, [runOnMount]); // 移除 checkAndRun 依赖
 
   // 启动后台定时检查
   useEffect(() => {
     if (enableBackgroundCheck && checkIntervalMs > 0) {
-      intervalRef.current = setInterval(() => {
-        checkAndRun();
-      }, checkIntervalMs);
+      // 确保第一次执行后才开始定时检查
+      const timer = setTimeout(() => {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+        intervalRef.current = setInterval(() => {
+          // 直接调用，不依赖 checkAndRun
+          if (!isRunningRef.current) {
+            fetch('/api/scheduled', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ force: false, backfillDays: 7 }),
+            }).catch((err) => {
+              console.error('[useScheduler] Background check failed:', err);
+            });
+          }
+        }, checkIntervalMs);
+      }, 10000); // 10 秒后启动定时器
 
       return () => {
+        clearTimeout(timer);
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
         }
       };
     }
-  }, [enableBackgroundCheck, checkIntervalMs, checkAndRun]);
+  }, [enableBackgroundCheck, checkIntervalMs]); // 移除 checkAndRun 依赖
 
   return {
     status,

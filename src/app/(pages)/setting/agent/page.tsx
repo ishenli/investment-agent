@@ -5,7 +5,7 @@ import { IconPlus } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@renderer/components/ui/tabs';
 import { get, post, put, del } from '@/app/lib/request/index';
-import { toast } from 'sonner';
+import { notificationManager } from '@/app/lib/notification';
 import { AgentTypeResponse as Agent } from '@typings/agent';
 import { useTranslation } from 'react-i18next';
 import { AgentForm } from './components/AgentForm';
@@ -51,7 +51,7 @@ export default function AgentSettingsPage() {
     } catch (err) {
       console.error('Failed to fetch agents', err);
       setError('获取智能体列表失败');
-      toast.error('获取智能体列表失败');
+      notificationManager.toast({ title: '获取智能体列表失败', variant: 'error' });
     } finally {
       setLoading(false);
     }
@@ -108,7 +108,7 @@ export default function AgentSettingsPage() {
   const handleDeleteAgent = async (agent: Agent) => {
     // 内置 Agent 不允许删除
     if (agent.isBuiltin) {
-      toast.error(t('agent.errors.cannotDeleteBuiltin', '内置智能体不能删除'));
+      notificationManager.toast({ title: t('agent.errors.cannotDeleteBuiltin', '内置智能体不能删除'), variant: 'error' });
       return;
     }
 
@@ -121,14 +121,14 @@ export default function AgentSettingsPage() {
         `/api/agent?agentId=${agent.id}`,
       );
       if (response.success) {
-        toast.success(t('agent.messages.deleteSuccess', '智能体删除成功'));
+        notificationManager.toast({ title: t('agent.messages.deleteSuccess', '智能体删除成功'), variant: 'success' });
       } else {
         throw new Error(response.message || '删除失败');
       }
       fetchAgents(); // 重新加载列表
     } catch (err) {
       console.error('Failed to delete agent', err);
-      toast.error(t('agent.messages.deleteFailed', '删除智能体失败'));
+      notificationManager.toast({ title: t('agent.messages.deleteFailed', '删除智能体失败'), variant: 'error' });
     }
   };
 
@@ -185,7 +185,7 @@ export default function AgentSettingsPage() {
         );
 
         if (response.success) {
-          toast.success('智能体更新成功');
+          notificationManager.toast({ title: '智能体更新成功', variant: 'success' });
         } else {
           throw new Error('更新失败');
         }
@@ -199,7 +199,7 @@ export default function AgentSettingsPage() {
         });
 
         if (response.success) {
-          toast.success('智能体创建成功');
+          notificationManager.toast({ title: '智能体创建成功', variant: 'success' });
         } else {
           throw new Error('创建失败');
         }
@@ -216,7 +216,7 @@ export default function AgentSettingsPage() {
       }, 3000);
     } catch (err) {
       console.error('Failed to save agent', err);
-      toast.error('保存智能体失败');
+      notificationManager.toast({ title: '保存智能体失败', variant: 'error' });
     } finally {
       setSaving(false);
     }

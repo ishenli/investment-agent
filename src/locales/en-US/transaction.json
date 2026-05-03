@@ -45,6 +45,7 @@
   "history": {
     "addButton": "Add",
     "editButton": "Edit",
+    "reverseButton": "Reverse",
     "error": "Error loading transaction records",
     "filter": {
       "all": "All Types",
@@ -73,7 +74,15 @@
       "time": "Time",
       "type": "Type"
     },
-    "title": "Transaction History"
+    "title": "Transaction History",
+    "reverseConfirm": {
+      "title": "Confirm Reverse Transaction",
+      "description": "Reversing this transaction will roll back related position and balance changes. This action cannot be undone. Are you sure?",
+      "confirm": "Confirm Reverse",
+      "cancel": "Cancel",
+      "success": "Transaction has been successfully reversed",
+      "error": "Reverse failed: {{message}}"
+    }
   },
   "title": "Transaction"
 }

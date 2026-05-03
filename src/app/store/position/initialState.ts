@@ -3,7 +3,6 @@ import {
   Portfolio,
   RiskInsights,
   Alert,
-  Notification,
   DiversificationRecommendation,
   StrategyAdvice,
 } from './types';
@@ -15,7 +14,6 @@ export interface PositionState {
   riskInsights: RiskInsights | null;
   aiInsights: AIInsight[];
   alerts: Alert[];
-  notifications: Notification[];
   loading: boolean;
   error: string | null;
   strategyAdvice: StrategyAdvice[];
@@ -29,7 +27,6 @@ export const initialPositionState: PositionState = {
   riskInsights: null,
   aiInsights: [],
   alerts: [],
-  notifications: [],
   loading: false,
   error: null,
   strategyAdvice: [],

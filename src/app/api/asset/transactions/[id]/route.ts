@@ -9,12 +9,20 @@ class AssetAccountTransactionHttpController extends BaseController {
   static async PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const body = await super.getBody(request);
     const { id } = await params;
-    // 合并参数和请求体
     const requestData = { ...body, id };
     return Response.json(
       await AssetAccountTransactionHttpController.controller.updateTransaction(requestData),
     );
   }
+
+  @WithRequestContext()
+  static async DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    return Response.json(
+      await AssetAccountTransactionHttpController.controller.reverseTransaction({ id }),
+    );
+  }
 }
 
 export const PUT = AssetAccountTransactionHttpController.PUT;
+export const DELETE = AssetAccountTransactionHttpController.DELETE;
