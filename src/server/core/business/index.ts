@@ -15,3 +15,10 @@ export {
 } from './note';
 export { tavilySearch } from './search';
 export { queryDb, type QueryDbOptions } from './db';
+export {
+  getTransactionHistory,
+  getTransactionHistoryByDateRange,
+  getAccountBalance,
+  getTransactionSummary,
+  addTransaction,
+} from './transaction';

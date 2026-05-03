@@ -12,6 +12,7 @@ export type AssetPriceType = {
   assetType: AssetType;
   currency: string;
   createdAt: Date;
+  updatedAt: Date;
   source: string;
   market: string;
 };
@@ -59,6 +60,7 @@ export class PriceService {
         assetType: latestPrice.assetType as AssetType,
         currency: latestPrice.currency,
         createdAt: latestPrice.createdAt,
+        updatedAt: latestPrice.updatedAt,
         source: latestPrice.source,
         market: latestPrice.market,
       };
@@ -194,6 +196,7 @@ export class PriceService {
         assetType: result.assetType as 'stock' | 'etf' | 'fund' | 'crypto',
         currency: result.currency,
         createdAt: result.createdAt,
+        updatedAt: result.updatedAt,
         source: result.source,
         market: (result.market || 'US').toLowerCase(),
       };
@@ -261,6 +264,7 @@ export class PriceService {
         assetType: price.assetType,
         currency: price.currency,
         createdAt: price.createdAt,
+        updatedAt: price.updatedAt,
         source: price.source,
         market: price.market,
       }));

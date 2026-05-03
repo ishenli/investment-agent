@@ -6,7 +6,12 @@ import {
   stockRecallCompanyInfoClaudeTool,
   stockSearchNewsClaudeTool,
   stockGetPriceClaudeTool,
-  dbQueryClaudeTool
+  dbQueryClaudeTool,
+  transactionHistoryClaudeTool,
+  transactionHistoryByDateClaudeTool,
+  accountBalanceClaudeTool,
+  transactionSummaryClaudeTool,
+  addTransactionClaudeTool,
 } from '@server/core/agents/langchain/tools';
 
 /**
@@ -23,20 +28,35 @@ export const igToolsServer = createSdkMcpServer({
     // Tavily 搜索工具
     TravilySearchClaudeTool,
 
-    //市场信息查询工具
+    // 市场信息查询工具
     stockRecallMarketInfoClaudeTool,
 
-    //公信息查询工具
+    // 公司信息查询工具
     stockRecallCompanyInfoClaudeTool,
 
-    //股新闻查询工具
+    // 股票新闻查询工具
     stockSearchNewsClaudeTool,
 
-    //股价格查询工具
+    // 股票价格查询工具
     stockGetPriceClaudeTool,
 
     // db 查询工具
     dbQueryClaudeTool,
+
+    // 交易历史查询工具
+    transactionHistoryClaudeTool,
+
+    // 按日期查询交易历史工具
+    transactionHistoryByDateClaudeTool,
+
+    // 账户余额查询工具
+    accountBalanceClaudeTool,
+
+    // 交易摘要查询工具
+    transactionSummaryClaudeTool,
+
+    // 添加交易记录工具
+    addTransactionClaudeTool,
 
   ],
 });

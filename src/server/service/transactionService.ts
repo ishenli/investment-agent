@@ -2,11 +2,12 @@ import { TransactionRecordType, TransactionType } from '@typings/transaction';
 import logger from '@server/base/logger';
 import positionService from './positionService';
 import { transactionRepository, type UpdateTransactionData } from '../repository/transactionRepository';
-import { transactions } from '@/drizzle/schema';
+import { transactions, assetPositions, accountFunds } from '@/drizzle/schema';
 import { eq, and, gte, lte } from 'drizzle-orm';
 import { AssetType, MarketType } from '@typings/asset';
 import { accountFundRepository } from '../repository/accountFundRepository';
 import priceService from './priceService';
+import { db } from '@server/lib/db';
 
 export class TransactionService {
   constructor() {
@@ -597,6 +598,133 @@ export class TransactionService {
       );
       return { transactions: [], totalCount: 0 };
     }
+  }
+
+  /**
+   * 撤销交易记录（软删除 + 回滚持仓/余额影响）
+   * 原子性操作：要么全部成功，要么全部回滚
+   * @param transactionId 交易ID
+   * @returns 撤销结果
+   */
+  async reverseTransaction(transactionId: string): Promise<{ success: boolean; message: string }> {
+    const txn = await transactionRepository.findById(parseInt(transactionId));
+    if (!txn) {
+      throw new Error('交易记录不存在');
+    }
+
+    if (txn.deletedAt) {
+      throw new Error('该交易记录已经被撤销');
+    }
+
+    const type = txn.type as TransactionType;
+    const accountId = txn.accountId;
+    const totalAmountCents = txn.totalAmountCents ?? 0;
+    const symbol = txn.symbol || '';
+    const quantity = txn.quantity ?? 0;
+    const priceCents = txn.priceCents ?? 0;
+
+    logger.info(
+      `[TransactionService] reverseTransaction: id=${transactionId}, type=${type}, symbol=${symbol}, accountId=${accountId}`,
+    );
+
+    // 事务外预先读取所有需要的数据（避免 SQLite 嵌套事务问题）
+    let accountFundData: { id: number; amountCents: number } | null = null;
+    let existingPosition: { id: number; quantity: number; averagePriceCents: number } | null | undefined = null;
+
+    if (type === 'deposit' || type === 'withdrawal') {
+      accountFundData = await accountFundRepository.findByAccountId(accountId);
+    }
+
+    if (type === 'buy' || type === 'sell') {
+      if (!symbol || quantity <= 0) {
+        throw new Error(`撤销失败：交易缺少必要的持仓信息 (symbol=${symbol}, quantity=${quantity})`);
+      }
+      existingPosition = await positionService.getPositionBySymbol(accountId, symbol);
+
+      // 事务前校验
+      if (type === 'buy') {
+        if (!existingPosition) {
+          throw new Error(`撤销失败：${symbol} 的持仓记录不存在`);
+        }
+        if (existingPosition.quantity < quantity) {
+          throw new Error(
+            `撤销失败：${symbol} 当前持仓数量 (${existingPosition.quantity}) 小于要撤销的数量 (${quantity})`,
+          );
+        }
+      }
+    }
+
+    // 使用数据库事务保证原子性（事务内只做写操作，避免嵌套事务）
+    await db.transaction(async (tx) => {
+      // 1. 软删除交易记录
+      await tx
+        .update(transactions)
+        .set({ deletedAt: new Date() })
+        .where(eq(transactions.id, parseInt(transactionId)));
+
+      // 2. 回滚余额（存款/取款）
+      if ((type === 'deposit' || type === 'withdrawal') && accountFundData) {
+        const balanceChangeCents = type === 'deposit' ? -totalAmountCents : totalAmountCents;
+        const newAmountCents = accountFundData.amountCents + balanceChangeCents;
+        await tx
+          .update(accountFunds)
+          .set({ amountCents: newAmountCents, updatedAt: new Date() })
+          .where(eq(accountFunds.id, accountFundData.id));
+        logger.info(
+          `[TransactionService] reverseTransaction: balance adjusted by ${balanceChangeCents / 100} for accountId=${accountId}`,
+        );
+      }
+
+      // 3. 回滚持仓（买入/卖出）
+      if (type === 'buy' || type === 'sell') {
+        if (type === 'buy') {
+          // 撤销买入：减少持仓（existingPosition 已在事务外校验不为 null）
+          const newQuantity = existingPosition!.quantity - quantity;
+          if (newQuantity === 0) {
+            await tx
+              .delete(assetPositions)
+              .where(eq(assetPositions.id, existingPosition!.id));
+          } else {
+            // 重新计算均价：移除该笔买入对均价的影响
+            const originalTotalCost = existingPosition!.averagePriceCents * existingPosition!.quantity;
+            const removedCost = priceCents * quantity;
+            const newTotalCost = originalTotalCost - removedCost;
+            const newAveragePriceCents = Math.round(newTotalCost / newQuantity);
+            await tx
+              .update(assetPositions)
+              .set({ quantity: newQuantity, averagePriceCents: newAveragePriceCents, updatedAt: new Date() })
+              .where(eq(assetPositions.id, existingPosition!.id));
+          }
+        } else {
+          // 撤销卖出：恢复持仓数量（均价不变，只加回数量）
+          if (existingPosition) {
+            await tx
+              .update(assetPositions)
+              .set({ quantity: existingPosition.quantity + quantity, updatedAt: new Date() })
+              .where(eq(assetPositions.id, existingPosition.id));
+          } else {
+            // 持仓已被完全清除，重新创建
+            const sector: AssetType = txn.market === 'CN' ? 'fund' : 'stock';
+            const currency = txn.market === 'HK' ? 'HKD' : txn.market === 'CN' ? 'CNY' : 'USD';
+            await tx
+              .insert(assetPositions)
+              .values({
+                accountId,
+                symbol,
+                quantity,
+                averagePriceCents: priceCents,
+                sector,
+                currency,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              });
+          }
+        }
+      }
+    });
+
+    logger.info(`[TransactionService] Transaction ${transactionId} reversed successfully`);
+    return { success: true, message: `交易记录撤销成功` };
   }
 
   /**
