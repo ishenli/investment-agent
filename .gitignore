@@ -67,3 +67,4 @@ packages/*/dist
 .logs
 
 docs/plans/
+docs/brainstorms/
