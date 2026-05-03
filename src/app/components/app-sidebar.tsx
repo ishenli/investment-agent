@@ -17,6 +17,7 @@ import {
   IconEye,
   IconTelescope,
   IconCamera,
+  IconNotification,
 } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 
@@ -150,6 +151,11 @@ export const data = {
       name: 'sidebar.settings.settings',
       url: '/setting',
       icon: IconSettings,
+    },
+    {
+      name: 'sidebar.settings.notification',
+      url: '/notifications',
+      icon: IconNotification,
     },
   ]
 };

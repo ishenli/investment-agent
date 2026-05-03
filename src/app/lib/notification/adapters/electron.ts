@@ -35,7 +35,7 @@ export class ElectronAdapter implements NotificationAdapter {
 
     api.showNativeNotification({
       title,
-      body: message,
+      body: message || '',
       link,
       actions: actions?.map(a => ({ id: a.id, label: a.label })),
     }).catch((err: any) => {

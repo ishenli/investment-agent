@@ -1,26 +1,26 @@
 import { notifications } from '@/drizzle/schema';
 import { db } from '../lib/db';
 import { eq, and, desc, asc, SQL, gte, lte, inArray, sql } from 'drizzle-orm';
-import type { CreateNotificationRequestType, NotificationPriority, NotificationType } from '@/types/notification';
+import type { CreateNotificationRequestType, NotificationPriorityValue, NotificationTypeValue } from '@/types/notification';
 
 export interface NotificationQueryOptions {
   userId: number;
   page?: number;
   pageSize?: number;
   isRead?: 'all' | 'read' | 'unread';
-  type?: NotificationType;
-  priority?: NotificationPriority;
+  type?: NotificationTypeValue;
+  priority?: NotificationPriorityValue;
 }
 
 export interface NotificationEntity {
   id: number;
   userId: number;
-  type: NotificationType;
+  type: NotificationTypeValue;
   title: string;
   message: string;
   data: string | null;
   isRead: boolean;
-  priority: NotificationPriority;
+  priority: NotificationPriorityValue;
   link: string | null;
   createdAt: Date;
   readAt: Date | null;

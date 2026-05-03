@@ -1,0 +1,75 @@
+{
+  "title": "Notification Center",
+  "noUnread": "No unread notifications",
+  "unreadCount": "{{count}} unread notifications",
+  "refresh": "Refresh",
+  "markAllRead": "Mark All Read",
+  "filter": {
+    "title": "Filters",
+    "status": "Status",
+    "all": "All",
+    "unread": "Unread",
+    "read": "Read",
+    "type": "Type",
+    "allTypes": "All Types",
+    "priority": "Priority",
+    "allPriority": "All"
+  },
+  "type": {
+    "price_alert": "Price Alert",
+    "trade_executed": "Trade Executed",
+    "report_completed": "Report Completed",
+    "analysis_completed": "Analysis Completed",
+    "data_refreshed": "Data Refreshed",
+    "system_announcement": "System Announcement"
+  },
+  "priority": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "urgent": "Urgent"
+  },
+  "actions": {
+    "selectAll": "Select All",
+    "totalNotifications": "{{count}} notifications",
+    "selected": "{{count}} selected",
+    "markRead": "Mark Read",
+    "archive": "Archive",
+    "delete": "Delete",
+    "confirmDelete": "Are you sure you want to delete {{count}} selected notifications?"
+  },
+  "messages": {
+    "loadFailed": "Failed to load notifications",
+    "markReadSuccess": "Marked as read",
+    "batchMarkReadSuccess": "Marked {{count}} notifications as read",
+    "archiveSuccess": "Archived {{count}} notifications",
+    "deleteSuccess": "Deleted {{count}} notifications",
+    "markAllReadSuccess": "All notifications marked as read",
+    "operationFailed": "Operation failed",
+    "batchFailed": "Batch operation failed",
+    "archiveFailed": "Batch archive failed",
+    "deleteFailed": "Batch delete failed"
+  },
+  "empty": {
+    "title": "No notifications"
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{{count}} minutes ago",
+    "hoursAgo": "{{count}} hours ago",
+    "daysAgo": "{{count}} days ago"
+  },
+  "pagination": {
+    "page": "Page {{current}} of {{total}}, {{count}} total",
+    "prev": "Previous",
+    "next": "Next"
+  },
+  "descriptions": {
+    "price_alert": "Alert when price reaches threshold",
+    "trade_executed": "Alert after trade execution",
+    "report_completed": "Alert when report is generated",
+    "analysis_completed": "Alert when analysis is done",
+    "data_refreshed": "Alert when market data is updated",
+    "system_announcement": "System maintenance and feature updates"
+  }
+}

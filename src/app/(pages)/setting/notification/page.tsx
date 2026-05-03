@@ -10,15 +10,8 @@ import { Bell, Volume2, Check } from 'lucide-react';
 import { get, put } from '@/app/lib/request';
 import { notificationManager } from '@/app/lib/notification';
 import type { NotificationPreferences, NotificationTypeValue } from '@/types/notification';
+import { useTranslation } from 'react-i18next';
 
-const NOTIFICATION_TYPE_LABELS: Record<NotificationTypeValue, string> = {
-  report_completed: '报告完成',
-  analysis_completed: '分析完成',
-  data_refreshed: '数据刷新',
-  system_announcement: '系统公告',
-  trade_executed: '交易执行',
-  price_alert: '价格预警',
-};
 
 const NOTIFICATION_TYPE_ORDER: NotificationTypeValue[] = [
   'price_alert',
@@ -30,6 +23,7 @@ const NOTIFICATION_TYPE_ORDER: NotificationTypeValue[] = [
 ];
 
 export default function NotificationSettings() {
+  const { t } = useTranslation("settingNotification");
   const [preferences, setPreferences] = React.useState<NotificationPreferences>({
     osNotificationsEnabled: true,
     soundEnabled: false,
@@ -107,9 +101,9 @@ export default function NotificationSettings() {
     <div className="flex-1 flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">通知设置</h1>
+          <h1 className="text-2xl font-bold">{t('notifications')}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            管理通知偏好和推送设置
+            {t('notificationDescription' as any)}
           </p>
         </div>
         {saved && (
@@ -128,17 +122,17 @@ export default function NotificationSettings() {
               <Bell className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <CardTitle>系统通知</CardTitle>
-              <CardDescription>控制是否接收操作系统级别的通知</CardDescription>
+              <CardTitle>{t('general.enableNotification' as any)}</CardTitle>
+              <CardDescription>{t('notificationDescription' as any)}</CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="os-notifications">启用 OS 通知</Label>
+              <Label htmlFor="os-notifications">{t('general.enableNotification' as any)}</Label>
               <p className="text-sm text-muted-foreground">
-                通过系统通知中心接收重要提醒
+                {t('notificationDescription' as any)}
               </p>
             </div>
             <Switch
@@ -152,8 +146,8 @@ export default function NotificationSettings() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="sound">提示音</Label>
-              <p className="text-sm text-muted-foreground">通知到达时播放声音（暂不支持）</p>
+              <Label htmlFor="sound">{t('general.enableNotification' as any)}</Label>
+              <p className="text-sm text-muted-foreground">{t('notificationDescription' as any)}</p>
             </div>
             <Switch
               id="sound"
@@ -173,16 +167,16 @@ export default function NotificationSettings() {
               <Volume2 className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <CardTitle>通知类型</CardTitle>
-              <CardDescription>按类型控制接收哪些通知</CardDescription>
+              <CardTitle>{t('general.enableNotification' as any)}</CardTitle>
+              <CardDescription>{t('notificationDescription' as any)}</CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>全选</Label>
-              <p className="text-sm text-muted-foreground">快速开启或关闭所有类型</p>
+              <Label>{t('actions.selectAll' as any)}</Label>
+              <p className="text-sm text-muted-foreground">{t('notificationDescription' as any)}</p>
             </div>
             <Switch
               id="toggle-all-types"
@@ -196,19 +190,9 @@ export default function NotificationSettings() {
           {NOTIFICATION_TYPE_ORDER.map((type) => (
             <div key={type} className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor={`type-${type}`}>{NOTIFICATION_TYPE_LABELS[type]}</Label>
+                <Label htmlFor={`type-${type}`}>{t(`type.${type}` as any)}</Label>
                 <p className="text-sm text-muted-foreground">
-                  {type === 'price_alert'
-                    ? '价格达到设定阈值时提醒'
-                    : type === 'trade_executed'
-                      ? '交易成功执行后提醒'
-                      : type === 'report_completed'
-                        ? '报告生成完成后提醒'
-                        : type === 'analysis_completed'
-                          ? '分析任务完成后提醒'
-                          : type === 'data_refreshed'
-                            ? '市场数据更新后提醒'
-                            : '系统维护和功能更新公告'}
+                  {t(`descriptions.${type}` as any)}
                 </p>
               </div>
               <Switch
@@ -222,9 +206,9 @@ export default function NotificationSettings() {
       </Card>
 
       <div className="flex justify-end gap-4">
-        <Button variant="outline">取消</Button>
+        <Button variant="outline">{t('actions.cancel' as any)}</Button>
         <Button onClick={handleSave} disabled={isSaving}>
-          {isSaving ? '保存中...' : '保存设置'}
+          {isSaving ? t('actions.saving' as any) : t('actions.saveSettings' as any)}
         </Button>
       </div>
     </div>

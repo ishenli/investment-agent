@@ -39,7 +39,7 @@ export const CreateNotificationRequestSchema = z.object({
   type: z.enum(NotificationTypeEnum),
   title: z.string().min(1).max(200),
   message: z.string().min(1).max(1000),
-  data: z.record(z.any()).optional(), // 任意 JSON 对象
+  data: z.record(z.string(), z.any()).optional(), // 任意 JSON 对象
   priority: z.enum(NotificationPriorityEnum).default('medium'),
   link: z.string().optional(),
   userId: z.number().optional(), // 如果不提供，则使用当前用户
@@ -94,8 +94,8 @@ export type NotificationListResponseType = z.infer<typeof NotificationListRespon
 export const NotificationStatsSchema = z.object({
   totalCount: z.number(),
   unreadCount: z.number(),
-  unreadByType: z.record(z.number()), // { [type]: count }
-  unreadByPriority: z.record(z.number()), // { [priority]: count }
+  unreadByType: z.record(z.string(), z.number()), // { [type]: count }
+  unreadByPriority: z.record(z.string(), z.number()), // { [priority]: count }
 });
 
 export type NotificationStatsType = z.infer<typeof NotificationStatsSchema>;
@@ -104,7 +104,7 @@ export type NotificationStatsType = z.infer<typeof NotificationStatsSchema>;
 export const NotificationPreferencesSchema = z.object({
   osNotificationsEnabled: z.boolean().default(true),
   soundEnabled: z.boolean().default(false),
-  types: z.record(z.boolean()).default({}),
+  types: z.record(z.string(), z.boolean()).default({}),
 });
 
 export type NotificationPreferences = z.infer<typeof NotificationPreferencesSchema>;

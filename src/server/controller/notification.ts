@@ -23,10 +23,11 @@ export class NotificationBizController extends BaseBizController {
   @WithRequestContext()
   async getNotifications(query: Record<string, unknown>) {
     try {
-      const userId = await authService.getCurrentUserId();
-      if (!userId) {
+      const userIdStr = await authService.getCurrentUserId();
+      if (!userIdStr) {
         return this.error('用户未登录', 'unauthorized');
       }
+      const userId = parseInt(userIdStr);
 
       // 参数验证
       const validationResult = GetNotificationsRequestSchema.safeParse({
@@ -57,10 +58,11 @@ export class NotificationBizController extends BaseBizController {
   @WithRequestContext()
   async createNotification(body: CreateNotificationRequestType) {
     try {
-      const userId = await authService.getCurrentUserId();
-      if (!userId) {
+      const userIdStr = await authService.getCurrentUserId();
+      if (!userIdStr) {
         return this.error('用户未登录', 'unauthorized');
       }
+      const userId = parseInt(userIdStr);
 
       // 参数验证
       const validationResult = CreateNotificationRequestSchema.safeParse(body);
@@ -88,10 +90,11 @@ export class NotificationBizController extends BaseBizController {
   @WithRequestContext()
   async markAsRead(params: MarkReadRequestType) {
     try {
-      const userId = await authService.getCurrentUserId();
-      if (!userId) {
+      const userIdStr = await authService.getCurrentUserId();
+      if (!userIdStr) {
         return this.error('用户未登录', 'unauthorized');
       }
+      const userId = parseInt(userIdStr);
 
       // 参数验证
       const validationResult = MarkReadRequestSchema.safeParse(params);
@@ -125,10 +128,11 @@ export class NotificationBizController extends BaseBizController {
   @WithRequestContext()
   async markAllAsRead() {
     try {
-      const userId = await authService.getCurrentUserId();
-      if (!userId) {
+      const userIdStr = await authService.getCurrentUserId();
+      if (!userIdStr) {
         return this.error('用户未登录', 'unauthorized');
       }
+      const userId = parseInt(userIdStr);
 
       const count = await notificationService.markAllAsRead(userId);
 
@@ -145,10 +149,11 @@ export class NotificationBizController extends BaseBizController {
   @WithRequestContext()
   async deleteNotification(params: DeleteNotificationRequestType) {
     try {
-      const userId = await authService.getCurrentUserId();
-      if (!userId) {
+      const userIdStr = await authService.getCurrentUserId();
+      if (!userIdStr) {
         return this.error('用户未登录', 'unauthorized');
       }
+      const userId = parseInt(userIdStr);
 
       // 参数验证
       const validationResult = DeleteNotificationRequestSchema.safeParse(params);
@@ -182,10 +187,11 @@ export class NotificationBizController extends BaseBizController {
   @WithRequestContext()
   async getStats() {
     try {
-      const userId = await authService.getCurrentUserId();
-      if (!userId) {
+      const userIdStr = await authService.getCurrentUserId();
+      if (!userIdStr) {
         return this.error('用户未登录', 'unauthorized');
       }
+      const userId = parseInt(userIdStr);
 
       const stats = await notificationService.getStats(userId);
 
@@ -202,10 +208,11 @@ export class NotificationBizController extends BaseBizController {
   @WithRequestContext()
   async getUnreadCount() {
     try {
-      const userId = await authService.getCurrentUserId();
-      if (!userId) {
+      const userIdStr = await authService.getCurrentUserId();
+      if (!userIdStr) {
         return this.error('用户未登录', 'unauthorized');
       }
+      const userId = parseInt(userIdStr);
 
       const count = await notificationService.getUnreadCount(userId);
 

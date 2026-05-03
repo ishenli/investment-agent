@@ -18,7 +18,8 @@
       "tradeRecords": "交易记录"
     },
     "settings": {
-      "settings": "设置"
+      "settings": "设置",
+      "notification": "通知中心"
     }
   },
   "thinking": {

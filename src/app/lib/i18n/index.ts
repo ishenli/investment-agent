@@ -47,6 +47,8 @@ export const namespaces = [
   'asset-market-info',
   'asset-market-info-fetcher',
   'asset-management',
+  'notification',
+  'settingNotification',
 ] as const;
 
 const dayjsLocaleMap: Record<string, string> = {
@@ -67,6 +69,7 @@ import zhCNCommon from '@/locales/zh-CN/common.json';
 import zhCNChat from '@/locales/zh-CN/chat.json';
 import zhCNTool from '@/locales/zh-CN/tool.json';
 import zhCNSetting from '@/locales/zh-CN/setting.json';
+import zhCNSettingNotification from '@/locales/zh-CN/setting.notification.json';
 import zhCNPlugin from '@/locales/zh-CN/plugin.json';
 import zhCNTopic from '@/locales/zh-CN/topic.json';
 import zhCNPortal from '@/locales/zh-CN/portal.json';
@@ -85,6 +88,7 @@ import zhCNAccount from '@/locales/zh-CN/account.json';
 import zhCNAssetMarketInfo from '@/locales/zh-CN/asset-market-info.json';
 import zhCNAssetMarketInfoFetcher from '@/locales/zh-CN/asset-market-info-fetcher.json';
 import zhCNAssetManagement from '@/locales/zh-CN/asset-management.json';
+import zhCNNotification from '@/locales/zh-CN/notification.json';
 
 
 import enUSCommon from '@/locales/en-US/common.json';
@@ -109,6 +113,8 @@ import enUSAccount from '@/locales/en-US/account.json';
 import enUSAssetMarketInfo from '@/locales/en-US/asset-market-info.json';
 import enUSAssetMarketInfoFetcher from '@/locales/en-US/asset-market-info-fetcher.json';
 import enUSAssetManagement from '@/locales/en-US/asset-management.json';
+import enUSNotification from '@/locales/en-US/notification.json';
+import enUSSettingNotification from '@/locales/en-US/setting.notification.json';
 
 
 
@@ -118,6 +124,7 @@ export const resources = {
     chat: zhCNChat,
     tool: zhCNTool,
     setting: zhCNSetting,
+    settingNotification: zhCNSettingNotification,
     plugin: zhCNPlugin,
     topic: zhCNTopic,
     portal: zhCNPortal,
@@ -136,12 +143,14 @@ export const resources = {
     'asset-market-info': zhCNAssetMarketInfo,
     'asset-market-info-fetcher': zhCNAssetMarketInfoFetcher,
     'asset-management': zhCNAssetManagement,
+    notification: zhCNNotification,
   },
   'en-US': {
     common: enUSCommon,
     chat: enUSChat,
     tool: enUSTool,
     setting: enUSSetting,
+    settingNotification: enUSSettingNotification,
     plugin: enUSPlugin,
     topic: enUSTopic,
     portal: enUSPortal,
@@ -160,6 +169,7 @@ export const resources = {
     'asset-market-info': enUSAssetMarketInfo,
     'asset-market-info-fetcher': enUSAssetMarketInfoFetcher,
     'asset-management': enUSAssetManagement,
+    notification: enUSNotification,
   },
 
 };
