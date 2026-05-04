@@ -1,13 +1,23 @@
 import portfolioAnalysisService from '@server/service/portfolioAnalysisService';
+import authService from '@server/service/authService';
 
 /**
  * Query the user's portfolio overview, returning a compact summary
  * suitable for immediate consumption by the agent.
  *
+ * 自动获取当前用户账户 ID，不依赖外部传入（防止 AI 编造无效 ID）。
+ *
  * Includes: total market value, cash balance, position count,
  * unrealized PnL, risk level, and a brief holdings list.
  */
-export async function queryPortfolio(accountId: string): Promise<string> {
+export async function queryPortfolio(_accountId: string): Promise<string> {
+  // 自动获取当前用户账户 ID，忽略外部传入的 accountId（防止 AI 编造无效 ID）
+  const accountInfo = await authService.getCurrentUserAccount();
+  if (!accountInfo) {
+    throw new Error('无法获取当前账户信息，请确认用户已登录');
+  }
+  const accountId = accountInfo.id;
+
   const analysis = await portfolioAnalysisService.getPortfolioAnalysis(accountId);
   const risk = portfolioAnalysisService.calculateRiskScore(
     analysis.portfolioMetrics,

@@ -114,13 +114,11 @@ const dbQuerySchema = Type.Object({
 
 // Transaction Schemas
 const transactionHistorySchema = Type.Object({
-  account_id: Type.String({ description: '账户 ID' }),
   limit: Type.Optional(Type.Number({ description: '返回记录数量限制（默认 50）' })),
   offset: Type.Optional(Type.Number({ description: '偏移量（用于分页，默认 0）' })),
 });
 
 const transactionHistoryByDateSchema = Type.Object({
-  account_id: Type.String({ description: '账户 ID' }),
   start_date: Type.String({ description: '开始日期（YYYY-MM-DD 格式）' }),
   end_date: Type.String({ description: '结束日期（YYYY-MM-DD 格式）' }),
   limit: Type.Optional(Type.Number({ description: '返回记录数量限制' })),
@@ -128,17 +126,14 @@ const transactionHistoryByDateSchema = Type.Object({
 });
 
 const accountBalanceSchema = Type.Object({
-  account_id: Type.String({ description: '账户 ID' }),
+  before_transaction_id: Type.Optional(Type.String({ description: '计算到指定交易之前的余额' })),
 });
 
 const transactionSummarySchema = Type.Object({
-  account_id: Type.String({ description: '账户 ID' }),
   limit: Type.Optional(Type.Number({ description: '记录数量限制（默认 50）' })),
 });
 
-const portfolioQuerySchema = Type.Object({
-  account_id: Type.String({ description: '账户 ID' }),
-});
+const portfolioQuerySchema = Type.Object({});
 
 const addTransactionSchema = Type.Object({
   account_id: Type.String({ description: '账户 ID' }),
@@ -460,7 +455,7 @@ export function registerBusinessTools(
       async (_id, args) =>
         wrap(async () =>
           getTransactionHistory(
-            String(args.account_id),
+            '',
             args.limit ? Number(args.limit) : undefined,
             args.offset ? Number(args.offset) : undefined,
           ),
@@ -476,7 +471,7 @@ export function registerBusinessTools(
       async (_id, args) =>
         wrap(async () =>
           getTransactionHistoryByDateRange(
-            String(args.account_id),
+            '',
             String(args.start_date),
             String(args.end_date),
             args.limit ? Number(args.limit) : undefined,
@@ -489,11 +484,14 @@ export function registerBusinessTools(
   if (enabled.has('account_balance')) {
     registry.register(
       'account_balance',
-      '获取账户当前余额（直接查询账户资金记录）',
+      '获取账户当前余额（直接读取账户资金字段）',
       accountBalanceSchema,
       async (_id, args) =>
         wrap(async () =>
-          getAccountBalance(String(args.account_id)),
+          getAccountBalance(
+            '',
+            args.before_transaction_id ? String(args.before_transaction_id) : undefined,
+          ),
         )(),
     );
   }
@@ -506,7 +504,7 @@ export function registerBusinessTools(
       async (_id, args) =>
         wrap(async () =>
           getTransactionSummary(
-            String(args.account_id),
+            '',
             args.limit ? Number(args.limit) : undefined,
           ),
         )(),
@@ -707,7 +705,7 @@ export function registerBusinessTools(
       portfolioQuerySchema,
       async (_id, args) =>
         wrap(async () =>
-          queryPortfolio(String(args.account_id)),
+          queryPortfolio(''),
         )(),
     );
   }

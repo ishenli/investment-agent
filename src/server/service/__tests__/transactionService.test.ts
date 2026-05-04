@@ -578,9 +578,8 @@ describe('TransactionService', () => {
   });
 
   describe('getAccountBalance', () => {
-    it('应该返回账户余额', async () => {
+    it('应该直接返回 account_funds 字段作为当前余额', async () => {
       vi.mocked(accountFundRepository.findByAccountId).mockResolvedValue(mockAccountFund);
-      vi.mocked(transactionRepository.findByAccountId).mockResolvedValue([]);
 
       const result = await transactionService.getAccountBalance('1');
 
@@ -595,6 +594,91 @@ describe('TransactionService', () => {
       expect(result).toBe(0);
     });
 
-    
+    it('不会因交易记录重复累加 存款 余额（account_funds 已含存款影响）', async () => {
+      const depositTransaction = {
+        ...mockTransaction,
+        type: 'deposit' as TransactionType,
+        totalAmountCents: 50000,
+      };
+      vi.mocked(accountFundRepository.findByAccountId).mockResolvedValue(mockAccountFund);
+      vi.mocked(transactionRepository.findByAccountId).mockResolvedValue([depositTransaction]);
+
+      const result = await transactionService.getAccountBalance('1');
+
+      expect(result).toBe(1000);
+    });
+
+    it('不会因交易记录重复累加 取款 余额（account_funds 已含取款影响）', async () => {
+      const withdrawalTransaction = {
+        ...mockTransaction,
+        type: 'withdrawal' as TransactionType,
+        totalAmountCents: 50000,
+      };
+      vi.mocked(accountFundRepository.findByAccountId).mockResolvedValue(mockAccountFund);
+      vi.mocked(transactionRepository.findByAccountId).mockResolvedValue([withdrawalTransaction]);
+
+      const result = await transactionService.getAccountBalance('1');
+
+      expect(result).toBe(1000);
+    });
+
+    it('买入交易不影响 account_funds，余额保持不变', async () => {
+      const buyTransaction = {
+        ...mockTransaction,
+        type: 'buy' as TransactionType,
+        totalAmountCents: 50000,
+      };
+      vi.mocked(accountFundRepository.findByAccountId).mockResolvedValue(mockAccountFund);
+      vi.mocked(transactionRepository.findByAccountId).mockResolvedValue([buyTransaction]);
+
+      const result = await transactionService.getAccountBalance('1');
+
+      expect(result).toBe(1000);
+    });
+
+    it('卖出交易不影响 account_funds，余额保持不变', async () => {
+      const sellTransaction = {
+        ...mockTransaction,
+        type: 'sell' as TransactionType,
+        totalAmountCents: 50000,
+      };
+      vi.mocked(accountFundRepository.findByAccountId).mockResolvedValue(mockAccountFund);
+      vi.mocked(transactionRepository.findByAccountId).mockResolvedValue([sellTransaction]);
+
+      const result = await transactionService.getAccountBalance('1');
+
+      expect(result).toBe(1000);
+    });
+
+    it('数据库错误时应该返回 0', async () => {
+      vi.mocked(accountFundRepository.findByAccountId).mockRejectedValue(new Error('Database error'));
+
+      const result = await transactionService.getAccountBalance('1');
+
+      expect(result).toBe(0);
+    });
+
+    it('beforeTransactionId 应回滚目标交易（含）之后的出入金影响', async () => {
+      const targetTime = new Date('2024-01-01T00:00:00Z');
+      const laterDeposit = {
+        ...mockTransaction,
+        id: 200,
+        type: 'deposit' as TransactionType,
+        totalAmountCents: 30000,
+        createdAt: new Date('2024-02-01T00:00:00Z'),
+      };
+      vi.mocked(accountFundRepository.findByAccountId).mockResolvedValue(mockAccountFund);
+      vi.mocked(transactionRepository.findById).mockResolvedValue({
+        ...mockTransaction,
+        id: 123,
+        createdAt: targetTime,
+      });
+      vi.mocked(transactionRepository.findByAccountId).mockResolvedValue([laterDeposit]);
+
+      const result = await transactionService.getAccountBalance('1', 123);
+
+      // 1000 - 300 (回滚后续存款) = 700
+      expect(result).toBe(700);
+    });
   });
 });

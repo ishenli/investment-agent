@@ -14,16 +14,25 @@ import type { TransactionType } from '@typings/transaction';
 /**
  * 获取账户的交易历史记录
  *
- * @param accountId - 账户 ID
+ * 自动获取当前用户账户 ID，不依赖外部传入（防止 AI 编造无效 ID）。
+ *
+ * @param _accountId - 已废弃，忽略外部传入的 accountId
  * @param limit - 返回记录数量限制（默认 50）
  * @param offset - 偏移量（用于分页）
  * @returns 格式化的交易历史字符串
  */
 export async function getTransactionHistory(
-  accountId: string,
+  _accountId: string,
   limit?: number,
   offset?: number,
 ): Promise<string> {
+  // 自动获取当前用户账户 ID，忽略外部传入的 accountId（防止 AI 编造无效 ID）
+  const accountInfo = await authService.getCurrentUserAccount();
+  if (!accountInfo) {
+    throw new Error('无法获取当前账户信息，请确认用户已登录');
+  }
+  const accountId = accountInfo.id;
+
   logger.info(`[business/transaction] getTransactionHistory: accountId=${accountId}, limit=${limit}, offset=${offset}`);
 
   try {
@@ -57,7 +66,9 @@ export async function getTransactionHistory(
 /**
  * 按日期范围查询交易历史
  *
- * @param accountId - 账户 ID
+ * 自动获取当前用户账户 ID，不依赖外部传入（防止 AI 编造无效 ID）。
+ *
+ * @param _accountId - 已废弃，忽略外部传入的 accountId
  * @param startDate - 开始日期（ISO 格式字符串）
  * @param endDate - 结束日期（ISO 格式字符串）
  * @param limit - 返回记录数量限制
@@ -65,12 +76,19 @@ export async function getTransactionHistory(
  * @returns 格式化的交易历史字符串
  */
 export async function getTransactionHistoryByDateRange(
-  accountId: string,
+  _accountId: string,
   startDate: string,
   endDate: string,
   limit?: number,
   offset?: number,
 ): Promise<string> {
+  // 自动获取当前用户账户 ID，忽略外部传入的 accountId（防止 AI 编造无效 ID）
+  const accountInfo = await authService.getCurrentUserAccount();
+  if (!accountInfo) {
+    throw new Error('无法获取当前账户信息，请确认用户已登录');
+  }
+  const accountId = accountInfo.id;
+
   logger.info(`[business/transaction] getTransactionHistoryByDateRange: accountId=${accountId}, ${startDate} ~ ${endDate}`);
 
   try {
@@ -111,13 +129,26 @@ export async function getTransactionHistoryByDateRange(
 }
 
 /**
- * 获取账户当前余额（直接查询 accountFunds 表）
+ * 获取账户当前余额（直接读取 account_funds 字段）
  *
- * @param accountId - 账户 ID
+ * 自动获取当前用户账户 ID，不依赖外部传入（防止 AI 编造无效 ID）。
+ *
+ * @param _accountId - 已废弃，忽略外部传入的 accountId
+ * @param beforeTransactionId - 可选，返回该交易发生前的余额
  * @returns 账户余额
  */
-export async function getAccountBalance(accountId: string): Promise<string> {
-  logger.info(`[business/transaction] getAccountBalance: accountId=${accountId}`);
+export async function getAccountBalance(
+  _accountId: string,
+  beforeTransactionId?: string,
+): Promise<string> {
+  // 自动获取当前用户账户 ID，忽略外部传入的 accountId（防止 AI 编造无效 ID）
+  const accountInfo = await authService.getCurrentUserAccount();
+  if (!accountInfo) {
+    throw new Error('无法获取当前账户信息，请确认用户已登录');
+  }
+  const accountId = accountInfo.id;
+
+  logger.info(`[business/transaction] getAccountBalance: accountId=${accountId}, beforeTransactionId=${beforeTransactionId}`);
 
   try {
     const tradingAccount = await accountService.getTradingAccount(accountId);
@@ -134,14 +165,23 @@ export async function getAccountBalance(accountId: string): Promise<string> {
 /**
  * 获取交易记录摘要（Markdown 格式）
  *
- * @param accountId - 账户 ID
+ * 自动获取当前用户账户 ID，不依赖外部传入（防止 AI 编造无效 ID）。
+ *
+ * @param _accountId - 已废弃，忽略外部传入的 accountId
  * @param limit - 记录数量限制（默认 50）
  * @returns Markdown 格式的交易摘要
  */
 export async function getTransactionSummary(
-  accountId: string,
+  _accountId: string,
   limit?: number,
 ): Promise<string> {
+  // 自动获取当前用户账户 ID，忽略外部传入的 accountId（防止 AI 编造无效 ID）
+  const accountInfo = await authService.getCurrentUserAccount();
+  if (!accountInfo) {
+    throw new Error('无法获取当前账户信息，请确认用户已登录');
+  }
+  const accountId = accountInfo.id;
+
   logger.info(`[business/transaction] getTransactionSummary: accountId=${accountId}, limit=${limit}`);
 
   try {
