@@ -23,6 +23,7 @@ import { IterationBudget } from './budget';
 import { HermesAgentError } from './error';
 import { withRetry } from './retry';
 import { ContextCompressor } from './context';
+import { buildMemoryContextBlock } from './memory-manager';
 import type {
   AgentConfig,
   AgentCallbacks,
@@ -45,6 +46,8 @@ export async function runAgentLoop(
     toolExecutor,
     streaming = true,
     streamOptions,
+    memoryManager,
+    turnNumber = 1,
   } = config;
 
   const budget = new IterationBudget(maxIterations);
@@ -58,6 +61,54 @@ export async function runAgentLoop(
     model.contextWindow && model.contextWindow > 0
       ? new ContextCompressor({ contextLength: model.contextWindow })
       : null;
+
+  // Save original user message and prefetch memory before the loop
+  let originalUserContent = '';
+  const userMessages = context.messages.filter((m) => m.role === 'user');
+  const lastUserMsg = userMessages[userMessages.length - 1];
+  if (lastUserMsg && typeof lastUserMsg.content === 'string') {
+    originalUserContent = lastUserMsg.content;
+  }
+
+  if (memoryManager && originalUserContent) {
+    try {
+      memoryManager.onTurnStart(turnNumber, originalUserContent);
+      // Strip any existing ephemeral memory-context blocks before injecting the new one.
+      context.messages = context.messages.filter(
+        (m) => !(m.role === 'user' && typeof m.content === 'string' && m.content.startsWith('<memory-context>')),
+      );
+      if (signal?.aborted) {
+        console.warn('[AgentLoop] Memory prefetch skipped: aborted');
+      } else {
+        const prefetchTimeoutMs = (streamOptions?.memoryPrefetchTimeoutMs as number) ?? 5_000;
+        const prefetch = await withTimeout(
+          memoryManager.prefetchAll(originalUserContent, ''),
+          prefetchTimeoutMs,
+          `Memory prefetch timed out after ${prefetchTimeoutMs}ms`,
+        );
+        if (prefetch?.trim()) {
+        // Find the last user message by content (more robust than reference equality)
+        let lastUserIndex = -1;
+        for (let i = context.messages.length - 1; i >= 0; i--) {
+          const m = context.messages[i];
+          if (m.role === 'user' && typeof m.content === 'string' && m.content === originalUserContent) {
+            lastUserIndex = i;
+            break;
+          }
+        }
+        if (lastUserIndex >= 0) {
+          context.messages.splice(lastUserIndex, 0, {
+            role: 'user',
+            content: buildMemoryContextBlock(prefetch),
+            timestamp: Date.now(),
+          });
+        }
+        }
+      }
+    } catch (e) {
+      console.warn('[AgentLoop] Memory prefetch failed:', e);
+    }
+  }
 
   while (!budget.exhausted) {
     // Check abort signal before each iteration
@@ -139,6 +190,22 @@ export async function runAgentLoop(
     // No tool calls → final response, we're done
     if (toolCalls.length === 0) {
       const finalText = extractText(response);
+
+      // Sync memory for this turn
+      if (memoryManager && originalUserContent) {
+        try {
+          const syncTimeoutMs = (streamOptions?.memorySyncTimeoutMs as number) ?? 10_000;
+          await withTimeout(
+            memoryManager.syncAll(originalUserContent, finalText, ''),
+            syncTimeoutMs,
+            `Memory sync timed out after ${syncTimeoutMs}ms`,
+          );
+          memoryManager.queuePrefetchAll(originalUserContent, '');
+        } catch (e) {
+          console.warn('[AgentLoop] Memory sync failed:', e);
+        }
+      }
+
       return {
         context,
         completed: true,
@@ -219,7 +286,21 @@ export async function runAgentLoop(
     }
   }
 
-  // Budget exhausted
+  // Budget exhausted — sync best-effort before returning
+  if (memoryManager && originalUserContent) {
+    try {
+      const syncTimeoutMs = (streamOptions?.memorySyncTimeoutMs as number) ?? 10_000;
+      await withTimeout(
+        memoryManager.syncAll(originalUserContent, '', ''),
+        syncTimeoutMs,
+        `Memory sync timed out after ${syncTimeoutMs}ms`,
+      );
+      memoryManager.queuePrefetchAll(originalUserContent, '');
+    } catch (e) {
+      console.warn('[AgentLoop] Memory sync failed:', e);
+    }
+  }
+
   return {
     context,
     completed: false,

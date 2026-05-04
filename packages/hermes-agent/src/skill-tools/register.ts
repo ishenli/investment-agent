@@ -43,6 +43,12 @@ export interface SkillToolsConfig {
    * Which skill tools to enable (default: all).
    */
   enable?: ('skills_list' | 'skill_view' | 'skill_manage')[];
+
+  /**
+   * If provided, only skills whose slug is in this set are discoverable / viewable.
+   * Used to respect UI-level skill enablement toggles.
+   */
+  enabledSlugs?: string[];
 }
 
 /**
@@ -67,7 +73,7 @@ export function registerSkillTools(
       'List all available skills with name, description, and category. ' +
         'Use this first to discover skills, then skill_view to load full instructions.',
       skillsListSchema,
-      createSkillsListHandler(config.skillRoots),
+      createSkillsListHandler(config.skillRoots, config.enabledSlugs),
     );
   }
 
@@ -81,6 +87,7 @@ export function registerSkillTools(
       createSkillViewHandler(config.skillRoots, {
         preprocessing: config.preprocessing,
         sessionId: config.sessionId,
+        enabledSlugs: config.enabledSlugs,
       }),
     );
   }

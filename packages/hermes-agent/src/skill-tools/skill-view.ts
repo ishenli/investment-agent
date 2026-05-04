@@ -34,8 +34,10 @@ export function createSkillViewHandler(
   config: {
     preprocessing?: PreprocessingConfig;
     sessionId?: string;
+    enabledSlugs?: string[];
   } = {},
 ) {
+  const enabledSet = config.enabledSlugs ? new Set(config.enabledSlugs) : undefined;
   return async function skillViewHandler(
     _toolCallId: string,
     args: Record<string, unknown>,
@@ -46,6 +48,13 @@ export function createSkillViewHandler(
     if (!name) {
       return {
         content: [{ type: 'text', text: 'Error: skill name is required' }],
+        isError: true,
+      };
+    }
+
+    if (enabledSet && !enabledSet.has(name)) {
+      return {
+        content: [{ type: 'text', text: `Skill "${name}" is not enabled.` }],
         isError: true,
       };
     }

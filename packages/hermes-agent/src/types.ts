@@ -114,4 +114,8 @@ export interface AgentConfig {
   streaming?: boolean;
   /** Options forwarded to pi-ai stream()/complete() calls (apiKey, signal, etc.) */
   streamOptions?: StreamOptions;
+  /** Optional memory manager for prefetch/sync */
+  memoryManager?: import('./memory-manager').MemoryManager;
+  /** Monotonic turn counter for session-level memory tracking */
+  turnNumber?: number;
 }
