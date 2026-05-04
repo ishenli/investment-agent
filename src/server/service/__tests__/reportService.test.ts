@@ -15,6 +15,7 @@ vi.mock('@/drizzle/schema', () => ({
   assetMeta: {},
   assetMarketInfo: {},
   assetMarketInfoToAssetMeta: {},
+  userSelectedAccounts: {},
 }));
 
 // Mock Repository 单例
