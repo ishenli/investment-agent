@@ -1,12 +1,12 @@
 import { MemorySaver } from "@langchain/langgraph";
 import { chatModelOpenAISync } from "../../provider/chatModel";
-import { noteQueryTool, stockGetPriceTool, stockRecallCompanyInfoTool, stockRecallMarketInfoTool, stockSearchNewsTool, TravilySearchTool } from "../../tools";
+import { noteQueryTool, stockGetPriceTool, stockRecallCompanyInfoTool, stockRecallMarketInfoTool, stockSearchNewsTool, TravilySearchTool, portfolioQueryTool } from "../../tools";
 import { createDeepAgent } from "deepagents";
 
 const checkpointer = new MemorySaver();
 
 // System prompt for the investment advisor agent
-export const SYSTEM_PROMPT = `你是一个投资咨询助手，用户会给你一定的信息，包含用户的持仓情况、资产的价格以及相关的投资笔记，请支持以下意图的专业咨询：
+export const SYSTEM_PROMPT = `你是一个投资咨询助手，请支持以下意图的专业咨询。如有需要，可以使用工具查询用户的持仓、资产价格和投资笔记：
 ### 咨询范围
 1. portfolio_analysis: 投资组合分析（如"我的持仓风险如何？"、"账户盈亏情况怎么样？"）
 2. stock_research: 个股研究（如"请分析一下特斯拉股票"、"AAPL的最新情况"）
@@ -34,6 +34,7 @@ export const agent: Awaited<ReturnType<typeof createDeepAgent>> = createDeepAgen
     stockRecallCompanyInfoTool,
     noteQueryTool,
     TravilySearchTool,
+    portfolioQueryTool,
   ],
   systemPrompt: SYSTEM_PROMPT,
 });

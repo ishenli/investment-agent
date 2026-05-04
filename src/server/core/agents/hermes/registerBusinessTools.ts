@@ -23,6 +23,7 @@ import {
   getAccountBalance,
   getTransactionSummary,
   addTransaction,
+  queryPortfolio,
 } from '@server/core/business';
 import logger from '@server/base/logger';
 import { MarketBizController } from '@server/controller/market';
@@ -135,6 +136,10 @@ const transactionSummarySchema = Type.Object({
   limit: Type.Optional(Type.Number({ description: '记录数量限制（默认 50）' })),
 });
 
+const portfolioQuerySchema = Type.Object({
+  account_id: Type.String({ description: '账户 ID' }),
+});
+
 const addTransactionSchema = Type.Object({
   account_id: Type.String({ description: '账户 ID' }),
   type: Type.String({ description: '交易类型: deposit | withdrawal | buy | sell' }),
@@ -240,7 +245,8 @@ export type BusinessToolName =
   | 'asset_market_info_update'
   | 'asset_market_info_delete'
   | 'report_list'
-  | 'report_detail';
+  | 'report_detail'
+  | 'portfolio_query';
 
 export interface BusinessToolsConfig {
   enable?: BusinessToolName[];
@@ -280,6 +286,7 @@ export function registerBusinessTools(
         'asset_market_info_delete',
         'report_list',
         'report_detail',
+        'portfolio_query',
       ]);
 
   const wrap =
@@ -690,6 +697,18 @@ export function registerBusinessTools(
           });
           return unwrap(result);
         })(),
+    );
+  }
+    
+  if (enabled.has('portfolio_query')) {
+    registry.register(
+      'portfolio_query',
+      '查询用户投资组合概览（市值、持仓、盈亏、风险等级）。当用户询问持仓、资产、盈亏或风险时，优先调用此工具而非 db_query。',
+      portfolioQuerySchema,
+      async (_id, args) =>
+        wrap(async () =>
+          queryPortfolio(String(args.account_id)),
+        )(),
     );
   }
 }

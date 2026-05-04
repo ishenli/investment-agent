@@ -8,8 +8,6 @@ import {
   noteQueryTool,
   TravilySearchTool,
 } from '../../tools';
-import portfolioAnalysisService from '@server/service/portfolioAnalysisService';
-import transactionService from '@server/service/transactionService';
 import { recordPrompt } from '@/server/utils/file';
 import logger from '@/server/base/logger';
 import { chatModelOpenAI } from '../../provider/chatModel';
@@ -39,7 +37,7 @@ function stripPluginInstructions(content: string): string {
 /**
  * 过滤并清理传入的 messages 数组
  * 1. 移除 LobeChat 注入的插件指令（<plugins> 标签）
- * 2. 移除 system 消息（投资顾问有自己的 SYSTEM_PROMPT）
+ * 2. 移除 system 消息（投资顾问使用自己的 SYSTEM_PROMPT）
  * 3. 清理 AI 消息中残留的插件指令
  * 4. 截断过长的投资笔记，避免破坏数据结构
  */
@@ -66,6 +64,12 @@ function sanitizeMessages(messages: BaseMessage[]): BaseMessage[] {
       return content.trim().length > 0;
     });
 }
+
+// ── Obsolete helpers (removed in favor of unified EngineRunContext.portfolioContext) ──
+// `buildContextPrompt` and `buildCompactContextPrompt` were previously used here
+// to construct per-turn asset context inside the engine.  They are now replaced by
+// `buildCompactPortfolioSummary` in the route layer, which injects a single compact
+// summary into the system prompt via `extra.portfolioContext`.
 
 /**
  * 记录完整的 prompt 日志到文件，保留消息结构便于调试
@@ -103,125 +107,6 @@ function logPrompt(systemPrompt: string, messages: BaseMessage[]): void {
 
 
 
-/**
- * Helper function to build the context prompt from portfolio data
- * @param portfolioAnalysis - Portfolio analysis data
- * @param riskAnalysis - Risk assessment data
- * @param userQuery - Original user query
- * @returns Formatted context string
- */
-function buildContextPrompt(
-  portfolioAnalysis: any,
-  riskAnalysis: any,
-  userQuery: string,
-  transactionHistory: any,
-): string {
-  // 获取币种符号的辅助函数
-  const getCurrencySymbol = (currency?: string): string => {
-    switch (currency) {
-      case 'CNY': return '¥';
-      case 'HKD': return 'HK$';
-      default: return '$';
-    }
-  };
-  const getCurrencyName = (currency?: string): string => {
-    switch (currency) {
-      case 'CNY': return '人民币';
-      case 'HKD': return '港币';
-      default: return '美元';
-    }
-  };
-
-  return `
-## 完整资产概况
-### 💰 现金资产
-- 现金余额: ${portfolioAnalysis.cashAsset?.amount?.toFixed(2) || 0} ${portfolioAnalysis.cashAsset?.currency || 'USD'}
-- 可用资金: ${portfolioAnalysis.cashAsset?.available?.toFixed(2) || 0} ${portfolioAnalysis.cashAsset?.currency || 'USD'}
-
-### 📈 股票资产
-- 持仓数量: ${portfolioAnalysis.holdingsSummary?.length || 0}只股票
-- 总市值(USD): $${portfolioAnalysis.portfolioMetrics?.totalMarketValue?.toFixed(2) || 0}
-- 总成本(USD): $${portfolioAnalysis.assetBreakdown?.stocks?.totalCost?.toFixed(2) || 0}
-- 未实现盈亏(USD): $${portfolioAnalysis.assetBreakdown?.stocks?.unrealizedPnL?.toFixed(2) || 0}
-- 盈亏比例: ${(((portfolioAnalysis.assetBreakdown?.stocks?.unrealizedPnL || 0) / (portfolioAnalysis.assetBreakdown?.stocks?.totalCost || 1)) * 100).toFixed(2)}%
-
-- 股票明细：
-${
-  portfolioAnalysis.holdingsSummary
-    ?.map(
-      (stock: any) => {
-        const cs = getCurrencySymbol(stock.currency);
-        const cn = getCurrencyName(stock.currency);
-        return `+ 股票代码:${stock.symbol}、中文名称:${stock.chineseName}、数量:${stock.quantity}、最新价格:${cs}${stock.currentPrice}(${cn})、持仓成本:${cs}${stock.averageCost}(${cn})、USD市值:$${stock.marketValueUSD?.toFixed(2) || stock.marketValue?.toFixed(2)}、投资笔记:${stock.investmentMemo || '无'}`;
-      },
-    )
-    ?.join('\n') || '无'
-}
-
-## 交易记录
-${
-  transactionHistory?.transactions
-    ?.map((transaction: any) => {
-      return `+ 交易资产:${transaction.symbol}、${transaction.createdAt}、描述:${transaction.description || '无'}、交易金额: $${transaction.amount.toFixed(2)}、类型: ${transaction.type}`;
-    })
-    .join('\n') || '无'
-}
-
-## ⚖️ 风险评估
-- 风险等级: ${riskAnalysis.level || '未评估'}
-- 风险评分: ${riskAnalysis.score || 0}/100
-- 建议: ${riskAnalysis.recommendations?.join(', ') || '暂无'}
-
----
-请根据以上信息回答用户的问题: ${userQuery}
-`;
-}
-
-/**
- * 精简版上下文构建函数，用于多轮对话
- * 不重复注入完整持仓明细，仅提供摘要 + 最新变动 + 用户问题
- */
-function buildCompactContextPrompt(
-  portfolioAnalysis: any,
-  riskAnalysis: any,
-  userQuery: string,
-  transactionHistory: any,
-): string {
-  // 获取币种符号的辅助函数
-  const getCurrencySymbol = (currency?: string): string => {
-    switch (currency) {
-      case 'CNY': return '¥';
-      case 'HKD': return 'HK$';
-      default: return '$';
-    }
-  };
-
-  // 仅展示持仓代码和最新盈亏，不重复完整明细
-  const holdingsBrief = portfolioAnalysis.holdingsSummary
-    ?.map((stock: any) => {
-      const cs = getCurrencySymbol(stock.currency);
-      return `${stock.symbol}:${cs}${stock.currentPrice}(${stock.unrealizedPnL >= 0 ? '+' : ''}${stock.unrealizedPnL?.toFixed(2) || 0})`;
-    })
-    ?.join(', ') || '无';
-
-  // 仅展示最近 5 条交易
-  const recentTransactions = transactionHistory?.transactions
-    ?.slice(-5)
-    ?.map((t: any) => `${t.symbol} ${t.type} $${t.amount.toFixed(2)}`)
-    ?.join(', ') || '无';
-
-  return `## 上下文更新（多轮对话增量数据）
-以下是基于最新数据的资产摘要，完整持仓详情已在之前的对话中提供：
-- 总市值: $${portfolioAnalysis.portfolioMetrics?.totalMarketValue?.toFixed(2) || 0}
-- 未实现盈亏: $${portfolioAnalysis.assetBreakdown?.stocks?.unrealizedPnL?.toFixed(2) || 0}
-- 持仓: ${holdingsBrief}
-- 风险: ${riskAnalysis.level || '未评估'}(${riskAnalysis.score || 0}/100)
-- 近期交易: ${recentTransactions}
-
----
-`;
-}
-
 // Export unified agent with chat method
 export const investmentAdvisorAgent = {
   /**
@@ -235,22 +120,6 @@ export const investmentAdvisorAgent = {
     // 0. 清理消息：过滤插件指令和 system 消息，避免无关内容浪费 token
     const cleanMessages = sanitizeMessages(messages);
 
-    // 1. Get user's portfolio context
-    const portfolioAnalysis = await portfolioAnalysisService.getPortfolioAnalysis(accountId);
-    const riskAnalysis = portfolioAnalysisService.calculateRiskScore(
-      portfolioAnalysis.portfolioMetrics,
-    );
-    const transactionHistory = await transactionService.getTransactionHistory(accountId);
-
-    // 2. 判断是否需要注入完整资产上下文
-    // 多轮对话：已有 AI 回复（即存在对话历史），使用精简版避免重复注入
-    const isMultiTurn = cleanMessages.filter((msg) => msg._getType() === 'ai').length > 0;
-
-    // 3. Build context prompt（多轮对话使用精简版）
-    const contextPrompt = isMultiTurn
-      ? buildCompactContextPrompt(portfolioAnalysis, riskAnalysis, userQuery, transactionHistory)
-      : buildContextPrompt(portfolioAnalysis, riskAnalysis, userQuery, transactionHistory);
-
     try {
       // Create the DeepAgent instance with all tools
       const investmentDeepAgent = createDeepAgent({
@@ -263,26 +132,25 @@ export const investmentAdvisorAgent = {
           noteQueryTool,
           TravilySearchTool,
         ],
-        systemPrompt: SYSTEM_PROMPT  // 始终使用投资顾问专用 system prompt，不混入外部 system 指令
+        systemPrompt: SYSTEM_PROMPT,
       });
 
-      // 构建最终的消息列表，确保用户的追问意图不被上下文数据淹没
+      // 2. Build final message list — conversation history plus the current user query
+      const isMultiTurn = cleanMessages.filter((msg) => msg._getType() === 'ai').length > 0;
       const finalMessages: BaseMessage[] = [];
 
       if (isMultiTurn) {
-        // 多轮对话：保留历史消息 + 在最后一条用户消息前插入增量上下文
-        // 先将所有历史消息原样保留（用户原始问题不被覆盖）
+        // 多轮对话：保留全部历史消息，追加当前用户追问
         for (let i = 0; i < cleanMessages.length - 1; i++) {
           finalMessages.push(cleanMessages[i]);
         }
-        // 最后一条用户消息：将增量上下文 + 用户原始问题组合，用户问题置顶突出
         const originalUserMsg = typeof cleanMessages[cleanMessages.length - 1].content === 'string'
           ? cleanMessages[cleanMessages.length - 1].content as string
           : userQuery;
-        finalMessages.push(new HumanMessage(contextPrompt + '\n\n用户追问: ' + originalUserMsg));
+        finalMessages.push(new HumanMessage(originalUserMsg));
       } else {
-        // 首轮对话：直接用完整上下文作为用户消息
-        finalMessages.push(new HumanMessage(contextPrompt));
+        // 首轮对话：直接用用户问题作为消息（资产上下文在 system prompt 中）
+        finalMessages.push(new HumanMessage(userQuery));
       }
 
 
