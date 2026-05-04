@@ -25,9 +25,16 @@ class AccountHttpController extends BaseController {
     const params = { ...json, ...body };
     return Response.json(await AccountHttpController.controller.updateAccount(params));
   }
+
+  @WithRequestContext()
+  static async DELETE(request: Request) {
+    const json = await super.getQuery(request);
+    return Response.json(await AccountHttpController.controller.deleteAccount(json));
+  }
 }
 
 // 导出对应的 HTTP 方法
 export const POST = AccountHttpController.POST;
 export const GET = AccountHttpController.GET;
 export const PUT = AccountHttpController.PUT;
+export const DELETE = AccountHttpController.DELETE;

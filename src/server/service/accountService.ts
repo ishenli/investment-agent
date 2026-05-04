@@ -294,6 +294,53 @@ export class AccountService {
    * @param userId 用户ID
    * @param accountId 账户ID
    */
+
+  /**
+   * 删除交易账户（软删除）
+   * @param accountId 账户ID
+   * @param userId 用户ID
+   * @returns 删除是否成功
+   */
+  /**
+   * 删除交易账户（软删除）
+   * @param accountId 账户ID
+   * @param userId 用户ID
+   * @returns 删除是否成功
+   */
+  async deleteTradingAccount(accountId: string, userId: string): Promise<boolean> {
+    try {
+      // 验证账户归属
+      const hasOwnership = await accountRepository.verifyOwnership(
+        parseInt(accountId),
+        parseInt(userId)
+      );
+
+      if (!hasOwnership) {
+        logger.warn(`User ${userId} attempted to delete account ${accountId} without ownership`);
+        return false;
+      }
+
+      // 执行软删除
+      const success = await accountRepository.softDelete(parseInt(accountId));
+
+      if (success) {
+        // 清理用户选中的账户（如果删除的是当前选中的账户）
+        const selectedAccount = await userSelectedAccountRepository.findByUserId(parseInt(userId));
+        if (selectedAccount && selectedAccount.accountId === parseInt(accountId)) {
+          await userSelectedAccountRepository.deleteByUserId(parseInt(userId));
+          logger.info(`Cleared selected account for user ${userId} after account ${accountId} deletion`);
+        }
+
+        logger.info(`Trading account ${accountId} deleted (soft) by user ${userId}`);
+      }
+
+      return success;
+    } catch (error) {
+      logger.error(`Failed to delete trading account ${accountId}: ${error}`);
+      return false;
+    }
+  }
+
   async setUserSelectedAccount(userId: string, accountId: string): Promise<void> {
     try {
       // 检查账户是否属于该用户
