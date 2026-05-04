@@ -25,8 +25,24 @@ import {
   addTransaction,
 } from '@server/core/business';
 import logger from '@server/base/logger';
+import { MarketBizController } from '@server/controller/market';
+import { ReportController } from '@server/controller/report';
+import { ReportDetailController } from '@server/controller/reportDetail';
 
 type HandlerResult = { content: TextContent[]; isError?: boolean };
+
+// ============== Controller Helper ==============
+
+const unwrap = (result: any): string => {
+  if (!result || typeof result !== 'object') {
+    throw new Error('Controller returned invalid response');
+  }
+  if (!result.success) {
+    const msg = typeof result.message === 'string' ? result.message : JSON.stringify(result.message);
+    throw new Error(`${result.code ?? 'CONTROLLER_ERROR'}: ${msg}`);
+  }
+  return JSON.stringify(result.data ?? result);
+};
 
 // ============== Schemas ==============
 
@@ -112,7 +128,6 @@ const transactionHistoryByDateSchema = Type.Object({
 
 const accountBalanceSchema = Type.Object({
   account_id: Type.String({ description: '账户 ID' }),
-  before_transaction_id: Type.Optional(Type.String({ description: '计算到指定交易之前的余额' })),
 });
 
 const transactionSummarySchema = Type.Object({
@@ -131,6 +146,71 @@ const addTransactionSchema = Type.Object({
   price: Type.Optional(Type.Number({ description: '价格（买入/卖出时必填）' })),
   description: Type.Optional(Type.String({ description: '交易描述' })),
   trade_time: Type.Optional(Type.String({ description: '交易时间（ISO 格式）' })),
+});
+
+// Asset Market Info Schemas
+const assetMarketInfoListSchema = Type.Object({
+  asset_meta_id: Type.String({ description: '资产元数据 ID' }),
+  page: Type.Optional(Type.String({ description: '页码，默认 1' })),
+  limit: Type.Optional(Type.String({ description: '每页数量，默认 10' })),
+});
+
+const assetMarketInfoLatestSchema = Type.Object({
+  asset_meta_id: Type.String({ description: '资产元数据 ID' }),
+});
+
+const assetMarketInfoDetailSchema = Type.Object({
+  id: Type.String({ description: '市场信息记录 ID' }),
+});
+
+const assetMarketInfoSaveSchema = Type.Object({
+  asset_meta_ids: Type.Array(Type.Number(), { description: '关联的资产元数据 IDs' }),
+  title: Type.String({ description: '标题' }),
+  symbol: Type.String({ description: '资产代号' }),
+  sentiment: Type.String({ description: '情绪评级' }),
+  importance: Type.String({ description: '重要性' }),
+  summary: Type.String({ description: '摘要' }),
+  key_topics: Type.Optional(Type.String({ description: '关键主题' })),
+  market_impact: Type.String({ description: '市场影响' }),
+  key_data_points: Type.Optional(Type.String({ description: '关键数据点' })),
+  source_url: Type.Optional(Type.String({ description: '来源 URL' })),
+  source_name: Type.Optional(Type.String({ description: '来源名称' })),
+  original_content: Type.Optional(Type.String({ description: '原始内容' })),
+  content_mode: Type.Optional(Type.String({ description: '内容模式: ai_summary | original，默认 ai_summary' })),
+  market_info_id: Type.Optional(Type.String({ description: '用于获取原文内容的市场信息 ID' })),
+});
+
+const assetMarketInfoUpdateSchema = Type.Object({
+  id: Type.String({ description: '市场信息记录 ID' }),
+  asset_meta_ids: Type.Optional(Type.Array(Type.Number(), { description: '关联的资产元数据 IDs' })),
+  title: Type.Optional(Type.String({ description: '标题' })),
+  symbol: Type.Optional(Type.String({ description: '资产代号' })),
+  sentiment: Type.Optional(Type.String({ description: '情绪评级' })),
+  importance: Type.Optional(Type.String({ description: '重要性' })),
+  summary: Type.Optional(Type.String({ description: '摘要' })),
+  key_topics: Type.Optional(Type.String({ description: '关键主题' })),
+  market_impact: Type.Optional(Type.String({ description: '市场影响' })),
+  key_data_points: Type.Optional(Type.String({ description: '关键数据点' })),
+  source_url: Type.Optional(Type.String({ description: '来源 URL' })),
+  source_name: Type.Optional(Type.String({ description: '来源名称' })),
+  original_content: Type.Optional(Type.String({ description: '原始内容' })),
+  content_mode: Type.Optional(Type.String({ description: '内容模式: ai_summary | original' })),
+});
+
+const assetMarketInfoDeleteSchema = Type.Object({
+  id: Type.String({ description: '市场信息记录 ID' }),
+});
+
+// Report Schemas
+const reportListSchema = Type.Object({
+  account_id: Type.Optional(Type.String({ description: '账户 ID（可选）' })),
+  type: Type.Optional(Type.String({ description: '报告类型: weekly | monthly | emergency' })),
+  limit: Type.Optional(Type.String({ description: '返回数量，默认 20' })),
+  offset: Type.Optional(Type.String({ description: '偏移量，默认 0' })),
+});
+
+const reportDetailSchema = Type.Object({
+  report_id: Type.String({ description: '报告 ID' }),
 });
 
 // ============== Tool Names ==============
@@ -152,7 +232,15 @@ export type BusinessToolName =
   | 'transaction_history_by_date'
   | 'account_balance'
   | 'transaction_summary'
-  | 'add_transaction';
+  | 'add_transaction'
+  | 'asset_market_info_list'
+  | 'asset_market_info_latest'
+  | 'asset_market_info_detail'
+  | 'asset_market_info_save'
+  | 'asset_market_info_update'
+  | 'asset_market_info_delete'
+  | 'report_list'
+  | 'report_detail';
 
 export interface BusinessToolsConfig {
   enable?: BusinessToolName[];
@@ -184,6 +272,14 @@ export function registerBusinessTools(
         'account_balance',
         'transaction_summary',
         'add_transaction',
+        'asset_market_info_list',
+        'asset_market_info_latest',
+        'asset_market_info_detail',
+        'asset_market_info_save',
+        'asset_market_info_update',
+        'asset_market_info_delete',
+        'report_list',
+        'report_detail',
       ]);
 
   const wrap =
@@ -386,14 +482,11 @@ export function registerBusinessTools(
   if (enabled.has('account_balance')) {
     registry.register(
       'account_balance',
-      '获取账户当前余额（基于交易记录计算）',
+      '获取账户当前余额（直接查询账户资金记录）',
       accountBalanceSchema,
       async (_id, args) =>
         wrap(async () =>
-          getAccountBalance(
-            String(args.account_id),
-            args.before_transaction_id ? String(args.before_transaction_id) : undefined,
-          ),
+          getAccountBalance(String(args.account_id)),
         )(),
     );
   }
@@ -433,6 +526,170 @@ export function registerBusinessTools(
             tradeTime: args.trade_time ? String(args.trade_time) : undefined,
           }),
         )(),
+    );
+  }
+
+  // Asset Market Info Tools
+  if (enabled.has('asset_market_info_list')) {
+    registry.register(
+      'asset_market_info_list',
+      '获取指定资产的市场信息列表（本地数据库）',
+      assetMarketInfoListSchema,
+      async (_id, args) =>
+        wrap(async () => {
+          const controller = new MarketBizController();
+          const result = await controller.getAssetMarketInfoList({
+            assetMetaId: String(args.asset_meta_id),
+            page: args.page ? String(args.page) : '1',
+            limit: args.limit ? String(args.limit) : '10',
+          });
+          return unwrap(result);
+        })(),
+    );
+  }
+
+  if (enabled.has('asset_market_info_latest')) {
+    registry.register(
+      'asset_market_info_latest',
+      '获取指定资产的最新市场信息（本地数据库）',
+      assetMarketInfoLatestSchema,
+      async (_id, args) =>
+        wrap(async () => {
+          const controller = new MarketBizController();
+          const result = await controller.getAssetMarketInfo({
+            assetMetaId: String(args.asset_meta_id),
+            type: 'latest',
+          });
+          return unwrap(result);
+        })(),
+    );
+  }
+
+  if (enabled.has('asset_market_info_detail')) {
+    registry.register(
+      'asset_market_info_detail',
+      '获取指定 ID 的市场信息详情',
+      assetMarketInfoDetailSchema,
+      async (_id, args) =>
+        wrap(async () => {
+          const controller = new MarketBizController();
+          const result = await controller.getAssetMarketInfo({
+            id: String(args.id),
+            type: 'detail',
+          });
+          return unwrap(result);
+        })(),
+    );
+  }
+
+  if (enabled.has('asset_market_info_save')) {
+    registry.register(
+      'asset_market_info_save',
+      '保存新的市场信息到本地数据库',
+      assetMarketInfoSaveSchema,
+      async (_id, args) =>
+        wrap(async () => {
+          const controller = new MarketBizController();
+          const result = await controller.saveMarketInfo({
+            assetMetaIds: args.asset_meta_ids as number[],
+            title: String(args.title),
+            symbol: String(args.symbol),
+            sentiment: String(args.sentiment),
+            importance: String(args.importance),
+            summary: String(args.summary),
+            keyTopics: args.key_topics ? String(args.key_topics) : undefined,
+            marketImpact: String(args.market_impact),
+            keyDataPoints: args.key_data_points ? String(args.key_data_points) : undefined,
+            sourceUrl: args.source_url ? String(args.source_url) : undefined,
+            sourceName: args.source_name ? String(args.source_name) : undefined,
+            originalContent: args.original_content ? String(args.original_content) : undefined,
+            contentMode: args.content_mode
+              ? (String(args.content_mode) as 'ai_summary' | 'original')
+              : undefined,
+            marketInfoId: args.market_info_id ? String(args.market_info_id) : undefined,
+          });
+          return unwrap(result);
+        })(),
+    );
+  }
+
+  if (enabled.has('asset_market_info_update')) {
+    registry.register(
+      'asset_market_info_update',
+      '更新指定 ID 的市场信息',
+      assetMarketInfoUpdateSchema,
+      async (_id, args) =>
+        wrap(async () => {
+          const controller = new MarketBizController();
+          const body: any = { id: String(args.id) };
+          if (args.asset_meta_ids !== undefined) body.assetMetaIds = args.asset_meta_ids;
+          if (args.title !== undefined) body.title = String(args.title);
+          if (args.symbol !== undefined) body.symbol = String(args.symbol);
+          if (args.sentiment !== undefined) body.sentiment = String(args.sentiment);
+          if (args.importance !== undefined) body.importance = String(args.importance);
+          if (args.summary !== undefined) body.summary = String(args.summary);
+          if (args.key_topics !== undefined) body.keyTopics = String(args.key_topics);
+          if (args.market_impact !== undefined) body.marketImpact = String(args.market_impact);
+          if (args.key_data_points !== undefined) body.keyDataPoints = String(args.key_data_points);
+          if (args.source_url !== undefined) body.sourceUrl = String(args.source_url);
+          if (args.source_name !== undefined) body.sourceName = String(args.source_name);
+          if (args.original_content !== undefined) body.originalContent = String(args.original_content);
+          if (args.content_mode !== undefined) body.contentMode = String(args.content_mode);
+          const result = await controller.updateMarketInfo(body);
+          return unwrap(result);
+        })(),
+    );
+  }
+
+  if (enabled.has('asset_market_info_delete')) {
+    registry.register(
+      'asset_market_info_delete',
+      '删除指定 ID 的市场信息',
+      assetMarketInfoDeleteSchema,
+      async (_id, args) =>
+        wrap(async () => {
+          const controller = new MarketBizController();
+          const result = await controller.deleteMarketInfo({ id: String(args.id) });
+          return unwrap(result);
+        })(),
+    );
+  }
+
+  // Report Tools
+  if (enabled.has('report_list')) {
+    registry.register(
+      'report_list',
+      '获取报告列表（支持按类型过滤和分页）',
+      reportListSchema,
+      async (_id, args) =>
+        wrap(async () => {
+          const controller = new ReportController();
+          const result = await controller.getReports({
+            accountId: args.account_id ? String(args.account_id) : undefined,
+            type: args.type
+              ? (String(args.type) as 'weekly' | 'monthly' | 'emergency')
+              : undefined,
+            limit: args.limit ? String(args.limit) : undefined,
+            offset: args.offset ? String(args.offset) : undefined,
+          });
+          return unwrap(result);
+        })(),
+    );
+  }
+
+  if (enabled.has('report_detail')) {
+    registry.register(
+      'report_detail',
+      '获取指定报告 ID 的详情',
+      reportDetailSchema,
+      async (_id, args) =>
+        wrap(async () => {
+          const controller = new ReportDetailController();
+          const result = await controller.getReportDetail({
+            reportId: String(args.report_id),
+          });
+          return unwrap(result);
+        })(),
     );
   }
 }

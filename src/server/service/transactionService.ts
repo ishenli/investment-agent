@@ -172,8 +172,30 @@ export class TransactionService {
         }
       }
 
-      // 如果是股票/基金交易，则更新仓位
-      if (transactionData.type === 'buy' || transactionData.type === 'sell') {
+     // 如果是股票/基金交易，则更新仓位
+     if (transactionData.type === 'buy' || transactionData.type === 'sell') {
+        // 更新账户资金余额：买入扣减，卖出增加
+        const accountFund = await accountFundRepository.findByAccountId(parseInt(transactionData.accountId));
+        if (accountFund) {
+          // 买入扣减现金，卖出增加现金
+          const balanceChange = transactionData.type === 'buy' ? -totalAmountCents : totalAmountCents;
+          const newAmountCents = accountFund.amountCents + balanceChange;
+          
+          if (newAmountCents < 0) {
+            throw new Error(`账户余额不足：当前余额 $${(accountFund.amountCents / 100).toFixed(2)}，需要 $${(totalAmountCents / 100).toFixed(2)}`);
+          }
+          
+          await accountFundRepository.updateBalance(parseInt(transactionData.accountId), newAmountCents);
+          logger.info(
+            `[TransactionService] Account balance updated for ${transactionData.type}: accountId=${transactionData.accountId}, change=${balanceChange / 100}, newBalance=${newAmountCents / 100}`
+          );
+        } else {
+          // 买入时必须有账户资金记录
+          if (transactionData.type === 'buy') {
+            throw new Error(`账户资金记录不存在：accountId=${transactionData.accountId}`);
+          }
+        }
+
         // 人民币基金使用 CNY 计价
         const positionCurrency =
           transactionData.sector === 'fund' && transactionData.market === 'CN' ? 'CNY' : 'USD';
@@ -483,50 +505,14 @@ export class TransactionService {
   }
 
   /**
-   * Get account balance at a specific point in time
+   * Get account current cash balance
    * @param accountId Account ID
-   * @param beforeTransactionId Transaction ID to calculate balance before (optional)
-   * @returns Account balance
+   * @returns Account balance in dollars
    */
-  async getAccountBalance(accountId: string, beforeTransactionId?: number): Promise<number> {
+  async getAccountBalance(accountId: string): Promise<number> {
     try {
-      // 使用 Repository 查询账户资金
       const accountFund = await accountFundRepository.findByAccountId(parseInt(accountId));
-
-      if (!accountFund) {
-        return 0;
-      }
-
-      // Start with initial balance (convert cents -> dollars)
-      let balance = (accountFund.amountCents ?? 0) / 100;
-
-      // Get all transactions up to the specified point using repository
-      let transactionRecords: any[];
-      
-      if (beforeTransactionId) {
-        transactionRecords = await transactionRepository.findBeforeTransactionId(
-          parseInt(accountId),
-          beforeTransactionId,
-        );
-      } else {
-        transactionRecords = await transactionRepository.findByAccountId(parseInt(accountId));
-      }
-
-      // Calculate balance based on transactions (use cents -> dollars)
-      for (const transaction of transactionRecords) {
-        const amt = (transaction.totalAmountCents ?? 0) / 100;
-        if (transaction.type === 'deposit') {
-          balance += amt;
-        } else if (transaction.type === 'withdrawal') {
-          balance -= amt;
-        } else if (transaction.type === 'buy') {
-          balance -= amt;
-        } else if (transaction.type === 'sell') {
-          balance += amt;
-        }
-      }
-
-      return balance;
+      return accountFund ? accountFund.amountCents / 100 : 0;
     } catch (error) {
       logger.error(`Failed to get account balance for account ${accountId}: ${error}`);
       return 0;

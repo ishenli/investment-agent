@@ -28,7 +28,6 @@ const TransactionHistoryByDateParams = z.object({
 
 const AccountBalanceParams = z.object({
   account_id: z.string().describe('账户 ID'),
-  before_transaction_id: z.string().optional().describe('计算到指定交易之前的余额'),
 });
 
 const TransactionSummaryParams = z.object({
@@ -81,12 +80,9 @@ async function executeGetTransactionHistoryByDate(
   }
 }
 
-async function executeGetAccountBalance(
-  accountId: string,
-  beforeTransactionId?: string,
-): Promise<string> {
+async function executeGetAccountBalance(accountId: string): Promise<string> {
   try {
-    return await getAccountBalance(accountId, beforeTransactionId);
+    return await getAccountBalance(accountId);
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
     logger.error(`[accountBalanceTool] query failed:`, error);
@@ -167,12 +163,12 @@ export const transactionHistoryByDateTool = langchainTool(
 
 export const accountBalanceTool = langchainTool(
   async (params): Promise<string> => {
-    const { account_id, before_transaction_id } = params as z.infer<typeof AccountBalanceParams>;
-    return executeGetAccountBalance(account_id, before_transaction_id);
+    const { account_id } = params as z.infer<typeof AccountBalanceParams>;
+    return executeGetAccountBalance(account_id);
   },
   {
     name: 'accountBalanceTool',
-    description: '获取账户当前余额（基于交易记录计算）',
+    description: '获取账户当前余额（直接查询账户资金记录）',
     schema: AccountBalanceParams,
   },
 );
@@ -256,17 +252,13 @@ export const transactionHistoryByDateClaudeTool = claudeTool(
 
 export const accountBalanceClaudeTool = claudeTool(
   'accountBalanceTool',
-  '获取账户当前余额（基于交易记录计算）',
+  '获取账户当前余额（直接查询账户资金记录）',
   {
     account_id: z.string().describe('账户 ID'),
-    before_transaction_id: z.string().optional().describe('计算到指定交易之前的余额'),
   },
   async (args) => {
     try {
-      const result = await executeGetAccountBalance(
-        args.account_id,
-        args.before_transaction_id,
-      );
+      const result = await executeGetAccountBalance(args.account_id);
       return { content: [{ type: 'text', text: result }] };
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
