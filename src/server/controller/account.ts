@@ -351,4 +351,35 @@ export class AccountBizController extends BaseBizController {
       return this.error('更新设置失败', 'update_settings_error');
     }
   }
+
+  @WithRequestContext()
+  async deleteAccount(request: { accountId: string }) {
+    try {
+      // 1. 获取当前用户ID
+      const userId = await authService.getCurrentUserId();
+      if (!userId) {
+        return this.error('用户未登录', 'unauthorized');
+      }
+
+      // 2. 获取账户ID
+      const { accountId } = request;
+
+      if (!accountId) {
+        return this.error('缺少accountId参数', 'missing_account_id');
+      }
+
+      // 3. 删除账户（软删除）
+      const success = await accountService.deleteTradingAccount(accountId, userId);
+
+      if (!success) {
+        return this.error('删除账户失败，账户不存在或无权删除', 'delete_account_failed');
+      }
+
+      // 4. 返回成功响应
+      return this.success({ message: '账户已删除' });
+    } catch (error) {
+      logger.error('[AccountBizController] 删除账户失败:', error);
+      return this.error('删除账户失败', 'delete_account_error');
+    }
+  }
 }

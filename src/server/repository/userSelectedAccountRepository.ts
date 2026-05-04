@@ -61,6 +61,33 @@ export class UserSelectedAccountRepository extends BaseIntRepository<UserSelecte
       accountId,
     });
   }
+
+  // ============== 删除操作 ==============
+
+  /**
+   * 删除用户选中的账户记录
+   */
+  async deleteByUserId(userId: number): Promise<boolean> {
+    try {
+      await this.deleteWhere(eq(userSelectedAccounts.userId, userId));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * 根据账户ID删除所有选中该账户的记录
+   * 用于账户被删除时清理相关的选中状态
+   */
+  async deleteByAccountId(accountId: number): Promise<boolean> {
+    try {
+      await this.deleteWhere(eq(userSelectedAccounts.accountId, accountId));
+      return true;
+    } catch {
+      return false;
+    }
+  }
 }
 
 // 导出单例实例
