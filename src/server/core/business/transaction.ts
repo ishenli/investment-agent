@@ -4,6 +4,7 @@
  * 纯业务函数，无框架耦合。被 LangChain tools / Claude SDK tools / Hermes tools 复用。
  */
 import transactionService from '@server/service/transactionService';
+import accountService from '@server/service/accountService';
 import authService from '@server/service/authService';
 import logger from '@server/base/logger';
 import type { TransactionType } from '@typings/transaction';
@@ -110,25 +111,21 @@ export async function getTransactionHistoryByDateRange(
 }
 
 /**
- * 获取账户当前余额（基于交易记录计算）
+ * 获取账户当前余额（直接查询 accountFunds 表）
  *
  * @param accountId - 账户 ID
- * @param beforeTransactionId - 可选，计算到指定交易之前的余额
  * @returns 账户余额
  */
-export async function getAccountBalance(
-  accountId: string,
-  beforeTransactionId?: string,
-): Promise<string> {
-  logger.info(`[business/transaction] getAccountBalance: accountId=${accountId}, beforeTransactionId=${beforeTransactionId}`);
+export async function getAccountBalance(accountId: string): Promise<string> {
+  logger.info(`[business/transaction] getAccountBalance: accountId=${accountId}`);
 
   try {
-    const balance = await transactionService.getAccountBalance(
-      accountId,
-      beforeTransactionId ? parseInt(beforeTransactionId) : undefined,
-    );
+    const tradingAccount = await accountService.getTradingAccount(accountId);
+    if (!tradingAccount) {
+      throw new Error(`未找到账户 ${accountId}`);
+    }
 
-    return `账户 ${accountId} 当前余额: $${balance.toFixed(2)}`;
+    return `账户 ${accountId} 当前余额: $${tradingAccount.balance.toFixed(2)} (${tradingAccount.currency})`;
   } catch (e) {
     throw new Error(`账户余额获取失败: ${(e as Error).message}`);
   }
