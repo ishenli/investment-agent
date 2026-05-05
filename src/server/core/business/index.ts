@@ -22,3 +22,4 @@ export {
   getTransactionSummary,
   addTransaction,
 } from './transaction';
+export { queryPortfolio } from './portfolio';

@@ -8,10 +8,13 @@ import {
   HermesAgent,
   ToolRegistry,
   registerBuiltinTools,
+  registerSkillTools,
   type AgentCallbacks,
   type ToolCallResult,
   type AssistantMessage,
 } from '@investment-agent/hermes-agent';
+import { skillFileScanner } from '@server/lib/skill/SkillFileScanner';
+import { skillRegistry } from '@server/lib/skill/SkillRegistry';
 import { SSEEmitter } from '@server/base/sseEmitter';
 import { resolveAgentModel } from '@server/service/agentModelResolver';
 import { registerBusinessTools } from '@server/core/agents/hermes';
@@ -44,6 +47,16 @@ export class HermesEngine implements IAgentEngine {
         enable: ['read_file', 'search_files', 'list_directory', 'web_search', 'web_fetch', 'think'],
       });
       registerBusinessTools(registry);
+      // Respect UI-level skill enablement toggles.
+      const enabledSkills = await skillRegistry.getEnabledSkills(userId);
+      // Reverse so that more specific/later skill roots override earlier ones
+      // in registerSkillTools (user skills > bundled skills).
+      registerSkillTools(registry, {
+        skillRoots: [...skillFileScanner.getSkillRoots()].reverse(),
+        localSkillsDir: skillFileScanner.ensureSkillsRoot(),
+        sessionId: String(userId),
+        enabledSlugs: enabledSkills.map((s) => s.id),
+      });
     }
 
     // 3. Build pi-ai message context
@@ -92,8 +105,11 @@ export class HermesEngine implements IAgentEngine {
     };
 
     // 5. 创建并运行 Agent
+    const platform = (extra?.platform as string) ?? 'web';
+    const name = (extra?.name as string) ?? 'hermes';
     const agent = new HermesAgent({
       model: piModel,
+      name,
       systemPrompt,
       toolRegistry: registry,
       memoryDir: path.join(getProjectRoot(), 'workspace', String(userId), '.hermes', 'memories'),
@@ -101,7 +117,7 @@ export class HermesEngine implements IAgentEngine {
       maxIterations,
       callbacks,
       streaming: true,
-      platform: 'web',
+      platform,
       loadContextFiles: false,
       streamOptions: {
         ...(apiKey ? { apiKey } : {}),

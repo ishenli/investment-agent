@@ -1,26 +1,21 @@
 /**
  * Hermes Agent handler for the Weixin Channel.
  *
- * Implements WeixinAgentHandler by delegating to HermesAgent.
- * Model resolution logic mirrors src/app/api/chat/hermes/route.ts exactly —
- * any change to resolveModel in that file should be reflected here.
+ * Uses the unified HermesEngine via `runEngine` so that model resolution,
+ * tool registration (builtin + business + skills), memory lifecycle, and
+ * streaming callbacks are identical to the HTTP SSE route
+ * (`src/app/api/chat/hermes/route.ts`).
  *
- * This class has no knowledge of channel lifecycle, session creation,
- * message persistence, or reply sending — those are the Channel layer's job.
+ * Differences from the HTTP route:
+ *   - No SSE stream is consumed (we only need the final result).
+ *   - platform is forced to 'weixin' (plain-text output, no markdown).
  */
 
-import {
-  HermesAgent,
-  ToolRegistry,
-  registerBuiltinTools,
-  type Message,
-} from '@investment-agent/hermes-agent';
-import type { ChannelMessage } from '@investment-agent/agent-channel';
-import { registerBusinessTools, INVESTMENT_ASSISTANT_SYSTEM_PROMPT } from '@server/core/agents/hermes';
-import { resolveAgentModel } from '@server/service/agentModelResolver';
-import { getProjectRoot } from '@server/base/env';
+import { runEngine } from '@server/core/engine';
+import { SSEEmitter } from '@server/base/sseEmitter';
+import { INVESTMENT_ASSISTANT_SYSTEM_PROMPT } from '@server/core/agents/hermes';
 import logger from '@server/base/logger';
-import path from 'path';
+import type { ChannelMessage } from '@investment-agent/agent-channel';
 import type { WeixinAgentHandler, WeixinMessageContext, WeixinReplySender } from './types';
 
 // ── Defaults ─────────────────────────────────────────────────────────────────
@@ -30,93 +25,69 @@ const DEFAULT_MODEL = 'Kimi-K2.6';
 
 // ── Handler implementation ────────────────────────────────────────────────────
 
-/**
- * Processes an inbound WeChat message using HermesAgent.
- *
- * Follows the same agent.run() pattern as hermes/route.ts:
- *   - Structured pi-ai Message[] history (not a concatenated string)
- *   - Current message passed as input.message
- *   - History passed as context.messages (all prior turns)
- *   - streaming: true, but no onTextDelta → complete() path in loop.ts
- */
 export class HermesWeixinHandler implements WeixinAgentHandler {
   async handle(
     message: ChannelMessage,
     ctx: WeixinMessageContext,
-    _sender: WeixinReplySender, // reserved for future partial-reply streaming
+    _sender: WeixinReplySender,
   ): Promise<string> {
-    // 1. Resolve model + apiKey from DB (same logic as hermes/route.ts)
-    const { model: piModel, apiKey } = await resolveAgentModel(
-      ctx.userId,
-      DEFAULT_PROVIDER,
-      DEFAULT_MODEL,
-    );
+    const abortController = new AbortController();
+    const messageId = `wx_${crypto.randomUUID()}`;
+
+    // Build messages array: history turns + current user message.
+    // HermesEngine extracts the last user message as the current input
+    // and feeds the rest as conversation history.
+    const messages = [
+      ...ctx.history.map((m) => ({
+        role: m.role as 'user' | 'assistant' | 'system',
+        content: m.content,
+      })),
+      { role: 'user' as const, content: message.content },
+    ];
 
     logger.info(
-      `[HermesWeixinHandler] model=${piModel.provider ?? DEFAULT_PROVIDER}/${piModel.id}` +
-      ` historyTurns=${ctx.history.length}`,
+      `[HermesWeixinHandler] model=${DEFAULT_PROVIDER}/${DEFAULT_MODEL}` +
+        ` historyTurns=${ctx.history.length}`,
     );
 
-    // 2. Build structured pi-ai message context (mirrors hermes/route.ts step 4)
-    const piMessages: Message[] = ctx.history.map((m) => {
-      if (m.role === 'user') {
-        return { role: 'user' as const, content: m.content, timestamp: Date.now() };
-      }
-      return {
-        role: 'assistant' as const,
-        content: [{ type: 'text' as const, text: m.content }],
-        timestamp: Date.now(),
-      } as Message;
-    });
+    // Build portfolio context on the first turn (no prior history)
 
-    // 3. Register tools (mirrors hermes/route.ts step 2)
-    //    Web-safe builtin tools + full business tools (stock, note, db, search)
-    const registry = ToolRegistry.create();
-    registerBuiltinTools(registry, {
-      enable: ['read_file', 'search_files', 'list_directory', 'web_search', 'web_fetch', 'think'],
-    });
-    registerBusinessTools(registry);
+    // The SSEEmitter is required by the engine contract, but for the Weixin
+    // channel we only consume the final result. No one reads the stream.
+    const emitter = new SSEEmitter();
 
-    // 4. Create agent (mirrors hermes/route.ts step 6)
-    //    streaming: true but no onTextDelta callback → loop.ts falls back to complete()
-    //    toolEnforcement: tools are now registered, so enforcement is back on (default true)
-    const agent = new HermesAgent({
-      model: piModel,
-      name: 'weixin-agent',
-      systemPrompt: INVESTMENT_ASSISTANT_SYSTEM_PROMPT,
-      memoryDir: path.join(getProjectRoot(), 'workspace', String(ctx.userId), '.hermes', 'memories'),
-      memorySessionId: String(ctx.userId),
-      maxIterations: 10,
-      streaming: true,
-      platform: 'weixin', // plain text, no markdown
-      loadContextFiles: false,
-      toolRegistry: registry,
-      streamOptions: {
-        ...(apiKey ? { apiKey } : {}),
+    const result = await runEngine(
+      'hermes',
+      {
+        sessionId: ctx.sessionId,
+        userId: ctx.userId,
+        messageId,
+        model: DEFAULT_MODEL,
+        provider: DEFAULT_PROVIDER,
+        messages,
+        systemPrompt: INVESTMENT_ASSISTANT_SYSTEM_PROMPT,
+        signal: abortController.signal,
+        extra: {
+          enableTools: true,
+          maxIterations: 10,
+          platform: 'weixin',
+          name: 'weixin-agent',
+        },
       },
-    });
+      emitter,
+    );
 
-    // 5. Run agent with structured context (mirrors hermes/route.ts step 8)
-    //    current message as input.message; history as context.messages
-    const result = await agent.run({
-      message: message.content,
-      context: {
-        systemPrompt: agent.getSystemPrompt(),
-        messages: piMessages, // all history turns (not including current)
-      },
-    });
-
-    if (!result.completed) {
+    if (!result.completed && result.error) {
       logger.warn(
-        `[HermesWeixinHandler] Agent did not complete: ${result.error ?? 'unknown error'}`,
+        `[HermesWeixinHandler] Agent did not complete: ${result.error}`,
       );
     }
 
     logger.info(
-      `[HermesWeixinHandler] completed=${result.completed} apiCalls=${result.apiCalls}` +
-      ` reply="${result.finalResponse.slice(0, 60).replace(/\n/g, ' ')}${result.finalResponse.length > 60 ? '…' : ''}"`,
+      `[HermesWeixinHandler] completed=${result.completed} apiCalls=${result.apiCalls ?? 0}` +
+        ` reply="${(result.content ?? '').slice(0, 60).replace(/\n/g, ' ')}${(result.content ?? '').length > 60 ? '…' : ''}"`,
     );
 
-    return result.finalResponse || result.error || '（Agent 未能生成回复）';
+    return result.content || result.error || '（Agent 未能生成回复）';
   }
 }

@@ -21,7 +21,9 @@ export const skillsListSchema = Type.Object({
 /**
  * Create a skills_list handler bound to the given skill roots.
  */
-export function createSkillsListHandler(skillRoots: string[]) {
+export function createSkillsListHandler(skillRoots: string[], enabledSlugs?: string[]) {
+  const enabledSet = enabledSlugs ? new Set(enabledSlugs) : undefined;
+
   return async function skillsListHandler(
     _toolCallId: string,
     args: Record<string, unknown>,
@@ -33,7 +35,10 @@ export function createSkillsListHandler(skillRoots: string[]) {
       filterPlatform: true,
     };
 
-    const skills: SkillMetadata[] = scanSkills(skillRoots, options);
+    let skills: SkillMetadata[] = scanSkills(skillRoots, options);
+    if (enabledSet) {
+      skills = skills.filter((s) => enabledSet.has(s.name));
+    }
 
     if (skills.length === 0) {
       const msg = category

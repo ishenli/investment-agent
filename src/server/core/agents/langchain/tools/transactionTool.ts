@@ -13,13 +13,11 @@ import z from 'zod';
 // ============== Schemas ==============
 
 const TransactionHistoryParams = z.object({
-  account_id: z.string().describe('账户 ID'),
   limit: z.number().optional().describe('返回记录数量限制（默认 50）'),
   offset: z.number().optional().describe('偏移量（用于分页，默认 0）'),
 });
 
 const TransactionHistoryByDateParams = z.object({
-  account_id: z.string().describe('账户 ID'),
   start_date: z.string().describe('开始日期（YYYY-MM-DD 格式）'),
   end_date: z.string().describe('结束日期（YYYY-MM-DD 格式）'),
   limit: z.number().optional().describe('返回记录数量限制'),
@@ -27,11 +25,10 @@ const TransactionHistoryByDateParams = z.object({
 });
 
 const AccountBalanceParams = z.object({
-  account_id: z.string().describe('账户 ID'),
+  before_transaction_id: z.string().optional().describe('计算到指定交易之前的余额'),
 });
 
 const TransactionSummaryParams = z.object({
-  account_id: z.string().describe('账户 ID'),
   limit: z.number().optional().describe('记录数量限制（默认 50）'),
 });
 
@@ -51,12 +48,11 @@ const AddTransactionParams = z.object({
 // ============== Core Logic ==============
 
 async function executeGetTransactionHistory(
-  accountId: string,
   limit?: number,
   offset?: number,
 ): Promise<string> {
   try {
-    return await getTransactionHistory(accountId, limit, offset);
+    return await getTransactionHistory('', limit, offset);
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
     logger.error(`[transactionHistoryTool] query failed:`, error);
@@ -65,14 +61,13 @@ async function executeGetTransactionHistory(
 }
 
 async function executeGetTransactionHistoryByDate(
-  accountId: string,
   startDate: string,
   endDate: string,
   limit?: number,
   offset?: number,
 ): Promise<string> {
   try {
-    return await getTransactionHistoryByDateRange(accountId, startDate, endDate, limit, offset);
+    return await getTransactionHistoryByDateRange('', startDate, endDate, limit, offset);
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
     logger.error(`[transactionHistoryByDateTool] query failed:`, error);
@@ -80,9 +75,11 @@ async function executeGetTransactionHistoryByDate(
   }
 }
 
-async function executeGetAccountBalance(accountId: string): Promise<string> {
+async function executeGetAccountBalance(
+  beforeTransactionId?: string,
+): Promise<string> {
   try {
-    return await getAccountBalance(accountId);
+    return await getAccountBalance('', beforeTransactionId);
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
     logger.error(`[accountBalanceTool] query failed:`, error);
@@ -91,11 +88,10 @@ async function executeGetAccountBalance(accountId: string): Promise<string> {
 }
 
 async function executeGetTransactionSummary(
-  accountId: string,
   limit?: number,
 ): Promise<string> {
   try {
-    return await getTransactionSummary(accountId, limit);
+    return await getTransactionSummary('', limit);
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
     logger.error(`[transactionSummaryTool] query failed:`, error);
@@ -139,8 +135,8 @@ async function executeAddTransaction(params: {
 
 export const transactionHistoryTool = langchainTool(
   async (params): Promise<string> => {
-    const { account_id, limit, offset } = params as z.infer<typeof TransactionHistoryParams>;
-    return executeGetTransactionHistory(account_id, limit, offset);
+    const { limit, offset } = params as z.infer<typeof TransactionHistoryParams>;
+    return executeGetTransactionHistory(limit, offset);
   },
   {
     name: 'transactionHistoryTool',
@@ -151,8 +147,8 @@ export const transactionHistoryTool = langchainTool(
 
 export const transactionHistoryByDateTool = langchainTool(
   async (params): Promise<string> => {
-    const { account_id, start_date, end_date, limit, offset } = params as z.infer<typeof TransactionHistoryByDateParams>;
-    return executeGetTransactionHistoryByDate(account_id, start_date, end_date, limit, offset);
+    const { start_date, end_date, limit, offset } = params as z.infer<typeof TransactionHistoryByDateParams>;
+    return executeGetTransactionHistoryByDate(start_date, end_date, limit, offset);
   },
   {
     name: 'transactionHistoryByDateTool',
@@ -163,20 +159,20 @@ export const transactionHistoryByDateTool = langchainTool(
 
 export const accountBalanceTool = langchainTool(
   async (params): Promise<string> => {
-    const { account_id } = params as z.infer<typeof AccountBalanceParams>;
-    return executeGetAccountBalance(account_id);
+    const { before_transaction_id } = params as z.infer<typeof AccountBalanceParams>;
+    return executeGetAccountBalance(before_transaction_id);
   },
   {
     name: 'accountBalanceTool',
-    description: '获取账户当前余额（直接查询账户资金记录）',
+    description: '获取账户当前余额（直接读取账户资金字段）',
     schema: AccountBalanceParams,
   },
 );
 
 export const transactionSummaryTool = langchainTool(
   async (params): Promise<string> => {
-    const { account_id, limit } = params as z.infer<typeof TransactionSummaryParams>;
-    return executeGetTransactionSummary(account_id, limit);
+    const { limit } = params as z.infer<typeof TransactionSummaryParams>;
+    return executeGetTransactionSummary(limit);
   },
   {
     name: 'transactionSummaryTool',
@@ -202,16 +198,14 @@ export const transactionHistoryClaudeTool = claudeTool(
   'transactionHistoryTool',
   '获取账户的交易历史记录，包括存款、取款、买入、卖出等',
   {
-    account_id: z.string().describe('账户 ID'),
     limit: z.number().optional().describe('返回记录数量限制（默认 50）'),
     offset: z.number().optional().describe('偏移量（用于分页，默认 0）'),
   },
   async (args) => {
     try {
       const result = await executeGetTransactionHistory(
-        args.account_id,
-        args.limit,
-        args.offset,
+        args.limit as number | undefined,
+        args.offset as number | undefined,
       );
       return { content: [{ type: 'text', text: result }] };
     } catch (error) {
@@ -226,7 +220,6 @@ export const transactionHistoryByDateClaudeTool = claudeTool(
   'transactionHistoryByDateTool',
   '按日期范围查询账户的交易历史记录',
   {
-    account_id: z.string().describe('账户 ID'),
     start_date: z.string().describe('开始日期（YYYY-MM-DD 格式）'),
     end_date: z.string().describe('结束日期（YYYY-MM-DD 格式）'),
     limit: z.number().optional().describe('返回记录数量限制'),
@@ -235,11 +228,10 @@ export const transactionHistoryByDateClaudeTool = claudeTool(
   async (args) => {
     try {
       const result = await executeGetTransactionHistoryByDate(
-        args.account_id,
-        args.start_date,
-        args.end_date,
-        args.limit,
-        args.offset,
+        String(args.start_date),
+        String(args.end_date),
+        args.limit as number | undefined,
+        args.offset as number | undefined,
       );
       return { content: [{ type: 'text', text: result }] };
     } catch (error) {
@@ -252,13 +244,15 @@ export const transactionHistoryByDateClaudeTool = claudeTool(
 
 export const accountBalanceClaudeTool = claudeTool(
   'accountBalanceTool',
-  '获取账户当前余额（直接查询账户资金记录）',
+  '获取账户当前余额（直接读取账户资金字段）',
   {
-    account_id: z.string().describe('账户 ID'),
+    before_transaction_id: z.string().optional().describe('计算到指定交易之前的余额'),
   },
   async (args) => {
     try {
-      const result = await executeGetAccountBalance(args.account_id);
+      const result = await executeGetAccountBalance(
+        args.before_transaction_id as string | undefined,
+      );
       return { content: [{ type: 'text', text: result }] };
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
@@ -272,12 +266,11 @@ export const transactionSummaryClaudeTool = claudeTool(
   'transactionSummaryTool',
   '获取账户交易记录的 Markdown 格式摘要',
   {
-    account_id: z.string().describe('账户 ID'),
     limit: z.number().optional().describe('记录数量限制（默认 50）'),
   },
   async (args) => {
     try {
-      const result = await executeGetTransactionSummary(args.account_id, args.limit);
+      const result = await executeGetTransactionSummary(args.limit as number | undefined);
       return { content: [{ type: 'text', text: result }] };
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';

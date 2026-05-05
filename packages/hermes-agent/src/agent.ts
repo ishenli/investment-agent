@@ -75,6 +75,7 @@ export class HermesAgent {
   private readonly toolExecutor?: ToolExecutor;
   private cachedSystemPrompt: string | null = null;
   private readonly memoryManager?: MemoryManager;
+  private turnCount = 0;
 
   constructor(config: HermesAgentConfig) {
     this.config = config;
@@ -142,6 +143,7 @@ export class HermesAgent {
       this.resetSystemPrompt();
     }
 
+    this.turnCount++;
     const context = this.buildContext(input);
 
     const agentConfig: AgentConfig = {
@@ -154,6 +156,8 @@ export class HermesAgent {
       callbacks: this.config.callbacks,
       streaming: this.config.streaming ?? true,
       streamOptions: this.config.streamOptions,
+      memoryManager: this.memoryManager,
+      turnNumber: this.turnCount,
     };
 
     return runAgentLoop(agentConfig, context);

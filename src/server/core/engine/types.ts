@@ -66,6 +66,10 @@ export interface HermesEngineExtra {
   enableTools?: boolean;
   /** 最大迭代次数（默认 30） */
   maxIterations?: number;
+  /** Agent 名称（默认 'hermes'） */
+  name?: string;
+  /** 平台提示，影响输出格式（默认 'web'） */
+  platform?: 'web' | 'weixin' | string;
 }
 
 /**

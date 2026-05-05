@@ -505,14 +505,46 @@ export class TransactionService {
   }
 
   /**
-   * Get account current cash balance
+   * 获取账户当前余额
+   *
+   * 直接读取 account_funds.amount_cents 字段。该字段在
+   * addTransaction / updateTransaction / reverseTransaction 中已同步维护，
+   * 不需要再基于交易记录重新累加（否则会重复计算）。
+   *
    * @param accountId Account ID
-   * @returns Account balance in dollars
+   * @param beforeTransactionId 可选，若指定则返回该交易发生前的余额（反推 account_funds 的出入金变动）
+   * @returns Account balance
    */
-  async getAccountBalance(accountId: string): Promise<number> {
+  async getAccountBalance(accountId: string, beforeTransactionId?: number): Promise<number> {
     try {
       const accountFund = await accountFundRepository.findByAccountId(parseInt(accountId));
-      return accountFund ? accountFund.amountCents / 100 : 0;
+
+      if (!accountFund) {
+        return 0;
+      }
+
+      // 直接以 account_funds 作为当前余额（convert cents -> dollars）
+      let balance = (accountFund.amountCents ?? 0) / 100;
+
+      // 若需要查询历史余额，回滚目标交易（含）之后的出入金对 account_funds 的影响
+      if (beforeTransactionId) {
+        const targetTx = await transactionRepository.findById(beforeTransactionId);
+        if (targetTx?.createdAt) {
+          const allTxs = await transactionRepository.findByAccountId(parseInt(accountId));
+          for (const tx of allTxs) {
+            if (!tx.createdAt || tx.createdAt < targetTx.createdAt) continue;
+            const amt = (tx.totalAmountCents ?? 0) / 100;
+            if (tx.type === 'deposit') {
+              balance -= amt;
+            } else if (tx.type === 'withdrawal') {
+              balance += amt;
+            }
+            // buy/sell 不影响 account_funds，无需回滚
+          }
+        }
+      }
+
+      return balance;
     } catch (error) {
       logger.error(`Failed to get account balance for account ${accountId}: ${error}`);
       return 0;
