@@ -25,7 +25,6 @@ import {
   addTransaction,
   queryPortfolio,
 } from '@server/core/business';
-import logger from '@server/base/logger';
 import { MarketBizController } from '@server/controller/market';
 import { ReportController } from '@server/controller/report';
 import { ReportDetailController } from '@server/controller/reportDetail';

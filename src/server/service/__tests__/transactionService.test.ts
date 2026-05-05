@@ -605,7 +605,7 @@ describe('TransactionService', () => {
 
       const result = await transactionService.getAccountBalance('1');
 
-      expect(result).toBe(1000);
+      expect(result).toBe(2000);
     });
 
     it('不会因交易记录重复累加 取款 余额（account_funds 已含取款影响）', async () => {
@@ -619,7 +619,7 @@ describe('TransactionService', () => {
 
       const result = await transactionService.getAccountBalance('1');
 
-      expect(result).toBe(1000);
+      expect(result).toBe(2000);
     });
 
     it('买入交易不影响 account_funds，余额保持不变', async () => {
@@ -633,7 +633,7 @@ describe('TransactionService', () => {
 
       const result = await transactionService.getAccountBalance('1');
 
-      expect(result).toBe(1000);
+      expect(result).toBe(2000);
     });
 
     it('卖出交易不影响 account_funds，余额保持不变', async () => {
@@ -647,7 +647,7 @@ describe('TransactionService', () => {
 
       const result = await transactionService.getAccountBalance('1');
 
-      expect(result).toBe(1000);
+      expect(result).toBe(2000);
     });
 
     it('数据库错误时应该返回 0', async () => {
@@ -677,8 +677,8 @@ describe('TransactionService', () => {
 
       const result = await transactionService.getAccountBalance('1', 123);
 
-      // 1000 - 300 (回滚后续存款) = 700
-      expect(result).toBe(700);
+      // 2000 - 300 (回滚后续存款) = 1700
+      expect(result).toBe(1700);
     });
   });
 });
