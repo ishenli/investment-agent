@@ -35,6 +35,36 @@ export type {
   Model,
 };
 
+// ============== Observability Re-exports ==============
+
+import type {
+  ObservabilityConfig,
+  ObservabilityResult,
+  TraceContext,
+  TraceStartEvent,
+  SpanStartEvent,
+  SpanEndEvent,
+  TraceEndEvent,
+  MetricEvent,
+  ModelPricingTable,
+  CostBreakdown,
+  TraceMetrics,
+} from './observability/types';
+
+export type {
+  ObservabilityConfig,
+  ObservabilityResult,
+  TraceContext,
+  TraceStartEvent,
+  SpanStartEvent,
+  SpanEndEvent,
+  TraceEndEvent,
+  MetricEvent,
+  ModelPricingTable,
+  CostBreakdown,
+  TraceMetrics,
+};
+
 // ============== Agent Input / Output ==============
 
 export interface HermesAgentInput {
@@ -55,6 +85,8 @@ export interface HermesAgentResult {
   finalResponse: string;
   /** Error message if completed is false */
   error?: string;
+  /** Observability summary when enabled */
+  observability?: ObservabilityResult;
 }
 
 // ============== Tool Definitions ==============
@@ -93,6 +125,12 @@ export interface AgentCallbacks {
   onError?: (error: Error) => void;
   onStep?: (iteration: number, toolNames: string[]) => void;
   onTextDelta?: (delta: string) => void;
+  // Observability callbacks (optional, fire-and-forget)
+  onTraceStart?: (trace: TraceStartEvent) => void;
+  onSpanStart?: (span: SpanStartEvent) => void;
+  onSpanEnd?: (span: SpanEndEvent) => void;
+  onTraceEnd?: (trace: TraceEndEvent) => void;
+  onMetric?: (metric: MetricEvent) => void;
 }
 
 export interface AgentConfig {
@@ -118,4 +156,6 @@ export interface AgentConfig {
   memoryManager?: import('./memory-manager').MemoryManager;
   /** Monotonic turn counter for session-level memory tracking */
   turnNumber?: number;
+  /** Observability configuration */
+  observability?: ObservabilityConfig;
 }

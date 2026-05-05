@@ -36,6 +36,7 @@ import { INBOX_SESSION_ID } from '../const/session';
 import { toolSelectors } from '../store/tool/selectors';
 import { produce } from 'immer';
 import { getToolStoreState } from '../store/tool';
+import { useObservabilityStore } from '../store/observability/store';
 import { BuiltinSystemRolePrompts } from '../prompts/systemRole';
 import { t } from 'i18next';
 import { safeParseJSON } from '../lib/utils/safeParseJSON';
@@ -744,6 +745,61 @@ class ChatService {
                   description: event.description || `工具 ${event.toolName} 需要您的授权才能继续`,
                 },
               },
+            });
+            break;
+          }
+          case 'trace_start': {
+            useObservabilityStore.getState().handleTraceStart({
+              traceId: event.traceId,
+              agentName: event.agentName,
+              startTime: event.startTime,
+              sessionId: event.sessionId,
+              topicId: event.topicId,
+            });
+            break;
+          }
+          case 'span_start': {
+            useObservabilityStore.getState().handleSpanStart({
+              traceId: event.traceId,
+              spanId: event.spanId,
+              parentSpanId: event.parentSpanId,
+              name: event.name,
+              kind: event.kind,
+              startTime: event.startTime,
+              attributes: event.attributes,
+            });
+            break;
+          }
+          case 'span_end': {
+            useObservabilityStore.getState().handleSpanEnd({
+              traceId: event.traceId,
+              spanId: event.spanId,
+              status: event.status,
+              endTime: event.endTime,
+              durationMs: event.durationMs,
+              attributes: event.attributes,
+              tokenInput: event.tokenInput,
+              tokenOutput: event.tokenOutput,
+              cost: event.cost,
+            });
+            break;
+          }
+          case 'trace_end': {
+            useObservabilityStore.getState().handleTraceEnd({
+              traceId: event.traceId,
+              endTime: event.endTime,
+              durationMs: event.durationMs,
+              status: event.status,
+              metrics: event.metrics,
+              cost: event.cost,
+              error: event.error,
+            });
+            break;
+          }
+          case 'metric': {
+            useObservabilityStore.getState().handleMetric({
+              traceId: event.traceId,
+              metric: event.metric,
             });
             break;
           }

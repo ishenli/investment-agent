@@ -19,6 +19,8 @@ import { SSEEmitter } from '@server/base/sseEmitter';
 import { resolveAgentModel } from '@server/service/agentModelResolver';
 import { registerBusinessTools } from '@server/core/agents/hermes';
 import { getProjectRoot } from '@server/base/env';
+import { observabilityService } from '@server/service/observabilityService';
+import { defaultModelPricing, getModelPricing } from '@server/config/modelPricing';
 import logger from '@server/base/logger';
 import path from 'path';
 import type { IAgentEngine, EngineRunContext, EngineRunResult } from '@server/core/engine/types';
@@ -27,7 +29,7 @@ export class HermesEngine implements IAgentEngine {
   readonly name = 'hermes';
 
   async run(ctx: EngineRunContext, emitter: SSEEmitter): Promise<EngineRunResult> {
-    const { model: modelSlug, provider = 'openai', messages, systemPrompt, signal, messageId, userId, extra } = ctx;
+    const { model: modelSlug, provider = 'openai', messages, systemPrompt, signal, messageId, userId, extra, topicId } = ctx;
     const enableTools = (extra?.enableTools as boolean) ?? true;
     const maxIterations = (extra?.maxIterations as number) ?? 30;
 
@@ -107,6 +109,38 @@ export class HermesEngine implements IAgentEngine {
     // 5. 创建并运行 Agent
     const platform = (extra?.platform as string) ?? 'web';
     const name = (extra?.name as string) ?? 'hermes';
+    // 5. Observability callbacks (fire-and-forget)
+    const observabilityCallbacks: AgentCallbacks = {
+      onTraceStart: (trace) => {
+        observabilityService.createTrace({ ...trace, sessionId: ctx.sessionId, topicId }).catch((err) =>
+          logger.error('[HermesEngine] persist trace failed:', err),
+        );
+        emitter.send({ type: 'trace_start', ...trace, sessionId: ctx.sessionId, topicId });
+      },
+      onSpanStart: (span) => {
+        observabilityService.createSpan(span).catch((err) =>
+          logger.error('[HermesEngine] persist span failed:', err),
+        );
+        emitter.send({ type: 'span_start', ...span });
+      },
+      onSpanEnd: (span) => {
+        observabilityService.updateSpan(span).catch((err) =>
+          logger.error('[HermesEngine] update span failed:', err),
+        );
+        emitter.send({ type: 'span_end', ...span });
+      },
+      onTraceEnd: (trace) => {
+        observabilityService.updateTrace({ ...trace, sessionId: ctx.sessionId, topicId }).catch((err) =>
+          logger.error('[HermesEngine] update trace failed:', err),
+        );
+        emitter.send({ type: 'trace_end', ...trace, sessionId: ctx.sessionId, topicId });
+      },
+      onMetric: (metric) => {
+        emitter.send({ type: 'metric', ...metric });
+      },
+    };
+
+    // 6. 创建并运行 Agent
     const agent = new HermesAgent({
       model: piModel,
       name,
@@ -115,7 +149,10 @@ export class HermesEngine implements IAgentEngine {
       memoryDir: path.join(getProjectRoot(), 'workspace', String(userId), '.hermes', 'memories'),
       memorySessionId: String(userId),
       maxIterations,
-      callbacks,
+      callbacks: {
+        ...callbacks,
+        ...observabilityCallbacks,
+      },
       streaming: true,
       platform,
       loadContextFiles: false,
@@ -123,17 +160,23 @@ export class HermesEngine implements IAgentEngine {
         ...(apiKey ? { apiKey } : {}),
         signal,
       },
+      observability: {
+        enabled: true,
+        sinks: [],
+        callbacks: observabilityCallbacks,
+        pricing: defaultModelPricing,
+      },
     });
 
     const result = await agent.run({
       message: messages.findLast((m) => m.role === 'user')!.content,
       context: {
         systemPrompt: agent.getSystemPrompt(),
-        messages: piMessages.slice(0, -1) as any, // pi-ai Message[] requires full provider metadata not available at input time
+        messages: piMessages.slice(0, -1) as any,
       },
     });
 
-    // 6. 发送最终结果
+    // 7. 发送最终结果
     if (result.completed) {
       await emitter.sendTextDelta(messageId, '', true);
 
@@ -156,6 +199,16 @@ export class HermesEngine implements IAgentEngine {
       content: result.finalResponse,
       completed: result.completed,
       error: result.completed ? undefined : (result.error ?? 'Agent 未能完成任务'),
+      usage: result.observability
+        ? {
+            input: result.observability.tokens.input,
+            output: result.observability.tokens.output,
+            total: result.observability.tokens.total,
+            costUsd: result.observability.cost,
+          }
+        : undefined,
+      apiCalls: result.apiCalls,
+      observability: result.observability,
     };
   }
 }

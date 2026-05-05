@@ -19,7 +19,9 @@ import type {
   HermesAgentResult,
   ToolExecutor,
   AgentConfig,
+  ObservabilityConfig,
 } from './types';
+import { createObservability, Tracer, MetricsCollector, CostTracker } from './observability';
 
 export interface HermesAgentConfig {
   /** pi-ai Model instance (from getModel) */
@@ -67,6 +69,8 @@ export interface HermesAgentConfig {
   streaming?: boolean;
   /** Options forwarded to pi-ai stream()/complete() calls (apiKey, etc.) */
   streamOptions?: Record<string, unknown>;
+  /** Observability configuration (sinks, pricing, callbacks) */
+  observability?: ObservabilityConfig;
 }
 
 export class HermesAgent {
@@ -146,6 +150,16 @@ export class HermesAgent {
     this.turnCount++;
     const context = this.buildContext(input);
 
+    // Initialize observability if configured
+    const observability = createObservability(this.config.observability);
+    const tracer = observability ? new Tracer(observability) : undefined;
+    const metrics = observability ? new MetricsCollector(observability) : undefined;
+    const costTracker = observability && this.config.observability?.pricing
+      ? new CostTracker(this.config.observability.pricing, this.config.observability.defaultPricing)
+      : undefined;
+
+    const traceCtx = tracer?.startTrace(this.config.name ?? 'hermes');
+
     const agentConfig: AgentConfig = {
       name: this.config.name ?? 'hermes',
       model: this.config.model,
@@ -158,9 +172,39 @@ export class HermesAgent {
       streamOptions: this.config.streamOptions,
       memoryManager: this.memoryManager,
       turnNumber: this.turnCount,
+      observability: this.config.observability,
     };
 
-    return runAgentLoop(agentConfig, context);
+    const result = await runAgentLoop(agentConfig, context, traceCtx, tracer, metrics, costTracker);
+
+    // Build observability summary
+    if (traceCtx && tracer && metrics) {
+      const snapshot = metrics.snapshot();
+      const cost = costTracker?.totalCost() ?? {
+        inputCost: 0, outputCost: 0, cachedCost: 0, reasoningCost: 0, totalCost: 0,
+      };
+
+      tracer.endTrace(traceCtx, {
+        status: result.completed ? 'completed' : 'error',
+        metrics: snapshot,
+        cost,
+        error: result.error,
+      });
+
+      result.observability = {
+        traceId: traceCtx.traceId,
+        durationMs: Date.now() - traceCtx.startTime,
+        tokens: {
+          input: snapshot.inputTokens,
+          output: snapshot.outputTokens,
+          total: snapshot.totalTokens,
+        },
+        cost: cost.totalCost,
+        toolCalls: snapshot.toolCalls,
+      };
+    }
+
+    return result;
   }
 
   /**

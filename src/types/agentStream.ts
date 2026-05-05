@@ -70,4 +70,69 @@ export type AgentStreamEvent =
     }
   | {
       type: 'done';
+    }
+  | {
+      type: 'trace_start';
+      traceId: string;
+      agentName: string;
+      startTime: number;
+      sessionId?: string;
+      topicId?: string;
+    }
+  | {
+      type: 'span_start';
+      traceId: string;
+      spanId: string;
+      parentSpanId?: string;
+      name: 'llm_call' | 'tool_call' | 'context_compression';
+      kind: 'client' | 'internal';
+      startTime: number;
+      attributes?: Record<string, unknown>;
+    }
+  | {
+      type: 'span_end';
+      traceId: string;
+      spanId: string;
+      name: 'llm_call' | 'tool_call' | 'context_compression';
+      status: 'ok' | 'error';
+      startTime: number;
+      endTime: number;
+      durationMs: number;
+      attributes?: Record<string, unknown>;
+      tokenInput?: number;
+      tokenOutput?: number;
+      cost?: number;
+    }
+  | {
+      type: 'trace_end';
+      traceId: string;
+      agentName: string;
+      startTime: number;
+      endTime: number;
+      durationMs: number;
+      status: 'running' | 'completed' | 'error';
+      metrics: {
+        inputTokens: number;
+        outputTokens: number;
+        totalTokens: number;
+        apiCalls: number;
+        toolCalls: number;
+        totalLatencyMs: number;
+      };
+      cost: {
+        inputCost: number;
+        outputCost: number;
+        totalCost: number;
+      };
+      error?: string;
+    }
+  | {
+      type: 'metric';
+      traceId: string;
+      metric: {
+        name: string;
+        value: number;
+        timestamp: number;
+        labels?: Record<string, string>;
+      };
     };

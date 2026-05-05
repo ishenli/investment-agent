@@ -94,6 +94,8 @@ export interface EngineRunContext {
   signal: AbortSignal;
   /** 引擎特定的额外参数 */
   extra?: Record<string, unknown>;
+  /** 可选：当前 topic ID，用于 observability 关联 */
+  topicId?: string;
 }
 
 /**
@@ -115,6 +117,14 @@ export interface EngineRunResult {
   };
   /** API 调用次数 */
   apiCalls?: number;
+  /** 观测数据摘要（由 HermesAgent 提供） */
+  observability?: {
+    traceId: string;
+    durationMs: number;
+    tokens: { input: number; output: number; total: number };
+    cost: number;
+    toolCalls: number;
+  };
 }
 
 /**
