@@ -4,7 +4,7 @@
  * 统一的 Agent 引擎协议，所有引擎（DeepAgents / Claude / Hermes）实现此接口，
  * 减少新增引擎时的样板代码。
  */
-import { SSEEmitter } from '@server/base/sseEmitter';
+import type { EngineEventSink } from './eventSink';
 
 export const ENGINE_TYPES = ['deepagents', 'claude', 'hermes'] as const;
 export type EngineType = (typeof ENGINE_TYPES)[number];
@@ -130,20 +130,27 @@ export interface EngineRunResult {
 /**
  * Agent 引擎接口
  *
- * 每个引擎实现 `run()` 方法，通过 SSEEmitter 输出流式事件。
- * Route 层负责：认证、参数校验、创建 SSEEmitter、消息持久化。
- * Engine 层负责：模型调用、工具执行、流式输出。
+ * 所有引擎必须实现此接口，提供统一的运行方法。
  */
 export interface IAgentEngine {
-  /** 引擎名称，用于日志和调试 */
+  /** 引擎名称 */
   readonly name: string;
 
   /**
-   * 运行引擎处理一次对话
+   * 运行引擎
    *
-   * @param ctx 运行上下文（会话、消息、模型配置等）
-   * @param emitter SSE 事件发射器
+   * @param ctx 运行上下文
+   * @param eventSink 事件接收器（用于接收引擎运行过程中的事件）
    * @returns 运行结果
    */
-  run(ctx: EngineRunContext, emitter: SSEEmitter): Promise<EngineRunResult>;
+  run(ctx: EngineRunContext, eventSink: EngineEventSink): Promise<EngineRunResult>;
 }
+
+/**
+ * 引擎运行器函数签名
+ */
+export type EngineRunner = (
+  engineType: EngineType,
+  ctx: EngineRunContext,
+  eventSink: EngineEventSink,
+) => Promise<EngineRunResult>;

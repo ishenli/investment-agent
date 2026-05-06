@@ -1,11 +1,17 @@
+/**
+ * SSE Event Emitter
+ *
+ * 实现 EngineEventSink 接口，用于 HTTP SSE 流式响应。
+ */
 import { AgentStreamEvent } from '@typings/agentStream';
 import { UIMessageChunk } from 'ai';
 import {
   convertToOpenAICompatibleMessage,
   OpenAICompatibleMessage,
 } from '@server/core/agents/langchain/utils/messageUtils';
+import type { EngineEventSink } from '@server/core/engine/eventSink';
 
-export class SSEEmitter {
+export class SSEEmitter implements EngineEventSink {
   public readonly readable: ReadableStream<Uint8Array>;
   private readonly writable: WritableStream<Uint8Array>;
   private readonly encoder: TextEncoder;
