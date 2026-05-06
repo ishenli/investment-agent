@@ -24,7 +24,7 @@ English Version | [中文版本](./doc/zh/README.md)
 ### Multi-Engine AI Architecture
 - **DeepAgents Engine** - LangChain/LangGraph-based agent orchestration
 - **Claude Engine** - Anthropic Claude Agent SDK integration  
-- **Hermes Engine** - Lightweight agent framework with tool support
+- **Hermes Engine** - Lightweight agent framework with full observability (trace, metrics, cost tracking)
 - Unified engine interface for seamless switching
 
 ### Multi-Channel Communication
@@ -39,6 +39,13 @@ English Version | [中文版本](./doc/zh/README.md)
 - **Database Query** - Natural language to SQL queries on portfolio data
 - **Web Search** - Tavily-powered market research
 - **Stock Analysis** - Technical indicators and market sentiment
+
+### Agent Observability
+- **Trace & Span System** - Hierarchical tracing for every agent execution with explicit context passing
+- **Real-time Metrics** - Token usage, latency, tool call counts, and iteration stats
+- **Cost Tracking** - Per-session cost breakdown based on model pricing tables
+- **Live Observability Panel** - In-chat sidebar showing trace timeline, span details, and aggregated metrics
+- **Persistent Storage** - Trace/span data saved to SQLite for historical analysis
 
 ### Investment Management
 - **Portfolio Tracking** - Real-time position and P&L monitoring
@@ -94,6 +101,10 @@ investment-agent [command]  # or: ig [command]
 │  • DB Query     • Web Search                 │
 │  • Stock Analysis                            │
 ├──────────────────────────────────────────────┤
+│     Observability Layer (Hermes)           │
+│  • Trace/Span   • Metrics   • Cost Tracking  │
+│  • Live Panel   • Persistent Storage          │
+├──────────────────────────────────────────────┤
 │     Multi-Channel Communication Layer        │
 │  • WeChat    • Feishu    • Web Interface     │
 ├──────────────────────────────────────────────┤
@@ -104,6 +115,7 @@ investment-agent [command]  # or: ig [command]
 ### Key Components
 - **Engine Registry** - Dynamically register and switch AI engines
 - **Tool System** - Standardized tool interface with LangChain/Claude SDK adapters
+- **Observability System** - Hierarchical tracing, metrics collection, and cost tracking for agent runs
 - **Channel Router** - Unified message routing across platforms
 - **Session Management** - Multi-turn conversation with context persistence
 - **Data Layer** - SQLite + Drizzle ORM for type-safe queries
@@ -146,6 +158,11 @@ The WeChat channel enables AI assistant access through personal WeChat accounts:
 - **Finnhub API** - Real-time market data
 - **Tavily API** - Web search capabilities
 
+### Backend & Observability
+- **Hermes Observability** - Trace/span lifecycle, metrics collection, cost tracking
+- **SQLite + Drizzle ORM** - Type-safe database operations
+- **Event Bus** - Fire-and-forget observability sink system
+
 ### Frontend
 - **Next.js 16 + React 19** - Modern web framework
 - **Ant Design + Radix UI** - UI components
@@ -178,6 +195,7 @@ pnpm test             # Run tests
 src/
 ├── app/              # Next.js pages and routes
 │   └── api/channel/  # WeChat/Feishu webhook routes
+│   └── api/chat/     # Chat & observability APIs
 ├── server/
 │   ├── core/
 │   │   ├── agents/   # AI agent implementations
@@ -188,12 +206,17 @@ src/
 │   │   └── business/ # Core business logic
 │   ├── channel/      # Channel handlers
 │   ├── service/      # API services
+│   │   └── observabilityService.ts
 │   └── repository/   # Data access layer
+│       └── chat/     # Chat & observability repositories
 ├── types/            # TypeScript definitions
 └── locales/          # i18n translations
 packages/
-└── agent-channel/    # Multi-platform messaging SDK
-    └── src/weixin/   # WeChat channel implementation
+├── agent-channel/    # Multi-platform messaging SDK
+│   └── src/weixin/   # WeChat channel implementation
+└── hermes-agent/
+    └── src/
+        └── observability/  # Trace, metrics, cost tracking
 ```
 
 ## Core Modules

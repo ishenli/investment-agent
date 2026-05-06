@@ -12,7 +12,7 @@
 ### 多引擎 AI 架构
 - **DeepAgents 引擎** - 基于 LangChain/LangGraph 的智能体编排
 - **Claude 引擎** - Anthropic Claude Agent SDK 集成
-- **Hermes 引擎** - 轻量级智能体框架，支持工具调用
+- **Hermes 引擎** - 轻量级智能体框架，支持工具调用与全链路可观测性（追踪、指标、成本统计）
 - 统一引擎接口，无缝切换
 
 ### 多渠道通信
@@ -27,6 +27,13 @@
 - **数据库查询** - 自然语言转 SQL，查询持仓数据
 - **网络搜索** - Tavily 驱动的市场研究
 - **股票分析** - 技术指标和市场情绪分析
+
+### 智能体可观测性
+- **追踪与 Span 系统** - 每次智能体执行的分层追踪，显式上下文传递，兼容浏览器、Node.js 和 Electron
+- **实时指标** - Token 用量、延迟、工具调用次数、迭代次数等实时统计
+- **成本追踪** - 基于模型定价表的逐会话成本拆分
+- **实时可观测面板** - 对话侧边栏展示执行时间线、Span 详情和汇总指标
+- **持久化存储** - 追踪/Span 数据持久化到 SQLite，支持历史回溯
 
 ### 投资管理
 - **持仓追踪** - 实时监控持仓和盈亏
@@ -101,6 +108,10 @@ investment-agent [command]  # 或：ig [command]
 │  • 数据库查询  • 网络搜索                     │
 │  • 股票分析                                  │
 ├──────────────────────────────────────────────┤
+│          可观测层（Hermes）                  │
+│  • 追踪/Span   • 指标统计  • 成本追踪          │
+│  • 实时面板    • 持久化存储                   │
+├──────────────────────────────────────────────┤
 │          多渠道通信层                         │
 │  • 微信       • 飞书      • Web 界面         │
 ├──────────────────────────────────────────────┤
@@ -111,6 +122,7 @@ investment-agent [command]  # 或：ig [command]
 ### 核心组件
 - **引擎注册中心** - 动态注册和切换 AI 引擎
 - **工具系统** - 标准化工具接口，支持 LangChain/Claude SDK 适配
+- **可观测系统** - 分层追踪、指标采集和智能体执行成本统计
 - **渠道路由器** - 统一消息路由，跨平台支持
 - **会话管理** - 多轮对话，上下文持久化
 - **数据层** - SQLite + Drizzle ORM，类型安全查询
@@ -153,6 +165,11 @@ investment-agent [command]  # 或：ig [command]
 - **Finnhub API** - 实时市场数据
 - **Tavily API** - 网络搜索能力
 
+### 后端与可观测性
+- **Hermes 可观测性** - 追踪/Span 生命周期、指标采集、成本追踪
+- **SQLite + Drizzle ORM** - 类型安全的数据库操作
+- **事件总线** - 即发即弃的可观测性 Sink 系统
+
 ### 前端
 - **Next.js 16 + React 19** - 现代化 Web 框架
 - **Ant Design + Radix UI** - UI 组件库
@@ -185,6 +202,7 @@ pnpm test             # 运行测试
 src/
 ├── app/              # Next.js 页面和路由
 │   └── api/channel/  # 微信/飞书 Webhook 路由
+│   └── api/chat/     # 对话与可观测性 API
 ├── server/
 │   ├── core/
 │   │   ├── agents/   # AI 智能体实现
@@ -195,12 +213,17 @@ src/
 │   │   └── business/ # 核心业务逻辑
 │   ├── channel/      # 渠道处理器
 │   ├── service/      # API 服务
+│   │   └── observabilityService.ts
 │   └── repository/   # 数据访问层
+│       └── chat/     # 对话与可观测性仓库
 ├── types/            # TypeScript 类型定义
 └── locales/          # 国际化翻译
 packages/
-└── agent-channel/    # 多平台消息 SDK
-    └── src/weixin/   # 微信渠道实现
+├── agent-channel/    # 多平台消息 SDK
+│   └── src/weixin/   # 微信渠道实现
+└── hermes-agent/
+    └── src/
+        └── observability/  # 追踪、指标、成本追踪
 ```
 
 ## 核心模块
