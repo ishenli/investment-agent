@@ -26,6 +26,16 @@ vi.mock('@/drizzle/schema', () => ({
   skills: {},
   exchangeRates: {},
   agent: {},
+  // Chat tables
+  chatSessionGroups: {},
+  chatSessions: {},
+  chatTopics: {},
+  chatMessages: {},
+  chatThreads: {},
+  chatFiles: {},
+  chatPlugins: {},
+  chatTraces: {},
+  chatSpans: {},
 }));
 
 // Mock drizzle-orm

@@ -4,7 +4,7 @@
  * 数据访问层：负责 chat_spans 表的数据库操作
  */
 import { db } from '@server/lib/db';
-import { chatSpans } from '@/drizzle/schema/chat';
+import { chatSpans } from '@/drizzle/schema';
 import { eq } from 'drizzle-orm';
 import { BaseRepository } from './base';
 

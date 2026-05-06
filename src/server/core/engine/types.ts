@@ -5,6 +5,7 @@
  * 减少新增引擎时的样板代码。
  */
 import type { EngineEventSink } from './eventSink';
+export { type EngineEventSink } from './eventSink';
 
 export const ENGINE_TYPES = ['deepagents', 'claude', 'hermes'] as const;
 export type EngineType = (typeof ENGINE_TYPES)[number];

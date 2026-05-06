@@ -4,7 +4,7 @@
  * 数据访问层：负责 chat_traces 表的数据库操作
  */
 import { db } from '@server/lib/db';
-import { chatTraces } from '@/drizzle/schema/chat';
+import { chatTraces } from '@/drizzle/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { BaseRepository } from './base';
 
