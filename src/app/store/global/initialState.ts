@@ -41,6 +41,7 @@ export interface SystemStatus {
   showHotkeyHelper?: boolean;
   showImagePanel?: boolean;
   showImageTopicPanel?: boolean;
+  showObservabilityPanel?: boolean;
   showSessionPanel?: boolean;
   showSystemRole?: boolean;
   systemRoleExpandedMap: Record<string, boolean>;
@@ -67,6 +68,7 @@ export const INITIAL_STATUS = {
   showHotkeyHelper: false,
   showImagePanel: true,
   showImageTopicPanel: true,
+  showObservabilityPanel: false,
   showSessionPanel: false,
   showSystemRole: false,
   systemRoleExpandedMap: {},

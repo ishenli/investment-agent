@@ -485,6 +485,8 @@ export {
   chatThreads,
   chatFiles,
   chatPlugins,
+  chatTraces,
+  chatSpans,
   type AgentConfig,
   type SessionMeta,
   type ToolCall,
@@ -504,4 +506,8 @@ export {
   type NewChatSessionGroup,
   type ChatPlugin,
   type NewChatPlugin,
+  type ChatTrace,
+  type NewChatTrace,
+  type ChatSpan,
+  type NewChatSpan,
 } from './schema/chat';

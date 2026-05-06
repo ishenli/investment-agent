@@ -31,6 +31,7 @@ import type {
   ToolExecutor,
 } from './types';
 import { ToolRegistry } from './tools';
+import type { TraceContext, Tracer, MetricsCollector, CostTracker } from './observability';
 
 /**
  * Run the agent loop: call LLM → execute tools → repeat until done.
@@ -38,6 +39,10 @@ import { ToolRegistry } from './tools';
 export async function runAgentLoop(
   config: AgentConfig,
   context: Context,
+  traceCtx?: TraceContext,
+  tracer?: Tracer,
+  metrics?: MetricsCollector,
+  costTracker?: CostTracker,
 ): Promise<HermesAgentResult> {
   const {
     model,
@@ -52,6 +57,12 @@ export async function runAgentLoop(
 
   const budget = new IterationBudget(maxIterations);
   let apiCalls = 0;
+
+  // Helper: truncate long text for span attributes
+  const summarize = (text: string, maxLen = 250): string => {
+    if (!text) return '';
+    return text.length > maxLen ? text.slice(0, maxLen) + '...' : text;
+  };
 
   // Extract abort signal from streamOptions for cancellation checks
   const signal = streamOptions?.signal as AbortSignal | undefined;
@@ -132,10 +143,18 @@ export async function runAgentLoop(
       break;
     }
 
+    // Record iteration metrics
+    if (traceCtx && metrics) {
+      metrics.recordIteration(traceCtx, budget.used, budget.remaining);
+    }
+
     apiCalls++;
 
-    // Call LLM with retry
+    // Call LLM with retry (instrumented)
     let response: AssistantMessage;
+    const llmSpan = traceCtx && tracer ? tracer.startSpan(traceCtx, 'llm_call', 'client', { model: model.name }) : undefined;
+    const llmStartTime = Date.now();
+
     try {
       response = await withRetry(
         async () => {
@@ -158,6 +177,13 @@ export async function runAgentLoop(
         },
       );
     } catch (error) {
+      const durationMs = Date.now() - llmStartTime;
+      if (llmSpan && traceCtx && tracer) {
+        tracer.endSpan(llmSpan, { status: 'error' });
+      }
+      if (traceCtx && metrics) {
+        metrics.recordLlmLatency(traceCtx, durationMs, model.name);
+      }
       return {
         context,
         completed: false,
@@ -167,18 +193,81 @@ export async function runAgentLoop(
       };
     }
 
+    const llmDurationMs = Date.now() - llmStartTime;
+
+    // Record LLM usage and cost
+    if (response.usage) {
+      if (traceCtx && metrics) {
+        metrics.recordTokens(traceCtx, {
+          input: response.usage.input,
+          output: response.usage.output,
+          total: response.usage.totalTokens,
+        }, model.name);
+        metrics.recordLlmLatency(traceCtx, llmDurationMs, model.name);
+      }
+      if (traceCtx && costTracker && response.usage.totalTokens) {
+        costTracker.recordCall(traceCtx, model.name, {
+          input: response.usage.input,
+          output: response.usage.output,
+        });
+      }
+      if (llmSpan && traceCtx && tracer) {
+        tracer.endSpan(llmSpan, {
+          status: 'ok',
+          tokenInput: response.usage.input,
+          tokenOutput: response.usage.output,
+          attributes: {
+            model: model.name,
+            messageCount: context.messages.length,
+            promptSummary: summarize(originalUserContent || ''),
+            responseSummary: summarize(extractText(response)),
+          },
+        });
+      }
+    } else {
+      if (llmSpan && traceCtx && tracer) {
+        tracer.endSpan(llmSpan, {
+          status: 'ok',
+          attributes: {
+            model: model.name,
+            messageCount: context.messages.length,
+            promptSummary: summarize(originalUserContent || ''),
+            responseSummary: summarize(extractText(response)),
+            noUsage: true,
+          },
+        });
+      }
+      if (traceCtx && metrics) {
+        metrics.recordLlmLatency(traceCtx, llmDurationMs, model.name);
+      }
+    }
+
     // Add assistant message to context
     context.messages.push(response);
 
     // Context compression: check if we need to compact
     if (compressor && response.usage) {
+      const tokensBefore = response.usage.input;
       compressor.updateFromResponse(response.usage);
       if (compressor.shouldCompress()) {
+        const compressionSpan = traceCtx && tracer ? tracer.startSpan(traceCtx, 'context_compression', 'internal') : undefined;
         context.messages = await compressor.compress(
           context.messages,
           model,
           response.usage.input,
         );
+        const tokensAfter = estimateMessageTokens(context.messages);
+        if (traceCtx && metrics) {
+          metrics.recordCompression(traceCtx, tokensBefore, tokensAfter);
+        }
+        if (compressionSpan && traceCtx && tracer) {
+          tracer.addEvent(compressionSpan, 'compression', {
+            tokensBefore,
+            tokensAfter,
+            saved: Math.max(0, tokensBefore - tokensAfter),
+          });
+          tracer.endSpan(compressionSpan);
+        }
       }
     }
 
@@ -236,6 +325,8 @@ export async function runAgentLoop(
       callbacks?.onToolStart?.(toolCall.name, toolCall.arguments);
 
       let resultMessage: ToolResultMessage;
+      const toolSpan = traceCtx && tracer ? tracer.startSpan(traceCtx, 'tool_call', 'internal', { tool: toolCall.name }) : undefined;
+      const toolStartTime = Date.now();
 
       if (toolExecutor) {
         const toolTimeoutMs = (streamOptions?.toolTimeoutMs as number) ?? 60_000;
@@ -256,6 +347,26 @@ export async function runAgentLoop(
           };
         }
 
+        const toolDurationMs = Date.now() - toolStartTime;
+        if (traceCtx && metrics) {
+          metrics.recordToolLatency(traceCtx, toolDurationMs, toolCall.name);
+        }
+        if (toolSpan && traceCtx && tracer) {
+          const resultTexts = result.content
+            .filter((c: any) => c.type === 'text')
+            .map((c: any) => c.text)
+            .join(' ');
+          tracer.endSpan(toolSpan, {
+            status: result.isError ? 'error' : 'ok',
+            attributes: {
+              tool: toolCall.name,
+              args: summarize(JSON.stringify(toolCall.arguments)),
+              isError: result.isError,
+              resultSummary: summarize(resultTexts),
+            },
+          });
+        }
+
         callbacks?.onToolEnd?.(result);
 
         resultMessage = {
@@ -267,6 +378,21 @@ export async function runAgentLoop(
           timestamp: Date.now(),
         };
       } else {
+        const toolDurationMs = Date.now() - toolStartTime;
+        if (traceCtx && metrics) {
+          metrics.recordToolLatency(traceCtx, toolDurationMs, toolCall.name);
+        }
+        if (toolSpan && traceCtx && tracer) {
+          tracer.endSpan(toolSpan, {
+            status: 'error',
+            attributes: {
+              tool: toolCall.name,
+              args: summarize(JSON.stringify(toolCall.arguments)),
+              error: 'no executor',
+            },
+          });
+        }
+
         resultMessage = {
           role: 'toolResult',
           toolCallId: toolCall.id,
@@ -365,4 +491,17 @@ function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promi
     timer = setTimeout(() => reject(new Error(message)), ms);
   });
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
+// ============== Observability helpers (moved from context.ts to avoid import cycle) ==============
+
+function estimateMessageTokens(messages: Array<{ role: string; content: unknown }>): number {
+  const CHARS_PER_TOKEN = 4;
+  let total = 0;
+  for (const msg of messages) {
+    if (typeof msg.content === 'string') {
+      total += Math.ceil(msg.content.length / CHARS_PER_TOKEN) + 10;
+    }
+  }
+  return total;
 }

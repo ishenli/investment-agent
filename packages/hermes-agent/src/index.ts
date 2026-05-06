@@ -122,6 +122,34 @@ export type {
 export { Type } from '@sinclair/typebox';
 export type { Static, TSchema } from '@sinclair/typebox';
 
+// ============== Observability ==============
+export {
+  createObservability,
+  Tracer,
+  MetricsCollector,
+  CostTracker,
+  calculateCost,
+  ConsoleSink,
+  FileSink,
+} from './observability';
+
+export type {
+  ObservabilityConfig,
+  ObservabilityResult,
+  TraceContext,
+  TraceStartEvent,
+  SpanStartEvent,
+  SpanEndEvent,
+  TraceEndEvent,
+  MetricEvent,
+  ModelPricingTable,
+  CostBreakdown,
+  TraceMetrics,
+  ObservabilitySink,
+  LogLevel,
+  SinkConfig,
+} from './observability';
+
 // ============== Types ==============
 export type {
   // pi-ai re-exports

@@ -12,6 +12,7 @@ export type {
   ClaudeEngineExtra,
   DeepAgentsEngineExtra,
   HermesEngineExtra,
+  EngineEventSink,
 } from './types';
 export { ENGINE_TYPES } from './types';
 export { engineRegistry } from './registry';
@@ -19,6 +20,7 @@ export { HermesEngine } from '../agents/hermes/engine';
 export { ClaudeEngine } from '../agents/claude/engine';
 export { DeepAgentsEngine } from '../agents/langchain/engine';
 export { runEngine } from './runner';
+export { NoOpEventSink, LoggingEventSink } from './eventSink';
 
 /*
  * 在模块加载时自动注册所有内置引擎。

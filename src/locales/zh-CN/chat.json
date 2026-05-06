@@ -137,5 +137,42 @@
   "withFooter": "带页脚",
   "withRole": "带角色",
   "withSystemRole": "带系统角色",
+  "observability": {
+    "title": "可观察性",
+    "live": "运行中",
+    "tokens": "Token 数",
+    "cost": "成本",
+    "latency": "延迟",
+    "tools": "工具调用",
+    "executionTimeline": "执行时间线",
+    "timeline": "时间线",
+    "noTraceData": "暂无执行追踪数据",
+    "total": "累计",
+    "tokensShort": "tok",
+    "span": {
+      "llmCall": "LLM 调用",
+      "toolCall": "工具调用",
+      "contextCompression": "上下文压缩"
+    },
+    "status": {
+      "success": "成功",
+      "error": "失败",
+      "internal": "内部"
+    },
+    "model": "模型",
+    "duration": "耗时",
+    "inputTokens": "输入 Token",
+    "outputTokens": "输出 Token",
+    "messages": "消息数",
+    "inputPrompt": "输入提示词",
+    "output": "输出",
+    "rawAttributes": "原始属性",
+    "tool": "工具",
+    "arguments": "参数",
+    "result": "结果",
+    "tokensBefore": "压缩前 Token",
+    "tokensAfter": "压缩后 Token",
+    "saved": "节省"
+  },
   "zenMode": "禅模式"
 }

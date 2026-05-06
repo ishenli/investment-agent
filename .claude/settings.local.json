@@ -52,7 +52,12 @@
       "Bash(perl -pi -e 's|@server/core/graph/|@server/core/agents/langchain/graphs/|g' src/app/store/stock/slices/chat/action.ts src/server/service/aiInsightsService.ts src/server/service/chatService.ts src/server/service/__tests__/chatService.test.ts)",
       "Bash(perl -pi -e 's|@server/core/provider/|@server/core/agents/langchain/provider/|g' src/app/api/chat/llm/route.ts src/server/core/agents/langchain/nodes/analysts/fundamental_anallyst.ts src/server/core/agents/langchain/graphs/diversificationGraph.ts src/server/core/agents/langchain/graphs/strategyAdviceGraph.ts src/server/core/agents/langchain/graphs/aiInsightsGraph.ts src/server/core/agents/langchain/graphs/scenarioAnalyzerGraph.ts src/server/dataflows/finnhubUtil.ts src/server/service/chatService.ts src/server/service/reportService/index.ts src/server/service/__tests__/chatService.test.ts)",
       "Bash(cat)",
-      "Bash(python3 /tmp/fix_setup.py)"
+      "Bash(python3 /tmp/fix_setup.py)",
+      "mcp__superconductor__rename_branch",
+      "Bash(npx drizzle-kit *)",
+      "Bash(pnpm run *)",
+      "Bash(pnpm db:generate *)",
+      "Bash(pnpm types:check)"
     ]
   },
   "disabledMcpjsonServers": [

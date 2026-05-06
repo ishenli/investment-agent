@@ -10,6 +10,7 @@ export interface GlobalWorkspacePaneAction {
   toggleExpandSessionGroup: (id: string, expand: boolean) => void;
   toggleMobilePortal: (visible?: boolean) => void;
   toggleMobileTopic: (visible?: boolean) => void;
+  toggleObservabilityPanel: (visible?: boolean) => void;
   toggleSystemRole: (visible?: boolean) => void;
   toggleZenMode: () => void;
 }
@@ -71,6 +72,12 @@ export const globalWorkspaceSlice: StateCreator<
       typeof newValue === 'boolean' ? newValue : !get().status.mobileShowTopic;
 
     get().updateSystemStatus({ mobileShowTopic }, 'toggleMobileTopic');
+  },
+  toggleObservabilityPanel: (newValue) => {
+    const showObservabilityPanel =
+      typeof newValue === 'boolean' ? newValue : !get().status.showObservabilityPanel;
+
+    get().updateSystemStatus({ showObservabilityPanel }, 'toggleObservabilityPanel');
   },
   toggleSystemRole: (newValue) => {
     const showSystemRole = typeof newValue === 'boolean' ? newValue : !get().status.mobileShowTopic;

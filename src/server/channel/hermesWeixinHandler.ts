@@ -3,16 +3,15 @@
  *
  * Uses the unified HermesEngine via `runEngine` so that model resolution,
  * tool registration (builtin + business + skills), memory lifecycle, and
- * streaming callbacks are identical to the HTTP SSE route
- * (`src/app/api/chat/hermes/route.ts`).
+ * error handling are consistent with HTTP SSE route.
  *
  * Differences from the HTTP route:
- *   - No SSE stream is consumed (we only need the final result).
+ *   - No SSE stream (we only need the final result).
  *   - platform is forced to 'weixin' (plain-text output, no markdown).
+ *   - Uses NoOpEventSink to discard all streaming events.
  */
 
 import { runEngine } from '@server/core/engine';
-import { SSEEmitter } from '@server/base/sseEmitter';
 import { INVESTMENT_ASSISTANT_SYSTEM_PROMPT } from '@server/core/agents/hermes';
 import logger from '@server/base/logger';
 import type { ChannelMessage } from '@investment-agent/agent-channel';
@@ -50,44 +49,45 @@ export class HermesWeixinHandler implements WeixinAgentHandler {
         ` historyTurns=${ctx.history.length}`,
     );
 
-    // Build portfolio context on the first turn (no prior history)
-
-    // The SSEEmitter is required by the engine contract, but for the Weixin
-    // channel we only consume the final result. No one reads the stream.
-    const emitter = new SSEEmitter();
-
-    const result = await runEngine(
-      'hermes',
-      {
-        sessionId: ctx.sessionId,
-        userId: ctx.userId,
-        messageId,
-        model: DEFAULT_MODEL,
-        provider: DEFAULT_PROVIDER,
-        messages,
-        systemPrompt: INVESTMENT_ASSISTANT_SYSTEM_PROMPT,
-        signal: abortController.signal,
-        extra: {
-          enableTools: true,
-          maxIterations: 10,
-          platform: 'weixin',
-          name: 'weixin-agent',
+    try {
+      // runEngine now accepts optional eventSink - if not provided, uses NoOpEventSink
+      const result = await runEngine(
+        'hermes',
+        {
+          sessionId: ctx.sessionId,
+          userId: ctx.userId,
+          messageId,
+          model: DEFAULT_MODEL,
+          provider: DEFAULT_PROVIDER,
+          messages,
+          systemPrompt: INVESTMENT_ASSISTANT_SYSTEM_PROMPT,
+          signal: abortController.signal,
+          extra: {
+            enableTools: true,
+            maxIterations: 10,
+            platform: 'weixin',
+            name: 'weixin-agent',
+          },
         },
-      },
-      emitter,
-    );
-
-    if (!result.completed && result.error) {
-      logger.warn(
-        `[HermesWeixinHandler] Agent did not complete: ${result.error}`,
+        // No eventSink - engine will use NoOpEventSink internally
       );
+
+      if (!result.completed && result.error) {
+        logger.warn(
+          `[HermesWeixinHandler] Agent did not complete: ${result.error}`,
+        );
+      }
+
+      logger.info(
+        `[HermesWeixinHandler] completed=${result.completed} apiCalls=${result.apiCalls ?? 0}` +
+          ` reply="${(result.content ?? '').slice(0, 60).replace(/\n/g, ' ')}${(result.content ?? '').length > 60 ? '…' : ''}"`,
+      );
+
+      return result.content || result.error || '（Agent 未能生成回复）';
+    } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
+      logger.error(`[HermesWeixinHandler] Error: ${errMsg}`);
+      return '抱歉，处理消息时发生错误，请稍后重试。';
     }
-
-    logger.info(
-      `[HermesWeixinHandler] completed=${result.completed} apiCalls=${result.apiCalls ?? 0}` +
-        ` reply="${(result.content ?? '').slice(0, 60).replace(/\n/g, ' ')}${(result.content ?? '').length > 60 ? '…' : ''}"`,
-    );
-
-    return result.content || result.error || '（Agent 未能生成回复）';
   }
 }

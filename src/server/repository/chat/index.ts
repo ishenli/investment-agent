@@ -57,3 +57,19 @@ export {
   type CreatePluginParams,
   type UpdatePluginParams,
 } from './plugin';
+
+// Observability
+export {
+  TraceRepository,
+  traceRepository,
+  type TraceEntity,
+  type CreateTraceData,
+  type UpdateTraceData,
+} from './trace';
+export {
+  SpanRepository,
+  spanRepository,
+  type SpanEntity,
+  type CreateSpanData,
+  type UpdateSpanData,
+} from './span';

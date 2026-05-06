@@ -4,7 +4,7 @@
  * 聊天存储相关表定义，用于替代现有的 Dexie.js (IndexedDB) 存储。
  * 所有表使用 `chat_` 前缀命名，遵循 snake_case 命名规范。
  */
-import { sqliteTable, text, integer, index } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real, index } from 'drizzle-orm/sqlite-core';
 import { users } from '../schema';
 
 // ============== Session Groups ==============
@@ -284,6 +284,61 @@ export const chatPlugins = sqliteTable('chat_plugins', {
   index('idx_chat_plugins_type').on(table.type),
 ]);
 
+// ============== Observability: Traces ==============
+
+export const chatTraces = sqliteTable('chat_traces', {
+  id: text('id').primaryKey(),
+  sessionId: text('session_id')
+    .notNull()
+    .references(() => chatSessions.id, { onDelete: 'cascade' }),
+  topicId: text('topic_id').references(() => chatTopics.id, { onDelete: 'set null' }),
+  agentName: text('agent_name').notNull(),
+  status: text('status', { enum: ['running', 'completed', 'error'] }).notNull(),
+  totalTokens: integer('total_tokens').notNull().default(0),
+  inputTokens: integer('input_tokens').notNull().default(0),
+  outputTokens: integer('output_tokens').notNull().default(0),
+  totalCost: real('total_cost').notNull().default(0),
+  inputCost: real('input_cost').notNull().default(0),
+  outputCost: real('output_cost').notNull().default(0),
+  latencyMs: integer('latency_ms').notNull().default(0),
+  toolCallCount: integer('tool_call_count').notNull().default(0),
+  error: text('error'),
+  metadata: text('metadata', { mode: 'json' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+}, (table) => [
+  index('idx_chat_traces_session_created').on(table.sessionId, table.createdAt),
+  index('idx_chat_traces_topic_id').on(table.topicId),
+]);
+
+// ============== Observability: Spans ==============
+
+// @ts-expect-error - Self-referencing table causes TypeScript inference issues
+export const chatSpans = sqliteTable('chat_spans', {
+  id: text('id').primaryKey(),
+  traceId: text('trace_id')
+    .notNull()
+    .references(() => chatTraces.id, { onDelete: 'cascade' }),
+  // @ts-expect-error - Self-referencing causes TypeScript inference issue
+  parentSpanId: text('parent_span_id').references(() => chatSpans.id, { onDelete: 'set null' }),
+  name: text('name', { enum: ['llm_call', 'tool_call', 'context_compression'] }).notNull(),
+  kind: text('kind', { enum: ['client', 'internal'] }).notNull(),
+  status: text('status', { enum: ['ok', 'error'] }).notNull(),
+  attributes: text('attributes', { mode: 'json' }),
+  events: text('events', { mode: 'json' }),
+  startTime: integer('start_time', { mode: 'timestamp' }).notNull(),
+  endTime: integer('end_time', { mode: 'timestamp' }),
+  durationMs: integer('duration_ms'),
+  tokenInput: integer('token_input'),
+  tokenOutput: integer('token_output'),
+  cost: real('cost'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+}, (table) => [
+  index('idx_chat_spans_trace_id').on(table.traceId),
+  index('idx_chat_spans_parent_span_id').on(table.parentSpanId),
+]);
+
 // ============== Type Exports ==============
 
 export type ChatSession = typeof chatSessions.$inferSelect;
@@ -329,3 +384,8 @@ export type ChatSessionGroup = typeof chatSessionGroups.$inferSelect;
 export type NewChatSessionGroup = typeof chatSessionGroups.$inferInsert;
 export type ChatPlugin = typeof chatPlugins.$inferSelect;
 export type NewChatPlugin = typeof chatPlugins.$inferInsert;
+
+export type ChatTrace = typeof chatTraces.$inferSelect;
+export type NewChatTrace = typeof chatTraces.$inferInsert;
+export type ChatSpan = typeof chatSpans.$inferSelect;
+export type NewChatSpan = typeof chatSpans.$inferInsert;

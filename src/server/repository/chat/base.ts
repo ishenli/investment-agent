@@ -19,13 +19,14 @@ export abstract class BaseRepository<T extends { id: string; createdAt: Date; up
    * 创建新记录
    */
   protected async _create(
-    data: Omit<T, 'id' | 'createdAt' | 'updatedAt'>
+    data: Omit<T, 'id' | 'createdAt' | 'updatedAt'> & { id?: string }
   ): Promise<{ id: string }> {
-    const id = this.idGenerator();
+    const id = data.id ?? this.idGenerator();
+    const { id: _ignored, ...rest } = data as any;
     const now = new Date();
 
     await (db as any).insert(this.table).values({
-      ...data,
+      ...rest,
       id,
       createdAt: now,
       updatedAt: now,

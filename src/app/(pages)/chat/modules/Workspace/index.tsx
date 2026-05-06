@@ -6,6 +6,8 @@ import Topic from './Topic';
 import TopicPanel from './TopicPanel';
 import PortalPanel from './PortalPanel';
 import PortalBody from './Portal';
+import ObservabilityPanelWrapper from './ObservabilityPanel';
+import ObservabilityPanelContent from '../../components/ObservabilityPanel';
 import BrandTextLoading from '../../components/Loading/BrandTextLoading';
 
 const Page = memo(() => {
@@ -38,6 +40,9 @@ const Page = memo(() => {
         <TopicPanel>
           <Topic />
         </TopicPanel>
+        <ObservabilityPanelWrapper>
+          <ObservabilityPanelContent />
+        </ObservabilityPanelWrapper>
       </Flexbox>
     </>
   );

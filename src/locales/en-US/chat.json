@@ -138,5 +138,42 @@
   "withFooter": "With Footer",
   "withRole": "With Role",
   "withSystemRole": "With System Role",
+  "observability": {
+    "title": "Observability",
+    "live": "Live",
+    "tokens": "Tokens",
+    "cost": "Cost",
+    "latency": "Latency",
+    "tools": "Tools",
+    "executionTimeline": "Execution Timeline",
+    "timeline": "Timeline",
+    "noTraceData": "No execution trace data",
+    "total": "Total",
+    "tokensShort": "tok",
+    "span": {
+      "llmCall": "LLM Call",
+      "toolCall": "Tool Call",
+      "contextCompression": "Context Compression"
+    },
+    "status": {
+      "success": "Success",
+      "error": "Error",
+      "internal": "Internal"
+    },
+    "model": "Model",
+    "duration": "Duration",
+    "inputTokens": "Input Tokens",
+    "outputTokens": "Output Tokens",
+    "messages": "Messages",
+    "inputPrompt": "Input Prompt",
+    "output": "Output",
+    "rawAttributes": "Raw Attributes",
+    "tool": "Tool",
+    "arguments": "Arguments",
+    "result": "Result",
+    "tokensBefore": "Tokens Before",
+    "tokensAfter": "Tokens After",
+    "saved": "Saved"
+  },
   "zenMode": "Zen Mode"
 }

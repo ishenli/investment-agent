@@ -9,6 +9,7 @@ const showSessionPanel = (s: GlobalState) => !s.status.zenMode && s.status.showS
 const sessionWidth = (s: GlobalState) => s.status.sessionsWidth;
 const showChatSideBar = (s: GlobalState) => s.status.showChatSideBar;
 const showSystemRole = (s: GlobalState) => s.status.showSystemRole;
+const showObservabilityPanel = (s: GlobalState) => s.status.showObservabilityPanel;
 
 const inputHeight = (s: GlobalState) => s.status.inputHeight;
 
@@ -28,6 +29,7 @@ export const systemStatusSelectors = {
   sessionGroupKeys,
   sessionWidth,
   showChatSideBar,
+  showObservabilityPanel,
   showSessionPanel,
   showSystemRole,
   getAgentSystemRoleExpanded,

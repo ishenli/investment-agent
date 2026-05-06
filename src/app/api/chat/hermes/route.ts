@@ -25,6 +25,7 @@ export const dynamic = 'force-dynamic';
 
 const HermesChatRequestSchema = z.object({
   sessionId: z.string(),
+  topicId: z.string().optional(),
   messages: z.array(
     z.object({
       role: z.enum(['user', 'assistant', 'system']),
@@ -99,6 +100,7 @@ class HermesAgentController extends BaseController {
             'hermes',
             {
               sessionId,
+              topicId: body.topicId,
               userId: userIdNum,
               messageId,
               model: body.model,
