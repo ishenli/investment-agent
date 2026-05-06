@@ -58,6 +58,12 @@ export async function runAgentLoop(
   const budget = new IterationBudget(maxIterations);
   let apiCalls = 0;
 
+  // Helper: truncate long text for span attributes
+  const summarize = (text: string, maxLen = 250): string => {
+    if (!text) return '';
+    return text.length > maxLen ? text.slice(0, maxLen) + '...' : text;
+  };
+
   // Extract abort signal from streamOptions for cancellation checks
   const signal = streamOptions?.signal as AbortSignal | undefined;
 
@@ -210,12 +216,26 @@ export async function runAgentLoop(
           status: 'ok',
           tokenInput: response.usage.input,
           tokenOutput: response.usage.output,
-          attributes: { model: model.name },
+          attributes: {
+            model: model.name,
+            messageCount: context.messages.length,
+            promptSummary: summarize(originalUserContent || ''),
+            responseSummary: summarize(extractText(response)),
+          },
         });
       }
     } else {
       if (llmSpan && traceCtx && tracer) {
-        tracer.endSpan(llmSpan, { status: 'ok', attributes: { model: model.name } });
+        tracer.endSpan(llmSpan, {
+          status: 'ok',
+          attributes: {
+            model: model.name,
+            messageCount: context.messages.length,
+            promptSummary: summarize(originalUserContent || ''),
+            responseSummary: summarize(extractText(response)),
+            noUsage: true,
+          },
+        });
       }
       if (traceCtx && metrics) {
         metrics.recordLlmLatency(traceCtx, llmDurationMs, model.name);
@@ -332,9 +352,18 @@ export async function runAgentLoop(
           metrics.recordToolLatency(traceCtx, toolDurationMs, toolCall.name);
         }
         if (toolSpan && traceCtx && tracer) {
+          const resultTexts = result.content
+            .filter((c: any) => c.type === 'text')
+            .map((c: any) => c.text)
+            .join(' ');
           tracer.endSpan(toolSpan, {
             status: result.isError ? 'error' : 'ok',
-            attributes: { tool: toolCall.name, isError: result.isError },
+            attributes: {
+              tool: toolCall.name,
+              args: summarize(JSON.stringify(toolCall.arguments)),
+              isError: result.isError,
+              resultSummary: summarize(resultTexts),
+            },
           });
         }
 
@@ -356,7 +385,11 @@ export async function runAgentLoop(
         if (toolSpan && traceCtx && tracer) {
           tracer.endSpan(toolSpan, {
             status: 'error',
-            attributes: { tool: toolCall.name, error: 'no executor' },
+            attributes: {
+              tool: toolCall.name,
+              args: summarize(JSON.stringify(toolCall.arguments)),
+              error: 'no executor',
+            },
           });
         }
 

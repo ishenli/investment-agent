@@ -2,7 +2,7 @@
  * Hermes Agent Engine
  *
  * IAgentEngine 实现，封装 @investment-agent/hermes-agent 的调用逻辑。
- * 将 Hermes Agent 的回调事件映射为标准 SSE 事件。
+ * 将 Hermes Agent 的回调事件映射到 EngineEventSink 接口。
  */
 import {
   HermesAgent,
@@ -15,26 +15,25 @@ import {
 } from '@investment-agent/hermes-agent';
 import { skillFileScanner } from '@server/lib/skill/SkillFileScanner';
 import { skillRegistry } from '@server/lib/skill/SkillRegistry';
-import { SSEEmitter } from '@server/base/sseEmitter';
 import { resolveAgentModel } from '@server/service/agentModelResolver';
 import { registerBusinessTools } from '@server/core/agents/hermes';
 import { getProjectRoot } from '@server/base/env';
 import { observabilityService } from '@server/service/observabilityService';
-import { defaultModelPricing, getModelPricing } from '@server/config/modelPricing';
+import { defaultModelPricing } from '@server/config/modelPricing';
 import logger from '@server/base/logger';
 import path from 'path';
-import type { IAgentEngine, EngineRunContext, EngineRunResult } from '@server/core/engine/types';
+import type { IAgentEngine, EngineRunContext, EngineRunResult, EngineEventSink } from '@server/core/engine/types';
 
 export class HermesEngine implements IAgentEngine {
   readonly name = 'hermes';
 
-  async run(ctx: EngineRunContext, emitter: SSEEmitter): Promise<EngineRunResult> {
+  async run(ctx: EngineRunContext, eventSink: EngineEventSink): Promise<EngineRunResult> {
     const { model: modelSlug, provider = 'openai', messages, systemPrompt, signal, messageId, userId, extra, topicId } = ctx;
     const enableTools = (extra?.enableTools as boolean) ?? true;
     const maxIterations = (extra?.maxIterations as number) ?? 30;
 
     // 1. 解析模型配置
-    emitter.sendStatus(`初始化模型 ${provider}/${modelSlug}`, {
+    await eventSink.sendStatus(`初始化模型 ${provider}/${modelSlug}`, {
       id: messageId,
       level: 'info',
     });
@@ -73,28 +72,28 @@ export class HermesEngine implements IAgentEngine {
       };
     });
 
-    // 4. Create callbacks → SSE events
+    // 4. Create callbacks → eventSink events
     let emitterClosed = false;
     const callbacks: AgentCallbacks = {
       onTextDelta: async (delta: string) => {
         if (emitterClosed || signal.aborted) return;
-        const sent = await emitter.sendTextDelta(messageId, delta);
+        const sent = await eventSink.sendTextDelta(messageId, delta);
         if (!sent) emitterClosed = true;
       },
       onToolStart: (name: string, args: Record<string, unknown>) => {
         if (emitterClosed) return;
         const toolId = `tool_${crypto.randomUUID()}`;
-        emitter.sendToolUseEvent(toolId, name, args);
-        emitter.sendStatus(`执行工具: ${name}`, { id: toolId, level: 'info', step: 'tool_start' });
+        eventSink.sendToolUseEvent(toolId, name, args);
+        eventSink.sendStatus(`执行工具: ${name}`, { id: toolId, level: 'info', step: 'tool_start' });
       },
       onToolEnd: (result: ToolCallResult) => {
         if (emitterClosed) return;
         const statusMsg = result.isError ? `工具 ${result.toolName} 执行失败` : `工具 ${result.toolName} 执行成功`;
-        emitter.sendStatus(statusMsg, { id: result.toolCallId, level: result.isError ? 'error' : 'info' });
+        eventSink.sendStatus(statusMsg, { id: result.toolCallId, level: result.isError ? 'error' : 'info' });
       },
       onStep: (iteration: number, toolNames: string[]) => {
         if (emitterClosed) return;
-        emitter.sendStatus(`迭代 #${iteration}: ${toolNames.join(', ') || '思考中...'}`, {
+        eventSink.sendStatus(`迭代 #${iteration}: ${toolNames.join(', ') || '思考中...'}`, {
           id: messageId,
           level: 'debug',
           step: 'iteration',
@@ -106,41 +105,44 @@ export class HermesEngine implements IAgentEngine {
       },
     };
 
-    // 5. 创建并运行 Agent
-    const platform = (extra?.platform as string) ?? 'web';
-    const name = (extra?.name as string) ?? 'hermes';
     // 5. Observability callbacks (fire-and-forget)
     const observabilityCallbacks: AgentCallbacks = {
       onTraceStart: (trace) => {
         observabilityService.createTrace({ ...trace, sessionId: ctx.sessionId, topicId }).catch((err) =>
           logger.error('[HermesEngine] persist trace failed:', err),
         );
-        emitter.send({ type: 'trace_start', ...trace, sessionId: ctx.sessionId, topicId });
+        const sessionId = ctx.sessionId;
+        const tid = topicId;
+        eventSink.send({ type: 'trace_start', ...trace, sessionId, topicId: tid } as any);
       },
       onSpanStart: (span) => {
         observabilityService.createSpan(span).catch((err) =>
           logger.error('[HermesEngine] persist span failed:', err),
         );
-        emitter.send({ type: 'span_start', ...span });
+        eventSink.send({ type: 'span_start', ...span } as any);
       },
       onSpanEnd: (span) => {
         observabilityService.updateSpan(span).catch((err) =>
           logger.error('[HermesEngine] update span failed:', err),
         );
-        emitter.send({ type: 'span_end', ...span });
+        eventSink.send({ type: 'span_end', ...span } as any);
       },
       onTraceEnd: (trace) => {
         observabilityService.updateTrace({ ...trace, sessionId: ctx.sessionId, topicId }).catch((err) =>
           logger.error('[HermesEngine] update trace failed:', err),
         );
-        emitter.send({ type: 'trace_end', ...trace, sessionId: ctx.sessionId, topicId });
+        const sessionId = ctx.sessionId;
+        const tid = topicId;
+        eventSink.send({ type: 'trace_end', ...trace, sessionId, topicId: tid } as any);
       },
       onMetric: (metric) => {
-        emitter.send({ type: 'metric', ...metric });
+        eventSink.send({ type: 'metric', ...metric } as any);
       },
     };
 
     // 6. 创建并运行 Agent
+    const platform = (extra?.platform as string) ?? 'web';
+    const name = (extra?.name as string) ?? 'hermes';
     const agent = new HermesAgent({
       model: piModel,
       name,
@@ -162,6 +164,7 @@ export class HermesEngine implements IAgentEngine {
       },
       observability: {
         enabled: true,
+        level: 'debug',
         sinks: [],
         callbacks: observabilityCallbacks,
         pricing: defaultModelPricing,
@@ -178,14 +181,14 @@ export class HermesEngine implements IAgentEngine {
 
     // 7. 发送最终结果
     if (result.completed) {
-      await emitter.sendTextDelta(messageId, '', true);
+      await eventSink.sendTextDelta(messageId, '', true);
 
       const lastAssistant = result.context.messages
         .filter((m): m is AssistantMessage => m.role === 'assistant')
         .pop();
       const usage = lastAssistant && 'usage' in lastAssistant ? lastAssistant.usage : undefined;
 
-      await emitter.sendResult(messageId, result.finalResponse, usage ? {
+      await eventSink.sendResult(messageId, result.finalResponse, usage ? {
         input: usage.input,
         output: usage.output,
         total: usage.totalTokens,

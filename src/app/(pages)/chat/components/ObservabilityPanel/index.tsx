@@ -5,6 +5,7 @@ import { Badge, Divider } from 'antd';
 import { Flexbox } from 'react-layout-kit';
 import { createStyles } from 'antd-style';
 import { Activity } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useObservabilityStore } from '@renderer/store/observability/store';
 import { useGlobalStore } from '@renderer/store/global';
 import { systemStatusSelectors } from '@renderer/store/global/selectors';
@@ -49,6 +50,7 @@ const useStyles = createStyles(({ css, token }) => ({
 
 const ObservabilityPanelContent = memo(() => {
   const { styles } = useStyles();
+  const { t } = useTranslation('chat');
   const [selectedSpanId, setSelectedSpanId] = useState<string | null>(null);
 
   const activeTraceId = useObservabilityStore((s) => s.activeTraceId);
@@ -72,6 +74,7 @@ const ObservabilityPanelContent = memo(() => {
   );
 
   const isLive = activeTrace?.status === 'running';
+  const totalLabel = t('observability.total');
 
   const currentTokens = activeTrace?.totalTokens ?? 0;
   const currentCost = activeTrace?.totalCost ?? 0;
@@ -82,12 +85,12 @@ const ObservabilityPanelContent = memo(() => {
     <div className={styles.container}>
       <div className={styles.header}>
         <Activity size={16} />
-        <span>Observability</span>
+        <span>{t('observability.title')}</span>
         {isLive && (
           <Badge
             color="green"
             style={{ marginLeft: 'auto' }}
-            text="Live"
+            text={t('observability.live')}
           />
         )}
       </div>
@@ -95,28 +98,28 @@ const ObservabilityPanelContent = memo(() => {
       <div className={styles.scroll}>
         <div className={styles.metricsRow}>
           <MetricsCard
-            label="Tokens"
-            subValue={`累计 ${metrics.totalTokens.toLocaleString()}`}
+            label={t('observability.tokens')}
+            subValue={`${totalLabel} ${metrics.totalTokens.toLocaleString()}`}
             value={currentTokens.toLocaleString()}
           />
           <MetricsCard
-            label="Cost"
-            subValue={`累计 $${metrics.totalCost.toFixed(4)}`}
+            label={t('observability.cost')}
+            subValue={`${totalLabel} $${metrics.totalCost.toFixed(4)}`}
             value={`$${currentCost.toFixed(4)}`}
           />
           <MetricsCard
-            label="Latency"
-            subValue={`累计 ${(metrics.totalLatencyMs / 1000).toFixed(1)}s`}
+            label={t('observability.latency')}
+            subValue={`${totalLabel} ${(metrics.totalLatencyMs / 1000).toFixed(1)}s`}
             value={`${(currentLatency / 1000).toFixed(1)}s`}
           />
           <MetricsCard
-            label="Tools"
-            subValue={`累计 ${metrics.toolCallCount}`}
+            label={t('observability.tools')}
+            subValue={`${totalLabel} ${metrics.toolCallCount}`}
             value={`${currentToolCalls} calls`}
           />
         </div>
 
-        <div className={styles.sectionTitle}>Execution Timeline</div>
+        <div className={styles.sectionTitle}>{t('observability.executionTimeline')}</div>
         <TraceTimeline
           onSelectSpan={(id) => setSelectedSpanId(id)}
           selectedSpanId={selectedSpanId}
