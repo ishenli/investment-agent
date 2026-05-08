@@ -24,6 +24,8 @@ vi.mock('../../repository/skillRepository', () => ({
     delete: vi.fn(),
     deleteBySlug: vi.fn(),
     isSlugExists: vi.fn(),
+    updateContentHash: vi.fn(),
+    updateDeployedHash: vi.fn(),
   },
 }));
 
@@ -48,10 +50,32 @@ vi.mock('../../lib/skill/SkillInstaller', () => ({
 }));
 
 vi.mock('../../lib/skill/SkillFileScanner', () => ({
+  SkillFileScanner: class {
+    scan = vi.fn(() => []);
+    scanForUser = vi.fn(() => []);
+    getSkillRoots = vi.fn(() => []);
+    loadSkillsDefaults = vi.fn(() => ({}));
+    ensureUserSkillsRoot = vi.fn(() => '/tmp/skills');
+    getUserSkillsRoot = vi.fn(() => '/tmp/skills');
+  },
   skillFileScanner: {
     scan: vi.fn(() => []),
+    scanForUser: vi.fn(() => []),
     getSkillRoots: vi.fn(() => []),
     loadSkillsDefaults: vi.fn(() => ({})),
+    ensureUserSkillsRoot: vi.fn(() => '/tmp/skills'),
+    getUserSkillsRoot: vi.fn(() => '/tmp/skills'),
+  },
+  SKILL_FILE_NAME: 'SKILL.md',
+  SKILLS_CONFIG_FILE: 'skills.config.json',
+  listSkillDirs: vi.fn(() => []),
+  parseFrontmatter: vi.fn(() => ({ frontmatter: {}, content: '' })),
+  collectSkillDirsFromSource: vi.fn(() => []),
+}));
+
+vi.mock('../../service/claudeService', () => ({
+  default: {
+    getUserWorkspaceRoot: vi.fn(() => '/tmp/workspace'),
   },
 }));
 
@@ -186,35 +210,29 @@ describe('SkillService', () => {
         description: 'A new skill',
         prompt: 'Test prompt',
         isEnabled: true,
-        icon: '🆕',
       };
 
-      const mockSkill = {
+      const createdSkill = {
         id: 1,
         slug: 'new-skill',
         source: 'custom',
         isEnabled: true,
-        icon: '🆕',
+        icon: null,
         userId: mockUserId,
         updatedAt: new Date(),
       };
 
       (skillRepository.isSlugExists as ReturnType<typeof vi.fn>).mockResolvedValue(false);
-      (skillRepository.create as ReturnType<typeof vi.fn>).mockResolvedValue(mockSkill);
-      (skillInstaller.createCustomSkill as ReturnType<typeof vi.fn>).mockReturnValue('/path/to/skill');
+      (skillRepository.create as ReturnType<typeof vi.fn>).mockResolvedValue(createdSkill);
 
       const result = await skillService.createSkill(mockUserId, createData);
 
-      expect(result).toEqual(mockSkill);
-      expect(skillRepository.isSlugExists).toHaveBeenCalledWith(mockUserId, 'new-skill');
-      expect(skillInstaller.createCustomSkill).toHaveBeenCalled();
-      expect(skillRepository.create).toHaveBeenCalledWith({
-        slug: 'new-skill',
-        source: 'custom',
-        isEnabled: true,
-        icon: '🆕',
-        userId: mockUserId,
-      });
+      expect(result).toEqual(createdSkill);
+      expect(skillInstaller.createCustomSkill).toHaveBeenCalledWith(
+        'new-skill',
+        expect.stringContaining('New Skill'),
+        mockUserId,
+      );
       expect(skillRegistry.invalidate).toHaveBeenCalledWith(mockUserId);
     });
 
@@ -222,7 +240,7 @@ describe('SkillService', () => {
       const createData = {
         slug: 'existing-skill',
         name: 'Existing Skill',
-        description: 'An existing skill',
+        description: 'Already exists',
         prompt: 'Test prompt',
       };
 
@@ -323,7 +341,7 @@ describe('SkillService', () => {
       const result = await skillService.deleteSkill(mockUserId, 'test-skill');
 
       expect(result).toBe(true);
-      expect(skillInstaller.deleteCustomSkillFiles).toHaveBeenCalledWith('test-skill');
+      expect(skillInstaller.deleteCustomSkillFiles).toHaveBeenCalledWith('test-skill', mockUserId);
       expect(skillRepository.deleteBySlug).toHaveBeenCalledWith(mockUserId, 'test-skill');
       expect(skillRegistry.invalidate).toHaveBeenCalledWith(mockUserId);
     });
@@ -358,12 +376,14 @@ describe('SkillService', () => {
       ];
 
       const { skillFileScanner } = await import('../../lib/skill/SkillFileScanner');
-      vi.mocked(skillFileScanner.scan).mockReturnValue(mockParsedSkills as any);
+      vi.mocked(skillFileScanner.scanForUser).mockReturnValue(mockParsedSkills as any);
 
       // Mock no existing preferences
       (skillRepository.findByUserIdAndSlug as ReturnType<typeof vi.fn>).mockResolvedValue(null);
       (skillRepository.findByUserId as ReturnType<typeof vi.fn>).mockResolvedValue([]);
       (skillRepository.create as ReturnType<typeof vi.fn>).mockResolvedValue({});
+      (skillRepository.updateContentHash as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+      (skillRepository.updateDeployedHash as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
 
       const result = await skillService.syncBuiltinSkills(mockUserId);
 

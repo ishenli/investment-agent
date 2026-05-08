@@ -83,8 +83,8 @@ export class SkillRegistry {
       return this.cache.get(userId)!;
     }
 
-    // 1. Filesystem skills (all users share the same files)
-    const parsedSkills = this.scanner.scan();
+    // 1. Filesystem skills (per-user custom + bundled)
+    const parsedSkills = this.scanner.scanForUser(userId);
 
     // 2. DB preferences for this user (slug → preference)
     const dbPreferences = await skillRepository.findByUserId(userId);

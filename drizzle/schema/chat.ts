@@ -288,10 +288,8 @@ export const chatPlugins = sqliteTable('chat_plugins', {
 
 export const chatTraces = sqliteTable('chat_traces', {
   id: text('id').primaryKey(),
-  sessionId: text('session_id')
-    .notNull()
-    .references(() => chatSessions.id, { onDelete: 'cascade' }),
-  topicId: text('topic_id').references(() => chatTopics.id, { onDelete: 'set null' }),
+  sessionId: text('session_id').notNull(),
+  topicId: text('topic_id'),
   agentName: text('agent_name').notNull(),
   status: text('status', { enum: ['running', 'completed', 'error'] }).notNull(),
   totalTokens: integer('total_tokens').notNull().default(0),
@@ -316,11 +314,8 @@ export const chatTraces = sqliteTable('chat_traces', {
 // @ts-expect-error - Self-referencing table causes TypeScript inference issues
 export const chatSpans = sqliteTable('chat_spans', {
   id: text('id').primaryKey(),
-  traceId: text('trace_id')
-    .notNull()
-    .references(() => chatTraces.id, { onDelete: 'cascade' }),
-  // @ts-expect-error - Self-referencing causes TypeScript inference issue
-  parentSpanId: text('parent_span_id').references(() => chatSpans.id, { onDelete: 'set null' }),
+  traceId: text('trace_id').notNull(),
+  parentSpanId: text('parent_span_id'),
   name: text('name', { enum: ['llm_call', 'tool_call', 'context_compression'] }).notNull(),
   kind: text('kind', { enum: ['client', 'internal'] }).notNull(),
   status: text('status', { enum: ['ok', 'error'] }).notNull(),

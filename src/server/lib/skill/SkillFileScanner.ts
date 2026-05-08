@@ -9,12 +9,10 @@ import path from 'path';
 import fs from 'fs';
 import yaml from 'js-yaml';
 import logger from '@server/base/logger';
-import { getHomeDir, getProjectRoot, isElectron } from '@server/base/env';
+import { getProjectRoot, isElectron } from '@server/base/env';
 import type { ParsedSkill } from '@/types/skill';
 
 export const SKILLS_DIR_NAME = 'skills';
-const CLAUDE_SKILLS_DIR_NAME = '.claude';
-const CLAUDE_SKILLS_SUBDIR = 'skills';
 export const SKILLS_CONFIG_FILE = 'skills.config.json';
 export const SKILL_FILE_NAME = 'SKILL.md';
 
@@ -182,6 +180,18 @@ export class SkillFileScanner {
     return root;
   }
 
+  getUserSkillsRoot(userId: number): string {
+    return path.resolve(getProjectRoot(), 'workspace', String(userId), '.hermes', 'skills');
+  }
+
+  ensureUserSkillsRoot(userId: number): string {
+    const root = this.getUserSkillsRoot(userId);
+    if (!fs.existsSync(root)) {
+      fs.mkdirSync(root, { recursive: true });
+    }
+    return root;
+  }
+
   getBundledSkillsRoot(): string {
     if (isElectron()) {
       const resourcesRoot = path.resolve(process.cwd(), SKILLS_DIR_NAME);
@@ -197,40 +207,13 @@ export class SkillFileScanner {
     return path.resolve(projectRoot, SKILLS_DIR_NAME);
   }
 
-  private getClaudeSkillsRoot(): string | null {
-    const homeDir = getHomeDir();
-    return path.join(homeDir, CLAUDE_SKILLS_DIR_NAME, CLAUDE_SKILLS_SUBDIR);
-  }
-
-  private getProjectClaudeSkillsRoot(): string | null {
-    if (isElectron() && process.env.NEXT_APP_DATA_PATH) {
-      // 打包后 NEXT_APP_DATA_PATH = .../resources/standalone
-      // .claude/skills 被打包到 .../resources/standalone/.claude/skills
-      return path.join(process.env.NEXT_APP_DATA_PATH, CLAUDE_SKILLS_DIR_NAME, CLAUDE_SKILLS_SUBDIR);
-    }
-    return path.join(getProjectRoot(), CLAUDE_SKILLS_DIR_NAME, CLAUDE_SKILLS_SUBDIR);
-  }
-
   /**
-   * Returns ordered skill roots: bundled (lowest priority) → global claude → project claude → user (highest priority).
+   * Returns ordered skill roots: bundled (lowest priority) → user (highest priority).
+   * Does NOT scan global ~/.claude/skills to keep the app a closed skill ecosystem.
    */
   getSkillRoots(primaryRoot?: string): string[] {
     const resolvedPrimary = primaryRoot ?? this.getSkillsRoot();
     const roots: string[] = [resolvedPrimary];
-
-    const globalClaudeRoot = this.getClaudeSkillsRoot();
-    if (globalClaudeRoot && fs.existsSync(globalClaudeRoot)) {
-      roots.push(globalClaudeRoot);
-    }
-
-    const projectClaudeRoot = this.getProjectClaudeSkillsRoot();
-    if (
-      projectClaudeRoot &&
-      projectClaudeRoot !== globalClaudeRoot &&
-      fs.existsSync(projectClaudeRoot)
-    ) {
-      roots.push(projectClaudeRoot);
-    }
 
     const appRoot = this.getBundledSkillsRoot();
     if (appRoot !== resolvedPrimary && fs.existsSync(appRoot)) {
@@ -348,6 +331,41 @@ export class SkillFileScanner {
     const roots = this.getSkillRoots(primaryRoot);
     // Lower priority roots first so higher priority roots overwrite in skillMap
     const orderedRoots = roots.filter((r) => r !== primaryRoot).concat(primaryRoot);
+    const defaults = this.loadSkillsDefaults(roots);
+    const builtInSkillIds = this.listBuiltInSkillIds();
+    const skillMap = new Map<string, ParsedSkill>();
+
+    orderedRoots.forEach((root) => {
+      if (!fs.existsSync(root)) return;
+      listSkillDirs(root).forEach((dir) => {
+        const skill = this.parseSkillDir(dir, builtInSkillIds.has(path.basename(dir)));
+        if (!skill) return;
+        skillMap.set(skill.id, skill);
+      });
+    });
+
+    const skills = Array.from(skillMap.values());
+
+    skills.sort((a, b) => {
+      const orderA = defaults[a.id]?.order ?? 999;
+      const orderB = defaults[b.id]?.order ?? 999;
+      if (orderA !== orderB) return orderA - orderB;
+      return a.name.localeCompare(b.name);
+    });
+
+    return skills;
+  }
+
+  /**
+   * Scan skill roots for a specific user.
+   * Uses the user's per-user skills directory as the primary (highest-priority) root,
+   * followed by bundled skills.
+   */
+  scanForUser(userId: number): ParsedSkill[] {
+    const userRoot = this.ensureUserSkillsRoot(userId);
+    const roots = this.getSkillRoots(userRoot);
+    // Lower priority roots first so higher priority roots overwrite in skillMap
+    const orderedRoots = roots.filter((r) => r !== userRoot).concat(userRoot);
     const defaults = this.loadSkillsDefaults(roots);
     const builtInSkillIds = this.listBuiltInSkillIds();
     const skillMap = new Map<string, ParsedSkill>();

@@ -30,7 +30,7 @@ import {
   VALID_NAME_RE,
 } from './types';
 import type { SkillManageAction, SkillManageResult } from './types';
-import { parseFrontmatter, findSkillDir } from './skill-utils';
+import { parseFrontmatter, findSkillDir, buildSkillMarkdown } from './skill-utils';
 
 // ============== Schema ==============
 
@@ -80,6 +80,7 @@ export const skillManageSchema = Type.Object({
 export function createSkillManageHandler(
   localSkillsDir: string,
   allRoots: string[],
+  onSkillChanged?: (event: { action: SkillManageAction; slug: string }) => void | Promise<void>,
 ) {
   return async function skillManageHandler(
     _toolCallId: string,
@@ -115,6 +116,15 @@ export function createSkillManageHandler(
             success: false,
             message: `Unknown action "${action}". Valid: create, edit, patch, delete, write_file, remove_file.`,
           };
+      }
+
+      // Notify caller of successful mutations (fire-and-forget)
+      if (result.success && onSkillChanged) {
+        try {
+          await onSkillChanged({ action, slug: name });
+        } catch {
+          // Callback failures must not break the tool call
+        }
       }
 
       return {
@@ -156,17 +166,21 @@ function handleCreate(
     if (catErr) return { success: false, message: catErr };
   }
 
-  // Determine target directory
-  const parentDir = category ? path.join(localDir, category) : localDir;
-  const skillDir = path.join(parentDir, name);
+  // Determine target directory — category does not affect filesystem layout
+  const skillDir = path.join(localDir, name);
 
   if (fs.existsSync(skillDir)) {
     return { success: false, message: `Skill "${name}" already exists. Use 'edit' or 'patch' instead.` };
   }
 
+  // Inject category into frontmatter if provided
+  const finalContent = category
+    ? injectCategoryIntoContent(content, category)
+    : content;
+
   // Create
   fs.mkdirSync(skillDir, { recursive: true });
-  atomicWriteText(path.join(skillDir, SKILL_FILE_NAME), content);
+  atomicWriteText(path.join(skillDir, SKILL_FILE_NAME), finalContent);
 
   return {
     success: true,
@@ -643,6 +657,18 @@ function validateFilePath(filePath: string): string | null {
   }
   if (filePath.includes('..')) return 'Path traversal (..) is not allowed.';
   return null;
+}
+
+// ============== Frontmatter helpers ==============
+
+/**
+ * Inject category into SKILL.md frontmatter.
+ * Preserves all existing frontmatter fields and body content.
+ */
+function injectCategoryIntoContent(content: string, category: string): string {
+  const { frontmatter, content: body } = parseFrontmatter(content);
+  frontmatter.category = category;
+  return buildSkillMarkdown(frontmatter, body);
 }
 
 // ============== File I/O ==============

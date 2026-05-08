@@ -257,13 +257,10 @@ export function streamClaude(options: ClaudeStreamOptions): ReadableStream<strin
             : ((permissionMode as Options['permissionMode']) || 'acceptEdits'),
           env: sanitizeEnv(sdkEnv),
           // Load settings so the SDK behaves like the CLI (tool permissions,
-          // CLAUDE.md, etc.). When an active provider is configured, skip 'user' settings because ~/.claude/settings.json
-          // may contain env overrides (ANTHROPIC_BASE_URL, ANTHROPIC_MODEL,
-          // etc.) that would conflict with the provider's configuration.
-          // settingSources: activeProvider?.api_key
-          //   ? ['project', 'local']
-          //   : ['user', 'project', 'local'],
-          settingSources: ['user', 'project', 'local'],
+          // CLAUDE.md, etc.). Skip 'user' settings to prevent global ~/.claude/
+          // config (skills, commands, env overrides) from leaking into the
+          // application — the app is a closed skill ecosystem.
+          settingSources: ['project', 'local'],
           allowedTools: options.allowedTools,
         };
 

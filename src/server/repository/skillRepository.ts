@@ -8,8 +8,7 @@
  */
 import { db } from '@server/lib/db';
 import { skills } from '@/drizzle/schema';
-import { eq, and, like, sql, SQL } from 'drizzle-orm';
-import type { Skill } from '@typings/skill';
+import { eq, and, sql } from 'drizzle-orm';
 
 export type SkillEntity = typeof skills.$inferSelect;
 
@@ -219,6 +218,42 @@ export class SkillRepository {
       .where(and(eq(skills.userId, userId), eq(skills.slug, slug)));
 
     return result.rowsAffected > 0;
+  }
+
+  /**
+   * 更新技能内容哈希
+   * @param userId 用户ID
+   * @param slug 技能slug
+   * @param hash SHA-256 hash of SKILL.md content
+   */
+  async updateContentHash(userId: number, slug: string, hash: string): Promise<void> {
+    await db.update(skills)
+      .set({ contentHash: hash })
+      .where(and(eq(skills.userId, userId), eq(skills.slug, slug)));
+  }
+
+  /**
+   * 更新技能部署哈希
+   * @param userId 用户ID
+   * @param slug 技能slug
+   * @param hash SHA-256 hash of last deployed SKILL.md
+   */
+  async updateDeployedHash(userId: number, slug: string, hash: string): Promise<void> {
+    await db.update(skills)
+      .set({ deployedHash: hash })
+      .where(and(eq(skills.userId, userId), eq(skills.slug, slug)));
+  }
+
+  /**
+   * 查用户技能及其哈希
+   * @param userId 用户ID
+   * @returns 技能偏好列表（仅含关键字段）
+   */
+  async findByUserIdWithHashes(userId: number): Promise<Pick<SkillEntity, 'slug' | 'contentHash' | 'deployedHash' | 'isEnabled'>[]> {
+    return db.query.skills.findMany({
+      where: eq(skills.userId, userId),
+      columns: { slug: true, contentHash: true, deployedHash: true, isEnabled: true },
+    });
   }
 }
 

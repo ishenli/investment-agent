@@ -16,6 +16,7 @@ import {
 import { skillFileScanner } from '@server/lib/skill/SkillFileScanner';
 import { skillRegistry } from '@server/lib/skill/SkillRegistry';
 import { resolveAgentModel } from '@server/service/agentModelResolver';
+import { skillService } from '@server/service/skillService';
 import { registerBusinessTools } from '@server/core/agents/hermes';
 import { getProjectRoot } from '@server/base/env';
 import { observabilityService } from '@server/service/observabilityService';
@@ -52,11 +53,17 @@ export class HermesEngine implements IAgentEngine {
       const enabledSkills = await skillRegistry.getEnabledSkills(userId);
       // Reverse so that more specific/later skill roots override earlier ones
       // in registerSkillTools (user skills > bundled skills).
+      const userSkillsDir = skillFileScanner.ensureUserSkillsRoot(userId);
       registerSkillTools(registry, {
-        skillRoots: [...skillFileScanner.getSkillRoots()].reverse(),
-        localSkillsDir: skillFileScanner.ensureSkillsRoot(),
+        skillRoots: [...skillFileScanner.getSkillRoots(userSkillsDir)].reverse(),
+        localSkillsDir: userSkillsDir,
         sessionId: String(userId),
         enabledSlugs: enabledSkills.map((s) => s.id),
+        onSkillChanged: async (event) => {
+          await skillService.ensureSkillRecord(userId, event.slug);
+          skillRegistry.invalidate(userId);
+          await skillService.syncDeployment(userId);
+        },
       });
     }
 
@@ -101,7 +108,9 @@ export class HermesEngine implements IAgentEngine {
         });
       },
       onError: (error: Error) => {
-        logger.warn('[HermesEngine] Error in loop:', error.message);
+        logger.warn('[HermesEngine] Error in loop:', {
+          errorMessage: error.message
+        });
       },
     };
 
