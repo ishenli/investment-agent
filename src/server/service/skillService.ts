@@ -14,11 +14,15 @@
  */
 
 import logger from '@server/base/logger';
-import { skillRepository, type CreateSkillData, type UpdateSkillData } from '../repository/skillRepository';
+import { skillRepository, type CreateSkillData, type UpdateSkillData, type SkillEntity } from '../repository/skillRepository';
 import { skillRegistry } from '../lib/skill/SkillRegistry';
 import { skillInstaller } from '../lib/skill/SkillInstaller';
+import { validateSkill } from '../lib/skill/skillContentValidator';
+import { skillFileScanner, SKILL_FILE_NAME } from '../lib/skill/SkillFileScanner';
 import path from 'path';
 import fs from 'fs/promises';
+import fsSync from 'fs';
+import crypto from 'crypto';
 import { claudeService } from './claudeService';
 import type {
   Skill,
@@ -109,7 +113,7 @@ export class SkillService {
       }
 
       // 状态变更后重新部署技能文件
-      await this.deployEnabledSkills(userId);
+      await this.syncDeployment(userId);
 
       return updated;
     } catch (error) {
@@ -136,8 +140,11 @@ export class SkillService {
       // Build SKILL.md content
       const skillContent = this.buildSkillMarkdown(data);
 
+      // Validate content (warn-only by default; blocks when SKILL_VALIDATION_BLOCK=true)
+      validateSkill(data.slug, skillContent);
+
       // Write SKILL.md file
-      skillInstaller.createCustomSkill(data.slug, skillContent);
+      skillInstaller.createCustomSkill(data.slug, skillContent, userId);
 
       // Create DB preference record
       const skillData: CreateSkillData = {
@@ -152,7 +159,7 @@ export class SkillService {
       skillRegistry.invalidate(userId);
 
       // 技能建立后重新部署
-      await this.deployEnabledSkills(userId);
+      await this.syncDeployment(userId);
 
       return skill;
     } catch (error) {
@@ -181,10 +188,20 @@ export class SkillService {
               name: data.name,
               description: data.description,
               prompt: data.prompt,
-            });
+            }, userId);
           } catch (error) {
             logger.warn('[SkillService] Failed to update SKILL.md:', error);
             // Continue to update DB preference even if file update fails
+          }
+
+          // Validate updated content (warn-only by default)
+          try {
+            const userRoot = skillFileScanner.getUserSkillsRoot(userId);
+            const updatedPath = path.join(userRoot, slug, SKILL_FILE_NAME);
+            const updatedContent = await fs.readFile(updatedPath, 'utf-8');
+            validateSkill(slug, updatedContent);
+          } catch {
+            // Skip validation if file read failed
           }
         }
       }
@@ -203,7 +220,7 @@ export class SkillService {
       skillRegistry.invalidate(userId);
 
       // 技能更新后重新部署
-      await this.deployEnabledSkills(userId);
+      await this.syncDeployment(userId);
 
       return skill;
     } catch (error) {
@@ -229,7 +246,7 @@ export class SkillService {
       // Delete SKILL.md files for custom skills
       if (skill.source === 'custom') {
         try {
-          skillInstaller.deleteCustomSkillFiles(slug);
+          skillInstaller.deleteCustomSkillFiles(slug, userId);
         } catch (error) {
           logger.warn('[SkillService] Failed to delete SKILL.md:', error);
           // Continue to delete DB record even if file deletion fails
@@ -240,7 +257,7 @@ export class SkillService {
       skillRegistry.invalidate(userId);
 
       // 技能删除后重新部署（会自动清理该技能的 .md 文件）
-      await this.deployEnabledSkills(userId);
+      await this.syncDeployment(userId);
 
       return result;
     } catch (error) {
@@ -267,7 +284,7 @@ export class SkillService {
       // ZIP and folder installs: the actual file has already been uploaded to a temp
       // location by the time this is called; `source` carries that path.
 
-      const result = await skillInstaller.install(source);
+      const result = await skillInstaller.install(source, userId);
 
       if (result.success) {
         // Invalidate registry cache so the new skills appear on next query
@@ -278,7 +295,7 @@ export class SkillService {
         );
 
         // 安装成功后部署新技能
-        await this.deployEnabledSkills(userId);
+        await this.syncDeployment(userId);
       } else {
         logger.warn(`[SkillService] Skill install failed: ${result.error}`);
       }
@@ -316,7 +333,7 @@ export class SkillService {
   async syncBuiltinSkills(userId: number): Promise<{ created: number; pruned: number }> {
     try {
       const { skillFileScanner } = await import('../lib/skill/SkillFileScanner');
-      const parsedSkills = skillFileScanner.scan();
+      const parsedSkills = skillFileScanner.scanForUser(userId);
 
       // Build a set of slugs that are currently on the filesystem
       const fsSlugs = new Set(parsedSkills.map((p) => p.id));
@@ -358,7 +375,7 @@ export class SkillService {
       );
 
       // 同步完成后部署已启用技能
-      await this.deployEnabledSkills(userId);
+      await this.syncDeployment(userId);
 
       return { created, pruned };
     } catch (error) {
@@ -400,6 +417,12 @@ export class SkillService {
 
     for (const user of allUsers) {
       try {
+        // Migrate any global custom skills into per-user isolation (one-time)
+        const migrated = skillInstaller.migrateGlobalCustomSkills(user.id);
+        if (migrated.length > 0) {
+          logger.info(`[SkillService] initForAllUsers: migrated ${migrated.length} skill(s) for user ${user.id}:`, migrated);
+        }
+
         const result = await this.syncBuiltinSkills(user.id);
         logger.info(
           `[SkillService] initForAllUsers: skills synced for user ${user.id}: ` +
@@ -415,24 +438,88 @@ export class SkillService {
   // Private helpers
   // ─────────────────────────────────────────────────────────────────────────
 
+  // ── Incremental deployment ─────────────────────────────────────────────────
+
   /**
-   * 将用户已启用的技能部署到 memory/claude/{userId}/.claude/skills/。
-   *
-   * Claude Code 规范：每个 skill 必须是一个子目录包（{slug}/SKILL.md）。
-   * 每次调用先清空整个 skillsDir，再将所有已启用 skill 的源目录批量覆盖复制进去。
-   *
-   * @param userId - 用户 ID，用于隔离部署目录
+   * Trigger incremental deployment of enabled skills.
+   * Computes content hashes and only copies skills that changed since last deployment.
+   * Falls back to full rebuild if FORCE_FULL_DEPLOY env var is set.
    */
-  private async deployEnabledSkills(userId: number): Promise<void> {
+  async syncDeployment(userId: number): Promise<void> {
+    if (process.env.FORCE_FULL_DEPLOY === 'true') {
+      return this._fullDeployFallback(userId);
+    }
+
     try {
       const enabledSkills = await skillRegistry.getEnabledSkills(userId);
       const skillsDir = path.join(claudeService.getUserWorkspaceRoot(userId), '.claude', 'skills');
 
-      // 清空后重建，确保不残留已禁用技能
+      // Build current enabled skill map
+      const enabledMap = new Map(enabledSkills.map((s) => [s.id, s]));
+
+      // 1. Delete skills that are no longer enabled
+      try {
+        const entries = await fs.readdir(skillsDir, { withFileTypes: true });
+        for (const entry of entries) {
+          if (entry.isDirectory() && !enabledMap.has(entry.name)) {
+            await fs.rm(path.join(skillsDir, entry.name), { recursive: true, force: true });
+            logger.debug(`[SkillService] Removed stale skill dir: ${entry.name}`);
+          }
+        }
+      } catch {
+        // skillsDir may not exist yet
+      }
+
+      // 2. Ensure skillsDir exists
+      await fs.mkdir(skillsDir, { recursive: true });
+
+      // 3. Copy only changed or new skills
+      let copied = 0;
+      let skipped = 0;
+      for (const skill of enabledSkills) {
+        if (!skill.skillPath) continue;
+        const sourceDir = path.dirname(skill.skillPath);
+        const destSkillDir = path.join(skillsDir, skill.id);
+
+        // Compute current content hash
+        const content = await fs.readFile(skill.skillPath, 'utf-8');
+        const currentHash = crypto.createHash('sha256').update(content).digest('hex');
+
+        // Update contentHash in DB
+        await skillRepository.updateContentHash(userId, skill.id, currentHash);
+
+        // Check deployedHash to decide if copy is needed
+        const dbSkill = await skillRepository.findByUserIdAndSlug(userId, skill.id);
+        if (dbSkill?.deployedHash === currentHash && fsSync.existsSync(path.join(destSkillDir, 'SKILL.md'))) {
+          skipped++;
+          continue;
+        }
+
+        // Remove old dest dir to ensure clean state, then copy
+        await fs.rm(destSkillDir, { recursive: true, force: true });
+        await fs.cp(sourceDir, destSkillDir, { recursive: true, force: true });
+        await skillRepository.updateDeployedHash(userId, skill.id, currentHash);
+        copied++;
+      }
+
+      logger.info(`[SkillService] syncDeployment for user ${userId}: copied=${copied}, skipped=${skipped}`);
+    } catch (error) {
+      logger.warn('[SkillService] syncDeployment failed, falling back to full deploy:', error);
+      return this._fullDeployFallback(userId);
+    }
+  }
+
+  /**
+   * Full delete-and-copy fallback (original behavior).
+   * Kept while incremental deployment is being validated.
+   */
+  private async _fullDeployFallback(userId: number): Promise<void> {
+    try {
+      const enabledSkills = await skillRegistry.getEnabledSkills(userId);
+      const skillsDir = path.join(claudeService.getUserWorkspaceRoot(userId), '.claude', 'skills');
       await fs.rm(skillsDir, { recursive: true, force: true });
       await fs.mkdir(skillsDir, { recursive: true });
 
-      // 批量复制：将每个源目录整体拷贝为 {skillsDir}/{slug}，覆盖写入
       let count = 0;
       for (const skill of enabledSkills) {
         if (!skill.skillPath) continue;
@@ -442,11 +529,29 @@ export class SkillService {
         count++;
       }
 
-      logger.info(`[SkillService] Deployed ${count} skill(s) for user ${userId} → ${skillsDir}`);
+      logger.info(`[SkillService] Full deploy ${count} skill(s) for user ${userId} → ${skillsDir}`);
     } catch (error) {
-      // 部署失败不应阻断主流程，记录日志即可
-      logger.warn('[SkillService] Failed to deploy enabled skills:', error);
+      logger.warn('[SkillService] Full deploy failed:', error);
     }
+  }
+
+  // ── Hermes bridge helpers ──────────────────────────────────────────────────
+
+  /**
+   * Ensure a DB preference record exists for a skill slug.
+   * Called by Hermes after skill_manage creates a skill on the filesystem.
+   */
+  async ensureSkillRecord(userId: number, slug: string): Promise<SkillEntity> {
+    const existing = await skillRepository.findByUserIdAndSlug(userId, slug);
+    if (existing) return existing;
+
+    const skillData: CreateSkillData = {
+      slug,
+      source: 'custom',
+      isEnabled: true,
+      userId,
+    };
+    return skillRepository.create(skillData);
   }
 
   /**
@@ -457,6 +562,10 @@ export class SkillService {
       name: data.name,
       description: data.description,
     };
+
+    if (data.category) {
+      frontmatter.category = data.category;
+    }
 
     const yamlLines = Object.entries(frontmatter)
       .filter(([, v]) => v !== undefined)

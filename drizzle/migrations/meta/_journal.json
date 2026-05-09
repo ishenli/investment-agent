@@ -288,6 +288,20 @@
       "when": 1777904854038,
       "tag": "0040_chief_blue_blade",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "6",
+      "when": 1778166430919,
+      "tag": "0041_funny_puck",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "6",
+      "when": 1778166704048,
+      "tag": "0042_watery_stranger",
+      "breakpoints": true
     }
   ]
 }

@@ -423,6 +423,8 @@ export const skills = sqliteTable('skills', {
   userId: integer('user_id')
     .notNull()
     .references(() => users.id),
+  contentHash: text('content_hash'), // SKILL.md hash for incremental deployment
+  deployedHash: text('deployed_hash'), // hash of last successfully deployed SKILL.md
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
   deletedAt: integer('deleted_at', { mode: 'timestamp' }), // 软删除时间戳

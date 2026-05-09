@@ -100,10 +100,13 @@ export class SkillInstaller {
    * Create a custom skill by writing a SKILL.md file.
    * @param slug Skill directory name (used as identifier)
    * @param content SKILL.md content with frontmatter
+   * @param userId Optional user ID for per-user skill isolation
    * @returns Path to created skill directory
    */
-  createCustomSkill(slug: string, content: string): string {
-    const root = this.scanner.ensureSkillsRoot();
+  createCustomSkill(slug: string, content: string, userId?: number): string {
+    const root = userId !== undefined
+      ? this.scanner.ensureUserSkillsRoot(userId)
+      : this.scanner.ensureSkillsRoot();
     const skillDir = resolveWithin(root, slug);
 
     // Check if skill already exists
@@ -124,13 +127,16 @@ export class SkillInstaller {
    * Update an existing custom skill's SKILL.md file.
    * @param slug Skill directory name
    * @param updates Updates to apply (name, description, prompt, etc.)
+   * @param userId Optional user ID for per-user skill isolation
    */
   updateCustomSkillFiles(slug: string, updates: {
     name?: string;
     description?: string;
     prompt?: string;
-  }): void {
-    const root = this.scanner.getSkillsRoot();
+  }, userId?: number): void {
+    const root = userId !== undefined
+      ? this.scanner.getUserSkillsRoot(userId)
+      : this.scanner.getSkillsRoot();
     const skillDir = resolveWithin(root, slug);
     const skillPath = path.join(skillDir, SKILL_FILE_NAME);
 
@@ -161,9 +167,12 @@ export class SkillInstaller {
   /**
    * Delete a custom skill's files from filesystem.
    * @param slug Skill directory name
+   * @param userId Optional user ID for per-user skill isolation
    */
-  deleteCustomSkillFiles(slug: string): void {
-    const root = this.scanner.getSkillsRoot();
+  deleteCustomSkillFiles(slug: string, userId?: number): void {
+    const root = userId !== undefined
+      ? this.scanner.getUserSkillsRoot(userId)
+      : this.scanner.getSkillsRoot();
     const skillDir = resolveWithin(root, slug);
 
     if (!fs.existsSync(skillDir)) {
@@ -234,7 +243,7 @@ export class SkillInstaller {
    * Install skill(s) from a source string.
    * Supports: local path (dir / zip / SKILL.md), GitHub URL, owner/repo shorthand.
    */
-  async install(source: string): Promise<InstallResult & { skills?: never }> {
+  async install(source: string, userId?: number): Promise<InstallResult & { skills?: never }> {
     let cleanupPath: string | null = null;
 
     try {
@@ -243,7 +252,9 @@ export class SkillInstaller {
         return { success: false, error: 'Missing skill source' };
       }
 
-      const root = this.scanner.ensureSkillsRoot();
+      const root = userId !== undefined
+        ? this.scanner.ensureUserSkillsRoot(userId)
+        : this.scanner.ensureSkillsRoot();
       let localSource = trimmed;
 
       // ── Local path ──────────────────────────────────────────────────────
@@ -384,6 +395,45 @@ export class SkillInstaller {
         error: error instanceof Error ? error.message : 'Failed to install skill',
       };
     }
+  }
+
+  // ── Migration: global custom skills to per-user isolation ────────────────
+
+  /**
+   * Migrate custom skills from the global skills root into the per-user directory.
+   * Bundled skills are skipped since they remain discoverable via the bundled root.
+   * Returns the list of migrated skill slugs.
+   */
+  migrateGlobalCustomSkills(userId: number): string[] {
+    const globalRoot = this.scanner.getSkillsRoot();
+    if (!fs.existsSync(globalRoot)) return [];
+
+    const userRoot = this.scanner.ensureUserSkillsRoot(userId);
+    const bundledRoot = this.scanner.getBundledSkillsRoot();
+    const bundledSlugs = new Set(
+      bundledRoot && fs.existsSync(bundledRoot)
+        ? listSkillDirs(bundledRoot).map((d) => path.basename(d))
+        : [],
+    );
+
+    const migrated: string[] = [];
+    for (const skillDir of listSkillDirs(globalRoot)) {
+      const slug = path.basename(skillDir);
+      if (bundledSlugs.has(slug)) continue;
+
+      const targetDir = path.join(userRoot, slug);
+      if (fs.existsSync(targetDir)) continue;
+
+      try {
+        cpRecursiveSync(skillDir, targetDir);
+        migrated.push(slug);
+        logger.info(`[SkillInstaller] Migrated global skill "${slug}" to user ${userId}`);
+      } catch (error) {
+        logger.warn(`[SkillInstaller] Failed to migrate skill "${slug}" for user ${userId}:`, error);
+      }
+    }
+
+    return migrated;
   }
 
   // ── Bundled skills sync ──────────────────────────────────────────────────

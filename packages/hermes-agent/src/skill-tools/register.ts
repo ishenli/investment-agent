@@ -49,6 +49,13 @@ export interface SkillToolsConfig {
    * Used to respect UI-level skill enablement toggles.
    */
   enabledSlugs?: string[];
+
+  /**
+   * Optional callback invoked after a successful skill_manage mutation.
+   * Allows the caller (e.g., server-side service layer) to sync DB state
+   * and trigger deployment.
+   */
+  onSkillChanged?: (event: { action: 'create' | 'edit' | 'patch' | 'delete' | 'write_file' | 'remove_file'; slug: string }) => void | Promise<void>;
 }
 
 /**
@@ -99,7 +106,7 @@ export function registerSkillTools(
         'Supports fuzzy matching for patches. Only local skills can be modified. ' +
         'Actions: create, edit, patch, delete, write_file, remove_file.',
       skillManageSchema,
-      createSkillManageHandler(config.localSkillsDir, config.skillRoots),
+      createSkillManageHandler(config.localSkillsDir, config.skillRoots, config.onSkillChanged),
     );
   }
 }

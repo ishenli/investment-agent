@@ -8,10 +8,29 @@ vi.mock('@server/service/agentModelResolver', () => ({
 }));
 
 vi.mock('@server/lib/skill/SkillFileScanner', () => ({
+  SkillFileScanner: class {
+    getSkillRoots = vi.fn().mockReturnValue(['/user/skills', '/global/skills']);
+    ensureSkillsRoot = vi.fn().mockReturnValue('/local/skills');
+    ensureUserSkillsRoot = vi.fn().mockReturnValue('/local/skills');
+    getUserSkillsRoot = vi.fn().mockReturnValue('/local/skills');
+    scan = vi.fn().mockReturnValue([]);
+    scanForUser = vi.fn().mockReturnValue([]);
+    loadSkillsDefaults = vi.fn().mockReturnValue({});
+  },
   skillFileScanner: {
     getSkillRoots: vi.fn().mockReturnValue(['/user/skills', '/global/skills']),
     ensureSkillsRoot: vi.fn().mockReturnValue('/local/skills'),
+    ensureUserSkillsRoot: vi.fn().mockReturnValue('/local/skills'),
+    getUserSkillsRoot: vi.fn().mockReturnValue('/local/skills'),
+    scan: vi.fn().mockReturnValue([]),
+    scanForUser: vi.fn().mockReturnValue([]),
+    loadSkillsDefaults: vi.fn().mockReturnValue({}),
   },
+  SKILL_FILE_NAME: 'SKILL.md',
+  SKILLS_CONFIG_FILE: 'skills.config.json',
+  listSkillDirs: vi.fn().mockReturnValue([]),
+  parseFrontmatter: vi.fn().mockReturnValue({ frontmatter: {}, content: '' }),
+  collectSkillDirsFromSource: vi.fn().mockReturnValue([]),
 }));
 
 vi.mock('@server/lib/skill/SkillRegistry', () => ({
