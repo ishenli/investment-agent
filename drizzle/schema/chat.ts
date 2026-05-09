@@ -311,7 +311,6 @@ export const chatTraces = sqliteTable('chat_traces', {
 
 // ============== Observability: Spans ==============
 
-// @ts-expect-error - Self-referencing table causes TypeScript inference issues
 export const chatSpans = sqliteTable('chat_spans', {
   id: text('id').primaryKey(),
   traceId: text('trace_id').notNull(),
