@@ -1,0 +1,50 @@
+---
+title: 功能特性
+description: Investment Agent 的核心功能详解
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## 多引擎 AI 架构
+
+<CardGrid>
+  <Card title="DeepAgents 引擎" icon="settings">
+    基于 LangChain/LangGraph 的智能体编排，用于复杂的金融分析工作流。
+  </Card>
+  <Card title="Claude 引擎" icon="code">
+    集成 Anthropic Claude Agent SDK，提供高级推理能力。
+  </Card>
+  <Card title="Hermes 引擎" icon="zap">
+    轻量级智能体框架，完整可观测性支持，包括追踪、指标和成本跟踪。
+  </Card>
+</CardGrid>
+
+## 多渠道通信
+
+<CardGrid>
+  <Card title="微信集成" icon="message">
+    通过 iLink 长轮询接入个人微信账号，实现无缝移动端访问。
+  </Card>
+  <Card title="飞书支持" icon="send">
+    飞书机器人集成（即将推出），支持企业协作场景。
+  </Card>
+  <Card title="Web 界面" icon="globe">
+    基于聊天的 AI 交互界面，可从任何浏览器访问。
+  </Card>
+</CardGrid>
+
+## AI 智能分析工具
+
+- **资产信息查询**：通过 Finnhub 获取实时股票、基金和黄金价格
+- **投资笔记搜索**：对投资笔记进行语义搜索
+- **数据库查询**：自然语言转 SQL，查询投资组合数据
+- **网页搜索**：基于 Tavily 的市场研究
+- **股票分析**：技术指标和市场情绪分析
+
+## 智能体可观测性
+
+- **追踪与跨度系统**：为每次智能体执行提供分层追踪，支持显式上下文传递
+- **实时指标**：Token 使用量、延迟、工具调用次数、迭代统计
+- **成本跟踪**：基于模型定价表的会话成本明细
+- **实时可观测性面板**：聊天侧边栏显示追踪时间线、跨度详情和聚合指标
+- **持久化存储**：追踪/跨度数据保存到 SQLite，支持历史分析

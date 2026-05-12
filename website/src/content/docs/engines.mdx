@@ -1,0 +1,218 @@
+---
+title: AI 引擎
+description: Investment Agent 多引擎架构详解
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+Investment Agent 采用多引擎架构，支持三种不同的 AI 引擎，各有特色和适用场景。
+
+## 引擎概览
+
+<CardGrid>
+  <Card title="Hermes" icon="zap">
+    轻量级引擎，完整可观测性，适合快速迭代和调试
+  </Card>
+  <Card title="Claude" icon="spark">
+    Anthropic SDK，高质量推理，适合复杂分析任务
+  </Card>
+  <Card title="DeepAgents" icon="settings">
+    LangGraph 编排，多步骤工作流，适合投资顾问场景
+  </Card>
+</CardGrid>
+
+---
+
+## Hermes 引擎
+
+轻量级智能体引擎，专注于**可观测性**和**快速响应**。
+
+### 核心特性
+
+- **完整事件追踪**：每次工具调用、Token 使用、延迟都有详细记录
+- **实时指标面板**：在聊天界面直接查看执行过程
+- **成本追踪**：基于模型定价表精确计算每次对话成本
+- **技能系统集成**：自动加载用户自定义技能
+
+### 内置工具
+
+| 工具 | 说明 |
+|------|------|
+| `read_file` | 读取本地文件 |
+| `search_files` | 搜索文件内容 |
+| `list_directory` | 列出目录结构 |
+| `web_search` | 网络搜索 |
+| `web_fetch` | 获取网页内容 |
+| `think` | 思考工具，用于推理 |
+
+### 业务工具
+
+Hermes 引擎自动加载所有业务工具：
+
+- **资产查询**：股票、基金、黄金价格
+- **笔记管理**：创建、搜索、更新投资笔记
+- **数据库查询**：自然语言转 SQL
+- **交易记录**：查询历史交易和账户余额
+- **组合分析**：投资组合统计
+
+### 适用场景
+
+- 需要详细追踪执行过程
+- 调试和开发新工具
+- 成本敏感的应用
+- 快速迭代原型
+
+---
+
+## Claude 引擎
+
+集成 Anthropic Claude Agent SDK，提供**顶级推理能力**。
+
+### 核心特性
+
+- **高质量推理**：Claude 3.5 Sonnet/Opus 模型
+- **文件附件支持**：直接分析 PDF、图片等文件
+- **MCP 服务器集成**：扩展工具生态
+- **权限控制**：code/plan/ask 三种模式
+
+### 文件支持
+
+支持多种文件类型作为上下文：
+
+```typescript
+files: [
+  {
+    name: "report.pdf",
+    data: fileBuffer,
+    type: "application/pdf"
+  },
+  {
+    name: "chart.png", 
+    data: imageBuffer,
+    type: "image/png"
+  }
+]
+```
+
+### 权限模式
+
+| 模式 | 说明 |
+|------|------|
+| `code` | 自主编码模式，自动执行工具 |
+| `plan` | 规划模式，先制定计划再执行 |
+| `ask` | 询问模式，每个操作需确认 |
+
+### 适用场景
+
+- 复杂推理和代码分析
+- 需要理解文件内容
+- 多步骤决策场景
+- 对质量要求高的任务
+
+---
+
+## DeepAgents 引擎
+
+基于 LangChain/LangGraph 的**工作流编排引擎**，专为投资顾问设计。
+
+### 核心特性
+
+- **图结构编排**：复杂任务分解为多个节点
+- **状态管理**：跨步骤的状态保持
+- **条件分支**：根据中间结果动态决策
+- **并行执行**：独立节点可并行处理
+
+### 内置工作流图
+
+<CardGrid>
+  <Card title="AI 洞察图" icon="lightbulb">
+    分析市场趋势，生成投资洞察报告
+  </Card>
+  <Card title="多样化图" icon="grid">
+    评估投资组合分散程度，优化配置建议
+  </Card>
+  <Card title="场景分析图" icon="git-branch">
+    模拟不同市场场景下的投资表现
+  </Card>
+  <Card title="策略建议图" icon="compass">
+    基于用户情况和偏好生成投资策略
+  </Card>
+  <Card title="交易决策图" icon="check">
+    综合分析后提供买卖建议
+  </Card>
+</CardGrid>
+
+### 配套工具
+
+DeepAgents 针对投资顾问场景优化，内置专用工具：
+
+```typescript
+// 工具示例
+stockSearchNewsTool      // 股票新闻搜索
+stockGetPriceTool        // 获取股票价格
+stockRecallMarketInfo    // 市场信息召回
+stockRecallCompanyInfo   // 公司信息召回
+noteQueryTool            // 投资笔记查询
+TravilySearchTool        // 网络搜索
+```
+
+### 适用场景
+
+- 投资咨询和顾问
+- 多步骤复杂分析
+- 需要状态管理的工作流
+- 结构化输出场景
+
+---
+
+## 引擎对比
+
+| 特性 | Hermes | Claude | DeepAgents |
+|------|--------|--------|------------|
+| **响应速度** | 快 | 中 | 慢 |
+| **推理质量** | 高 | 极高 | 高 |
+| **可观测性** | 完整 | 基础 | 详细 |
+| **成本追踪** | ✓ | ✓ | ✓ |
+| **文件支持** | ✗ | ✓ | ✗ |
+| **自定义技能** | ✓ | 通过 MCP | ✓ |
+| **工作流编排** | 简单 | 中等 | 复杂图结构 |
+| **最佳场景** | 快速迭代 | 复杂分析 | 投资顾问 |
+
+## 如何选择
+
+**快速开发** → 选择 **Hermes**  
+完整的可观测性帮助你快速调试和迭代
+
+**高质量输出** → 选择 **Claude**  
+顶级推理能力，适合复杂的分析和代码任务
+
+**投资咨询** → 选择 **DeepAgents**  
+专为投资顾问设计，工作流完整
+
+## 配置使用
+
+```typescript
+// 默认引擎配置
+{
+  "defaultEngine": "hermes"
+}
+
+// 运行时切换引擎
+const response = await agent.execute({
+  engine: "claude",
+  model: "claude-3-5-sonnet-latest",
+  messages: [...]
+});
+
+// DeepAgents 投资顾问
+const advisor = await investmentAdvisorAgent.chat({
+  messages: [...],
+  accountId: "user_123",
+  model: "gpt-4-turbo"
+});
+```
+
+## 扩展阅读
+
+- [AI 技能](/skills/) - 了解如何创建自定义技能
+- [架构设计](/architecture/) - 深入了解系统架构
