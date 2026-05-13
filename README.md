@@ -7,6 +7,7 @@ English Version | [中文版本](./doc/zh/README.md)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/ishenli/investment-agent)](https://github.com/ishenli/investment-agent/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/ishenli/investment-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/ishenli/investment-agent/actions/workflows/ci.yml)
+[![Documentation](https://img.shields.io/badge/docs-website-blue.svg)](https://ishenli.github.io/investment-agent/)
 
 ## Product Prototype
 
@@ -58,6 +59,10 @@ English Version | [中文版本](./doc/zh/README.md)
 - Real-time data visualization
 - i18n support (English/Chinese)
 - Desktop app (Electron) support
+
+## Documentation
+
+📚 **Full documentation**: https://ishenli.github.io/investment-agent/
 
 ## Quick Start
 
