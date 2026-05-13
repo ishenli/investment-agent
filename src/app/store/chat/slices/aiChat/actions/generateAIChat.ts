@@ -472,6 +472,7 @@ export const generateAIChat: StateCreator<
         plugins: agentConfig.plugins,
         engineType: currentSession?.config?.engineType,
         mode: currentSession?.config?.claudeMode,
+        permissionLevel: currentSession?.config?.permissionLevel,
         skills: sessionSkillSlugsForRequest,
         ...agentConfig.params,
       },

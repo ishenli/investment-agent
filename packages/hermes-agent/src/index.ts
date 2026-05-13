@@ -150,6 +150,42 @@ export type {
   SinkConfig,
 } from './observability';
 
+// ============== Permission System ==============
+export {
+  PermissionPolicy,
+  defaultPermissionPolicy,
+  isToolAllowed,
+  requiresConfirmation,
+} from './permission';
+
+export type {
+  PermissionLevel,
+  ToolCategory,
+  ToolPolicy,
+  GuardDecision,
+  ConfirmationRequest,
+  ConfirmationResult,
+  IPermissionPolicy,
+  AuditLogEntry,
+} from './permission';
+
+// ============== Content Guard ==============
+export {
+  ContentGuard,
+  defaultContentGuard,
+  isContentGuardDisabled,
+  DANGEROUS_PATTERNS,
+  SENSITIVE_FILES,
+  ConsoleAuditLogger,
+  NoOpAuditLogger,
+  CompositeAuditLogger,
+  defaultAuditLogger,
+} from './guard';
+
+export type {
+  ContentGuardOptions,
+  AuditLogger,
+} from './guard';
 // ============== Types ==============
 export type {
   // pi-ai re-exports

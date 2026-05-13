@@ -22,7 +22,7 @@ import {
   UserMessageContentPart,
 } from '@typings/openai/chat';
 import { GroundingSearch } from '@typings/search';
-import { EngineType } from '@typings/agent';
+import { EngineType, PermissionLevelType } from '@typings/agent';
 import { get, isEmpty, merge } from 'lodash';
 import { post } from '../lib/request';
 import { connectAgentStream, formatToolMessage } from '@/app/lib/agentStreamClient';
@@ -51,6 +51,8 @@ interface GetChatCompletionPayload extends Partial<Omit<ChatStreamPayload, 'mess
   mode?: 'code' | 'plan' | 'ask';
   /** 会话级激活的 skill slugs，仅对 claude 引擎生效，用于按需构建 systemPrompt */
   skills?: string[];
+  /** Hermes 引擎权限等级 */
+  permissionLevel?: PermissionLevelType;
 }
 
 type ContentType = 'stream' | 'text' | 'thought' | 'tool' | 'image' | 'file' | 'error';
@@ -655,11 +657,14 @@ class ChatService {
               ...(params.skills !== undefined ? { skills: params.skills } : {}),
             }
           : {}),
-        // hermes 引擎：传递 provider 和 enableTools
+        // hermes 引擎：传递 provider、enableTools 和 permissionLevel
         ...(engineType === 'hermes'
           ? {
               provider: params.provider || 'openai',
               enableTools: true,
+              ...(params.permissionLevel !== undefined
+                ? { permissionLevel: params.permissionLevel }
+                : {}),
             }
           : {}),
       },

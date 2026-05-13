@@ -4,6 +4,14 @@
  * Uses @mariozechner/pi-ai types as the foundation.
  */
 
+// ============== Permission Types ==============
+
+import type { PermissionLevel, ToolCategory, ConfirmationRequest, ConfirmationResult } from './permission/types';
+
+export type { PermissionLevel, ToolCategory, ConfirmationRequest, ConfirmationResult };
+
+// ============== PI-AI Type Re-exports ==============
+
 import type {
   Context,
   Message,
@@ -115,6 +123,10 @@ export interface StreamOptions {
   signal?: AbortSignal;
   /** Timeout in milliseconds for each LLM call */
   timeoutMs?: number;
+  /** Memory prefetch timeout in milliseconds */
+  memoryPrefetchTimeoutMs?: number;
+  /** Memory sync timeout in milliseconds */
+  memorySyncTimeoutMs?: number;
   /** Additional options passed through to the provider */
   [key: string]: unknown;
 }
@@ -148,6 +160,8 @@ export interface AgentCallbacks {
   onTextDelta?: (delta: string) => void;
   /** Fired after a turn completes and memory has been synced */
   onTurnEnd?: (result: HermesAgentResult) => void | Promise<void>;
+  // Permission confirmation callback
+  onConfirmationRequest?: (request: ConfirmationRequest) => Promise<ConfirmationResult>;
   // Observability callbacks (optional, fire-and-forget)
   onTraceStart?: (trace: TraceStartEvent) => void;
   onSpanStart?: (span: SpanStartEvent) => void;
@@ -208,4 +222,6 @@ export interface AgentConfig {
   turnNumber?: number;
   /** Observability configuration */
   observability?: ObservabilityConfig;
+  /** Permission level for tool execution (default: 'standard') */
+  permissionLevel?: PermissionLevel;
 }

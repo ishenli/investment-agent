@@ -32,6 +32,7 @@ export class HermesEngine implements IAgentEngine {
     const { model: modelSlug, provider = 'openai', messages, systemPrompt, signal, messageId, userId, extra, topicId } = ctx;
     const enableTools = (extra?.enableTools as boolean) ?? true;
     const maxIterations = (extra?.maxIterations as number) ?? 30;
+    const permissionLevel = (extra?.permissionLevel as 'safe' | 'standard' | 'power' | 'unrestricted') ?? 'standard';
 
     // 1. 解析模型配置
     await eventSink.sendStatus(`初始化模型 ${provider}/${modelSlug}`, {
@@ -157,6 +158,7 @@ export class HermesEngine implements IAgentEngine {
       name,
       systemPrompt,
       toolRegistry: registry,
+      permissionLevel,
       memoryDir: path.join(getProjectRoot(), 'workspace', String(userId), '.hermes', 'memories'),
       memorySessionId: String(userId),
       maxIterations,

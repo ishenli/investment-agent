@@ -47,6 +47,16 @@ English Version | [中文版本](./doc/zh/README.md)
 - **Web Search** - Tavily-powered market research
 - **Stock Analysis** - Technical indicators and market sentiment
 
+### Permission Mode Control
+- **Conversation-level permission switcher** - Toggle Hermes engine permission levels right next to the chat input box
+- **Four permission tiers**:
+  - **Safe** — Read/write operations only; system and finance tools are blocked entirely
+  - **Standard** — System and finance operations require user confirmation
+  - **Power** — Finance operations execute automatically; system operations still require confirmation
+  - **Unrestricted** — All operations execute automatically (ContentGuard still applies)
+- **Real-time effect** — Permission settings take effect immediately per conversation; each session can have its own level
+- **Content safety layer** — ContentGuard runs independently beneath the permission layer, catching dangerous commands and sensitive file access
+
 ### Agent Observability
 - **Trace & Span System** - Hierarchical tracing for every agent execution with explicit context passing
 - **Real-time Metrics** - Token usage, latency, tool call counts, and iteration stats
