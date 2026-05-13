@@ -251,5 +251,10 @@
   ],
   "npm": {
     "publish": false
+  },
+  "pnpm": {
+    "overrides": {
+      "nanoid": "^5.0.9"
+    }
   }
 }

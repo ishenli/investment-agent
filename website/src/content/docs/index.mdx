@@ -1,0 +1,50 @@
+---
+title: Investment Agent
+description: AI 驱动的本地投资分析工具，采用多引擎智能体架构
+template: splash
+hero:
+  tagline: AI 驱动的本地投资分析工具，采用多引擎智能体架构
+  actions:
+    - text: GitHub 仓库
+      link: https://github.com/ishenli/investment-agent
+      icon: external
+      variant: primary
+    - text: 下载
+      link: https://github.com/ishenli/investment-agent/releases/latest
+      icon: download
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid>
+  <Card title="多引擎 AI 架构" icon="settings">
+    DeepAgents、Claude 和 Hermes 三大引擎，统一接口无缝切换。
+  </Card>
+  <Card title="多渠道通信" icon="message">
+    微信、飞书（进心中）、Web 界面多端支持，统一消息路由。
+  </Card>
+  <Card title="AI 智能分析" icon="search">
+    资产查询、笔记搜索、自然语言 SQL、网页搜索、技术分析。
+  </Card>
+  <Card title="可观测性" icon="chart">
+    追踪与跨度系统、实时指标、成本跟踪、可观测性面板。
+  </Card>
+  <Card title="投资管理" icon="folder">
+    投资组合跟踪、多账户支持、市场研究、知识库管理。
+  </Card>
+  <Card title="现代界面" icon="desktop">
+    简洁仪表板、明暗主题、国际化支持、[Electron 桌面应用](/electron/)。
+  </Card>
+</CardGrid>
+
+## 快速开始
+
+```bash
+# 克隆并安装
+git clone https://github.com/ishenli/investment-agent.git
+cd investment-agent
+pnpm install
+
+# 启动开发服务器
+pnpm dev
+```

@@ -1,0 +1,190 @@
+---
+title: 常见问题
+description: Investment Agent 使用中的常见问题解答
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## 安装与配置
+
+### 支持哪些操作系统？
+
+Investment Agent 支持：
+- **macOS** 10.15+ (Intel 和 Apple Silicon)
+- **Windows** 10/11
+- **Linux** (Ubuntu 18.04+, Debian 10+, CentOS 8+)
+
+### Node.js 版本要求？
+
+建议使用 Node.js 18+ 或 Node.js 22+ (推荐)。可以使用 nvm 或 fnm 管理多版本：
+
+```bash
+# 使用 nvm 安装
+nvm install 22
+nvm use 22
+```
+
+### 安装依赖很慢怎么办？
+
+推荐使用国内镜像：
+
+```bash
+# 设置 pnpm 镜像
+pnpm config set registry https://registry.npmmirror.com
+
+# 或使用环境变量
+npm_config_registry=https://registry.npmmirror.com pnpm install
+```
+
+## AI 引擎
+
+### 支持哪些 AI 模型？
+
+<CardGrid>
+  <Card title="OpenAI" icon="code">
+    GPT-4o、GPT-4-turbo、GPT-3.5-turbo 等
+  </Card>
+  <Card title="Anthropic" icon="spark">
+    Claude 3.5 Sonnet、Claude 3 Opus 等
+  </Card>
+</CardGrid>
+
+### 如何选择引擎？
+
+| 引擎 | 适用场景 |
+|------|---------|
+| **DeepAgents** | 复杂多步骤任务、需要状态管理 |
+| **Claude** | 高质量推理、代码分析 |
+| **Hermes** | 轻量快速、可观测性要求高 |
+
+### 如何切换引擎？
+
+```typescript
+// 配置文件中设置默认引擎
+{
+  "defaultEngine": "claude"
+}
+
+// 或在对话时指定
+const response = await agent.execute({
+  engine: "hermes"
+});
+```
+
+## 数据与隐私
+
+### 数据存储在哪里？
+
+所有数据存储在本地 SQLite 数据库，不会上传到云端：
+
+```
+data/
+├── investment.db    # 投资数据
+├── knowledge.db     # 知识库
+└── observability.db # 追踪数据
+```
+
+### 如何备份数据？
+
+```bash
+# 备份所有数据
+cp -r data/ backup/data_$(date +%Y%m%d)/
+
+# 或导出为 JSON
+pnpm run export:db --output backup.json
+```
+
+### 支持 API 密钥轮换吗？
+
+是的，可以配置多个 API 密钥实现轮换和容错：
+
+```env
+OPENAI_API_KEY=key1,key2,key3
+OPENAI_API_KEY_STRATEGY=round_robin
+```
+
+## 使用问题
+
+### 为什么搜索结果不准确？
+
+1. 确认 API 密钥配置正确
+2. 检查网络连接
+3. 尝试更换搜索关键词
+
+如需更好结果，考虑：
+- 使用 Claude 引擎（推理能力更强）
+- 在技能配置中调整搜索参数
+
+### 如何添加自定义技能？
+
+```bash
+# 创建技能目录
+mkdir -p skills/my-skill
+
+# 创建技能文件
+cat > skills/my-skill/SKILL.md << 'SKILL'
+---
+name: my-skill
+description: 自定义技能说明
+---
+
+技能详细说明...
+SKILL
+```
+
+### 支持多账户吗？
+
+是的。通过交易记录管理支持：
+- 多个券商账户
+- 不同资产分类
+- 独立收益统计
+
+### 如何导出分析报告？
+
+```bash
+# 导出为 PDF
+pnpm run report:export --format pdf
+
+# 导出为 Excel
+pnpm run report:export --format xlsx
+```
+
+## 故障排除
+
+### 启动失败怎么办？
+
+检查以下项：
+1. Node.js 版本是否 >= 18
+2. 依赖是否完整安装
+3. 端口 3000 是否被占用
+
+```bash
+# 查看详细日志
+DEBUG=* pnpm dev
+
+# 检查端口
+lsof -i :3000
+```
+
+### AI 响应很慢？
+
+可能原因：
+- API 密钥额度不足
+- 网络延迟
+- 模型负载高
+
+建议：
+1. 检查 API 账户余额
+2. 使用更快的模型（如 GPT-3.5-turbo）
+3. 启用本地缓存
+
+### 如何报告 Bug？
+
+在 GitHub 提交 Issue：
+https://github.com/ishenli/investment-agent/issues
+
+请包含：
+- 操作系统和版本
+- Node.js 版本
+- 错误日志（如有）
+- 复现步骤

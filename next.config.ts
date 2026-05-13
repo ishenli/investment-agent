@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
   // We do NOT want to bundle runtime log files into the standalone build.
   outputFileTracingExcludes:{
     // exclude our runtime logs directory (rotating log files may not exist during build)
-    'api/**': ['**/logs/**'],
+    '/**': ['**/logs/**', 'logs/**'],
   },
   serverExternalPackages: [
     // @libsql/client uses native bindings, must not be bundled by webpack

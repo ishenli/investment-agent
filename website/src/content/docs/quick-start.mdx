@@ -1,0 +1,105 @@
+---
+title: 快速开始
+description: Investment Agent 入门指南
+---
+
+## 环境要求
+
+- Node.js 18+ 
+- pnpm（推荐）或 npm
+
+## 安装步骤
+
+### 克隆并安装
+
+```bash
+git clone https://github.com/ishenli/investment-agent.git
+cd investment-agent
+pnpm install
+```
+
+### 启动开发服务器
+
+```bash
+pnpm dev
+# 访问 http://localhost:3000
+```
+
+## Electron 桌面应用（macOS）
+
+### 下载安装
+
+从 [GitHub Releases](https://github.com/ishenli/investment-agent/releases) 下载：
+
+| 芯片 | 文件格式 | 说明 |
+|------|---------|------|
+| **Apple Silicon** | `.dmg` | 推荐 dmg 格式，拖拽安装 |
+| **Intel** | `.dmg` | 拖拽安装 |
+
+### 本地构建
+
+如需自行构建 Electron 应用：
+
+```bash
+# 构建并打包 macOS 安装包
+pnpm electron:build:pack
+
+# 或分步执行
+pnpm electron:build      # 构建应用
+pnpm electron:pack:mac   # 打包 macOS
+```
+
+构建产物位于 `release/` 目录。
+
+### 开发模式
+
+```bash
+# 同时启动 Web 和 Electron
+pnpm electron:dev
+```
+
+更多 Electron 相关内容请参阅 [Electron 桌面应用](/electron/) 文档。
+
+## 配置说明
+
+### 环境变量
+
+在项目根目录创建 `.env` 文件：
+
+```bash
+# AI 模型配置
+OPENAI_API_KEY=你的_openai_api_key
+ANTHROPIC_API_KEY=你的_anthropic_api_key
+
+# 数据源
+FINNHUB_API_KEY=你的_finnhub_api_key
+TAVILY_API_KEY=你的_tavily_api_key
+
+# 数据库
+DATABASE_URL=./data/investment.db
+```
+
+### 全局 CLI（可选）
+
+```bash
+npm install -g investment-agent
+investment-agent [command]  # 或使用简写: ig [command]
+```
+
+## 可用命令
+
+| 命令 | 说明 |
+|---------|------|
+| `pnpm dev` | 启动 Web 开发服务器 |
+| `pnpm build` | 构建 Web 生产版本 |
+| `pnpm start` | 启动 Web 生产服务器 |
+| `pnpm electron:dev` | 启动 Electron 开发模式 |
+| `pnpm electron:build` | 构建 Electron 应用 |
+| `pnpm electron:pack:mac` | 打包 macOS 安装包 |
+
+## 下一步
+
+- 查看详细的 [架构设计](/architecture/) 概览
+- 深入了解 [功能特性](/features/)
+- 探索 [AI 技能](/skills/) 能力
+- 加入 [GitHub 社区](https://github.com/ishenli/investment-agent)

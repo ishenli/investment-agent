@@ -1,0 +1,143 @@
+---
+title: AI 技能
+description: Investment Agent 内置的 AI 技能和工具
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+Investment Agent 集成了丰富的 AI 技能和工具，为投资分析提供全面支持。
+
+## 核心技能
+
+### 股票分析技能
+
+<CardGrid>
+  <Card title="技术指标分析" icon="chart">
+    支持常见技术指标解读（RSI、MACD、布林带、均线等），识别超买/超卖信号，分析支撑位与阻力位。
+  </Card>
+  <Card title="波动率分析" icon="zap">
+    VIX 指数解读与应用，VIX 期货结构分析（Contango / Backwardation），波动率 ETF 策略指引。
+  </Card>
+  <Card title="风险管理" icon="shield">
+    仓位大小计算（基于 Beta 与风险敞口），杠杆/衍生品产品的时间损耗评估，对冲策略设计。
+  </Card>
+  <Card title="市场情绪" icon="eye">
+    恐慌/贪婪指数参考，新闻情绪结合技术面综合判断。
+  </Card>
+</CardGrid>
+
+## 工具能力
+
+### 资产信息查询
+
+```typescript
+// 支持查询类型
+searchAssetInfoTool({
+  query: "苹果股票最新价格"  // 股票
+  query: "黄金今日行情"      // 商品
+  query: "某基金净值"        // 基金
+})
+```
+
+**数据来源**：Finnhub 实时市场数据 API
+
+### 投资笔记管理
+
+<CardGrid>
+  <Card title="笔记搜索" icon="search">
+    语义搜索投资笔记，支持关键词和标签过滤，智能排序。
+  </Card>
+  <Card title="笔记创建" icon="add">
+    创建投资笔记，支持 Markdown 格式，自动标签分类。
+  </Card>
+  <Card title="笔记管理" icon="folder">
+    列表、更新、删除笔记，按标签或日期组织。
+  </Card>
+</CardGrid>
+
+### 自然语言数据库查询
+
+使用自然语言直接查询投资组合数据：
+
+```typescript
+queryDbTool({
+  query: "查询过去一周的所有交易记录"
+  query: "统计本月盈利最多的持仓"
+  query: "找出持仓超过 10 万的股票"
+})
+```
+
+**支持的查询类型**：
+- 交易历史查询
+- 持仓统计分析
+- 账户余额检查
+- 收益汇总报告
+
+### 网络搜索与市场研究
+
+<CardGrid>
+  <Card title="市场新闻" icon="newspaper">
+    基于新闻情绪的市场分析，实时财经资讯聚合。
+  </Card>
+  <Card title="公司调研" icon="building">
+    公司基本信息、财务数据、经营状况查询。
+  </Card>
+  <Card title="Web 搜索" icon="globe">
+    Tavily 驱动的智能网络搜索，深度市场研究支持。
+  </Card>
+</CardGrid>
+
+### 交易记录管理
+
+- 交易历史查询（按日期、品种、类型筛选）
+- 账户余额与资金变动追踪
+- 交易摘要与统计报告
+- 新增交易记录（手工录入或导入）
+
+## 技能扩展
+
+### 自定义技能
+
+Investment Agent 支持自定义技能开发：
+
+```yaml
+# skills/custom/SKILL.md
+---
+name: custom-analysis
+description: 自定义分析技能
+version: "1.0.0"
+---
+
+# 自定义分析技能
+
+技能描述和使用指南...
+```
+
+### 技能引用
+
+在技能中引用详细的策略文档：
+
+```
+skills/
+├── stock-analysis/
+│   ├── SKILL.md           # 技能主文件
+│   └── references/
+│       ├── UVXY.md        # UVXY 策略指引
+│       └── VIX.md         # VIX 产品分析
+```
+
+## 接口规范
+
+所有工具遵循统一的接口设计：
+
+| 接口 | 说明 |
+|------|------|
+| `LangChain Tools` | LangChain/LangGraph 引擎使用 |
+| `Claude Tools` | Claude Agent SDK 引擎使用 |
+| `Hermes Tools` | Hermes 轻量级引擎使用 |
+
+工具定义包含：
+- 输入参数 Schema（Zod/TypeBox）
+- 描述文档（供 AI 理解用途）
+- 执行器（业务逻辑实现）
+- 错误处理与日志记录
