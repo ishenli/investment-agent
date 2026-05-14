@@ -11,16 +11,19 @@ English Version | [中文版本](./doc/zh/README.md)
 
 ## Product Prototype
 
-| Chat Interface(Light) | Chat Interface(Dark) |
-|:-------------:|:----------------:|
-| ![Chat Interface (Light)](./doc/asset/intro-light.png) |![Dark Theme](./doc/asset/intro-dark.png) ! |
+| Chat Interface (Light) | Chat Interface (Dark) |
+|:------------------------:|:---------------------:|
+| <img src="./website/public/asset/intro-light.png" width="400" alt="Chat Interface (Light)"> | <img src="./website/public/asset/intro-dark.png" width="400" alt="Dark Theme"> |
 
-| Agent Observability| Account Overview  |
-|:------------------:|:---------------------:|
-| ![Observability Panel](./doc/asset/observability.png) | ![Account Overview](./doc/asset/account.png) |
+| Agent Observability | Account Overview |
+|:-------------------:|:----------------:|
+| <img src="./website/public/asset/observability.png" width="400" alt="Observability Panel"> | <img src="./website/public/asset/account.png" width="400" alt="Account Overview"> |
 
 ## Wechat Channel
-![WeChat](./doc/asset/wechat.jpg)
+
+| Agent Observability | Account Overview |
+|:-------------------:|:----------------:|
+| <img src="./website/public/asset/wechat.jpg" width="400" alt="WeChat"> | <img src="./website/public/asset/wechat-tool.jpg" width="400" alt="WeChat"> |
 
 
 ## Features

@@ -15,6 +15,11 @@ hero:
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+import introLight from '../../../public/asset/intro-light.png';
+import introDark from '../../../public/asset/intro-dark.png';
+
+## 核心能力
 
 <CardGrid>
   <Card title="多引擎 AI 架构" icon="settings">
@@ -36,6 +41,13 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
     简洁仪表板、明暗主题、国际化支持、[Electron 桌面应用](/electron/)。
   </Card>
 </CardGrid>
+
+
+## 产品效果
+
+<div style="display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: center;">
+  <Image src={introLight} alt="Chat Interface (Light)" width={2782} height={1792} style="width: 100%; height: auto" />
+</div>
 
 ## 快速开始
 
