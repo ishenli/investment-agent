@@ -5,6 +5,11 @@ import rapide from 'starlight-theme-rapide';
 
 // https://astro.build/config
 export default defineConfig({
+  image: {
+    service: {
+      entrypoint: 'astro/assets/services/passthrough',
+    },
+  },
   site: 'https://ishenli.github.io',
   base: '/investment-agent',
   integrations: [
