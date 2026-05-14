@@ -1,0 +1,64 @@
+{
+  "name": "investment-analysis",
+  "description": "Investment analysis dimension checklist for reflection auditing.",
+  "version": "1.0.0",
+  "domainKeywords": [
+    "股票", "股市", "投资", "A股", "港股", "美股", "基金", "ETF", "债券",
+    "期货", "期权", "外汇", "加密货币", "比特币", "portfolio", "仓位",
+    "买入", "卖出", "持仓", "止盈", "止损", "目标价", "PE", "PB", "EPS",
+    "ROE", "股息", "分红", "财报", "年报", "季报", "营收", "利润",
+    "市盈率", "市净率", "每股收益", "净资产收益率", "技术分析", "K线",
+    "均线", "MACD", "RSI", "布林带", "成交量", "趋势", "支撑", "阻力",
+    "基本面", "估值", "风险", "宏观", "情绪", "政策", "利率", "通胀",
+    "CPI", "PPI", "GDP", "美联储", "央行", "降准", "降息",
+    "stock", "invest", "equity", "share", "dividend", "earnings",
+    "revenue", "profit", "margin", "valuation", "technical", "chart",
+    "moving average", "support", "resistance", "momentum", "volatility",
+    "risk", "macro", "sentiment", "bull", "bear", "long", "short",
+    "position", "portfolio", "asset allocation", "diversification"
+  ],
+  "dimensions": [
+    {
+      "id": "fundamental-analysis",
+      "name": "基本面分析",
+      "description": "分析公司财务状况、盈利能力、成长性、运营效率、管理层质量和竞争优势，包括营收、利润、ROE、现金流等核心指标。",
+      "keywords": ["营收", "利润", "毛利率", "净利率", "ROE", "现金流", "资产负债表", "利润表", "财报", "年报", "季报", "EPS", "PE", "盈利", "亏损", "同比增长", "环比下降", "运营效率", "管理层", "revenue", "profit", "margin", "ROE", "cash flow", "balance sheet", "income statement", "earnings", "EPS", "growth", "efficiency"]
+    },
+    {
+      "id": "technical-analysis",
+      "name": "技术分析",
+      "description": "通过价格走势图、成交量和技术指标（如均线、MACD、RSI、布林带）判断趋势、支撑阻力位和买卖时机，强调量价结构分析。",
+      "keywords": ["K线", "均线", "MACD", "RSI", "布林带", "成交量", "趋势", "支撑", "阻力", "突破", "回调", "金叉", "死叉", "超买", "超卖", "OBV", "量价", "chart", "moving average", "MACD", "RSI", "Bollinger", "volume", "trend", "support", "resistance", "breakout", "pullback", "OBV"]
+    },
+    {
+      "id": "sentiment-analysis",
+      "name": "情绪分析",
+      "description": "评估市场情绪、投资者心理、资金流向、舆论热度和恐慌/贪婪指数，识别情绪驱动的短期波动，支持多市场适配。",
+      "keywords": ["情绪", "恐慌", "贪婪", "资金流向", "北向资金", "主力", "散户", "舆论", "热搜", "关注度", "Put/Call", "VIX", "sentiment", "fear", "greed", "flow", "retail", "institutional", "social", "attention"]
+    },
+    {
+      "id": "macro-analysis",
+      "name": "宏观分析",
+      "description": "考察宏观经济环境对资产的影响，包括货币政策、财政政策、利率、通胀、GDP、地缘政治和国际贸易局势。",
+      "keywords": ["宏观", "利率", "通胀", "CPI", "PPI", "GDP", "货币政策", "财政政策", "降准", "降息", "财政赤字", "美联储", "央行", "地缘政治", "贸易战", "汇率", "macro", "interest rate", "inflation", "CPI", "GDP", "monetary", "fiscal", "deficit", "Fed", "geopolitical", "exchange rate"]
+    },
+    {
+      "id": "valuation-models",
+      "name": "估值模型",
+      "description": "运用估值方法（DCF、DDM、相对估值法、PEG等）评估资产内在价值，结合安全边际和情景分析给出合理估值区间。",
+      "keywords": ["估值", "DCF", "DDM", "PEG", "目标价", "内在价值", "合理价格", "高估", "低估", "安全边际", "情景分析", "discount", "intrinsic value", "fair value", "overvalued", "undervalued", "margin of safety", "scenario"]
+    },
+    {
+      "id": "risk-assessment",
+      "name": "风险评估",
+      "description": "识别和量化投资风险，包括市场风险（VaR、波动率）、业务风险、流动性风险、集中度风险和尾部风险。",
+      "keywords": ["风险", "波动", "回撤", "最大回撤", "夏普比率", "Beta", "相关性", "VaR", "Sortino", "黑天鹅", "流动性", "集中度", "止损", "对冲", "risk", "volatility", "drawdown", "Sharpe", "Beta", "correlation", "VaR", "Sortino", "black swan", "liquidity", "concentration", "hedge"]
+    },
+    {
+      "id": "event-driven-analysis",
+      "name": "事件驱动分析",
+      "description": "评估重大事件（如财报、并购重组、监管政策变化、供需突变）对投资标的价格的短期冲击和中长期影响。",
+      "keywords": ["财报", "业绩", "并购", "重组", "监管", "政策变化", "黑天鹅", "新闻", "公告", "earnings", "merger", "acquisition", "regulation", "news", "event"]
+    }
+  ]
+}

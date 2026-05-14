@@ -63,6 +63,18 @@ export async function runAgentLoop(
     if (!text) return '';
     return text.length > maxLen ? text.slice(0, maxLen) + '...' : text;
   };
+  
+  // Helper: extract full prompt from context messages
+  const extractFullPrompt = (messages: Context['messages']): string => {
+    return messages.map(m => {
+      if (typeof m.content === 'string') return `[${m.role}]: ${m.content}`;
+      if (Array.isArray(m.content)) {
+        const textParts = m.content.filter((b: any) => b.type === 'text').map((b: any) => b.text);
+        return `[${m.role}]: ${textParts.join(' ')}`;
+      }
+      return `[${m.role}]: [non-text content]`;
+    }).join('\n\n');
+  };
 
   // Extract abort signal from streamOptions for cancellation checks
   const signal = streamOptions?.signal as AbortSignal | undefined;
@@ -221,6 +233,8 @@ export async function runAgentLoop(
             messageCount: context.messages.length,
             promptSummary: summarize(originalUserContent || ''),
             responseSummary: summarize(extractText(response)),
+            prompt: extractFullPrompt(context.messages),
+            response: extractText(response),
           },
         });
       }
@@ -233,6 +247,8 @@ export async function runAgentLoop(
             messageCount: context.messages.length,
             promptSummary: summarize(originalUserContent || ''),
             responseSummary: summarize(extractText(response)),
+            prompt: extractFullPrompt(context.messages),
+            response: extractText(response),
             noUsage: true,
           },
         });
@@ -295,12 +311,20 @@ export async function runAgentLoop(
         }
       }
 
-      return {
+      const result: HermesAgentResult = {
         context,
         completed: true,
         apiCalls,
         finalResponse: finalText,
       };
+
+      try {
+        await callbacks?.onTurnEnd?.(result);
+      } catch {
+        // Reflection callbacks must not block the main result
+      }
+
+      return result;
     }
 
     // Notify step callback
@@ -361,8 +385,10 @@ export async function runAgentLoop(
             attributes: {
               tool: toolCall.name,
               args: summarize(JSON.stringify(toolCall.arguments)),
+              argsFull: JSON.stringify(toolCall.arguments, null, 2),
               isError: result.isError,
               resultSummary: summarize(resultTexts),
+              resultFull: resultTexts,
             },
           });
         }
@@ -388,6 +414,7 @@ export async function runAgentLoop(
             attributes: {
               tool: toolCall.name,
               args: summarize(JSON.stringify(toolCall.arguments)),
+              argsFull: JSON.stringify(toolCall.arguments, null, 2),
               error: 'no executor',
             },
           });
@@ -427,13 +454,21 @@ export async function runAgentLoop(
     }
   }
 
-  return {
+  const result: HermesAgentResult = {
     context,
     completed: false,
     apiCalls,
     finalResponse: '',
     error: `Max iterations (${maxIterations}) exceeded`,
   };
+
+  try {
+    await callbacks?.onTurnEnd?.(result);
+  } catch {
+    // Reflection callbacks must not block the main result
+  }
+
+  return result;
 }
 
 /**

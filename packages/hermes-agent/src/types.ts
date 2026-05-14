@@ -119,18 +119,68 @@ export interface StreamOptions {
   [key: string]: unknown;
 }
 
+// ============== Background Review Types ==============
+
+/** Trigger type for background review */
+export type BackgroundReviewTrigger = 'memory' | 'skills' | 'combined';
+
+/** Summary of background review results */
+export interface BackgroundReviewSummary {
+  /** What triggered the review */
+  trigger: BackgroundReviewTrigger;
+  /** Whether the review succeeded */
+  success: boolean;
+  /** Skills created (if any) */
+  skillsCreated?: string[];
+  /** Memory updated (true if memory was modified) */
+  memoryUpdated?: boolean;
+  /** Error message if review failed */
+  error?: string;
+  /** Duration in milliseconds */
+  durationMs: number;
+}
+
 export interface AgentCallbacks {
   onToolStart?: (name: string, args: Record<string, unknown>) => void;
   onToolEnd?: (result: ToolCallResult) => void;
   onError?: (error: Error) => void;
   onStep?: (iteration: number, toolNames: string[]) => void;
   onTextDelta?: (delta: string) => void;
+  /** Fired after a turn completes and memory has been synced */
+  onTurnEnd?: (result: HermesAgentResult) => void | Promise<void>;
   // Observability callbacks (optional, fire-and-forget)
   onTraceStart?: (trace: TraceStartEvent) => void;
   onSpanStart?: (span: SpanStartEvent) => void;
   onSpanEnd?: (span: SpanEndEvent) => void;
   onTraceEnd?: (trace: TraceEndEvent) => void;
   onMetric?: (metric: MetricEvent) => void;
+  // Background review callbacks
+  /** Fired when a background review thread starts */
+  onBackgroundReviewStart?: (trigger: BackgroundReviewTrigger) => void;
+  /** Fired when a background review thread completes */
+  onBackgroundReviewComplete?: (summary: BackgroundReviewSummary) => void;
+}
+
+/** Reflection / self-improvement configuration */
+export interface ReflectionConfig {
+  /** Whether reflection is enabled (default: false) */
+  enabled?: boolean;
+  /** Whether to run reflection in background thread (default: true) */
+  backgroundMode?: boolean;
+  /** Trigger memory review every N turns (0 = disabled, default: 10) */
+  turnNudgeInterval?: number;
+  /** Trigger skill review after N tool iterations in a turn (0 = disabled, default: 10) */
+  iterationNudgeInterval?: number;
+  /** Path to the framework checklist JSON file */
+  frameworksPath?: string;
+  /** Maximum tokens for audit LLM output (default: 2000) */
+  maxTokens?: number;
+  /** Local directory for auto-created skills */
+  localSkillsDir?: string;
+  /** Callback when a skill is created by reflection */
+  onSkillChanged?: (event: { action: 'create'; slug: string }) => void | Promise<void>;
+  /** Maximum iterations for background review agent (default: 8) */
+  maxReviewIterations?: number;
 }
 
 export interface AgentConfig {

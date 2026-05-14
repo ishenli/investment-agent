@@ -25,6 +25,8 @@
  */
 
 import type { Message } from '@mariozechner/pi-ai';
+import type { HermesAgentResult } from './types';
+import type { LearningRecord } from './reflection/types';
 
 // ============== Types ==============
 
@@ -213,6 +215,17 @@ export abstract class MemoryProvider {
     _result: string,
     _options?: DelegationOptions,
   ): void {
+    // no-op by default
+  }
+
+  /**
+   * Called after a turn completes and memory has been synced.
+   * Use to persist learning records or diagnostic history.
+   */
+  onTurnEnd(
+    _result: HermesAgentResult,
+    _learnings?: LearningRecord[],
+  ): void | Promise<void> {
     // no-op by default
   }
 
