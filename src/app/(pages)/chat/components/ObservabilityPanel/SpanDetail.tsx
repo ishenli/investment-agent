@@ -124,6 +124,8 @@ const LLMCallDetail = memo<{ span: SpanData }>(({ span }) => {
   const messageCount = span.attributes?.messageCount as number | undefined;
   const promptSummary = span.attributes?.promptSummary as string | undefined;
   const responseSummary = span.attributes?.responseSummary as string | undefined;
+  const fullPrompt = span.attributes?.prompt as string | undefined;
+  const fullResponse = span.attributes?.response as string | undefined;
 
   return (
     <div className={styles.wrapper}>
@@ -148,20 +150,20 @@ const LLMCallDetail = memo<{ span: SpanData }>(({ span }) => {
         )}
       </div>
 
-      {promptSummary && (
+      {(fullPrompt || promptSummary) && (
         <>
           <div className={styles.sectionTitle}>{t('observability.inputPrompt')}</div>
           <div className={styles.ioBlock}>
-            <pre className={styles.ioContent}>{promptSummary}</pre>
+            <pre className={styles.ioContent}>{fullPrompt || promptSummary}</pre>
           </div>
         </>
       )}
 
-      {responseSummary && (
+      {(fullResponse || responseSummary) && (
         <>
           <div className={styles.sectionTitle}>{t('observability.output')}</div>
           <div className={styles.ioBlock} style={{ borderLeftColor: '#52c41a' }}>
-            <pre className={styles.ioContent}>{responseSummary}</pre>
+            <pre className={styles.ioContent}>{fullResponse || responseSummary}</pre>
           </div>
         </>
       )}
@@ -184,7 +186,9 @@ const ToolCallDetail = memo<{ span: SpanData }>(({ span }) => {
   const isError = span.attributes?.isError as boolean | undefined;
   const error = span.attributes?.error as string | undefined;
   const args = span.attributes?.args as Record<string, unknown> | undefined;
+  const argsFull = span.attributes?.argsFull as string | undefined;
   const resultSummary = span.attributes?.resultSummary as string | undefined;
+  const resultFull = span.attributes?.resultFull as string | undefined;
 
   return (
     <div className={styles.wrapper}>
@@ -212,20 +216,20 @@ const ToolCallDetail = memo<{ span: SpanData }>(({ span }) => {
         )}
       </div>
 
-      {args && Object.keys(args).length > 0 && (
+      {(argsFull || (args && Object.keys(args).length > 0)) && (
         <>
           <div className={styles.sectionTitle}>{t('observability.arguments')}</div>
           <div className={styles.ioBlock}>
-            <pre className={styles.ioContent}>{JSON.stringify(args, null, 2)}</pre>
+            <pre className={styles.ioContent}>{argsFull || JSON.stringify(args, null, 2)}</pre>
           </div>
         </>
       )}
 
-      {resultSummary && (
+      {(resultFull || resultSummary) && (
         <>
           <div className={styles.sectionTitle}>{t('observability.result')}</div>
           <div className={styles.ioBlock} style={{ borderLeftColor: isError ? '#ff4d4f' : '#52c41a' }}>
-            <pre className={styles.ioContent}>{resultSummary}</pre>
+            <pre className={styles.ioContent}>{resultFull || resultSummary}</pre>
           </div>
         </>
       )}

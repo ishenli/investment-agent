@@ -4,6 +4,7 @@ import * as React from 'react';
 import { SidebarProvider, SidebarInset } from '@renderer/components/ui/sidebar';
 import { SettingsSidebar, type SettingsCategory } from '@/app/(pages)/setting/settings-sidebar';
 import { usePathname, useRouter } from 'next/navigation';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -40,7 +41,9 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
             </header> */}
 
             {/* Content */}
-            <main className="overflow-auto p-6 w-full">{children}</main>
+            <ScrollArea className="h-[calc(100vh-90px)]">
+              <main className="overflow-auto p-6 w-full">{children}</main>
+            </ScrollArea>
           </div>
         </SidebarInset>
       </div>
