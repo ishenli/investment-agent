@@ -140,5 +140,9 @@
     "position": "Asset Structure",
     "revenue": "Performance"
   },
-  "title": "Asset Management"
+  "title": "Asset Management",
+  "common": {
+    "hideAmount": "Hide Amount",
+    "showAmount": "Show Amount"
+  }
 }

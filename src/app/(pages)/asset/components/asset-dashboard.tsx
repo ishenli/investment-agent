@@ -6,6 +6,7 @@ import {
   useRevenueQuery,
   useSummaryQuery,
 } from '@renderer/hooks/useAssetQueries';
+import { AmountText } from './hide-amount-toggle';
 import {
   Card,
   CardContent,
@@ -252,7 +253,7 @@ export function AssetDashboard({ accountId, displayCurrency }: { accountId: stri
             <div className="mb-2">
               <span className="text-xs font-medium text-muted-foreground">{t('dashboard.totalBalance')}</span>
             </div>
-            <div className="text-2xl font-bold tracking-tight">{fmt(displayTotalBalance)}</div>
+            <div className="text-2xl font-bold tracking-tight">{<AmountText value={fmt(displayTotalBalance)} />}</div>
             <div className="flex items-center gap-1 mt-1">
               {displayAllGain >= 0 ? (
                 <ArrowUpIcon className="h-3 w-3 text-green-500" />
@@ -260,7 +261,7 @@ export function AssetDashboard({ accountId, displayCurrency }: { accountId: stri
                 <ArrowDownIcon className="h-3 w-3 text-red-500" />
               )}
               <span className={`text-xs font-medium ${displayAllGain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {displayAllGain >= 0 ? '+' : ''}{fmt(displayAllGain)}
+                <AmountText value={`${displayAllGain >= 0 ? '+' : ''}${fmt(displayAllGain)}`} />
               </span>
               <span className="text-xs text-muted-foreground">{t('dashboard.unrealizedPnL')}</span>
             </div>
@@ -277,9 +278,9 @@ export function AssetDashboard({ accountId, displayCurrency }: { accountId: stri
                 className="h-3 w-3 text-muted-foreground cursor-pointer hover:text-green-600 opacity-0 group-hover:opacity-100 transition-opacity"
               />
             </div>
-            <div className="text-2xl font-bold">{fmt(displayCashBalance)}</div>
+            <div className="text-2xl font-bold">{<AmountText value={fmt(displayCashBalance)} />}</div>
             <div className="text-xs text-muted-foreground mt-1">
-              {t('dashboard.cashRatio')} {cashPercent.toFixed(1)}%
+              {t('dashboard.cashRatio')} <AmountText value={`${cashPercent.toFixed(1)}%`} />
             </div>
           </CardContent>
         </Card>
@@ -290,10 +291,10 @@ export function AssetDashboard({ accountId, displayCurrency }: { accountId: stri
           title={t('dashboard.stockAssets')}
           accentColor="text-blue-600"
           returnRate={usdStockReturnRate || 0}
-          marketValue={fmt(displayStockValue)}
+          marketValue={<AmountText value={fmt(displayStockValue)} />}
           gain={displayStockGain}
-          gainText={fmt(displayStockGain)}
-          investment={fmt(displayStockInvestment)}
+          gainText={<AmountText value={fmt(displayStockGain)} />}
+          investment={<AmountText value={fmt(displayStockInvestment)} />}
           investmentLabel={t('dashboard.totalInvestment')}
           pnlLabel={t('dashboard.unrealizedPnL')}
         />
@@ -305,10 +306,10 @@ export function AssetDashboard({ accountId, displayCurrency }: { accountId: stri
             title={t('dashboard.fundAssets')}
             accentColor="text-orange-600"
             returnRate={cnyStockReturnRate || 0}
-            marketValue={fmt(displayFundValue)}
+            marketValue={<AmountText value={fmt(displayFundValue)} />}
             gain={displayFundGain}
-            gainText={fmt(displayFundGain)}
-            investment={fmt(displayFundInvestment)}
+            gainText={<AmountText value={fmt(displayFundGain)} />}
+            investment={<AmountText value={fmt(displayFundInvestment)} />}
             investmentLabel={t('dashboard.totalInvestment')}
             pnlLabel={t('dashboard.unrealizedPnL')}
           />
@@ -337,14 +338,14 @@ export function AssetDashboard({ accountId, displayCurrency }: { accountId: stri
 
           {/* 明细列表 */}
           <div className="space-y-1.5">
-            <AllocationRow dot="bg-blue-500" label={t('dashboard.stockMarketValueLabel')} value={fmt(displayStockValue)} percent={stockPercent} />
+            <AllocationRow dot="bg-blue-500" label={t('dashboard.stockMarketValueLabel')} value={<AmountText value={fmt(displayStockValue)} />} percent={stockPercent} />
             {hasCnyAssets && (
-              <AllocationRow dot="bg-orange-500" label={t('dashboard.fundAssets')} value={fmt(displayFundValue)} percent={fundPercent} />
+              <AllocationRow dot="bg-orange-500" label={t('dashboard.fundAssets')} value={<AmountText value={fmt(displayFundValue)} />} percent={fundPercent} />
             )}
-            <AllocationRow dot="bg-green-500" label={t('dashboard.cashBalanceLabel')} value={fmt(displayCashBalance)} percent={cashPercent} />
+            <AllocationRow dot="bg-green-500" label={t('dashboard.cashBalanceLabel')} value={<AmountText value={fmt(displayCashBalance)} />} percent={cashPercent} />
             <div className="flex justify-between items-center border-t pt-1.5 mt-1">
               <span className="text-xs font-medium">{t('dashboard.totalAssets')}</span>
-              <span className="text-xs font-bold">{fmt(displayTotalBalance)}</span>
+              <span className="text-xs font-bold">{<AmountText value={fmt(displayTotalBalance)} />}</span>
             </div>
           </div>
         </CardContent>
@@ -381,13 +382,14 @@ function AssetTypeCard({
             {icon}
             {title}
           </div>
-          <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${
-            returnRate >= 0
-              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-              : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-          }`}>
-            {returnRate >= 0 ? '+' : ''}{returnRate.toFixed(2)}%
-          </span>
+          <AmountText
+            value={returnRate >= 0 ? `+${returnRate.toFixed(2)}%` : `${returnRate.toFixed(2)}%`}
+            className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${
+              returnRate >= 0
+                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+            }`}
+          />
         </div>
 
         {/* 市值 */}
@@ -412,7 +414,7 @@ function AssetTypeCard({
 }
 
 /** 配置比例行 */
-function AllocationRow({ dot, label, value, percent }: { dot: string; label: string; value: string; percent: number }) {
+function AllocationRow({ dot, label, value, percent }: { dot: string; label: string; value: React.ReactNode; percent: number }) {
   return (
     <div className="flex items-center justify-between text-sm">
       <div className="flex items-center gap-2">
@@ -421,7 +423,7 @@ function AllocationRow({ dot, label, value, percent }: { dot: string; label: str
       </div>
       <div className="flex items-center gap-3">
         <span className="font-medium">{value}</span>
-        <span className="text-muted-foreground w-12 text-right">{percent.toFixed(1)}%</span>
+        <AmountText value={`${percent.toFixed(1)}%`} className="text-muted-foreground w-12 text-right" />
       </div>
     </div>
   );
