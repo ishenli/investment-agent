@@ -382,4 +382,4 @@ export type NewChatPlugin = typeof chatPlugins.$inferInsert;
 export type ChatTrace = typeof chatTraces.$inferSelect;
 export type NewChatTrace = typeof chatTraces.$inferInsert;
 export type ChatSpan = typeof chatSpans.$inferSelect;
-export type NewChatSpan = typeof chatSpans.$inferInsert;
+export type NewChatSpan = typeof chatSpans.$inferInsert;export * from "./chat-observability";

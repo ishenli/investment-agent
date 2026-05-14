@@ -513,3 +513,4 @@ export {
   type ChatSpan,
   type NewChatSpan,
 } from './schema/chat';
+export * from "./schema/chat-observability";

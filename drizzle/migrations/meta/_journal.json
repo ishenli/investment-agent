@@ -302,6 +302,13 @@
       "when": 1778166704048,
       "tag": "0042_watery_stranger",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "6",
+      "when": 1778516980426,
+      "tag": "0043_mysterious_squadron_supreme",
+      "breakpoints": true
     }
   ]
 }
