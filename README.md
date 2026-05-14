@@ -11,13 +11,16 @@ English Version | [中文版本](./doc/zh/README.md)
 
 ## Product Prototype
 
-### Electron Desktop
+| Chat Interface(Light) | Chat Interface(Dark) |
+|:-------------:|:----------------:|
+| ![Chat Interface (Light)](./doc/asset/intro-light.png) |![Dark Theme](./doc/asset/intro-dark.png) ! |
 
-![](./doc/asset/intro-light.png)
+| Agent Observability| Account Overview  |
+|:------------------:|:---------------------:|
+| ![Observability Panel](./doc/asset/observability.png) | ![Account Overview](./doc/asset/account.png) |
 
-### WeChat
-![](./doc/asset/wechat.jpg)
-
+## Wechat Channel
+![WeChat](./doc/asset/wechat.jpg)
 
 
 ## Features

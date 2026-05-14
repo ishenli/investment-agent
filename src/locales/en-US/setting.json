@@ -608,5 +608,40 @@
       "modeHint": "WeChat personal account uses long-polling mode, no need to configure Webhook URL.",
       "qrHint": "Click 'Start QR Code Login', then scan the QR code with WeChat. Credentials will be automatically saved after successful login."
     }
+  },
+  "observability": {
+    "tokensShort": "tokens",
+    "timeline": "Timeline",
+    "executionTimeline": "Execution Timeline",
+    "total": "Total",
+    "current": "Current",
+    "live": "Live",
+    "span": {
+      "llmCall": "LLM Call",
+      "toolCall": "Tool Call",
+      "contextCompression": "Context Compression"
+    },
+    "model": "Model",
+    "messages": "Messages",
+    "inputPrompt": "Input Prompt",
+    "output": "Output",
+    "tool": "Tool",
+    "arguments": "Arguments",
+    "result": "Result",
+    "saved": "Saved",
+    "tokensBefore": "Tokens Before",
+    "tokensAfter": "Tokens After",
+    "rawAttributes": "Raw Attributes",
+    "selectSpanHint": "Click a span to view details",
+    "status": {
+      "success": "Success",
+      "error": "Error",
+      "internal": "Internal"
+    },
+    "avgPerTrace": "Avg per trace",
+    "traces": "traces",
+    "errorRate": "error rate",
+    "expand": "Details",
+    "collapse": "Collapse"
   }
 }

@@ -12,6 +12,7 @@ import {
   IconCurrencyDollar,
   IconMessage,
   IconBell,
+  IconChartLine,
   type Icon,
 } from '@tabler/icons-react';
 import {
@@ -23,7 +24,7 @@ import {
 import { usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
-export type SettingsCategory = 'provider' | 'tool' | 'agent' | 'channel' | 'theme' | 'general' | 'exchange' | 'about' | 'skills' | 'notification';
+export type SettingsCategory = 'provider' | 'tool' | 'agent' | 'channel' | 'theme' | 'general' | 'exchange' | 'about' | 'skills' | 'notification' | 'observability';
 
 const settingsItems: {
   id: SettingsCategory;
@@ -73,6 +74,13 @@ const settingsItems: {
     icon: IconMessage,
     url: '/setting/channel',
     description: '管理 Agent 消息渠道',
+  },
+  {
+    id: 'observability',
+    title: '观测历史',
+    icon: IconChartLine,
+    url: '/setting/observability',
+    description: 'Agent 调用追踪和性能指标',
   },
   {
     id: 'theme',

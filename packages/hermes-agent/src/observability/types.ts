@@ -29,7 +29,14 @@ export interface ObservabilitySink {
 // ============== Trace / Span Model ==============
 
 /** Valid span names */
-export type SpanName = 'llm_call' | 'tool_call' | 'context_compression';
+export type SpanName = 
+  | 'llm_call' 
+  | 'tool_call' 
+  | 'context_compression' 
+  | 'reflection'
+  | 'background_review'
+  | 'background_review_audit'
+  | 'background_review_skill_gen';
 
 /** Span kind — client = LLM call, internal = agent bookkeeping */
 export type SpanKind = 'client' | 'internal';
@@ -91,7 +98,15 @@ export type MetricName =
   | 'iterations.used'
   | 'iterations.remaining'
   | 'compressions.count'
-  | 'tokens.saved_compression';
+  | 'tokens.saved_compression'
+  // Reflection metrics
+  | 'reflection.audit.latency'
+  | 'reflection.audit.tokens'
+  | 'reflection.skills.created'
+  | 'reflection.memory.updated'
+  | 'reflection.dimensions.checked'
+  | 'reflection.dimensions.covered'
+  | 'reflection.dimensions.missing';
 
 /** A single metric reading */
 export interface MetricPoint {
@@ -119,6 +134,14 @@ export interface TraceMetrics {
   totalLatencyMs: number;
   llmLatencyMs: number;
   toolLatencyMs: number;
+  // Reflection metrics
+  reflectionAuditLatencyMs?: number;
+  reflectionAuditTokens?: number;
+  reflectionSkillsCreated?: number;
+  reflectionMemoryUpdated?: boolean;
+  reflectionDimensionsChecked?: number;
+  reflectionDimensionsCovered?: number;
+  reflectionDimensionsMissing?: number;
 }
 
 // ============== Cost Model ==============

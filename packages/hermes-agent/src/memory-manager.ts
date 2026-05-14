@@ -33,6 +33,7 @@ import type {
   InitializeOptions,
   DelegationOptions,
 } from './memory-provider';
+import type { LearningRecord } from './reflection/types';
 
 // ============== Context Fencing Helpers ==============
 
@@ -200,6 +201,22 @@ export class MemoryManager {
         await provider.syncTurn(userContent, assistantContent, sessionId);
       } catch (e) {
         console.warn(`[MemoryManager] ${provider.name} syncTurn failed:`, e);
+      }
+    }
+  }
+
+  /**
+   * Persist learning records to all providers that support onTurnEnd.
+   */
+  async recordLearnings(
+    result: import('./types').HermesAgentResult,
+    learnings: LearningRecord[],
+  ): Promise<void> {
+    for (const provider of this._providers) {
+      try {
+        await provider.onTurnEnd(result, learnings);
+      } catch (e) {
+        console.warn(`[MemoryManager] ${provider.name} onTurnEnd failed:`, e);
       }
     }
   }

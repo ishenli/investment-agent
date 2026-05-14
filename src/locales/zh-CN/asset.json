@@ -140,5 +140,9 @@
     "position": "资产结构",
     "revenue": "业绩分析"
   },
-  "title": "资产管理"
+  "title": "资产管理",
+  "common": {
+    "hideAmount": "隐藏金额",
+    "showAmount": "显示金额"
+  }
 }

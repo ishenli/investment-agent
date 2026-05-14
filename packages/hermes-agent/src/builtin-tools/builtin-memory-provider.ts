@@ -7,6 +7,8 @@
 
 import { MemoryProvider, type ToolSchema, type InitializeOptions } from '../memory-provider';
 import { MemoryStore, type MemoryStoreConfig } from './memory';
+import { LearningRecorder } from '../reflection/learning-recorder';
+import type { LearningRecord } from '../reflection/types';
 
 export class BuiltinMemoryProvider extends MemoryProvider {
   readonly name = 'builtin';
@@ -138,6 +140,32 @@ export class BuiltinMemoryProvider extends MemoryProvider {
     }
 
     return JSON.stringify({ success: false, message: `Unknown action: ${action}` });
+  }
+
+  /**
+   * Append learning records to MEMORY.md under a single LEARNINGS section.
+   */
+  onTurnEnd(
+    _result: import('../types').HermesAgentResult,
+    learnings?: LearningRecord[],
+  ): void {
+    if (!learnings || learnings.length === 0) return;
+
+    const recorder = new LearningRecorder();
+    const bodyParts: string[] = [];
+
+    for (const record of learnings) {
+      bodyParts.push(recorder.formatForMemory(record));
+    }
+
+    if (bodyParts.length === 0) return;
+
+    const content = `### LEARNINGS\n\n${bodyParts.join('\n\n')}`;
+    try {
+      this.store.add('memory', content);
+    } catch (e) {
+      console.warn('[BuiltinMemoryProvider] Failed to append learning:', e);
+    }
   }
 
   /** Direct access to the underlying store (for tests or advanced usage). */
