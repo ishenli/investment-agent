@@ -366,10 +366,10 @@ function AssetTypeCard({
   title: string;
   accentColor: string;
   returnRate: number;
-  marketValue: string;
+  marketValue: string | React.ReactNode;
   gain: number;
-  gainText: string;
-  investment: string;
+  gainText: string | React.ReactNode;
+  investment: string| React.ReactNode;
   investmentLabel: string;
   pnlLabel: string;
 }) {
