@@ -7,7 +7,7 @@ import rapide from 'starlight-theme-rapide';
 export default defineConfig({
   image: {
     service: {
-      entrypoint: 'astro/assets/services/passthrough',
+      entrypoint: 'astro/assets/services/noop',
     },
   },
   site: 'https://ishenli.github.io',
