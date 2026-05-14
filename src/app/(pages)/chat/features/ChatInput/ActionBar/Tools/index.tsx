@@ -34,7 +34,7 @@ const PluginsTools = memo(() => {
 });
 
 /**
- * Claude 引擎专用工具面板：仅渲染 skills。
+ * Claude 和 Hermes 引擎工具面板：仅渲染 skills。
  * 无 loading 状态（技能切换为同步操作）。
  */
 const SkillsTools = memo(() => {
@@ -58,10 +58,13 @@ const SkillsTools = memo(() => {
 
 /**
  * 顶层 Tools 组件：根据 engineType 条件渲染对应工具面板。
+ * - Claude 和 Hermes 引擎：使用技能面板
+ * - DeepAgents 引擎：使用内置插件面板
  * 通过拆分组件确保 checkbox 状态、loading 状态完全隔离，互不干扰。
  */
 const Tools = memo(() => {
   const { t } = useTranslation('setting');
+  
   const engineType = useSessionStore((s) => {
     const session = sessionSelectors.currentSession(s);
     return session?.config?.engineType || 'deepagents';
@@ -69,7 +72,9 @@ const Tools = memo(() => {
 
   return (
     <Suspense fallback={<Action disabled icon={Blocks} title={t('tool.title')} />}>
-      {engineType === 'claude' ? <SkillsTools /> : <PluginsTools />}
+      {(engineType === 'claude' || engineType === 'hermes') 
+        ? <SkillsTools /> 
+        : <PluginsTools />}
     </Suspense>
   );
 });
