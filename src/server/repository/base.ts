@@ -18,6 +18,14 @@ export interface BaseEntity {
 }
 
 /**
+ * 轻量基础实体接口（无 updatedAt）
+ */
+export interface BaseLiteEntity {
+  id: number;
+  createdAt: Date;
+}
+
+/**
  * 支持软删除的实体接口
  */
 export interface SoftDeletableEntity extends BaseEntity {
@@ -377,5 +385,306 @@ export abstract class BaseIntRepository<T extends BaseEntity> {
     }
 
     return (await query) as T[];
+  }
+}
+
+/**
+ * 字符串主键基础实体接口
+ */
+export interface BaseStringEntity {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date | null;
+}
+
+/**
+ * 字符串主键基础仓库
+ *
+ * 适用于使用 UUID/nanoid 等字符串主键的表，如 evaluation_runs、evaluation_baselines
+ */
+export abstract class BaseStringRepository<T extends BaseStringEntity> {
+  constructor(protected table: SQLiteTable) {}
+
+  async create(data: Omit<T, 'createdAt' | 'updatedAt'> & { id: string }): Promise<T> {
+    const now = new Date();
+
+    const [result] = await (db as any)
+      .insert(this.table)
+      .values({
+        ...data,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning();
+
+    return result as T;
+  }
+
+  async findById(id: string): Promise<T | null> {
+    const results = await (db as any)
+      .select()
+      .from(this.table)
+      .where(eq((this.table as any).id, id))
+      .limit(1);
+
+    return (results[0] as T) ?? null;
+  }
+
+  async findOne(where: SQL): Promise<T | null> {
+    const results = await (db as any)
+      .select()
+      .from(this.table)
+      .where(where)
+      .limit(1);
+
+    return (results[0] as T) ?? null;
+  }
+
+  async findMany(where?: SQL, options?: QueryOptions): Promise<T[]> {
+    let query = (db as any).select().from(this.table);
+
+    if (where) {
+      query = query.where(where);
+    }
+
+    if (options?.orderBy) {
+      query = query.orderBy(...options.orderBy);
+    }
+
+    if (options?.limit) {
+      query = query.limit(options.limit);
+    }
+
+    if (options?.offset) {
+      query = query.offset(options.offset);
+    }
+
+    return (await query) as T[];
+  }
+
+  async findAll(options?: QueryOptions): Promise<T[]> {
+    return this.findMany(undefined, options);
+  }
+
+  async update(id: string, data: Partial<Omit<T, 'id' | 'createdAt' | 'updatedAt'>>): Promise<T | null> {
+    await (db as any)
+      .update(this.table)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(eq((this.table as any).id, id));
+
+    return this.findById(id);
+  }
+
+  async delete(id: string): Promise<boolean> {
+    try {
+      await (db as any)
+        .delete(this.table)
+        .where(eq((this.table as any).id, id));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async count(where?: SQL): Promise<number> {
+    let query = (db as any)
+      .select({ count: sql<number>`count(*)`.as('count') })
+      .from(this.table);
+
+    if (where) {
+      query = query.where(where);
+    }
+
+    const result = await query;
+    return result[0]?.count ?? 0;
+  }
+
+  async exists(id: string): Promise<boolean> {
+    const result = await this.findById(id);
+    return !!result;
+  }
+}
+
+/**
+ * 轻量版整数主键基础仓库（无 updatedAt / 软删除支持）
+ *
+ * 适用于只有 id + createdAt 的表，如 evaluation_case_results、evaluation_scorer_results
+ */
+export type CreateLiteData<T extends BaseLiteEntity> = Omit<T, 'id' | 'createdAt'>;
+export type UpdateLiteData<T extends BaseLiteEntity> = Partial<Omit<T, 'id' | 'createdAt'>>;
+
+export abstract class BaseIntRepositoryLite<T extends BaseLiteEntity> {
+  constructor(protected table: SQLiteTable) {}
+
+  async create(data: CreateLiteData<T>): Promise<T> {
+    const [result] = await (db as any)
+      .insert(this.table)
+      .values({
+        ...data,
+        createdAt: new Date(),
+      })
+      .returning();
+    return result as T;
+  }
+
+  async findById(id: number): Promise<T | null> {
+    const results = await (db as any)
+      .select()
+      .from(this.table)
+      .where(eq((this.table as any).id, id))
+      .limit(1);
+    return (results[0] as T) ?? null;
+  }
+
+  async findOne(where: SQL): Promise<T | null> {
+    const results = await (db as any)
+      .select()
+      .from(this.table)
+      .where(where)
+      .limit(1);
+    return (results[0] as T) ?? null;
+  }
+
+  async findMany(where?: SQL, options?: QueryOptions): Promise<T[]> {
+    let query = (db as any).select().from(this.table);
+    if (where) query = query.where(where);
+    if (options?.orderBy) query = query.orderBy(...options.orderBy);
+    if (options?.limit) query = query.limit(options.limit);
+    if (options?.offset) query = query.offset(options.offset);
+    return (await query) as T[];
+  }
+
+  async findAll(options?: QueryOptions): Promise<T[]> {
+    return this.findMany(undefined, options);
+  }
+
+  async update(id: number, data: UpdateLiteData<T>): Promise<T | null> {
+    await (db as any)
+      .update(this.table)
+      .set(data)
+      .where(eq((this.table as any).id, id));
+    return this.findById(id);
+  }
+
+  async delete(id: number): Promise<boolean> {
+    try {
+      await (db as any).delete(this.table).where(eq((this.table as any).id, id));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async count(where?: SQL): Promise<number> {
+    let query = (db as any)
+      .select({ count: sql<number>`count(*)`.as('count') })
+      .from(this.table);
+    if (where) query = query.where(where);
+    const result = await query;
+    return result[0]?.count ?? 0;
+  }
+
+  async exists(where: SQL): Promise<boolean> {
+    const result = await (db as any)
+      .select({ id: (this.table as any).id })
+      .from(this.table)
+      .where(where)
+      .limit(1);
+    return result.length > 0;
+  }
+}
+
+/**
+ * 字符串主键轻量基础实体接口（无 updatedAt）
+ */
+export interface BaseStringLiteEntity {
+  id: string;
+  createdAt: Date;
+}
+
+/**
+ * 轻量版字符串主键基础仓库（无 updatedAt）
+ *
+ * 适用于只有 id(string) + createdAt 的表，如 evaluation_baselines
+ */
+export abstract class BaseStringRepositoryLite<T extends BaseStringLiteEntity> {
+  constructor(protected table: SQLiteTable) {}
+
+  async create(data: Omit<T, 'createdAt'> & { id: string }): Promise<T> {
+    const [result] = await (db as any)
+      .insert(this.table)
+      .values({
+        ...data,
+        createdAt: new Date(),
+      })
+      .returning();
+    return result as T;
+  }
+
+  async findById(id: string): Promise<T | null> {
+    const results = await (db as any)
+      .select()
+      .from(this.table)
+      .where(eq((this.table as any).id, id))
+      .limit(1);
+    return (results[0] as T) ?? null;
+  }
+
+  async findOne(where: SQL): Promise<T | null> {
+    const results = await (db as any)
+      .select()
+      .from(this.table)
+      .where(where)
+      .limit(1);
+    return (results[0] as T) ?? null;
+  }
+
+  async findMany(where?: SQL, options?: QueryOptions): Promise<T[]> {
+    let query = (db as any).select().from(this.table);
+    if (where) query = query.where(where);
+    if (options?.orderBy) query = query.orderBy(...options.orderBy);
+    if (options?.limit) query = query.limit(options.limit);
+    if (options?.offset) query = query.offset(options.offset);
+    return (await query) as T[];
+  }
+
+  async findAll(options?: QueryOptions): Promise<T[]> {
+    return this.findMany(undefined, options);
+  }
+
+  async update(id: string, data: Partial<Omit<T, 'id' | 'createdAt'>>): Promise<T | null> {
+    await (db as any)
+      .update(this.table)
+      .set(data)
+      .where(eq((this.table as any).id, id));
+    return this.findById(id);
+  }
+
+  async delete(id: string): Promise<boolean> {
+    try {
+      await (db as any)
+        .delete(this.table)
+        .where(eq((this.table as any).id, id));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async count(where?: SQL): Promise<number> {
+    let query = (db as any)
+      .select({ count: sql<number>`count(*)`.as('count') })
+      .from(this.table);
+    if (where) query = query.where(where);
+    const result = await query;
+    return result[0]?.count ?? 0;
+  }
+
+  async exists(id: string): Promise<boolean> {
+    const result = await this.findById(id);
+    return !!result;
   }
 }

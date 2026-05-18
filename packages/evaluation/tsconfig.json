@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": "../..",
+    "paths": {
+      "@/*": ["src/*"],
+      "@/drizzle/*": ["drizzle/*"],
+      "@chat/*": ["src/app/(pages)/chat/*"],
+      "@drizzle/*": ["drizzle/*"],
+      "@renderer/*": ["src/app/*"],
+      "@server/*": ["src/server/*"],
+      "@shared/*": ["src/shared/*"],
+      "@typings/*": ["src/types/*"],
+      "@investment-agent/hermes-agent": ["packages/hermes-agent/src/index.ts"],
+      "@investment-agent/agent-channel": ["packages/agent-channel/src/index.ts"],
+      "@mariozechner/pi-ai": ["packages/hermes-agent/node_modules/@mariozechner/pi-ai/dist/index.js"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

@@ -33,6 +33,7 @@
     "db:studio": "drizzle-kit studio",
     "i18n:check": "tsx scripts/check-i18n.ts",
     "i18n:sync": "tsx scripts/sync-i18n.ts",
+    "eval": "pnpm --filter @investment-agent/evaluation eval",
     "test": "vitest run",
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
@@ -51,8 +52,6 @@
     "url": "https://github.com/ishenli/investment-agent"
   },
   "dependencies": {
-    "@investment-agent/hermes-agent": "workspace:*",
-    "@investment-agent/agent-channel": "workspace:*",
     "@ant-design/cssinjs": "^2.1.0",
     "@ant-design/nextjs-registry": "^1.3.0",
     "@ant-design/x": "^2.3.0",
@@ -66,6 +65,8 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@icons-pack/react-simple-icons": "^13.12.0",
+    "@investment-agent/agent-channel": "workspace:*",
+    "@investment-agent/hermes-agent": "workspace:*",
     "@langchain/core": "^1.1.29",
     "@langchain/langgraph": "^1.2.0",
     "@langchain/openai": "^1.2.11",

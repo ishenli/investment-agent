@@ -1,0 +1,197 @@
+[
+  {
+    "id": "asset-query-001",
+    "title": "AAPL fundamental valuation",
+    "difficulty": "medium",
+    "input": "What is Apple's current P/E ratio and how does it compare to its 5-year average?",
+    "expected": {
+      "keywords": ["P/E", "valuation", "average", "Apple"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_get_price"]
+    }
+  },
+  {
+    "id": "asset-query-002",
+    "title": "TSLA technical analysis",
+    "difficulty": "medium",
+    "input": "Analyze Tesla's stock price movement over the last month. Is it in an uptrend or downtrend?",
+    "expected": {
+      "keywords": ["price", "trend", "support", "resistance"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_get_price"]
+    }
+  },
+  {
+    "id": "asset-query-003",
+    "title": "NVDA growth metrics",
+    "difficulty": "hard",
+    "input": "Evaluate NVIDIA's revenue growth rate and forward guidance. Is the current valuation justified by growth?",
+    "expected": {
+      "keywords": ["revenue", "growth", "valuation", "forward", "risk"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_get_price", "stock_search_news"]
+    }
+  },
+  {
+    "id": "asset-query-004",
+    "title": "MSFT dividend analysis",
+    "difficulty": "easy",
+    "input": "What is Microsoft's current dividend yield and payout ratio?",
+    "expected": {
+      "keywords": ["dividend", "yield", "payout", "Microsoft"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": false,
+      "tools": ["stock_get_price"]
+    }
+  },
+  {
+    "id": "asset-query-005",
+    "title": "AMZN competitive position",
+    "difficulty": "hard",
+    "input": "Analyze Amazon's competitive moat in cloud computing versus Microsoft Azure and Google Cloud.",
+    "expected": {
+      "keywords": ["AWS", "cloud", "market share", "competition", "risk"],
+      "minKeywordCoverage": 0.4,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_get_price", "stock_search_news"]
+    }
+  },
+  {
+    "id": "asset-query-006",
+    "title": "META earnings quality",
+    "difficulty": "medium",
+    "input": "How has Meta's operating margin changed over the past 4 quarters? Any red flags?",
+    "expected": {
+      "keywords": ["margin", "operating", "earnings", "Meta"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_get_price"]
+    }
+  },
+  {
+    "id": "asset-query-007",
+    "title": "BRK.B value investing lens",
+    "difficulty": "medium",
+    "input": "Is Berkshire Hathaway trading below its intrinsic value based on book value and cash holdings?",
+    "expected": {
+      "keywords": ["book value", "intrinsic", "cash", "Berkshire"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_get_price"]
+    }
+  },
+  {
+    "id": "asset-query-008",
+    "title": "JPM banking sector risk",
+    "difficulty": "medium",
+    "input": "What are the key risks facing JPMorgan in the current interest rate environment?",
+    "expected": {
+      "keywords": ["interest rate", "risk", "banking", "credit"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_get_price", "stock_search_news"]
+    }
+  },
+  {
+    "id": "asset-query-009",
+    "title": "COST vs WMT comparison",
+    "difficulty": "hard",
+    "input": "Compare Costco and Walmart on revenue growth, margins, and valuation multiples. Which offers better value?",
+    "expected": {
+      "keywords": ["revenue", "margin", "valuation", "comparison"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free", "definitely better"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_get_price"]
+    }
+  },
+  {
+    "id": "asset-query-010",
+    "title": "XOM energy sector outlook",
+    "difficulty": "medium",
+    "input": "What is ExxonMobil's free cash flow yield and how sustainable is their dividend given oil price volatility?",
+    "expected": {
+      "keywords": ["free cash flow", "dividend", "oil", "sustainability"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_get_price"]
+    }
+  },
+  {
+    "id": "asset-query-011",
+    "title": "GOOGL search monopoly risk",
+    "difficulty": "hard",
+    "input": "How might antitrust regulation affect Alphabet's revenue model? Quantify the risk.",
+    "expected": {
+      "keywords": ["antitrust", "regulation", "revenue", "risk", "search"],
+      "minKeywordCoverage": 0.4,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_get_price", "stock_search_news"]
+    }
+  },
+  {
+    "id": "asset-query-012",
+    "title": "LLY pharmaceutical pipeline",
+    "difficulty": "hard",
+    "input": "Evaluate Eli Lilly's drug pipeline and patent cliff risks. Is the premium valuation warranted?",
+    "expected": {
+      "keywords": ["pipeline", "patent", "valuation", "risk"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_get_price", "stock_search_news"]
+    }
+  },
+  {
+    "id": "asset-query-013",
+    "title": "V payments moat",
+    "difficulty": "easy",
+    "input": "Describe Visa's business model and explain why it has consistently high profit margins.",
+    "expected": {
+      "keywords": ["payment", "margin", "network", "Visa"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": false,
+      "tools": ["stock_get_price"]
+    }
+  },
+  {
+    "id": "asset-query-014",
+    "title": "COIN crypto exposure",
+    "difficulty": "hard",
+    "input": "What are the risks of holding Coinbase stock as a proxy for crypto exposure? How correlated is it with Bitcoin?",
+    "expected": {
+      "keywords": ["crypto", "correlation", "volatility", "risk", "regulation"],
+      "minKeywordCoverage": 0.4,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_get_price"]
+    }
+  },
+  {
+    "id": "asset-query-015",
+    "title": "DIS turnaround assessment",
+    "difficulty": "medium",
+    "input": "Is Disney's streaming business approaching profitability? What are the key metrics to watch?",
+    "expected": {
+      "keywords": ["streaming", "profitability", "subscriber", "Disney"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_get_price", "stock_search_news"]
+    }
+  }
+]

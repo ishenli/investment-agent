@@ -1,0 +1,257 @@
+[
+  {
+    "id": "multi-turn-001",
+    "title": "Portfolio concentration follow-up",
+    "difficulty": "hard",
+    "input": [
+      { "role": "user", "content": "My portfolio is 60% NVDA and 40% cash." },
+      { "role": "assistant", "content": "That's a highly concentrated position in NVIDIA. The 40% cash provides a buffer, but having 60% in a single stock exposes you to significant company-specific risk." },
+      { "role": "user", "content": "Given what you know about my holdings, what should I prioritize reviewing this week?" }
+    ],
+    "expected": {
+      "keywords": ["NVDA", "concentration", "risk", "diversification"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["portfolio_query"]
+    }
+  },
+  {
+    "id": "multi-turn-002",
+    "title": "Risk tolerance clarification",
+    "difficulty": "medium",
+    "input": [
+      { "role": "user", "content": "I'm 28 years old with a $150K portfolio and high risk tolerance." },
+      { "role": "assistant", "content": "With your age and risk tolerance, you have a long investment horizon that allows for higher equity allocation." },
+      { "role": "user", "content": "What allocation would you suggest given my profile?" }
+    ],
+    "expected": {
+      "keywords": ["allocation", "age", "risk tolerance", "equity"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["portfolio_query"]
+    }
+  },
+  {
+    "id": "multi-turn-003",
+    "title": "Sector research continuation",
+    "difficulty": "hard",
+    "input": [
+      { "role": "user", "content": "I'm interested in the semiconductor sector, specifically ASML, TSM, and NVDA." },
+      { "role": "assistant", "content": "Those are three key players in the semiconductor value chain: ASML in lithography equipment, TSM in fabrication, and NVDA in GPU design." },
+      { "role": "user", "content": "Which of those three has the best risk-adjusted return potential based on current valuations?" }
+    ],
+    "expected": {
+      "keywords": ["ASML", "TSM", "NVDA", "valuation", "risk"],
+      "minKeywordCoverage": 0.4,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_get_price"]
+    }
+  },
+  {
+    "id": "multi-turn-004",
+    "title": "Tax situation context",
+    "difficulty": "hard",
+    "input": [
+      { "role": "user", "content": "I have $50K in short-term gains this year from selling TSLA at $280." },
+      { "role": "assistant", "content": "Short-term capital gains are taxed at your ordinary income rate. That's a significant tax event to plan around." },
+      { "role": "user", "content": "I also have losses in RIVN (-$15K) and LCID (-$8K). How should I handle this for tax optimization?" }
+    ],
+    "expected": {
+      "keywords": ["tax-loss", "short-term", "offset", "RIVN", "LCID"],
+      "minKeywordCoverage": 0.4,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free", "tax advice"],
+      "requireRiskDisclosure": true,
+      "tools": ["portfolio_query"]
+    }
+  },
+  {
+    "id": "multi-turn-005",
+    "title": "Market timing discussion",
+    "difficulty": "medium",
+    "input": [
+      { "role": "user", "content": "The S&P 500 just hit an all-time high at 5,800." },
+      { "role": "assistant", "content": "All-time highs are common in long-term uptrends. Historically, buying at all-time highs has still produced positive returns over 1-3 year periods." },
+      { "role": "user", "content": "So should I deploy my $100K cash position all at once or dollar-cost average in?" }
+    ],
+    "expected": {
+      "keywords": ["lump sum", "dollar-cost average", "all-time high", "risk"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["portfolio_query"]
+    }
+  },
+  {
+    "id": "multi-turn-006",
+    "title": "Dividend strategy refinement",
+    "difficulty": "medium",
+    "input": [
+      { "role": "user", "content": "I want to build a dividend portfolio targeting $2000/month income." },
+      { "role": "assistant", "content": "To generate $24,000/year in dividends, you'd need approximately $600K invested at a 4% yield or $480K at 5%." },
+      { "role": "user", "content": "I have $500K to deploy. Can you suggest a mix of dividend aristocrats and REITs to hit that target?" }
+    ],
+    "expected": {
+      "keywords": ["dividend", "$500K", "yield", "REIT", "aristocrat"],
+      "minKeywordCoverage": 0.4,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["portfolio_query", "stock_get_price"]
+    }
+  },
+  {
+    "id": "multi-turn-007",
+    "title": "Earnings reaction analysis",
+    "difficulty": "hard",
+    "input": [
+      { "role": "user", "content": "META just reported earnings: revenue $40B (+22%), EPS $5.33 (beat by $0.40), but they guided capex up 30%." },
+      { "role": "assistant", "content": "Strong revenue and EPS beat, but elevated capex guidance for AI infrastructure could pressure margins in coming quarters." },
+      { "role": "user", "content": "The stock dropped 8% after hours. Is this an overreaction given the numbers you just saw?" }
+    ],
+    "expected": {
+      "keywords": ["META", "earnings", "capex", "overreaction", "valuation"],
+      "minKeywordCoverage": 0.4,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_get_price", "stock_search_news"]
+    }
+  },
+  {
+    "id": "multi-turn-008",
+    "title": "Options strategy discussion",
+    "difficulty": "hard",
+    "input": [
+      { "role": "user", "content": "I own 500 shares of AAPL at a cost basis of $145." },
+      { "role": "assistant", "content": "With AAPL currently around $190, you have about $22,500 in unrealized gains on that position." },
+      { "role": "user", "content": "I want to generate income without selling. Can covered calls work here given my cost basis?" }
+    ],
+    "expected": {
+      "keywords": ["covered call", "AAPL", "premium", "strike", "cost basis"],
+      "minKeywordCoverage": 0.4,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_get_price"]
+    }
+  },
+  {
+    "id": "multi-turn-009",
+    "title": "Goal-based allocation",
+    "difficulty": "medium",
+    "input": [
+      { "role": "user", "content": "I need $80K for a house down payment in 2 years and $500K for retirement in 20 years." },
+      { "role": "assistant", "content": "These are two very different time horizons requiring different strategies: conservative for the 2-year goal, aggressive for the 20-year goal." },
+      { "role": "user", "content": "How should I split my $200K across these two goals?" }
+    ],
+    "expected": {
+      "keywords": ["$80K", "house", "retirement", "time horizon", "allocation"],
+      "minKeywordCoverage": 0.4,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["portfolio_query"]
+    }
+  },
+  {
+    "id": "multi-turn-010",
+    "title": "Macro scenario planning",
+    "difficulty": "hard",
+    "input": [
+      { "role": "user", "content": "I think we're heading into stagflation: high inflation plus slowing growth." },
+      { "role": "assistant", "content": "In stagflation scenarios, traditional 60/40 portfolios tend to struggle. Commodities, TIPS, and value stocks with pricing power have historically outperformed." },
+      { "role": "user", "content": "Given that stagflation thesis, how should I reposition my current 70% SPY / 30% AGG portfolio?" }
+    ],
+    "expected": {
+      "keywords": ["stagflation", "SPY", "AGG", "commodities", "reposition"],
+      "minKeywordCoverage": 0.4,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["portfolio_query", "stock_search_news"]
+    }
+  },
+  {
+    "id": "multi-turn-011",
+    "title": "Position exit strategy",
+    "difficulty": "medium",
+    "input": [
+      { "role": "user", "content": "I bought COIN at $250 and it's now at $180. I'm down 28%." },
+      { "role": "assistant", "content": "A 28% loss is significant. The key question is whether your original investment thesis still holds." },
+      { "role": "user", "content": "Crypto regulation is getting stricter. Should I cut my losses on COIN or hold?" }
+    ],
+    "expected": {
+      "keywords": ["COIN", "loss", "regulation", "thesis", "cut"],
+      "minKeywordCoverage": 0.4,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_get_price", "stock_search_news"]
+    }
+  },
+  {
+    "id": "multi-turn-012",
+    "title": "Inheritance investment plan",
+    "difficulty": "medium",
+    "input": [
+      { "role": "user", "content": "I just inherited $300K. I'm 35, employed, no debt, already have 6 months emergency fund." },
+      { "role": "assistant", "content": "You're in a strong financial position. With no immediate needs, this is a long-term investment opportunity. Your time horizon gives you flexibility." },
+      { "role": "user", "content": "Given my financial situation you described, what's an appropriate investment plan for this $300K?" }
+    ],
+    "expected": {
+      "keywords": ["$300K", "long-term", "allocation", "diversification"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["portfolio_query"]
+    }
+  },
+  {
+    "id": "multi-turn-013",
+    "title": "Watchlist follow-up analysis",
+    "difficulty": "hard",
+    "input": [
+      { "role": "user", "content": "I'm watching these stocks for potential entry: CRM at P/E 55, SNOW at P/S 20, and PANW at P/E 45." },
+      { "role": "assistant", "content": "All three are trading at premium multiples. CRM has the most reasonable valuation of the three, while SNOW's P/S of 20 implies very high growth expectations." },
+      { "role": "user", "content": "If you had to rank them by risk/reward using the valuations we discussed, which would you enter first and why?" }
+    ],
+    "expected": {
+      "keywords": ["CRM", "SNOW", "PANW", "valuation", "risk/reward"],
+      "minKeywordCoverage": 0.4,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_get_price"]
+    }
+  },
+  {
+    "id": "multi-turn-014",
+    "title": "Recession preparation",
+    "difficulty": "medium",
+    "input": [
+      { "role": "user", "content": "Leading indicators suggest a recession within 6-12 months." },
+      { "role": "assistant", "content": "If you believe a recession is likely, defensive positioning typically includes increasing cash, adding quality bonds, and favoring consumer staples and healthcare." },
+      { "role": "user", "content": "My portfolio is currently 80% growth tech stocks. How aggressively should I de-risk based on that recession timeline?" }
+    ],
+    "expected": {
+      "keywords": ["recession", "growth", "tech", "de-risk", "defensive"],
+      "minKeywordCoverage": 0.4,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["portfolio_query"]
+    }
+  },
+  {
+    "id": "multi-turn-015",
+    "title": "Conflicting analyst opinions",
+    "difficulty": "hard",
+    "input": [
+      { "role": "user", "content": "Goldman just upgraded AMZN to $220 target, but Morgan Stanley downgraded it to $165 target." },
+      { "role": "assistant", "content": "A $55 spread between two major banks reflects genuine uncertainty. Goldman likely emphasizes AWS growth reacceleration while Morgan Stanley may be concerned about retail margin pressure." },
+      { "role": "user", "content": "I currently hold AMZN at a $175 cost basis. Given these conflicting views you just outlined, should I add, hold, or trim?" }
+    ],
+    "expected": {
+      "keywords": ["AMZN", "$175", "Goldman", "Morgan Stanley", "uncertainty"],
+      "minKeywordCoverage": 0.3,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_get_price", "stock_search_news"]
+    }
+  }
+]

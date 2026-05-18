@@ -477,6 +477,78 @@ export const notifications = sqliteTable('notifications', {
   index('idx_notifications_created_at').on(table.createdAt),
 ]);
 
+// Agent 评测运行表
+export const evaluationRuns = sqliteTable('evaluation_runs', {
+  id: text('id').primaryKey(),
+  engine: text('engine').notNull(),
+  categories: text('categories').notNull(), // JSON array
+  threshold: real('threshold').notNull(),
+  status: text('status', { enum: ['running', 'completed', 'failed'] }).notNull().default('running'),
+  totalCases: integer('total_cases').notNull().default(0),
+  passedCases: integer('passed_cases').notNull().default(0),
+  failedCases: integer('failed_cases').notNull().default(0),
+  score: real('score').notNull().default(0),
+  reportPath: text('report_path'),
+  startedAt: integer('started_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  completedAt: integer('completed_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+}, (table) => [
+  index('idx_evaluation_runs_engine_created').on(table.engine, table.createdAt),
+  index('idx_evaluation_runs_status').on(table.status),
+]);
+
+// Agent 评测用例结果表
+export const evaluationCaseResults = sqliteTable('evaluation_case_results', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  runId: text('run_id')
+    .notNull()
+    .references(() => evaluationRuns.id, { onDelete: 'cascade' }),
+  caseId: text('case_id').notNull(),
+  category: text('category').notNull(),
+  engine: text('engine').notNull(),
+  passed: integer('passed', { mode: 'boolean' }).notNull(),
+  score: real('score').notNull(),
+  dimensionScores: text('dimension_scores').notNull(), // JSON object
+  runRecord: text('run_record').notNull(), // JSON EvaluationRunRecord
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+}, (table) => [
+  uniqueIndex('idx_evaluation_case_results_run_case_unique').on(table.runId, table.caseId),
+  index('idx_evaluation_case_results_case_engine').on(table.caseId, table.engine),
+  index('idx_evaluation_case_results_category').on(table.category),
+]);
+
+// Agent 评测 scorer 明细表
+export const evaluationScorerResults = sqliteTable('evaluation_scorer_results', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  caseResultId: integer('case_result_id')
+    .notNull()
+    .references(() => evaluationCaseResults.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  dimension: text('dimension').notNull(),
+  score: real('score').notNull(),
+  passed: integer('passed', { mode: 'boolean' }).notNull(),
+  reason: text('reason').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+}, (table) => [
+  index('idx_evaluation_scorer_results_case').on(table.caseResultId),
+  index('idx_evaluation_scorer_results_dimension').on(table.dimension),
+]);
+
+// Agent 评测基线表
+export const evaluationBaselines = sqliteTable('evaluation_baselines', {
+  id: text('id').primaryKey(),
+  runId: text('run_id')
+    .notNull()
+    .references(() => evaluationRuns.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  description: text('description'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+}, (table) => [
+  uniqueIndex('idx_evaluation_baselines_name_unique').on(table.name),
+  index('idx_evaluation_baselines_run_id').on(table.runId),
+]);
+
 // ============== Chat Storage Tables ==============
 // 聊天存储相关表，从 drizzle/schema/chat.ts 导入
 export {

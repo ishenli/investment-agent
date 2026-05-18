@@ -1,0 +1,197 @@
+[
+  {
+    "id": "market-research-001",
+    "title": "Semiconductor sector outlook",
+    "difficulty": "medium",
+    "input": "What's the current sentiment around semiconductor stocks? Any supply chain concerns?",
+    "expected": {
+      "keywords": ["semiconductor", "supply chain", "demand", "sentiment"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_search_news"]
+    }
+  },
+  {
+    "id": "market-research-002",
+    "title": "Fed rate decision impact",
+    "difficulty": "medium",
+    "input": "The Fed just raised rates by 25bps. How does this typically affect growth vs value stocks?",
+    "expected": {
+      "keywords": ["interest rate", "growth", "value", "Fed"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_search_news"]
+    }
+  },
+  {
+    "id": "market-research-003",
+    "title": "AI sector hype vs reality",
+    "difficulty": "hard",
+    "input": "Is the current AI investment boom comparable to the dot-com bubble? What metrics should I watch?",
+    "expected": {
+      "keywords": ["AI", "bubble", "valuation", "revenue", "comparison"],
+      "minKeywordCoverage": 0.4,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_search_news"]
+    }
+  },
+  {
+    "id": "market-research-004",
+    "title": "China market risk assessment",
+    "difficulty": "hard",
+    "input": "What are the geopolitical risks for US investors holding Chinese ADRs like BABA and JD?",
+    "expected": {
+      "keywords": ["geopolitical", "risk", "ADR", "delisting", "regulation"],
+      "minKeywordCoverage": 0.4,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_search_news"]
+    }
+  },
+  {
+    "id": "market-research-005",
+    "title": "Inflation data interpretation",
+    "difficulty": "medium",
+    "input": "CPI came in at 3.2% vs 3.4% expected. What sectors benefit from declining inflation?",
+    "expected": {
+      "keywords": ["inflation", "CPI", "sector", "benefit"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_search_news"]
+    }
+  },
+  {
+    "id": "market-research-006",
+    "title": "Earnings season summary",
+    "difficulty": "medium",
+    "input": "Summarize how big tech earnings came in this quarter relative to expectations.",
+    "expected": {
+      "keywords": ["earnings", "expectations", "beat", "guidance"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": false,
+      "tools": ["stock_search_news"]
+    }
+  },
+  {
+    "id": "market-research-007",
+    "title": "Oil price geopolitical factors",
+    "difficulty": "medium",
+    "input": "How are Middle East tensions affecting oil prices and which energy stocks benefit?",
+    "expected": {
+      "keywords": ["oil", "geopolitical", "energy", "price"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_search_news"]
+    }
+  },
+  {
+    "id": "market-research-008",
+    "title": "Small cap vs large cap rotation",
+    "difficulty": "medium",
+    "input": "Russell 2000 has underperformed S&P 500 for years. Is a small-cap rotation likely?",
+    "expected": {
+      "keywords": ["small cap", "rotation", "valuation", "spread"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_search_news"]
+    }
+  },
+  {
+    "id": "market-research-009",
+    "title": "IPO market conditions",
+    "difficulty": "easy",
+    "input": "How has the IPO market performed this year? Are there notable upcoming IPOs?",
+    "expected": {
+      "keywords": ["IPO", "market", "performance", "upcoming"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": false,
+      "tools": ["stock_search_news"]
+    }
+  },
+  {
+    "id": "market-research-010",
+    "title": "Treasury yield curve signal",
+    "difficulty": "hard",
+    "input": "The yield curve just uninverted after being inverted for 18 months. What does this historically signal for equities?",
+    "expected": {
+      "keywords": ["yield curve", "inversion", "recession", "signal", "historical"],
+      "minKeywordCoverage": 0.4,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_search_news"]
+    }
+  },
+  {
+    "id": "market-research-011",
+    "title": "EV market competitive landscape",
+    "difficulty": "medium",
+    "input": "How is the electric vehicle market share shifting between Tesla, BYD, and legacy automakers?",
+    "expected": {
+      "keywords": ["EV", "market share", "competition", "Tesla"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_search_news"]
+    }
+  },
+  {
+    "id": "market-research-012",
+    "title": "Commercial real estate stress",
+    "difficulty": "hard",
+    "input": "What's the current state of commercial real estate defaults and which bank stocks have the most exposure?",
+    "expected": {
+      "keywords": ["commercial real estate", "default", "bank", "exposure", "risk"],
+      "minKeywordCoverage": 0.4,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_search_news"]
+    }
+  },
+  {
+    "id": "market-research-013",
+    "title": "Dollar strength implications",
+    "difficulty": "medium",
+    "input": "The US dollar index is at multi-year highs. How does a strong dollar affect US multinational earnings?",
+    "expected": {
+      "keywords": ["dollar", "currency", "multinational", "earnings", "headwind"],
+      "minKeywordCoverage": 0.4,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_search_news"]
+    }
+  },
+  {
+    "id": "market-research-014",
+    "title": "Consumer spending trends",
+    "difficulty": "easy",
+    "input": "What do recent retail sales data tell us about consumer health? Are discretionary stocks at risk?",
+    "expected": {
+      "keywords": ["consumer", "retail", "spending", "discretionary"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_search_news"]
+    }
+  },
+  {
+    "id": "market-research-015",
+    "title": "Market breadth deterioration",
+    "difficulty": "hard",
+    "input": "The S&P 500 is at all-time highs but only 30% of stocks are above their 200-day MA. Is this a warning sign?",
+    "expected": {
+      "keywords": ["breadth", "divergence", "moving average", "risk", "concentration"],
+      "minKeywordCoverage": 0.4,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_search_news"]
+    }
+  }
+]
