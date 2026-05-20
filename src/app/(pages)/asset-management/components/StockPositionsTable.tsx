@@ -30,6 +30,7 @@ import {
   SearchIcon,
   FilterIcon,
   PencilIcon,
+  ExternalLinkIcon,
 } from 'lucide-react';
 import { PositionType } from '@typings/position';
 import Link from 'next/link';
