@@ -76,7 +76,7 @@ export class UnifiedPriceService {
     market: MarketType,
     options: QuoteOptions = {},
   ): Promise<QuoteResponse | null> {
-    const { useCache = true, forceRefresh = false, ...restOptions } = options;
+    const { useCache = true, forceRefresh = false, assetType, ...restOptions } = options;
     const mergedOptions = { ...this.defaultOptions, ...restOptions };
 
     // 检查缓存
@@ -103,7 +103,7 @@ export class UnifiedPriceService {
 
     try {
       // 调用适配器获取价格（带重试）
-      const response = await withRetry(() => adapter.fetchQuote({ symbol, market }), {
+      const response = await withRetry(() => adapter.fetchQuote({ symbol, market, assetType }), {
         maxRetries: mergedOptions.retries,
       });
 

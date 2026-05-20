@@ -18,6 +18,7 @@ vi.mock('@server/repository/accountRepository', () => ({
 vi.mock('@server/repository/accountFundRepository', () => ({
   accountFundRepository: {
     findByAccountId: vi.fn(),
+    findAllByAccountId: vi.fn(),
   },
 }));
 
@@ -49,6 +50,12 @@ vi.mock('./priceService', () => ({
 vi.mock('../unifiedPriceService', () => ({
   unifiedPriceService: {
     getQuote: vi.fn(),
+  },
+}));
+
+vi.mock('../exchangeRateService', () => ({
+  default: {
+    getRate: vi.fn().mockResolvedValue(1),
   },
 }));
 
@@ -90,6 +97,7 @@ const mockPositions = [
     quantity: 10,
     averagePriceCents: 15000, // $150
     sector: 'stock',
+    currency: 'USD',
     createdAt: new Date(),
     updatedAt: new Date(),
     deletedAt: null,
@@ -101,6 +109,7 @@ const mockPositions = [
     quantity: 5,
     averagePriceCents: 30000, // $300
     sector: 'stock',
+    currency: 'USD',
     createdAt: new Date(),
     updatedAt: new Date(),
     deletedAt: null,
@@ -158,7 +167,7 @@ describe('PortfolioSnapshotService', () => {
 
     // 默认 mock 返回值
     (accountRepository.findById as any).mockResolvedValue(mockAccount);
-    (accountFundRepository.findByAccountId as any).mockResolvedValue(mockAccountFund);
+    (accountFundRepository.findAllByAccountId as any).mockResolvedValue([mockAccountFund]);
     (assetPositionRepository.findByAccountId as any).mockResolvedValue(mockPositions);
     (unifiedPriceService.getQuote as any).mockImplementation((symbol: string) => {
       const prices: Record<string, number> = { AAPL: 180, MSFT: 400, SPY: 480 };
@@ -244,7 +253,7 @@ describe('PortfolioSnapshotService', () => {
     });
 
     it('当无现金余额记录时应将现金余额视为 0', async () => {
-      (accountFundRepository.findByAccountId as any).mockResolvedValue(null);
+      (accountFundRepository.findAllByAccountId as any).mockResolvedValue([]);
       (assetPositionRepository.findByAccountId as any).mockResolvedValue([]);
 
       await service.createSnapshot(1, mockSnapshotDate);

@@ -70,4 +70,6 @@ export interface QuoteOptions {
   retries?: number;
   /** 备用适配器名称，主适配器失败时使用 */
   fallbackAdapter?: string;
+  /** 资产类型，用于区分股票/ETF/基金等 */
+  assetType?: 'stock' | 'etf' | 'fund' | 'crypto';
 }
