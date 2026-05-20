@@ -28,7 +28,7 @@
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md,css,scss,less}\"",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "INVESTMENT_AGENT_DATA_DIR=./ drizzle-kit migrate",
-    "db:push": "INVESTMENT_AGENT_DATA_DIR=./ drizzle-kit push --force",
+    "db:push": "INVESTMENT_AGENT_DATA_DIR=./ tsx scripts/db-push.ts",
     "db:check": "tsx scripts/check-migrations.ts",
     "db:studio": "drizzle-kit studio",
     "i18n:check": "tsx scripts/check-i18n.ts",

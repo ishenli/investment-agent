@@ -1,4 +1,4 @@
-CREATE TABLE `chat_observability_metrics` (
+CREATE TABLE IF NOT EXISTS `chat_observability_metrics` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`session_id` text,
 	`topic_id` text,
@@ -21,10 +21,10 @@ CREATE TABLE `chat_observability_metrics` (
 	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE INDEX `idx_obs_metrics_session` ON `chat_observability_metrics` (`session_id`,`time_bucket`);--> statement-breakpoint
-CREATE INDEX `idx_obs_metrics_agent` ON `chat_observability_metrics` (`agent_name`,`time_bucket`);--> statement-breakpoint
-CREATE INDEX `idx_obs_metrics_time` ON `chat_observability_metrics` (`time_bucket`);--> statement-breakpoint
-CREATE TABLE `chat_spans_extended` (
+CREATE INDEX IF NOT EXISTS `idx_obs_metrics_session` ON `chat_observability_metrics` (`session_id`,`time_bucket`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_obs_metrics_agent` ON `chat_observability_metrics` (`agent_name`,`time_bucket`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_obs_metrics_time` ON `chat_observability_metrics` (`time_bucket`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `chat_spans_extended` (
 	`id` text PRIMARY KEY NOT NULL,
 	`trace_id` text NOT NULL,
 	`parent_span_id` text,
@@ -53,11 +53,11 @@ CREATE TABLE `chat_spans_extended` (
 	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE INDEX `idx_chat_spans_ext_trace_id` ON `chat_spans_extended` (`trace_id`);--> statement-breakpoint
-CREATE INDEX `idx_chat_spans_ext_parent_span_id` ON `chat_spans_extended` (`parent_span_id`);--> statement-breakpoint
-CREATE INDEX `idx_chat_spans_ext_name` ON `chat_spans_extended` (`name`);--> statement-breakpoint
-CREATE INDEX `idx_chat_spans_ext_status` ON `chat_spans_extended` (`status`);--> statement-breakpoint
-CREATE TABLE `chat_traces_extended` (
+CREATE INDEX IF NOT EXISTS `idx_chat_spans_ext_trace_id` ON `chat_spans_extended` (`trace_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_chat_spans_ext_parent_span_id` ON `chat_spans_extended` (`parent_span_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_chat_spans_ext_name` ON `chat_spans_extended` (`name`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_chat_spans_ext_status` ON `chat_spans_extended` (`status`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `chat_traces_extended` (
 	`id` text PRIMARY KEY NOT NULL,
 	`session_id` text NOT NULL,
 	`topic_id` text,
@@ -98,7 +98,7 @@ CREATE TABLE `chat_traces_extended` (
 	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE INDEX `idx_chat_traces_ext_session_created` ON `chat_traces_extended` (`session_id`,`created_at`);--> statement-breakpoint
-CREATE INDEX `idx_chat_traces_ext_topic_id` ON `chat_traces_extended` (`topic_id`);--> statement-breakpoint
-CREATE INDEX `idx_chat_traces_ext_status` ON `chat_traces_extended` (`status`);--> statement-breakpoint
-CREATE INDEX `idx_chat_traces_ext_reflection` ON `chat_traces_extended` (`reflection_triggered`);
+CREATE INDEX IF NOT EXISTS `idx_chat_traces_ext_session_created` ON `chat_traces_extended` (`session_id`,`created_at`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_chat_traces_ext_topic_id` ON `chat_traces_extended` (`topic_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_chat_traces_ext_status` ON `chat_traces_extended` (`status`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_chat_traces_ext_reflection` ON `chat_traces_extended` (`reflection_triggered`);
