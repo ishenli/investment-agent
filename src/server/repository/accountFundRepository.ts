@@ -46,6 +46,13 @@ export class AccountFundRepository extends BaseIntRepository<AccountFundEntity> 
   }
 
   /**
+   * 根据账户 ID 查找所有资金记录（多币种）
+   */
+  async findAllByAccountId(accountId: number): Promise<AccountFundEntity[]> {
+    return this.findMany(eq(accountFunds.accountId, accountId));
+  }
+
+  /**
    * 检查账户资金记录是否存在
    */
   async existsByAccountId(accountId: number): Promise<boolean> {

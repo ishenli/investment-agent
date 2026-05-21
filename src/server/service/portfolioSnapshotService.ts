@@ -1,5 +1,7 @@
 import logger from '@server/base/logger';
+import Decimal from 'decimal.js';
 import priceService from './priceService';
+import exchangeRateService from './exchangeRateService';
 import { unifiedPriceService } from './unifiedPriceService';
 import { accountRepository } from '@server/repository/accountRepository';
 import { accountFundRepository } from '@server/repository/accountFundRepository';
@@ -8,7 +10,7 @@ import {
   portfolioSnapshotRepository,
   type CreateSnapshotData,
 } from '@server/repository/portfolioSnapshotRepository';
-import type { MarketType } from '@typings/asset';
+import type { AssetType, MarketType } from '@typings/asset';
 
 /**
  * Position snapshot for storing in the positions JSON field
@@ -84,22 +86,52 @@ export class PortfolioSnapshotService {
       // Get all positions for the account
       const positions = await assetPositionRepository.findByAccountId(accountId);
 
-      // Get cash balance
-      const accountFund = await accountFundRepository.findByAccountId(accountId);
-      const cashBalanceCents = accountFund?.amountCents ?? 0;
+      // Collect all currencies needed for exchange rate conversion
+      const currencySet = new Set<string>();
+      for (const position of positions) {
+        const currency = position.currency ?? 'USD';
+        if (currency !== 'USD') currencySet.add(currency);
+      }
 
-      // Build positions snapshot with current prices
+      // Get all fund records (multi-currency) and collect their currencies
+      const accountFunds = await accountFundRepository.findAllByAccountId(accountId);
+      for (const fund of accountFunds) {
+        const currency = fund.currency ?? 'USD';
+        if (currency !== 'USD') currencySet.add(currency);
+      }
+
+      // Fetch exchange rates for all non-USD currencies
+      const rateMap: Record<string, number> = {};
+      for (const currency of currencySet) {
+        rateMap[currency] = await exchangeRateService.getRate(currency, 'USD');
+      }
+
+      // Calculate cash balance in USD cents (sum all fund records with conversion)
+      let cashBalanceCents = 0;
+      for (const fund of accountFunds) {
+        const fundCurrency = fund.currency ?? 'USD';
+        const rate = fundCurrency === 'USD' ? 1 : (rateMap[fundCurrency] ?? 1);
+        cashBalanceCents += Math.round(new Decimal(fund.amountCents).mul(rate).toNumber());
+      }
+
+      // Build positions snapshot with current prices (converted to USD)
       const positionSnapshots: PositionSnapshot[] = [];
       let totalPositionsValueCents = 0;
 
       for (const position of positions) {
-        // Get current price for the symbol (refresh from external API if needed)
-        const currentPrice = await this.getCurrentPrice(position.symbol, accountMarket);
+        const assetType = position.sector ?? 'stock';
+        const positionCurrency = position.currency ?? 'USD';
+        const rate = positionCurrency === 'USD' ? 1 : (rateMap[positionCurrency] ?? 1);
+
+        // Get current price (pass assetType for correct source selection)
+        const currentPrice = await this.getCurrentPrice(position.symbol, accountMarket, assetType);
         const currentPriceCents = Math.round(currentPrice * 100);
 
         const quantity = position.quantity;
-        const marketValueCents = Math.round(currentPriceCents * quantity);
-        const unrealizedGainLossCents = marketValueCents - (position.averagePriceCents * quantity);
+        // Convert market value to USD
+        const marketValueCents = Math.round(new Decimal(currentPriceCents).mul(quantity).mul(rate).toNumber());
+        const costBasisCents = Math.round(new Decimal(position.averagePriceCents).mul(quantity).mul(rate).toNumber());
+        const unrealizedGainLossCents = marketValueCents - costBasisCents;
 
         positionSnapshots.push({
           symbol: position.symbol,
@@ -120,7 +152,7 @@ export class PortfolioSnapshotService {
         positionCount: positionSnapshots.length,
       };
 
-      // Calculate total value (positions + cash)
+      // Calculate total value (positions + cash), both in USD
       const totalValueCents = totalPositionsValueCents + cashBalanceCents;
 
       // Get benchmark value (SPY - US market)
@@ -326,9 +358,9 @@ export class PortfolioSnapshotService {
    * @param market Market type
    * @returns Current price (in dollars, not cents)
    */
-  private async getCurrentPrice(symbol: string, market: MarketType = 'US'): Promise<number> {
+  private async getCurrentPrice(symbol: string, market: MarketType = 'US', assetType?: string): Promise<number> {
     try {
-      const quoteResponse = await unifiedPriceService.getQuote(symbol, market, { forceRefresh: false });
+      const quoteResponse = await unifiedPriceService.getQuote(symbol, market, { forceRefresh: false, assetType: assetType as AssetType });
       if (quoteResponse) {
         return quoteResponse.price;
       }

@@ -111,7 +111,7 @@ export class TencentAdapter extends PriceSourceAdapter {
 
         const stocksData = this.parseResponseData(response.data);
 
-        stockRequests.forEach(async (request) => {
+        for (const request of stockRequests) {
           const stockData = stocksData[request.symbol];
           if (stockData) {
             const isHK = request.market === 'HK';
@@ -130,7 +130,7 @@ export class TencentAdapter extends PriceSourceAdapter {
               error: 'No data returned from Tencent API',
             });
           }
-        });
+        }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         logger.error(`[TencentAdapter] Stock batch quote failed:`, error);

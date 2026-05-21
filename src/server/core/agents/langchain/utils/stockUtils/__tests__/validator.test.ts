@@ -10,7 +10,7 @@ const mockLogger = {
 };
 
 // Mock the stock data service
-vi.mock('../../../../../server/service/stockDataService', () => ({
+vi.mock('@server/service/stockDataService', () => ({
   getStockData: vi.fn().mockResolvedValue(
     'Date,Open,High,Low,Close,Volume\n2023-01-01,150.0,155.0,149.0,153.0,1000000'
   ),
