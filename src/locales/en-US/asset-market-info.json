@@ -10,6 +10,14 @@
   "detail": {
     "backToList": "Back to List",
     "edit": "Edit",
+    "delete": "Delete",
+    "deleteConfirm": {
+      "title": "Confirm Delete",
+      "description": "Are you sure you want to delete this market info? This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete",
+      "deleting": "Deleting..."
+    },
     "noData": {
       "description": "The specified market information was not found.",
       "title": "No Data"
@@ -56,6 +64,7 @@
   "error": {
     "fetchFailed": "Failed to fetch data",
     "fetchDetailFailed": "Failed to fetch market info detail",
+    "deleteFailed": "Delete failed",
     "reload": "Reload",
     "saveFailed": "Save failed",
     "title": "Error",

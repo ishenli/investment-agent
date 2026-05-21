@@ -2,10 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@renderer/components/ui/alert';
-import { AlertCircle, RefreshCw, ArrowLeft, ExternalLink, Pencil } from 'lucide-react';
+import { AlertCircle, RefreshCw, ArrowLeft, ExternalLink, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@renderer/components/ui/button';
 import { Badge } from '@renderer/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@renderer/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@renderer/components/ui/alert-dialog';
 import {
   Dialog,
   DialogContent,
@@ -24,6 +34,7 @@ import {
   SelectValue,
 } from '@renderer/components/ui/select';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { AssetMarketInfoType } from '@/types/marketInfo';
@@ -43,9 +54,14 @@ type EditForm = {
 
 export function AssetMarketInfoDetail({ marketInfoId }: { marketInfoId: number }) {
   const { t } = useTranslation('asset-market-info');
+  const router = useRouter();
   const [marketInfo, setMarketInfo] = useState<AssetMarketInfoType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // 删除弹窗状态
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // 编辑弹窗状态
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -141,6 +157,27 @@ export function AssetMarketInfoDetail({ marketInfoId }: { marketInfoId: number }
     }
   };
 
+  const handleDelete = async () => {
+    try {
+      setDeleting(true);
+      const response = await fetch(`/api/asset/market-info?id=${marketInfoId}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.message || t('error.deleteFailed'));
+      }
+
+      router.push('/asset-market-info');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('error.deleteFailed'));
+      setDeleteDialogOpen(false);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   // 获取情感标签的颜色
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment.toLowerCase()) {
@@ -211,10 +248,16 @@ export function AssetMarketInfoDetail({ marketInfoId }: { marketInfoId: number }
             {t('detail.backToList')}
           </Link>
         </Button>
-        <Button onClick={openEditDialog}>
-          <Pencil className="mr-2 h-4 w-4" />
-          {t('detail.edit')}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={openEditDialog}>
+            <Pencil className="mr-2 h-4 w-4" />
+            {t('detail.edit')}
+          </Button>
+          <Button variant="destructive" onClick={() => setDeleteDialogOpen(true)}>
+            <Trash2 className="mr-2 h-4 w-4" />
+            {t('detail.delete')}
+          </Button>
+        </div>
       </div>
 
       {/* 标题区域 */}
@@ -358,6 +401,26 @@ export function AssetMarketInfoDetail({ marketInfoId }: { marketInfoId: number }
           </div>
         </CardContent>
       </Card>
+
+      {/* 删除确认弹窗 */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('detail.deleteConfirm.title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('detail.deleteConfirm.description')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>
+              {t('detail.deleteConfirm.cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {deleting ? t('detail.deleteConfirm.deleting') : t('detail.deleteConfirm.confirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* 编辑弹窗 */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
