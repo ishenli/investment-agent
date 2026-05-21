@@ -6,9 +6,12 @@
     "edit": "Edit",
     "refresh": "Refresh",
     "save": "Save",
-    "view": "View"
-  },
-  "assetTypeLabels": {
+  "view": "View"
+ },
+ "navigation": {
+   "back": "Back"
+ },
+ "assetTypeLabels": {
     "stock": "Stock",
     "etf": "ETF",
     "fund": "Fund",

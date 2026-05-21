@@ -1,8 +1,9 @@
 {
-  "actions": {
-    "edit": "Edit",
-    "viewInfo": "View Info"
-  },
+ "actions": {
+   "edit": "Edit",
+   "viewInfo": "View Info",
+   "viewDetails": "View Details"
+ },
   "alerts": {
     "description": "Risk matters that need attention",
     "high": "High",

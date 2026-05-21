@@ -6,9 +6,12 @@
     "edit": "编辑",
     "refresh": "刷新",
     "save": "保存",
-    "view": "查看"
-  },
-  "assetTypeLabels": {
+  "view": "查看"
+ },
+ "navigation": {
+   "back": "返回"
+ },
+ "assetTypeLabels": {
     "stock": "股票",
     "etf": "ETF基金",
     "fund": "基金",

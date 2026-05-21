@@ -30,6 +30,7 @@ import {
   SearchIcon,
   FilterIcon,
   PencilIcon,
+  EyeIcon,
   ExternalLinkIcon,
 } from 'lucide-react';
 import { PositionType } from '@typings/position';
@@ -437,18 +438,25 @@ export function StockPositionsTable({ positions, onEditPosition }: StockPosition
                     </Badge>
                   </TableCell>
 
-                  {/* 操作 */}
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="icon-sm"
-                        onClick={() => onEditPosition(position)}
-                      >
-                        <PencilIcon className="h-4 w-4" />
+              {/* 操作 */}
+              <TableCell>
+                <div className="flex gap-2">
+                  {position.assetMetaId && (
+                    <Link href={`/asset-meta/${position.assetMetaId}`}>
+                      <Button variant="outline" size="icon-sm" title={t('actions.viewDetails')}>
+                        <EyeIcon className="h-4 w-4" />
                       </Button>
-                    </div>
-                  </TableCell>
+                    </Link>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="icon-sm"
+                    onClick={() => onEditPosition(position)}
+                  >
+                    <PencilIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+              </TableCell>
                 </TableRow>
               );
             })}

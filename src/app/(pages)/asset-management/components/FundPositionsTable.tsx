@@ -21,9 +21,11 @@ import {
   ArrowDownIcon,
   SearchIcon,
   PencilIcon,
+  EyeIcon,
 } from 'lucide-react';
 import { PositionType } from '@typings/position';
 import { useTranslation } from 'react-i18next';
+import Link from 'next/link';
 
 // 定义排序配置类型
 type SortConfig = {
@@ -252,8 +254,15 @@ export function FundPositionsTable({ positions, onEditPosition }: FundPositionsT
                       {returnRate.toFixed(2)}%
                     </span>
                   </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
+                 <TableCell>
+                   <div className="flex gap-2">
+                      {position.assetMetaId && (
+                        <Link href={`/asset-meta/${position.assetMetaId}`}>
+                          <Button variant="outline" size="icon-sm" title={t('actions.viewDetails')}>
+                            <EyeIcon className="h-4 w-4" />
+                          </Button>
+                        </Link>
+                      )}
                       <Button
                         variant="outline"
                         size="icon-sm"

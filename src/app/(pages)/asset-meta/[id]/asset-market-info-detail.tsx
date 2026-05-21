@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@renderer/components/ui/alert';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+ import { AlertCircle, RefreshCw, ArrowLeft } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -442,12 +442,26 @@ export function AssetMarketInfoDetail({ assetMetaId }: { assetMetaId: number }) 
     );
   }
 
-  return (
-    <div className="space-y-6">
-      <MarketInfoTabs
-        assetName={assetMeta?.chineseName || ''}
-        assetType={assetMeta?.assetType}
-        activeTab={activeTab}
+ return (
+   <div className="space-y-6">
+
+     {/* 顶部导航栏：返回按钮 */}
+     <div className="flex items-center gap-4">
+       <Button
+         variant="ghost"
+         size="sm"
+         onClick={() => router.back()}
+         className="flex items-center gap-2"
+       >
+         <ArrowLeft className="h-4 w-4" />
+         {t('navigation.back')}
+       </Button>
+     </div>
+
+     <MarketInfoTabs
+       assetName={assetMeta?.chineseName || ''}
+       assetType={assetMeta?.assetType}
+       activeTab={activeTab}
         setActiveTab={setActiveTab}
         onRefresh={fetchData}
         onAddMarketInfo={goToMarketInfoFetcher}

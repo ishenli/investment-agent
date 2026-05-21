@@ -1,8 +1,9 @@
 {
-  "actions": {
-    "edit": "编辑",
-    "viewInfo": "查看信息"
-  },
+ "actions": {
+   "edit": "编辑",
+   "viewInfo": "查看信息",
+   "viewDetails": "查看详情"
+ },
   "alerts": {
     "description": "需要关注的风险事项",
     "high": "高",
