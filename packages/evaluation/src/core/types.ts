@@ -110,5 +110,6 @@ export interface EvaluationReport {
   generatedAt: string;
   results: CaseEvaluationResult[];
   runId: string;
+  suggestions?: import('../suggestions/types').EvaluationSuggestion[];
   summary: EvaluationSummary;
 }

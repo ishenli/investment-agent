@@ -24,6 +24,7 @@ interface CliOptions {
   baseline?: string;
   categories: EvaluationCategory[];
   compare?: string[];
+  concurrency: number;
   cookie?: string;
   dryRun: boolean;
   engine: EvaluationEngine;
@@ -57,6 +58,7 @@ function parseArgs(argv: string[]): CliOptions {
   const options: CliOptions = {
     baseUrl: 'http://localhost:3000',
     categories: [],
+    concurrency: 3,
     dryRun: false,
     engine: config.engine,
     format: 'all',
@@ -69,7 +71,7 @@ function parseArgs(argv: string[]): CliOptions {
     provider: 'openai',
     regression: false,
     threshold: config.threshold,
-    timeoutMs: 60000,
+    timeoutMs: 180000,
     transport: config.transport,
     userId: 1,
     verbose: false,
@@ -90,6 +92,7 @@ function parseArgs(argv: string[]): CliOptions {
       options.compare = nextArg(argv, i, arg).split(',').map((s) => s.trim());
       i += 1;
     }
+    else if (arg === '--concurrency') { options.concurrency = Number(nextArg(argv, i, arg)); i += 1; }
     else if (arg === '--cookie') { options.cookie = nextArg(argv, i, arg); i += 1; }
     else if (arg === '--format') {
       const value = nextArg(argv, i, arg);
@@ -171,6 +174,7 @@ Options:
       --threshold <number>         Passing threshold, default ${config.threshold}
       --limit <number>             Limit number of cases
   -f, --full                       Run all categories
+      --concurrency <number>        Parallel case execution limit, default 3
       --max-iterations <number>    Hermes max tool iterations, default 4
       --mastra-model <model>       Mastra LLM-as-Judge model, e.g. openai/gpt-4o-mini
       --format <json|md|html|all>  Report format, default all
@@ -213,6 +217,7 @@ async function interactiveOptions(): Promise<CliOptions> {
     return {
       baseUrl: 'http://localhost:3000',
       categories: selectedCategories,
+      concurrency: 3,
       dryRun: false,
       engine,
       format: 'all',
@@ -225,7 +230,7 @@ async function interactiveOptions(): Promise<CliOptions> {
       provider: 'openai',
       regression: false,
       threshold: config.threshold,
-      timeoutMs: 60000,
+      timeoutMs: 180000,
       transport: config.transport,
       userId: 1,
       verbose: false,
@@ -262,6 +267,7 @@ async function main(): Promise<void> {
 
   const report = await evaluateCases(cases, {
     categories,
+    concurrency: options.concurrency,
     engine: options.engine,
     mastraModel: options.mastraModel,
     realRun: {

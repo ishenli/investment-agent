@@ -43,6 +43,28 @@ export function toMarkdownReport(report: EvaluationReport): string {
     }
   }
 
+  if (report.suggestions && report.suggestions.length > 0) {
+    lines.push('');
+    lines.push('## Improvement Suggestions');
+    lines.push('');
+    lines.push('| Priority | Dimension | Category | Title | Affected | Source |');
+    lines.push('|---|---|---|---|---:|---|');
+    for (const s of report.suggestions) {
+      lines.push(`| ${s.priority} | ${s.dimension} | ${s.category} | ${s.title} | ${s.affectedCases.length} | ${s.source} |`);
+    }
+
+    lines.push('');
+    for (const s of report.suggestions) {
+      lines.push(`### ${s.title}`);
+      lines.push('');
+      lines.push(s.description);
+      lines.push('');
+      lines.push(`- **Priority:** ${s.priority} | **Effort:** ${s.effort} | **Source:** ${s.source}`);
+      lines.push(`- **Affected cases:** ${s.affectedCases.join(', ')}`);
+      lines.push('');
+    }
+  }
+
   lines.push('');
   return `${lines.join('\n')}\n`;
 }

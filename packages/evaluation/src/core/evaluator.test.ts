@@ -13,7 +13,7 @@ describe('evaluateCases', () => {
       transport: 'web-api',
     });
 
-    expect(report.summary.total).toBe(35);
+    expect(report.summary.total).toBe(30);
     expect(report.summary.failed).toBe(0);
     expect(report.summary.score).toBeGreaterThanOrEqual(0.8);
   });

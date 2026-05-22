@@ -67,6 +67,7 @@
     "@icons-pack/react-simple-icons": "^13.12.0",
     "@investment-agent/agent-channel": "workspace:*",
     "@investment-agent/hermes-agent": "workspace:*",
+    "@investment-agent/evaluation": "workspace:*",
     "@langchain/core": "^1.1.29",
     "@langchain/langgraph": "^1.2.0",
     "@langchain/openai": "^1.2.11",

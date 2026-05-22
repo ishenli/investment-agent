@@ -16,6 +16,7 @@ import {
   runToxicityWrapper,
 } from './scorer-wrapper';
 import { runWebApiCase, type WebApiRunOptions } from './web-api-runner';
+import { generateRuleBasedSuggestions, generateLlmSuggestions } from '../suggestions';
 import type { PersistenceAdapter } from './persistence';
 import type {
   BenchmarkCase,
@@ -80,7 +81,9 @@ export function summarizeResults(results: CaseEvaluationResult[]): EvaluationSum
 
 export interface EvaluateCasesOptions {
   categories: EvaluationCategory[];
+  concurrency?: number;
   engine: EvaluationEngine;
+  llmJudge?: { baseUrl?: string; model?: string; provider?: string };
   mastraModel?: string;
   /** @deprecated Use persistenceAdapter instead */
   persist?: boolean;
@@ -91,6 +94,25 @@ export interface EvaluateCasesOptions {
   threshold: number;
   transport: EvaluationTransport;
   webApiRun?: WebApiRunOptions;
+}
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  fn: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let nextIndex = 0;
+
+  async function worker() {
+    while (nextIndex < items.length) {
+      const index = nextIndex++;
+      results[index] = await fn(items[index]);
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, () => worker()));
+  return results;
 }
 
 async function runMastraScorers(
@@ -156,9 +178,9 @@ export async function evaluateCases(
   cases: BenchmarkCase[],
   options: EvaluateCasesOptions,
 ): Promise<EvaluationReport> {
-  const results: CaseEvaluationResult[] = [];
+  const concurrency = options.concurrency ?? 3;
 
-  for (const testCase of cases) {
+  async function evaluateOneCase(testCase: BenchmarkCase): Promise<CaseEvaluationResult> {
     const record = options.engine === 'mock'
       ? await runMockCase(testCase, options.engine)
       : options.transport === 'web-api'
@@ -190,15 +212,17 @@ export async function evaluateCases(
     const dimensionScores = calculateDimensionScores(scorers);
     const score = average(Object.values(dimensionScores));
 
-    results.push({
+    return {
       case: testCase,
       dimensionScores,
       passed: score >= options.threshold && dimensionScores.mission > 0,
       record,
       score,
       scorers,
-    });
+    };
   }
+
+  const results = await mapWithConcurrency(cases, concurrency, evaluateOneCase);
 
   const report: EvaluationReport = {
     config: {
@@ -212,6 +236,18 @@ export async function evaluateCases(
     runId: options.runId,
     summary: summarizeResults(results),
   };
+
+  // Generate improvement suggestions
+  report.suggestions = generateRuleBasedSuggestions(report);
+
+  if (options.llmJudge) {
+    try {
+      const llmSuggestions = await generateLlmSuggestions(report, options.llmJudge);
+      report.suggestions = report.suggestions.concat(llmSuggestions);
+    } catch (error) {
+      console.warn('[Evaluator] LLM-Judge suggestions failed:', error instanceof Error ? error.message : error);
+    }
+  }
 
   if (options.persistenceAdapter) {
     try {

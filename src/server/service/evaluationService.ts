@@ -186,6 +186,73 @@ export class EvaluationService {
     }
     return evaluationRunRepository.findAll({ limit });
   }
+
+  /**
+   * 保存用例结果（不重新插入 run 记录）
+   */
+  async saveCaseResults(runId: string, caseResults: EvaluationCaseInput[]): Promise<boolean> {
+    try {
+      await evaluationRunRepository.saveCaseResults({
+        caseResults: caseResults.map((caseResult) => ({
+          caseId: caseResult.caseId,
+          category: caseResult.category,
+          dimensionScores: JSON.stringify(caseResult.dimensionScores),
+          engine: caseResult.engine,
+          passed: caseResult.passed,
+          runId,
+          runRecord: JSON.stringify(caseResult.runRecord),
+          score: caseResult.score,
+          scorers: caseResult.scorers,
+        })),
+      });
+      logger.info(`[EvaluationService] Saved ${caseResults.length} case results for run ${runId}`);
+      return true;
+    } catch (error) {
+      logger.error(`[EvaluationService] Failed to save case results: ${error}`);
+      return false;
+    }
+  }
+
+  /**
+   * 获取评测运行详情（含用例结果和 scorer 结果）
+   */
+  async getRunDetail(runId: string) {
+    try {
+      return await evaluationRunRepository.findByIdWithDetails(runId);
+    } catch (error) {
+      logger.error(`[EvaluationService] Failed to get run detail ${runId}: ${error}`);
+      return null;
+    }
+  }
+
+  /**
+   * 删除评测运行记录（级联删除用例和 scorer 结果）
+   */
+  async deleteRun(runId: string): Promise<boolean> {
+    try {
+      const run = await evaluationRunRepository.findById(runId);
+      if (!run) return false;
+
+      await evaluationRunRepository.delete(runId);
+      logger.info(`[EvaluationService] Deleted evaluation run ${runId}`);
+      return true;
+    } catch (error) {
+      logger.error(`[EvaluationService] Failed to delete evaluation run ${runId}: ${error}`);
+      return false;
+    }
+  }
+
+  /**
+   * 获取单次运行记录
+   */
+  async getRunById(runId: string): Promise<EvaluationRun | null> {
+    try {
+      return await evaluationRunRepository.findById(runId);
+    } catch (error) {
+      logger.error(`[EvaluationService] Failed to get run ${runId}: ${error}`);
+      return null;
+    }
+  }
 }
 
 const evaluationService = new EvaluationService();

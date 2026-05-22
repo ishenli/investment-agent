@@ -369,7 +369,9 @@
     "skills": "Skills",
     "notification": "Notification",
     "channel": "Channel",
-    "tool": "Tool"
+    "tool": "Tool",
+    "observability": "Observability",
+    "evaluation": "Evaluation"
   },
   "exchange": {
     "title": "Exchange Rate Settings",
@@ -643,5 +645,124 @@
     "errorRate": "error rate",
     "expand": "Details",
     "collapse": "Collapse"
+  },
+  "evaluation": {
+    "title": "Agent Evaluation",
+    "description": "Run evaluations, view history and improvement suggestions",
+    "tabs": {
+      "run": "Run Evaluation",
+      "history": "History",
+      "result": "Evaluation Details"
+    },
+    "config": {
+      "title": "Evaluation Config",
+      "description": "Select engine, categories and threshold to start agent evaluation",
+      "engine": "Evaluation Engine",
+      "threshold": "Pass Threshold",
+      "concurrency": "Concurrency",
+      "category": "Evaluation Categories",
+      "startButton": "Start Evaluation",
+      "running": "Evaluating...",
+      "engines": {
+        "mock": "Mock (Quick Test)",
+        "hermes": "Hermes",
+        "claude": "Claude",
+        "deepagents": "DeepAgents"
+      },
+      "thresholds": {
+        "0.5": "0.5 (Loose)",
+        "0.7": "0.7 (Standard)",
+        "0.8": "0.8 (Strict)",
+        "0.9": "0.9 (Very Strict)",
+        "0.95": "0.95 (Extremely Strict)"
+      },
+      "categories": {
+        "asset-query": "Asset Query",
+        "portfolio-analysis": "Portfolio Analysis",
+        "market-research": "Market Research",
+        "multi-turn": "Multi-turn Dialogue",
+        "edge-cases": "Edge Cases"
+      }
+    },
+    "progress": {
+      "status": "Status",
+      "score": "Score",
+      "total": "Total",
+      "passed": "Passed",
+      "failed": "Failed"
+    },
+    "history": {
+      "title": "Evaluation History",
+      "description": "View past evaluation run records",
+      "noRecords": "No evaluation records",
+      "table": {
+        "time": "Time",
+        "engine": "Engine",
+        "category": "Category",
+        "status": "Status",
+        "score": "Score",
+        "passedTotal": "Passed/Total",
+        "details": "Details"
+      },
+      "status": {
+        "completed": "Completed",
+        "running": "Running",
+        "failed": "Failed"
+      }
+    },
+    "result": {
+      "title": "Evaluation Results",
+      "notFound": "Evaluation details not found",
+      "deleteConfirm": "Are you sure you want to delete this evaluation record? This action cannot be undone.",
+      "summary": {
+        "totalScore": "Total Score",
+        "totalCases": "Total Cases",
+        "passed": "Passed",
+        "failed": "Failed"
+      },
+      "dimensions": {
+        "title": "Dimension Scores (MACEE)",
+        "mission": "Mission Understanding",
+        "action": "Action Execution",
+        "context": "Context",
+        "execution": "Execution Quality",
+        "ethics": "Ethics Compliance"
+      },
+      "cases": {
+        "title": "Case Results",
+        "caseId": "Case ID",
+        "category": "Category",
+        "status": "Status",
+        "score": "Score",
+        "passed": "Passed",
+        "failed": "Failed",
+        "dimensionScores": "Dimension Scores",
+        "scorerDetails": "Scorer Details",
+        "viewTrace": "View Trace"
+      },
+      "suggestions": {
+        "title": "Improvement Suggestions",
+        "description": "Suggestions based on evaluation results",
+        "affectedCases": "Affects {{count}} case(s)",
+        "noSuggestions": "All dimensions are performing well, no suggestions",
+        "priority": {
+          "high": "High Priority",
+          "medium": "Medium Priority",
+          "low": "Low Priority"
+        },
+        "effort": {
+          "small": "Small Change",
+          "medium": "Medium Change",
+          "large": "Large Change"
+        },
+        "category": {
+          "system-prompt": "System Prompt",
+          "tool-config": "Tool Config",
+          "timeout": "Timeout / Connectivity",
+          "knowledge": "Knowledge Base",
+          "architecture": "Architecture"
+        }
+      }
+    }
   }
 }
