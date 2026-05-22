@@ -13,6 +13,7 @@ import {
   IconMessage,
   IconBell,
   IconChartLine,
+  IconTestPipe,
   type Icon,
 } from '@tabler/icons-react';
 import {
@@ -24,7 +25,7 @@ import {
 import { usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
-export type SettingsCategory = 'provider' | 'tool' | 'agent' | 'channel' | 'theme' | 'general' | 'exchange' | 'about' | 'skills' | 'notification' | 'observability';
+export type SettingsCategory = 'provider' | 'tool' | 'agent' | 'channel' | 'theme' | 'general' | 'exchange' | 'about' | 'skills' | 'notification' | 'observability' | 'evaluation';
 
 const settingsItems: {
   id: SettingsCategory;
@@ -81,6 +82,13 @@ const settingsItems: {
     icon: IconChartLine,
     url: '/setting/observability',
     description: 'Agent 调用追踪和性能指标',
+  },
+  {
+    id: 'evaluation',
+    title: '评测',
+    icon: IconTestPipe,
+    url: '/setting/evaluation',
+    description: 'Agent 评测和改进建议',
   },
   {
     id: 'theme',

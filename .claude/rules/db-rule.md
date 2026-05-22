@@ -47,12 +47,47 @@
 - 数据库 Schema 定义在 `drizzle/schema/` 目录下。
 - 示例优先使用 **Server Component + async 数据获取** 模式。
 
+## 📝 迁移脚本幂等性规范
+
+迁移 SQL 脚本必须具备幂等性，确保在 rebase、分支切换或重复执行时不会因为对象已存在而报错。
+
+### 规则
+
+- `CREATE TABLE` 必须使用 `CREATE TABLE IF NOT EXISTS`
+- `CREATE INDEX` / `CREATE UNIQUE INDEX` 必须使用 `IF NOT EXISTS`
+- `DROP TABLE` / `DROP INDEX` 必须使用 `IF EXISTS`
+- `drizzle-kit generate` 生成的迁移文件默认不包含 `IF NOT EXISTS`，需手动补充后再提交
+
+### 原因
+
+- `drizzle-kit push` 对带 WHERE 条件的 partial index 存在已知兼容问题，可能尝试重建已有索引导致 `already exists` 错误
+- 多分支并行开发 rebase 后，迁移编号可能重排，本地数据库已包含部分迁移创建的对象
+- 幂等性确保开发者无需删除本地数据库即可安全执行迁移
+
+### 示例
+
+```sql
+-- ✅ 正确：幂等迁移
+CREATE TABLE IF NOT EXISTS `my_table` (
+  `id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+  `name` text NOT NULL,
+  `created_at` integer NOT NULL
+);
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_my_table_name` ON `my_table` (`name`);
+
+-- ❌ 错误：非幂等迁移（rebase 后可能失败）
+CREATE TABLE `my_table` ( ... );
+CREATE INDEX `idx_my_table_name` ON `my_table` (`name`);
+```
+
 ## 🚫 禁止行为
 
 - ❌ 在 Client Components 中直接导入 `src/server/lib/db.ts` 或执行数据库查询。
 - ❌ 使用 `prisma`、`mongoose` 或其他 ORM。
 - ❌ 直接操作 `.db` 文件或使用 `fs` 模块写入数据库文件（应通过 Drizzle 或 DatabaseManager）。
 - ❌ 在 Electron 主进程中直接使用 `better-sqlite3`（应使用 `@libsql/client` 或 `DatabaseManager`）。
+- ❌ 迁移脚本中使用不带 `IF NOT EXISTS` / `IF EXISTS` 的 DDL 语句。
 
 ## 💡 默认假设
 

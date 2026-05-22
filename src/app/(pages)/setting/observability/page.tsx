@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'next/navigation';
 import {
   IconRefresh,
   IconChevronRight,
@@ -41,6 +42,7 @@ interface TraceDetailData {
 
 export default function ObservabilityPage() {
   const { t } = useTranslation('setting');
+  const searchParams = useSearchParams();
   const [traces, setTraces] = React.useState<Trace[]>([]);
   const [traceDetailMap, setTraceDetailMap] = React.useState<Record<string, TraceDetailData>>({});
   const [detailLoadingMap, setDetailLoadingMap] = React.useState<Record<string, boolean>>({});
@@ -50,7 +52,7 @@ export default function ObservabilityPage() {
   // Filters
   const [sessionId, setSessionId] = React.useState('');
   const [statusFilter, setStatusFilter] = React.useState<string>('all');
-  const [searchQuery, setSearchQuery] = React.useState('');
+  const [searchQuery, setSearchQuery] = React.useState(searchParams.get('search') ?? '');
 
   // Pagination
   const [limit, setLimit] = React.useState(20);

@@ -32,6 +32,7 @@ export default defineConfig({
             { label: '功能特性', link: '/features/' },
             { label: 'AI 引擎', link: '/engines/' },
             { label: 'AI 技能', link: '/skills/' },
+            { label: '评测系统', link: '/evaluation/' },
             { label: '架构设计', link: '/architecture/' },
             { label: 'Electron 桌面应用', link: '/electron/' },
           ],

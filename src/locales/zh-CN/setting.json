@@ -370,7 +370,8 @@
     "channel": "渠道设置",
     "skills": "技能设置",
     "tool": "工具设置",
-    "observability": "观测历史"
+    "observability": "观测历史",
+    "evaluation": "评测"
   },
   "channel": {
     "title": "渠道设置",
@@ -711,5 +712,124 @@
     "errorRate": "错误率",
     "expand": "详情",
     "collapse": "收起"
+  },
+  "evaluation": {
+    "title": "评测",
+    "description": "运行评测、查看历史结果和改进建议",
+    "tabs": {
+      "run": "运行评测",
+      "history": "历史结果",
+      "result": "评测详情"
+    },
+    "config": {
+      "title": "评测配置",
+      "description": "选择引擎、分类和阈值，启动 Agent 评测",
+      "engine": "评测引擎",
+      "threshold": "通过阈值",
+      "concurrency": "并发数",
+      "category": "评测分类",
+      "startButton": "开始评测",
+      "running": "评测中...",
+      "engines": {
+        "mock": "Mock (快速测试)",
+        "hermes": "Hermes",
+        "claude": "Claude",
+        "deepagents": "DeepAgents"
+      },
+      "thresholds": {
+        "0.5": "0.5 (宽松)",
+        "0.7": "0.7 (标准)",
+        "0.8": "0.8 (严格)",
+        "0.9": "0.9 (非常严格)",
+        "0.95": "0.95 (极严格)"
+      },
+      "categories": {
+        "asset-query": "资产查询",
+        "portfolio-analysis": "组合分析",
+        "market-research": "市场研究",
+        "multi-turn": "多轮对话",
+        "edge-cases": "边界情况"
+      }
+    },
+    "progress": {
+      "status": "状态",
+      "score": "得分",
+      "total": "总计",
+      "passed": "通过",
+      "failed": "失败"
+    },
+    "history": {
+      "title": "历史评测",
+      "description": "查看过去的评测运行记录",
+      "noRecords": "暂无评测记录",
+      "table": {
+        "time": "时间",
+        "engine": "引擎",
+        "category": "分类",
+        "status": "状态",
+        "score": "得分",
+        "passedTotal": "通过/总数",
+        "details": "详情"
+      },
+      "status": {
+        "completed": "完成",
+        "running": "运行中",
+        "failed": "失败"
+      }
+    },
+    "result": {
+      "title": "评测结果",
+      "notFound": "未找到评测详情",
+      "deleteConfirm": "确定要删除这条评测记录吗？删除后无法恢复。",
+      "summary": {
+        "totalScore": "总分",
+        "totalCases": "总用例",
+        "passed": "通过",
+        "failed": "失败"
+      },
+      "dimensions": {
+        "title": "维度得分 (MACEE)",
+        "mission": "任务理解",
+        "action": "行动执行",
+        "context": "上下文",
+        "execution": "执行质量",
+        "ethics": "伦理合规"
+      },
+      "cases": {
+        "title": "用例结果",
+        "caseId": "用例ID",
+        "category": "分类",
+        "status": "状态",
+        "score": "得分",
+        "passed": "通过",
+        "failed": "失败",
+        "dimensionScores": "维度得分",
+        "scorerDetails": "评分明细",
+        "viewTrace": "查看调用链路"
+      },
+      "suggestions": {
+        "title": "改进建议",
+        "description": "基于评测结果生成的改进建议",
+        "affectedCases": "影响 {{count}} 个用例",
+        "noSuggestions": "所有维度表现良好，暂无改进建议",
+        "priority": {
+          "high": "高优先级",
+          "medium": "中优先级",
+          "low": "低优先级"
+        },
+        "effort": {
+          "small": "小改动",
+          "medium": "中等改动",
+          "large": "大改动"
+        },
+        "category": {
+          "system-prompt": "System Prompt",
+          "tool-config": "工具配置",
+          "timeout": "超时/连通性",
+          "knowledge": "知识库",
+          "architecture": "架构"
+        }
+      }
+    }
   }
 }

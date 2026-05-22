@@ -1,0 +1,1386 @@
+---
+title: 评测系统
+description: Investment Agent 的智能体评测框架与技术架构详解
+---
+
+import { Card, CardGrid, Tabs, Steps, Aside } from '@astrojs/starlight/components';
+
+## 概述
+
+Investment Agent 内置了一套完整的智能体评测系统，用于评估 AI 智能体在投资分析场景中的表现。该系统基于模块化架构设计，支持多维度评测、多引擎对比、实时进度追踪，并提供针对性的改进建议。
+
+<Aside type="note" title="评测包位置">
+评测系统核心代码位于 `packages/evaluation` 目录，可独立运行或集成到应用中。
+</Aside>
+
+## 架构设计
+
+### 整体架构
+
+评测系统采用分层架构设计，包含四个核心层级：
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        应用层 (Application)                      │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
+│  │   Web UI     │  │    CLI       │  │   API Route  │         │
+│  │  (React)     │  │  (Command)   │  │  (Next.js)   │         │
+│  └──────────────┘  └──────────────┘  └──────────────┘         │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│                        核心层 (Core)                            │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
+│  │  Evaluator   │  │   Scorers    │  │   Runners    │         │
+│  │  (评估器)     │  │  (评测器集合) │  │  (执行引擎)   │         │
+│  └──────────────┘  └──────────────┘  └──────────────┘         │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│                        适配层 (Adapters)                        │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
+│  │ WebAPI Runner│  │ Real Runner  │  │Event Collector│         │
+│  │ (HTTP/SSE)   │  │ (Hermes SDK) │  │ (事件收集)    │         │
+│  └──────────────┘  └──────────────┘  └──────────────┘         │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│                        数据层 (Data)                            │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
+│  │  Benchmark   │  │  Persistence │  │   Reports    │         │
+│  │  Cases (JSON)│  │  (SQLite)    │  │  (JSON/MD)   │         │
+│  └──────────────┘  └──────────────┘  └──────────────┘         │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 核心模块
+
+#### Evaluator (评估器)
+
+评估器是评测系统的核心协调模块，负责：
+
+- **用例加载**: 从 JSON 数据集加载测试用例
+- **并发调度**: 控制评测任务的并发执行
+- **评分计算**: 聚合各评测器结果，计算维度得分
+- **报告生成**: 汇总统计信息，生成改进建议
+
+```typescript
+// packages/evaluation/src/core/evaluator.ts
+export async function evaluateCases(
+  cases: BenchmarkCase[],
+  options: EvaluateCasesOptions,
+): Promise<EvaluationReport> {
+  // 1. 并发执行测试用例
+  const results = await mapWithConcurrency(cases, options.concurrency, evaluateOneCase);
+  
+  // 2. 计算统计汇总
+  const summary = summarizeResults(results);
+  
+  // 3. 生成改进建议
+  const suggestions = generateRuleBasedSuggestions(report);
+  
+  // 4. 可选：LLM-Judge 增强建议
+  if (options.llmJudge) {
+    const llmSuggestions = await generateLlmSuggestions(report, options.llmJudge);
+    report.suggestions = report.suggestions.concat(llmSuggestions);
+  }
+  
+  return report;
+}
+```
+
+#### Scorers (评测器)
+
+评测器分为两大类：
+
+<CardGrid>
+  <Card title="本地规则评测器" icon="zap">
+    基于规则的快速评测器，确定性高、执行速度快，包括：
+    
+    - **任务完成度**: 检查响应长度和错误状态
+    - **工具调用准确性**: 验证工具调用匹配度
+    - **关键词覆盖**: 检查预期关键词出现频率
+    - **上下文保持**: 多轮对话实体引用率
+    - **风险披露**: 检查投资风险警告
+    - **禁止内容检测**: 识别违规表述
+  </Card>
+  
+  <Card title="大模型评测器 (Mastra)" icon="brain">
+    基于大模型语义理解的深度评测器，需要额外调用 LLM API，包括：
+    
+    - **Answer Relevancy**: 回答相关性评分
+    - **Faithfulness**: 上下文忠实度检测
+    - **Hallucination Detection**: 幻觉内容检测
+    - **Prompt Alignment**: 系统提示对齐度
+    - **Tone Analysis**: 语气和专业性分析
+    - **Bias Detection**: 偏见检测
+    - **Toxicity Detection**: 毒性内容检测
+  </Card>
+</CardGrid>
+
+#### Runners (执行引擎)
+
+执行引擎负责实际运行智能体并收集执行记录：
+
+<Tabs>
+  <Tabs.Tab label="Web API Runner">
+    **适用场景**: 通过 HTTP API 调用已部署的智能体服务
+    
+    ```typescript
+    interface WebApiRunOptions {
+      baseUrl: string;           // API 基础地址
+      model: string;             // 模型名称
+      provider: string;          // 模型提供商
+      maxIterations: number;     // 最大迭代次数
+      timeoutMs: number;         // 超时时间
+      authToken?: string;        // 认证令牌
+    }
+    ```
+    
+    **关键特性**:
+    - 支持 SSE (Server-Sent Events) 流式响应
+    - 自动解析流式事件提取工具调用
+    - 支持多种引擎的 API 端点映射
+  </Tabs.Tab>
+  
+  <Tabs.Tab label="Real Runner">
+    **适用场景**: 直接调用智能体 SDK（当前仅支持 Hermes）
+    
+    ```typescript
+    interface RealRunOptions {
+      model: string;             // 模型名称
+      provider: string;          // 模型提供商
+      timeoutMs: number;         // 超时时间
+      userId: number;            // 用户 ID
+    }
+    ```
+    
+    **关键特性**:
+    - 直接实例化 HermesAgent
+    - 通过回调函数收集执行事件
+    - 完整的可观测性数据采集
+  </Tabs.Tab>
+  
+  <Tabs.Tab label="Mock Runner">
+    **适用场景**: 测试评测流程本身，不实际调用智能体
+    
+    **返回数据**: 基于 GPT-4 生成的高质量模拟响应
+    **用途**: 验证评测器逻辑、CI/CD 管道测试
+  </Tabs.Tab>
+</Tabs>
+
+### 数据流架构
+
+评测系统的数据流分为四个阶段：
+
+<Steps>
+  1. **用例加载阶段**
+     ```typescript
+     // 从 JSON 文件加载测试用例
+     const cases = loadBenchmarkCases(['asset-query', 'portfolio-analysis']);
+     // 每个用例包含：输入、预期关键词、预期工具、难度等级等
+     ```
+  
+  2. **执行阶段**
+     ```typescript
+     // 根据配置选择执行方式
+     const record = options.transport === 'web-api'
+       ? await runWebApiCase(testCase, engine, webApiOptions)
+       : await runRealCase(testCase, engine, realOptions);
+     
+     // 收集执行记录
+     interface EvaluationRunRecord {
+       id: string;
+       engine: EvaluationEngine;
+       input: string | EvaluationMessage[];
+       output: string;
+       messages: EvaluationMessage[];
+       toolCalls: EvaluationToolCall[];
+       status: 'completed' | 'failed';
+       cost: {
+         inputTokens?: number;
+         outputTokens?: number;
+         costUsd?: number;
+       };
+     }
+     ```
+  
+  3. **评分阶段**
+     ```typescript
+     // 运行所有评测器
+     const scorers = runAllScorers(testCase, record);
+     
+     // 可选：运行 Mastra 大模型评测器
+     if (options.mastraModel) {
+       const mastraResults = await runMastraScorers(testCase, record, options.mastraModel);
+       scorers = scorers.concat(mastraResults);
+     }
+     
+     // 计算维度得分
+     const dimensionScores = calculateDimensionScores(scorers);
+     ```
+  
+  4. **聚合与建议生成阶段**
+     ```typescript
+     // 计算总体得分
+     const score = average(Object.values(dimensionScores));
+     
+     // 生成改进建议
+     const suggestions = generateRuleBasedSuggestions(report);
+     // 可选：LLM 增强建议
+     if (options.llmJudge) {
+       const llmSuggestions = await generateLlmSuggestions(report, options.llmJudge);
+     }
+     ```
+</Steps>
+
+## 评测标准详解
+
+### 五维评分体系
+
+评测系统基于五个核心维度对智能体表现进行综合评估，每个维度对应多个评测器：
+
+#### 1. 任务完成度 (Mission)
+
+评估智能体是否成功完成用户的投资分析任务。
+
+<CardGrid>
+  <Card title="核心评测器" icon="target">
+    **task-completion**
+    
+    - 检查执行状态是否为 `completed`
+    - 验证输出长度超过 30 字符
+    - 确认无运行时错误
+  </Card>
+  <Card title="评分标准" icon="chart">
+    ```typescript
+    {
+      dimension: 'mission',
+      name: 'task-completion',
+      passed: hasOutput && hasNoError,
+      score: hasOutput && hasNoError ? 1.0 : 0.0
+    }
+    ```
+  </Card>
+</CardGrid>
+
+<Aside type="caution">
+任务完成度是最严格的评测维度，得分必须 > 0 才能判定整个用例通过。
+</Aside>
+
+#### 2. 工具调用准确性 (Action)
+
+评估智能体是否正确调用了预期的金融工具（如股票查询、新闻搜索等）。
+
+<CardGrid>
+  <Card title="评分机制" icon="settings">
+    **tool-call-accuracy**
+    
+    - 匹配预期工具名称与实际调用
+    - 错误调用会触发 0.5 倍惩罚系数
+    - 支持多工具场景的权重计算
+  </Card>
+  <Card title="计算公式" icon="calculator">
+    ```typescript
+    matched = expected.filter(tool => actual.includes(tool));
+    errored = toolCalls.filter(call => call.isError).length;
+    score = (matched.length / expected.length) × (errored > 0 ? 0.5 : 1.0);
+    ```
+  </Card>
+</CardGrid>
+
+<Aside type="note">
+Mastra 提供了高级工具调用评测器：`tool-call-accuracy-llm` 和 `trajectory-llm`，可评估工具调用序列的合理性。
+</Aside>
+
+#### 3. 上下文保持能力 (Context)
+
+评估智能体在多轮对话中是否能引用之前提到的实体。
+
+<CardGrid>
+  <Card title="实体抽取" icon="search">
+    **context-retention**
+    
+    自动识别前文中的关键实体：
+    - 股票代码（如 AAPL、TSLA）
+    - 金额和百分比（如 $100B、15%）
+    - 专有名词（如 Warren Buffett）
+    - 财务指标（如 P/E 25）
+  </Card>
+  <Card title="评分阈值" icon="target">
+    ```typescript
+    // 抽取前文实体
+    entities = extractEntities(priorMessages);
+    // 计算引用率
+    referenced = entities.filter(e => output.includes(e));
+    score = referenced.length / entities.length;
+    // 通过阈值：30%
+    passed = score >= 0.3;
+    ```
+  </Card>
+</CardGrid>
+
+#### 4. 执行质量 (Execution)
+
+综合评估响应内容的质量，涵盖多个子评测器：
+
+<CardGrid>
+  <Card title="关键词覆盖" icon="key">
+    **keyword-coverage**
+    
+    - 检查预期关键词出现频率
+    - 支持不区分大小写匹配
+    - 可配置最低覆盖率阈值
+  </Card>
+  <Card title="数据准确性" icon="check-circle">
+    **data-accuracy**
+    
+    - 验证数值数据的正确性
+    - 检查日期和时间的合理性
+    - 对比预期结果与实际输出
+  </Card>
+  <Card title="建议质量" icon="star">
+    **advice-quality**
+    
+    - 评估投资建议的可操作性
+    - 检查建议的具体程度
+    - 识别矛盾或不连贯的建议
+  </Card>
+</CardGrid>
+
+<Aside type="tip">
+执行质量维度可通过 Mastra 评测器增强：`answer-relevancy`、`faithfulness`、`hallucination`、`completeness` 等。
+</Aside>
+
+#### 5. 合规性 (Ethics)
+
+评估输出内容是否符合投资建议的合规要求。
+
+<CardGrid>
+  <Card title="风险披露" icon="shield">
+    **risk-disclosure**
+    
+    检查是否包含投资风险警告：
+    - "投资有风险"
+    - "不构成投资建议"
+    - "仅供参考"
+  </Card>
+  <Card title="禁止内容检测" icon="warning">
+    **prohibited-words**
+    
+    检测禁止性表述：
+    - "保证收益"
+    - "无风险"
+    - "稳赚不赔"
+    - "必涨"
+  </Card>
+</CardGrid>
+
+### 维度聚合算法
+
+最终得分是五个维度得分的加权平均：
+
+```typescript
+function calculateDimensionScores(scorers: ScorerResult[]): Record<Dimension, number> {
+  const dimensions: Dimension[] = ['mission', 'action', 'context', 'execution', 'ethics'];
+  
+  return Object.fromEntries(
+    dimensions.map(dimension => [
+      dimension,
+      average(scorers.filter(s => s.dimension === dimension).map(s => s.score))
+    ])
+  );
+}
+
+// 最终得分 = 所有维度得分的平均值
+function calculateFinalScore(dimensionScores: Record<Dimension, number>): number {
+  return average(Object.values(dimensionScores));
+}
+
+// 用例通过条件：总分 ≥ 阈值 且 mission 得分 > 0
+function isPassed(score: number, dimensionScores: Record<Dimension, number>, threshold: number): boolean {
+  return score >= threshold && dimensionScores.mission > 0;
+}
+```
+
+## 评测类别详解
+
+系统预置了五大评测类别，覆盖投资分析的主要场景：
+
+### 资产查询 (asset-query)
+
+<CardGrid>
+  <Card title="测试场景" icon="search">
+    - 股票基本面分析（P/E、EPS、ROE 等）
+    - 技术指标查询（趋势、支撑阻力）
+    - 财务数据解读（营收、利润、现金流）
+    - 股息和分红分析
+  </Card>
+  <Card title="关键评测点" icon="target">
+    - 股票代码识别准确性
+    - 财务指标计算正确性
+    - 历史数据对比能力
+    - 风险披露完整性
+  </Card>
+</CardGrid>
+
+**典型用例**:
+```json
+{
+  "id": "asset-query-001",
+  "title": "AAPL fundamental valuation",
+  "difficulty": "medium",
+  "input": "What is Apple's current P/E ratio and how does it compare to its 5-year average?",
+  "expected": {
+    "keywords": ["P/E", "valuation", "average", "Apple"],
+    "minKeywordCoverage": 0.5,
+    "requireRiskDisclosure": true,
+    "tools": ["stock_get_price"]
+  }
+}
+```
+
+### 组合分析 (portfolio-analysis)
+
+<CardGrid>
+  <Card title="测试场景" icon="chart">
+    - 投资组合评估
+    - 资产配置建议
+    - 风险收益分析
+    - 行业分布检查
+  </Card>
+  <Card title="关键评测点" icon="target">
+    - 组合统计数据准确性
+    - 风险指标计算（波动率、夏普比率）
+    - 分散化建议质量
+    - 多资产关联分析
+  </Card>
+</CardGrid>
+
+### 市场研究 (market-research)
+
+<CardGrid>
+  <Card title="测试场景" icon="globe">
+    - 行业趋势分析
+    - 竞争格局比较
+    - 市场情绪判断
+    - 宏观经济影响评估
+  </Card>
+  <Card title="关键评测点" icon="target">
+    - 信息来源引用
+    - 多维度分析覆盖
+    - 时效性考虑
+    - 风险因素列举
+  </Card>
+</CardGrid>
+
+### 多轮对话 (multi-turn)
+
+<CardGrid>
+  <Card title="测试场景" icon="message">
+    - 复杂的多步骤分析任务
+    - 渐进式信息挖掘
+    - 上下文关联推理
+    - 假设情景分析
+  </Card>
+  <Card title="关键评测点" icon="target">
+    - 上下文保持能力
+    - 实体引用准确性
+    - 逻辑连贯性
+    - 多轮意图理解
+  </Card>
+</CardGrid>
+
+**典型多轮对话用例**:
+```json
+{
+  "id": "multi-turn-001",
+  "title": "Progressive portfolio deep-dive",
+  "difficulty": "hard",
+  "input": [
+    { "role": "user", "content": "What's the current price of AAPL?" },
+    { "role": "assistant", "content": "Apple (AAPL) is currently trading at $178.50." },
+    { "role": "user", "content": "How does it compare to its 52-week high?" },
+    { "role": "assistant", "content": "AAPL's 52-week high is $199.62. It's about 10.6% below that peak." },
+    { "role": "user", "content": "What's driving the decline and should I buy now?" }
+  ]
+}
+```
+
+### 边缘情况 (edge-cases)
+
+<CardGrid>
+  <Card title="测试场景" icon="alert">
+    - 异常输入处理
+    - 矛盾信息检测
+    - 不完整数据应对
+    - 极端市场情况
+  </Card>
+  <Card title="关键评测点" icon="target">
+    - 错误处理能力
+    - 不确定性表达
+    - 边界条件意识
+    - 用户引导质量
+  </Card>
+</CardGrid>
+
+## 评测器实现细节
+
+### 本地规则评测器
+
+本地评测器直接在评测进程中执行，无需外部 API 调用：
+
+```typescript
+// packages/evaluation/src/core/scorers.ts
+
+export function runAllScorers(
+  testCase: BenchmarkCase,
+  record: EvaluationRunRecord
+): ScorerResult[] {
+  return [
+    scoreMission(record),              // 任务完成度
+    scoreToolCalls(testCase, record),  // 工具调用
+    scoreContext(testCase, record),    // 上下文保持
+    scoreKeywordCoverage(testCase, record), // 关键词覆盖
+    scoreRiskDisclosure(testCase, record),  // 风险披露
+    scoreProhibitedWords(testCase, record), // 禁止内容
+    scoreDataAccuracy(testCase, record),    // 数据准确性
+    scoreAdviceQuality(testCase, record),   // 建议质量
+  ];
+}
+```
+
+<Aside type="note">
+本地评测器速度快、确定性高，适合作为基础评分体系。对于需要深度语义理解的评测场景，可启用 Mastra 大模型评测器。
+</Aside>
+
+### Mastra 大模型评测器
+
+Mastra 评测器通过 LLM 进行语义级别的深度评估：
+
+```typescript
+// packages/evaluation/src/core/scorer-wrapper.ts
+
+async function runMastraScorer(
+  name: string,
+  record: EvaluationRunRecord,
+  model: MastraModelConfig,
+  options?: WrapperOptions
+): Promise<ScorerResult | null> {
+  const registry = getGlobalRegistry({ model });
+  if (!registry.has(name)) return null;
+  
+  // 调用 Mastra 评测器
+  const result = await registry.run(name, record, options);
+  
+  // 降级处理：如果 Mastra 不可用，回退到本地评测器
+  if (result.score === 0 && result.reason.includes('not available')) {
+    return null;
+  }
+  
+  return result;
+}
+```
+
+**支持的 Mastra 评测器**:
+
+| 评测器 | 维度 | 说明 | 降级策略 |
+|--------|------|------|----------|
+| `answer-relevancy` | execution | 回答相关性 | 返回 `score: 0, passed: false` |
+| `faithfulness` | execution | 上下文忠实度 | 返回 `score: 0, passed: false` |
+| `hallucination` | execution | 幻觉检测 | 返回 `score: 0, passed: false` |
+| `completeness` | execution | 完整性 | 降级到 `keyword-coverage` |
+| `content-similarity` | execution | 内容相似度 | 降级到 `keyword-coverage` |
+| `keyword-coverage` | execution | 关键词覆盖 | 本地实现 |
+| `toxicity` | ethics | 毒性检测 | 返回 `score: 0, passed: false` |
+| `bias` | ethics | 偏见检测 | 返回 `score: 0, passed: false` |
+| `prompt-alignment` | ethics | 提示对齐 | 返回 `score: 0, passed: false` |
+| `context-relevance` | context | 上下文相关性 | 返回 `score: 0, passed: false` |
+| `tone` | execution | 语气分析 | 返回 `score: 0, passed: false` |
+
+## 执行引擎详解
+
+### Web API Runner 架构
+
+Web API Runner 通过 HTTP SSE 与已部署的智能体服务通信：
+
+```typescript
+// packages/evaluation/src/core/web-api-runner.ts
+
+interface StreamState {
+  sawText: boolean;
+  finalContent?: string;
+  tokens: StreamTokens;
+  traceMetrics?: TraceMetrics;
+  traceCost?: TraceCost;
+}
+
+async function runWebApiCase(
+  testCase: BenchmarkCase,
+  engine: EvaluationEngine,
+  options: WebApiRunOptions
+): Promise<EvaluationRunRecord> {
+  // 1. 初始化事件收集器
+  const collector = new EvaluationEventCollector({
+    agentId: 'investment_advisor',
+    caseId: testCase.id,
+    engine,
+    input: testCase.input,
+  });
+  
+  // 2. 构建请求
+  const endpoint = endpointForEngine(engine); // hermes → /api/chat/hermes
+  const requestBody = buildRequestBody(testCase, engine, options);
+  
+  // 3. 发起 SSE 流式请求
+  const response = await fetch(new URL(endpoint, options.baseUrl), {
+    method: 'POST',
+    headers: { 'Accept': 'text/event-stream', 'Content-Type': 'application/json' },
+    body: JSON.stringify(requestBody),
+  });
+  
+  // 4. 解析流式事件
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let pending = '';
+  
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    
+    // 分割 SSE 事件块
+    const split = splitSseEvents(pending + decoder.decode(value, { stream: true }));
+    pending = split.pending;
+    
+    // 处理每个事件
+    for (const part of split.parts) {
+      const event = parseSsePayload(part);
+      if (event) applyStreamEvent(collector, event, state);
+    }
+  }
+  
+  // 5. 返回执行记录
+  return collector.toRecord();
+}
+```
+
+**支持的事件类型**:
+
+| 事件类型 | 说明 | 数据提取 |
+|----------|------|----------|
+| `text` | 文本增量 | `collector.addAssistantDelta(event.delta)` |
+| `tool_use` | 工具调用 | `collector.addToolCall({ name, args })` |
+| `span_end` | Span 结束 | 记录工具调用耗时和状态 |
+| `trace_end` | Trace 结束 | 提取指标和成本数据 |
+| `result` | 最终结果 | 提取完整响应和 Token 统计 |
+| `error` | 错误 | `collector.fail(message, code)` |
+
+### Real Runner 架构
+
+Real Runner 直接调用智能体 SDK，当前支持 Hermes 引擎：
+
+```typescript
+// packages/evaluation/src/core/real-runner.ts
+
+export async function runRealCase(
+  testCase: BenchmarkCase,
+  engine: EvaluationEngine,
+  options: RealRunOptions
+): Promise<EvaluationRunRecord> {
+  // 1. 动态导入 Hermes Agent
+  const hermes = await import('@investment-agent/hermes-agent');
+  
+  // 2. 初始化事件收集器
+  const collector = new EvaluationEventCollector({
+    agentId: 'investment_advisor',
+    caseId: testCase.id,
+    engine,
+    input: testCase.input,
+  });
+  
+  // 3. 创建 Hermes Agent 实例
+  const agent = new hermes.HermesAgent({
+    model: hermes.getModel(options.provider, options.model),
+    callbacks: {
+      onTextDelta: (delta) => collector.addAssistantDelta(delta),
+      onToolStart: (name, args) => collector.addToolCall({ name, args, isError: false }),
+      onToolEnd: (result) => collector.addToolCall({
+        name: result.toolName,
+        durationMs: result.durationMs,
+        isError: result.isError,
+      }),
+      onError: (error) => collector.fail(error.message, 'hermes_error'),
+    },
+    streaming: true,
+    maxIterations: 15,
+  });
+  
+  // 4. 执行 Agent
+  const result = await agent.run({
+    context: { messages: previousMessages },
+    message: lastUserMessage,
+  });
+  
+  // 5. 返回执行记录
+  return collector.toRecord();
+}
+```
+
+### Event Collector 设计
+
+Event Collector 是执行记录收集的核心组件：
+
+```typescript
+// packages/evaluation/src/adapters/event-collector.ts
+
+export class EvaluationEventCollector {
+  private messages: EvaluationMessage[] = [];
+  private toolCalls: EvaluationToolCall[] = [];
+  private output: string = '';
+  private status: 'completed' | 'failed' = 'completed';
+  private error?: { message: string; code?: string };
+  
+  addAssistantDelta(delta: string): void {
+    this.output += delta;
+  }
+  
+  addToolCall(call: Partial<EvaluationToolCall>): void {
+    this.toolCalls.push({
+      name: call.name ?? 'unknown',
+      args: call.args ?? {},
+      isError: call.isError ?? false,
+      durationMs: call.durationMs,
+      error: call.error,
+      result: call.result,
+    });
+  }
+  
+  fail(message: string, code?: string): void {
+    this.status = 'failed';
+    this.error = { message, code };
+  }
+  
+  toRecord(): EvaluationRunRecord {
+    return {
+      id: generateId(),
+      engine: this.config.engine,
+      caseId: this.config.caseId,
+      agentId: this.config.agentId,
+      input: this.config.input,
+      output: this.output,
+      messages: this.messages,
+      toolCalls: this.toolCalls,
+      status: this.status,
+      error: this.error,
+      startedAt: this.startTime,
+      completedAt: new Date().toISOString(),
+      cost: {},
+      trace: { spans: [], metrics: [] },
+    };
+  }
+}
+```
+
+## 改进建议系统
+
+### 规则驱动的建议生成
+
+系统会分析失败用例的模式，生成结构化改进建议：
+
+```typescript
+// packages/evaluation/src/suggestions/rule-based.ts
+
+interface StructuredSuggestion {
+  id: string;
+  category: 'system-prompt' | 'tool-config' | 'architecture' | 'timeout';
+  title: string;
+  description: string;
+  dimension: string;
+  affectedCases: string[];
+  effort: 'small' | 'medium' | 'large';
+  priority: 'high' | 'medium' | 'low';
+}
+
+function generateRuleBasedSuggestions(report: EvaluationReport): StructuredSuggestion[] {
+  const suggestions: StructuredSuggestion[] = [];
+  
+  // 1. 维度得分分析
+  for (const [dimension, score] of Object.entries(report.summary.byDimension)) {
+    if (score < threshold) {
+      suggestions.push(DIMENSION_SUGGESTIONS[dimension]);
+    }
+  }
+  
+  // 2. 模式匹配分析
+  for (const failedCase of report.results.filter(r => !r.passed)) {
+    for (const scorer of failedCase.scorers) {
+      if (!scorer.passed) {
+        const matchedPattern = SCORER_PATTERNS.find(p => p.match(scorer.reason));
+        if (matchedPattern) {
+          suggestions.push(matchedPattern.template);
+        }
+      }
+    }
+  }
+  
+  // 3. 优先级排序
+  return suggestions.sort((a, b) => 
+    PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]
+  );
+}
+```
+
+### 预定义的建议模板
+
+<CardGrid>
+  <Card title="Mission 维度" icon="target">
+    - 检查 Agent 运行失败根因
+    - 排查超时和 API 错误
+    - 验证模型配置正确性
+  </Card>
+  <Card title="Action 维度" icon="settings">
+    - 检查工具注册和调用引导配置
+    - 优化工具描述和参数 schema
+    - 添加工具使用示例到 system prompt
+  </Card>
+  <Card title="Context 维度" icon="layers">
+    - 修复多轮对话上下文丢失
+    - 确认历史消息完整传递
+    - 添加上下文关联指令
+  </Card>
+  <Card title="Execution 维度" icon="zap">
+    - 提升回答可操作性
+    - 扩展知识库覆盖度
+    - 优化分析结果结构化输出
+  </Card>
+  <Card title="Ethics 维度" icon="shield">
+    - 添加固定风险提示后缀
+    - 要求输出具体风险因素
+    - 在 system prompt 追加风险免责模板
+  </Card>
+</CardGrid>
+
+### LLM 增强的建议生成
+
+可选启用 LLM-Judge 生成更精准的改进建议：
+
+```typescript
+// packages/evaluation/src/suggestions/llm-based.ts
+
+export async function generateLlmSuggestions(
+  report: EvaluationReport,
+  options: LlmJudgeOptions
+): Promise<EvaluationSuggestion[]> {
+  const prompt = buildSuggestionPrompt(report);
+  
+  const response = await fetch(options.baseUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: options.model,
+      messages: [
+        { role: 'system', content: SUGGESTION_SYSTEM_PROMPT },
+        { role: 'user', content: prompt },
+      ],
+    }),
+  });
+  
+  return parseSuggestions(await response.json());
+}
+```
+
+## 使用方法
+
+### Web 界面使用
+
+<Steps>
+  1. **访问评测页面**
+     进入 **设置 → 评测** 页面
+  
+  2. **配置评测参数**
+     - 选择评测引擎（Hermes、Claude、DeepAgents）
+     - 选择评测类别（支持多选）
+     - 设置通过阈值（默认 0.7）
+     - 设置并发数（默认 3）
+  
+  3. **启动评测**
+     点击 **开始评测** 按钮，实时查看进度
+  
+  4. **查看结果**
+     - 总体得分和通过率
+     - 各维度得分分布
+     - 失败用例详情
+     - 改进建议列表
+  
+  5. **历史对比**
+     在 **历史** 标签页查看所有评测记录，对比不同配置的效果
+</Steps>
+
+### 命令行使用
+
+```bash
+# 运行完整评测（所有类别）
+pnpm eval
+
+# 指定引擎和类别
+pnpm eval --engine hermes \
+          --categories asset-query,portfolio-analysis
+
+# 设置并发度和阈值
+pnpm eval --concurrency 5 \
+          --threshold 0.75
+
+# 使用 Web API 模式
+pnpm eval --transport web-api \
+          --base-url http://localhost:3000 \
+          --model gpt-4o-mini
+
+# 启用 Mastra 评测器
+pnpm eval --mastra-model openai/gpt-4o-mini
+
+# 启用 LLM-Judge 建议
+pnpm eval --llm-judge \
+          --llm-judge-model gpt-4
+
+# 限制测试用例数量
+pnpm eval --limit 10
+
+# 自定义运行 ID
+pnpm eval --run-id eval-$(date +%Y%m%d-%H%M%S)
+```
+
+### API 集成
+
+```typescript
+import {
+  loadBenchmarkCases,
+  evaluateCases,
+  summarizeResults,
+} from '@investment-agent/evaluation';
+
+// 加载测试用例
+const cases = loadBenchmarkCases(['asset-query', 'portfolio-analysis']);
+
+// 运行评测
+const report = await evaluateCases(cases, {
+  engine: 'hermes',
+  categories: ['asset-query', 'portfolio-analysis'],
+  threshold: 0.7,
+  concurrency: 3,
+  transport: 'web-api',
+  runId: 'eval-custom-001',
+  webApiRun: {
+    baseUrl: 'http://localhost:3000',
+    model: 'Kimi-K2.6',
+    provider: 'ant',
+    maxIterations: 15,
+    timeoutMs: 180000,
+  },
+  // 可选：启用 Mastra 评测器
+  mastraModel: 'openai/gpt-4o-mini',
+  // 可选：启用 LLM-Judge 建议
+  llmJudge: {
+    baseUrl: 'https://api.openai.com/v1',
+    model: 'gpt-4',
+    provider: 'openai',
+  },
+});
+
+// 打印结果
+console.log(`Score: ${report.summary.score.toFixed(3)}`);
+console.log(`Passed: ${report.summary.passed}/${report.summary.total}`);
+console.log(`By Dimension:`, report.summary.byDimension);
+console.log(`Suggestions:`, report.suggestions);
+```
+
+### 持久化与报告导出
+
+```typescript
+import { FilePersistenceAdapter } from '@investment-agent/evaluation/persistence';
+
+// 使用文件持久化
+const persistence = new FilePersistenceAdapter('./eval-reports');
+
+const report = await evaluateCases(cases, {
+  // ...options
+  persistenceAdapter: persistence,
+});
+
+// 报告会自动保存到 ./eval-reports/eval-{runId}.json
+```
+
+## 数据库集成
+
+评测系统会将运行记录保存到 SQLite 数据库：
+
+```typescript
+// 评测运行表
+interface EvaluationRun {
+  id: string;
+  engine: string;
+  categories: string;  // JSON 数组
+  status: 'running' | 'completed' | 'failed';
+  score: number;
+  totalCases: number;
+  passedCases: number;
+  failedCases: number;
+  threshold: number;
+  createdAt: string;
+  completedAt?: string;
+}
+
+// 用例结果表
+interface CaseResult {
+  id: number;
+  runId: string;
+  caseId: string;
+  category: string;
+  passed: boolean;
+  score: number;
+  dimensionScores: string;  // JSON 对象
+  engine: string;
+  runRecord: string;  // JSON 对象
+  scorers: string;  // JSON 数组
+}
+```
+
+**查询历史记录**:
+```typescript
+// 通过 API 查询
+GET /api/evaluation?limit=20&engine=hermes
+
+// 获取单次评测详情
+GET /api/evaluation/{runId}
+
+// 实时进度流
+GET /api/evaluation/{runId}/stream  (EventSource)
+```
+
+## 最佳实践
+
+### 评测时机
+
+<CardGrid>
+  <Card title="提示词变更后" icon="edit">
+    每次修改 System Prompt 或工具描述后，应运行评测验证效果。
+  </Card>
+  <Card title="模型升级时" icon="zap">
+    切换或升级模型版本前，先运行评测建立基线，升级后再对比。
+  </Card>
+  <Card title="发布前验证" icon="check">
+    正式发布前运行完整评测，确保得分不低于基准线。
+  </Card>
+  <Card title="定期回归" icon="calendar">
+    建议每周运行一次完整评测，监控智能体表现趋势。
+  </Card>
+</CardGrid>
+
+### 评测策略
+
+<Steps>
+  1. **建立基准线**
+     首次运行完整评测，记录各维度得分作为基准
+  
+  2. **针对性验证**
+     修改特定功能后，运行相关类别的评测
+     - 修改资产查询工具 → `asset-query` 类别
+     - 优化多轮对话 → `multi-turn` 类别
+  
+  3. **对比不同引擎**
+     使用相同评测集对比 Hermes、Claude、DeepAgents 的表现
+  
+  4. **关注低分维度**
+     优先改进持续低于阈值的维度
+  
+  5. **扩展用例集**
+     根据实际业务场景添加自定义评测用例
+</Steps>
+
+### 自定义评测用例
+
+在 `packages/evaluation/src/benchmarks/datasets/` 目录下添加 JSON 文件：
+
+```json
+[
+  {
+    "id": "custom-query-001",
+    "title": "Custom stock analysis",
+    "difficulty": "medium",
+    "category": "asset-query",
+    "input": "分析茅台的投资价值",
+    "expected": {
+      "keywords": ["茅台", "估值", "增长", "风险"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["保证收益", "必涨"],
+      "requireRiskDisclosure": true,
+      "tools": ["stock_get_price", "stock_search_news"]
+    }
+  }
+]
+```
+
+<Aside type="caution">
+自定义用例需要在 `benchmarks/cases.ts` 中导入并注册到 `datasets` 对象。
+</Aside>
+
+## 故障排查
+
+### 常见问题
+
+<details>
+<summary><strong>Q: 评测得分突然降低</strong></summary>
+
+**可能原因**:
+1. 模型 API 稳定性问题
+2. 外部数据源（如股票价格 API）超时
+3. System Prompt 被意外修改
+4. 工具注册发生变化
+
+**排查步骤**:
+1. 检查失败用例的错误信息
+2. 对比历史 System Prompt 版本
+3. 验证工具调用是否正常
+4. 单独运行失败用例进行调试
+</details>
+
+<details>
+<summary><strong>Q: Mastra 评测器全部返回 score: 0</strong></summary>
+
+**解决方案**:
+Mastra 评测器需要配置 LLM API Key 和基础 URL：
+
+```typescript
+const report = await evaluateCases(cases, {
+  // ...other options
+  mastraModel: 'openai/gpt-4o-mini',
+  llmJudge: {
+    baseUrl: 'https://api.openai.com/v1',
+    model: 'gpt-4',
+    provider: 'openai',
+  },
+});
+```
+
+检查环境变量：
+```bash
+export OPENAI_API_KEY=sk-xxx
+# 或
+export ANTHROPIC_API_KEY=sk-xxx
+```
+</details>
+
+<details>
+<summary><strong>Q: 评测超时如何处理</strong></summary>
+
+**解决方案**:
+增加超时时间和减少并发数：
+
+```bash
+pnpm eval --timeout 300000 --concurrency 1
+```
+
+或在 API 中配置：
+```typescript
+await evaluateCases(cases, {
+  // ...
+  webApiRun: {
+    timeoutMs: 300000,  // 5 分钟
+  },
+});
+```
+</details>
+
+<details>
+<summary><strong>Q: 评测报告数据库过大</strong></summary>
+
+**解决方案**:
+定期清理旧评测记录：
+
+```sql
+-- 删除 30 天前的评测记录
+DELETE FROM evaluation_runs WHERE created_at < datetime('now', '-30 days');
+DELETE FROM case_results WHERE run_id NOT IN (SELECT id FROM evaluation_runs);
+```
+
+或保留最近的 N 条记录：
+```sql
+DELETE FROM evaluation_runs 
+WHERE id NOT IN (
+  SELECT id FROM evaluation_runs 
+  ORDER BY created_at DESC 
+  LIMIT 20
+);
+```
+</details>
+
+## 性能优化
+
+### 并发控制
+
+评测系统使用并发控制确保资源合理使用：
+
+```typescript
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  fn: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let nextIndex = 0;
+
+  async function worker() {
+    while (nextIndex < items.length) {
+      const index = nextIndex++;
+      results[index] = await fn(items[index]);
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, worker));
+  return results;
+}
+```
+
+**推荐配置**:
+- **本地开发**: concurrency = 3, timeout = 180s
+- **CI/CD**: concurrency = 5, timeout = 300s
+- **生产环境**: concurrency = 10, timeout = 120s
+
+### 流式响应处理
+
+Web API Runner 使用流式处理避免超时：
+
+```typescript
+// SSE 流解析优化
+function splitSseEvents(buffer: string): { pending: string; parts: string[] } {
+  const parts = buffer.split(/\r?\n\r?\n/);
+  const pending = parts.pop() ?? '';
+  return { pending, parts };
+}
+
+// 增量解析，避免内存占用过大
+for (const part of split.parts) {
+  const event = parseSsePayload(part);
+  if (event) applyStreamEvent(collector, event, state);
+}
+```
+
+## 可观测性集成
+
+评测系统与 Investment Agent 的可观测性框架深度集成：
+
+<CardGrid>
+  <Card title="追踪关联" icon="link">
+    每个评测用例的执行都会生成完整的追踪记录（Trace），包含 Span、指标和日志。
+  </Card>
+  <Card title="指标上报" icon="chart">
+    评测指标可导出到监控系统：
+    - 评测总分趋势
+    - 各维度得分变化
+    - 通过率统计
+    - 用例执行耗时
+  </Card>
+  <Card title="成本核算" icon="dollar">
+    自动统计评测过程的：
+    - Token 使用量（输入/输出）
+    - API 调用成本
+    - 平均单用例成本
+  </Card>
+  <Card title="历史对比" icon="history">
+    SQLite 持久化支持：
+    - 历史评测结果存储
+    - 得分趋势图表
+    - 回归问题定位
+  </Card>
+</CardGrid>
+
+### 与 Hermes 集成
+
+```typescript
+// Hermes Agent 执行记录包含完整可观测性数据
+interface HermesResult {
+  completed: boolean;
+  observability: {
+    tokens: {
+      input: number;
+      output: number;
+      total: number;
+    };
+    cost: number;
+    duration: number;
+    toolCalls: number;
+    iterations: number;
+  };
+  trace: {
+    traceId: string;
+    spans: Span[];
+  };
+}
+```
+
+## 扩展开发
+
+### 添加自定义评测器
+
+```typescript
+// packages/evaluation/src/core/scorers.ts
+
+export function scoreCustomMetric(
+  testCase: BenchmarkCase,
+  record: EvaluationRunRecord
+): ScorerResult {
+  // 实现自定义评分逻辑
+  const score = calculateCustomScore(testCase, record);
+  
+  return {
+    dimension: 'execution',  // 或自定义维度
+    name: 'custom-metric',
+    passed: score >= 0.7,
+    reason: `Custom metric score: ${score.toFixed(2)}`,
+    score,
+  };
+}
+
+// 在 runAllScorers 中注册
+export function runAllScorers(
+  testCase: BenchmarkCase,
+  record: EvaluationRunRecord
+): ScorerResult[] {
+  return [
+    // ...existing scorers
+    scoreCustomMetric(testCase, record),
+  ];
+}
+```
+
+### 添加自定义引擎
+
+```typescript
+// packages/evaluation/src/core/custom-runner.ts
+
+export interface CustomRunOptions {
+  // 自定义配置
+}
+
+export async function runCustomCase(
+  testCase: BenchmarkCase,
+  options: CustomRunOptions
+): Promise<EvaluationRunRecord> {
+  // 实现自定义执行逻辑
+  const collector = new EvaluationEventCollector({
+    agentId: 'custom_agent',
+    caseId: testCase.id,
+    engine: 'custom',
+    input: testCase.input,
+  });
+  
+  // 执行自定义 Agent
+  // ...
+  
+  return collector.toRecord();
+}
+
+// 在 evaluator.ts 中添加引擎支持
+if (options.engine === 'custom') {
+  record = await runCustomCase(testCase, options.customRun);
+}
+```

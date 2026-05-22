@@ -44,6 +44,7 @@ logs
 data_cache
 run
 /report
+packages/evaluation/reports/
 
 # database
 *.db

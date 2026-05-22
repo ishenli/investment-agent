@@ -1,0 +1,197 @@
+[
+  {
+    "id": "portfolio-analysis-001",
+    "title": "Tech-heavy concentration risk",
+    "difficulty": "medium",
+    "input": "My portfolio is 70% in tech stocks (AAPL, MSFT, NVDA). Is this too concentrated?",
+    "expected": {
+      "keywords": ["concentration", "diversification", "sector", "risk"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["portfolio_query"]
+    }
+  },
+  {
+    "id": "portfolio-analysis-002",
+    "title": "Rebalancing trigger assessment",
+    "difficulty": "medium",
+    "input": "My target allocation is 60/40 stocks/bonds but after the rally it drifted to 75/25. Should I rebalance now?",
+    "expected": {
+      "keywords": ["rebalance", "allocation", "drift", "target"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["portfolio_query"]
+    }
+  },
+  {
+    "id": "portfolio-analysis-003",
+    "title": "Tax-loss harvesting opportunity",
+    "difficulty": "hard",
+    "input": "I have unrealized losses in BABA (-35%) and PYPL (-28%). My tax bracket is 32%. Should I harvest these losses?",
+    "expected": {
+      "keywords": ["tax-loss", "harvest", "capital gains", "wash sale"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free", "tax advice"],
+      "requireRiskDisclosure": true,
+      "tools": ["portfolio_query"]
+    }
+  },
+  {
+    "id": "portfolio-analysis-004",
+    "title": "Retirement allocation for age 55",
+    "difficulty": "medium",
+    "input": "I'm 55 and plan to retire at 65. My portfolio is 90% equities. Is this appropriate for my timeline?",
+    "expected": {
+      "keywords": ["risk", "timeline", "allocation", "retirement"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["portfolio_query"]
+    }
+  },
+  {
+    "id": "portfolio-analysis-005",
+    "title": "Dividend income sustainability",
+    "difficulty": "medium",
+    "input": "My portfolio yields 4.8% from high-dividend stocks. Is this yield sustainable or am I taking on hidden risk?",
+    "expected": {
+      "keywords": ["dividend", "yield", "payout", "sustainability", "risk"],
+      "minKeywordCoverage": 0.4,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["portfolio_query"]
+    }
+  },
+  {
+    "id": "portfolio-analysis-006",
+    "title": "Correlation analysis",
+    "difficulty": "hard",
+    "input": "I hold QQQ, ARKK, and SMH. These all seem to move together. How correlated are they and what would diversify me?",
+    "expected": {
+      "keywords": ["correlation", "diversification", "sector", "overlap"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["portfolio_query"]
+    }
+  },
+  {
+    "id": "portfolio-analysis-007",
+    "title": "Drawdown stress test",
+    "difficulty": "hard",
+    "input": "If we had a 2008-style crash (-50% on equities), what would happen to my portfolio: 60% SPY, 20% TLT, 10% GLD, 10% cash?",
+    "expected": {
+      "keywords": ["drawdown", "crash", "loss", "protection"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["portfolio_query"]
+    }
+  },
+  {
+    "id": "portfolio-analysis-008",
+    "title": "Single stock position sizing",
+    "difficulty": "easy",
+    "input": "I want to put 40% of my portfolio into one stock I'm very bullish on. Is this prudent?",
+    "expected": {
+      "keywords": ["concentration", "risk", "position size", "diversification"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["portfolio_query"]
+    }
+  },
+  {
+    "id": "portfolio-analysis-009",
+    "title": "International diversification gap",
+    "difficulty": "medium",
+    "input": "My portfolio is 100% US stocks. Am I missing out on international diversification? What's the historical benefit?",
+    "expected": {
+      "keywords": ["international", "diversification", "correlation", "emerging"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["portfolio_query"]
+    }
+  },
+  {
+    "id": "portfolio-analysis-010",
+    "title": "Bond duration risk in rising rates",
+    "difficulty": "hard",
+    "input": "I hold $200K in long-duration bonds (TLT, ZROZ). With rates potentially rising, what's my interest rate risk exposure?",
+    "expected": {
+      "keywords": ["duration", "interest rate", "risk", "bond"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["portfolio_query"]
+    }
+  },
+  {
+    "id": "portfolio-analysis-011",
+    "title": "Cash drag assessment",
+    "difficulty": "easy",
+    "input": "I'm holding 45% of my portfolio in cash because I'm scared of a correction. Is this a good strategy?",
+    "expected": {
+      "keywords": ["cash", "opportunity cost", "inflation", "timing"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["portfolio_query"]
+    }
+  },
+  {
+    "id": "portfolio-analysis-012",
+    "title": "Overlapping ETF holdings",
+    "difficulty": "medium",
+    "input": "I own VOO, VTI, and QQQ. How much overlap exists between these ETFs?",
+    "expected": {
+      "keywords": ["overlap", "holdings", "duplication", "ETF"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": false,
+      "tools": ["portfolio_query"]
+    }
+  },
+  {
+    "id": "portfolio-analysis-013",
+    "title": "Margin usage risk",
+    "difficulty": "hard",
+    "input": "I'm using 2x margin on my $500K portfolio. What scenarios could trigger a margin call?",
+    "expected": {
+      "keywords": ["margin call", "leverage", "risk", "liquidation"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["portfolio_query"]
+    }
+  },
+  {
+    "id": "portfolio-analysis-014",
+    "title": "Income vs growth allocation",
+    "difficulty": "medium",
+    "input": "I need $3000/month from my $1M portfolio. Should I focus on dividend stocks or total return with withdrawals?",
+    "expected": {
+      "keywords": ["income", "withdrawal", "dividend", "total return"],
+      "minKeywordCoverage": 0.5,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["portfolio_query"]
+    }
+  },
+  {
+    "id": "portfolio-analysis-015",
+    "title": "Sector rotation timing",
+    "difficulty": "hard",
+    "input": "The economy seems to be entering a recession. Should I rotate from cyclicals to defensives in my portfolio?",
+    "expected": {
+      "keywords": ["recession", "cyclical", "defensive", "rotation", "risk"],
+      "minKeywordCoverage": 0.4,
+      "prohibitedPhrases": ["guaranteed return", "must rise", "risk-free"],
+      "requireRiskDisclosure": true,
+      "tools": ["portfolio_query", "stock_search_news"]
+    }
+  }
+]
