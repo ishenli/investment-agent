@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import type { EvaluationEngine, EvaluationMessage, EvaluationRunRecord, EvaluationToolCall } from '../core/types';
 
 export interface EventCollectorOptions {
@@ -55,7 +56,7 @@ export class EvaluationEventCollector {
       startedAt: this.startedAt.toISOString(),
       status,
       toolCalls: this.toolCalls,
-      trace: { metrics: [], spans: [] },
+      trace: { metrics: [], spans: [], traceId: crypto.randomUUID() },
     };
   }
 }
