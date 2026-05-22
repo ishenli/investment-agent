@@ -3,7 +3,7 @@ title: 评测系统
 description: Investment Agent 的智能体评测框架与技术架构详解
 ---
 
-import { Card, CardGrid, Tabs, Steps, Aside } from '@astrojs/starlight/components';
+import { Card, CardGrid, Tabs, TabItem, Steps, Aside } from '@astrojs/starlight/components';
 
 ## 概述
 
@@ -123,7 +123,7 @@ export async function evaluateCases(
 执行引擎负责实际运行智能体并收集执行记录：
 
 <Tabs>
-  <Tabs.Tab label="Web API Runner">
+  <TabItem label="Web API Runner">
     **适用场景**: 通过 HTTP API 调用已部署的智能体服务
     
     ```typescript
@@ -141,9 +141,9 @@ export async function evaluateCases(
     - 支持 SSE (Server-Sent Events) 流式响应
     - 自动解析流式事件提取工具调用
     - 支持多种引擎的 API 端点映射
-  </Tabs.Tab>
+  </TabItem>
   
-  <Tabs.Tab label="Real Runner">
+  <TabItem label="Real Runner">
     **适用场景**: 直接调用智能体 SDK（当前仅支持 Hermes）
     
     ```typescript
@@ -159,14 +159,14 @@ export async function evaluateCases(
     - 直接实例化 HermesAgent
     - 通过回调函数收集执行事件
     - 完整的可观测性数据采集
-  </Tabs.Tab>
+  </TabItem>
   
-  <Tabs.Tab label="Mock Runner">
+  <TabItem label="Mock Runner">
     **适用场景**: 测试评测流程本身，不实际调用智能体
     
     **返回数据**: 基于 GPT-4 生成的高质量模拟响应
     **用途**: 验证评测器逻辑、CI/CD 管道测试
-  </Tabs.Tab>
+  </TabItem>
 </Tabs>
 
 ### 数据流架构
