@@ -180,6 +180,17 @@ function createMessageDispatcher(channel: WeixinChannel, handler: WeixinAgentHan
       // 1. Get or create session (with caching)
       const sessionId = await getOrCreateSession(message.channelId, userId, sessionIdCache);
 
+      // Handle /clear command: wipe conversation history for this session
+      const trimmed = message.content.trim().toLowerCase();
+      if (trimmed === '/clear' || trimmed === 'clear') {
+        await chatStorageService.deleteMessagesBySessionAndTopic(sessionId);
+        logger.info(`[WeixinSvc] Context cleared  sessionId=${sessionId.slice(0, 8)}... channelId=${message.channelId}`);
+        await channel.sendMessage(message.channelId, {
+          content: '上下文已清除，可以开始新的对话。',
+        });
+        return;
+      }
+
       // 2. Load history BEFORE saving current message
       const history = await loadHistoryMessages(sessionId);
       logger.info(`[WeixinSvc] 📜 History loaded  turns=${history.length}`);

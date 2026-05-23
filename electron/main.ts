@@ -272,7 +272,7 @@ function getTrayIconPath(): string {
   }
   // macOS 打包后，尝试使用 PNG 格式的托盘图标
   if (process.platform === 'darwin') {
-    const pngPath = path.join(process.resourcesPath, 'icon.png');
+    const pngPath = path.join(process.resourcesPath, 'ig.png');
     if (fs.existsSync(pngPath)) {
       return pngPath;
     }

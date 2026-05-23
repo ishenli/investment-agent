@@ -65,6 +65,8 @@ extraResources:
     filter: ["icon.*"]
   - from: build/icon.png
     to: icon.png
+  - from: build/ig.png 
+    to: ig.png
   - from: "drizzle"
     to: "standalone/drizzle"
   - from: "skills"
