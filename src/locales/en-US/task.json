@@ -1,0 +1,103 @@
+{
+  "title": "Task Management",
+  "description": "Manage your investment tasks and reminders",
+  "tabs": {
+    "board": "Board View",
+    "list": "List View"
+  },
+  "actions": {
+    "create": "New Task",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "saving": "Saving...",
+    "close": "Close"
+  },
+  "status": {
+    "pending": "Pending",
+    "in_progress": "In Progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "expired": "Expired"
+  },
+  "type": {
+    "one_time": "One-time",
+    "price_trigger": "Price Trigger",
+    "monitoring": "Monitoring",
+    "date_driven": "Date Driven"
+  },
+  "priority": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "urgent": "Urgent"
+  },
+  "sourceType": {
+    "agent_chat": "AI Chat",
+    "analysis_report": "Analysis Report",
+    "manual": "Manual"
+  },
+  "triggerDirection": {
+    "above": "Above",
+    "below": "Below"
+  },
+  "fields": {
+    "title": "Title",
+    "titlePlaceholder": "Enter task title",
+    "description": "Description",
+    "descriptionPlaceholder": "Enter task description (optional)",
+    "type": "Task Type",
+    "priority": "Priority",
+    "status": "Status",
+    "linkedSymbols": "Linked Symbols",
+    "linkedSymbolsPlaceholder": "Enter symbols separated by commas (e.g. AAPL,MSFT)",
+    "triggerPrice": "Trigger Price",
+    "triggerPricePlaceholder": "Enter trigger price",
+    "triggerDirection": "Trigger Direction",
+    "dueDate": "Due Date",
+    "executionNotes": "Execution Notes",
+    "executionNotesPlaceholder": "Enter execution notes",
+    "createdAt": "Created At",
+    "updatedAt": "Updated At",
+    "completedAt": "Completed At",
+    "triggerCondition": "Trigger Condition"
+  },
+  "editor": {
+    "createTitle": "New Task",
+    "editTitle": "Edit Task",
+    "viewTitle": "Task Details"
+  },
+  "filters": {
+    "searchPlaceholder": "Search tasks...",
+    "allStatuses": "All Statuses",
+    "allPriorities": "All Priorities",
+    "allTypes": "All Types"
+  },
+  "board": {
+    "emptyColumn": "No tasks",
+    "invalidMove": "Cannot move to this status"
+  },
+  "list": {
+    "empty": "No tasks",
+    "loading": "Loading..."
+  },
+  "messages": {
+    "createSuccess": "Task created successfully",
+    "updateSuccess": "Task updated successfully",
+    "deleteSuccess": "Task deleted successfully",
+    "deleteConfirm": "Are you sure you want to delete this task?",
+    "fetchError": "Failed to fetch tasks",
+    "createError": "Failed to create task",
+    "updateError": "Failed to update task",
+    "deleteError": "Failed to delete task",
+    "titleRequired": "Title is required",
+    "networkError": "Network error"
+  },
+  "empty": {
+    "title": "No tasks yet",
+    "description": "Click the \"New Task\" button to create your first investment task"
+  },
+  "moveTo": "Move to"
+}

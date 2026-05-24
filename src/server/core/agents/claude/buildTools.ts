@@ -1,6 +1,6 @@
 import { createSdkMcpServer } from '@anthropic-ai/claude-agent-sdk';
-import { 
-  noteQueryClaudeTool, 
+import {
+  noteQueryClaudeTool,
   TravilySearchClaudeTool,
   stockRecallMarketInfoClaudeTool,
   stockRecallCompanyInfoClaudeTool,
@@ -12,6 +12,9 @@ import {
   accountBalanceClaudeTool,
   transactionSummaryClaudeTool,
   addTransactionClaudeTool,
+  createTaskClaudeTool,
+  listTasksClaudeTool,
+  updateTaskClaudeTool,
 } from '@server/core/agents/langchain/tools';
 
 /**
@@ -57,6 +60,11 @@ export const igToolsServer = createSdkMcpServer({
 
     // 添加交易记录工具
     addTransactionClaudeTool,
+
+    // 任务管理工具
+    createTaskClaudeTool,
+    listTasksClaudeTool,
+    updateTaskClaudeTool,
 
   ],
 });

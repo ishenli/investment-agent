@@ -597,7 +597,8 @@
       "search": "搜索",
       "transaction": "交易",
       "market": "市场",
-      "report": "报告"
+      "report": "报告",
+      "task": "任务"
     },
     "description": "管理您的 API 密钥和内置工具",
     "descriptions": {

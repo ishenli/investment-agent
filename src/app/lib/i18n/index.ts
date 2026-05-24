@@ -49,6 +49,7 @@ export const namespaces = [
   'asset-management',
   'notification',
   'settingNotification',
+  'task',
 ] as const;
 
 const dayjsLocaleMap: Record<string, string> = {
@@ -89,6 +90,7 @@ import zhCNAssetMarketInfo from '@/locales/zh-CN/asset-market-info.json';
 import zhCNAssetMarketInfoFetcher from '@/locales/zh-CN/asset-market-info-fetcher.json';
 import zhCNAssetManagement from '@/locales/zh-CN/asset-management.json';
 import zhCNNotification from '@/locales/zh-CN/notification.json';
+import zhCNTask from '@/locales/zh-CN/task.json';
 
 
 import enUSCommon from '@/locales/en-US/common.json';
@@ -115,6 +117,7 @@ import enUSAssetMarketInfoFetcher from '@/locales/en-US/asset-market-info-fetche
 import enUSAssetManagement from '@/locales/en-US/asset-management.json';
 import enUSNotification from '@/locales/en-US/notification.json';
 import enUSSettingNotification from '@/locales/en-US/setting.notification.json';
+import enUSTask from '@/locales/en-US/task.json';
 
 
 
@@ -144,6 +147,7 @@ export const resources = {
     'asset-market-info-fetcher': zhCNAssetMarketInfoFetcher,
     'asset-management': zhCNAssetManagement,
     notification: zhCNNotification,
+    task: zhCNTask,
   },
   'en-US': {
     common: enUSCommon,
@@ -170,6 +174,7 @@ export const resources = {
     'asset-market-info-fetcher': enUSAssetMarketInfoFetcher,
     'asset-management': enUSAssetManagement,
     notification: enUSNotification,
+    task: enUSTask,
   },
 
 };

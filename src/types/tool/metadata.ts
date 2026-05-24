@@ -10,7 +10,8 @@ export type ToolCategory =
   | 'search'
   | 'transaction'
   | 'market'
-  | 'report';
+  | 'report'
+  | 'task';
 
 export interface SchemaProperty {
   /** 属性名 */
@@ -43,7 +44,7 @@ export interface ToolMetadata {
 }
 
 export const CATEGORY_ORDER: ToolCategory[] = [
-  'system', 'stock', 'asset', 'note', 'search', 'transaction', 'market', 'report',
+  'system', 'stock', 'asset', 'note', 'search', 'transaction', 'market', 'report', 'task',
 ];
 
 export interface RawToolDefinition {

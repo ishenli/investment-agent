@@ -316,6 +316,13 @@
       "when": 1779284127755,
       "tag": "0044_bouncy_wild_pack",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "6",
+      "when": 1779662689234,
+      "tag": "0045_orange_dragon_man",
+      "breakpoints": true
     }
   ]
 }

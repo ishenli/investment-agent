@@ -9,6 +9,7 @@ import {
   CreditCard,
   BarChart3,
   FileText,
+  ListTodo,
 } from 'lucide-react';
 import type { ToolCategory } from '@/types/tool/metadata';
 
@@ -21,4 +22,5 @@ export const CATEGORY_ICON_MAP: Record<ToolCategory, React.ReactNode> = {
   transaction: <CreditCard className="h-4 w-4" />,
   market: <BarChart3 className="h-4 w-4" />,
   report: <FileText className="h-4 w-4" />,
+  task: <ListTodo className="h-4 w-4" />,
 };

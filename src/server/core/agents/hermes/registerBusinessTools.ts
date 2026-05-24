@@ -26,6 +26,9 @@ import {
   queryPortfolio,
   createAssetMeta,
   updateAssetMeta,
+  createTaskBiz,
+  listTasksBiz,
+  updateTaskBiz,
 } from '@server/core/business';
 import { MarketBizController } from '@server/controller/market';
 import { ReportController } from '@server/controller/report';
@@ -241,6 +244,36 @@ const assetMetaUpdateSchema = Type.Object({
   investmentMemo: Type.Optional(Type.String({ description: '投资备忘录，传空字符串表示清空' })),
 });
 
+// Task Schemas
+const taskCreateSchema = Type.Object({
+  title: Type.String({ description: '任务标题' }),
+  description: Type.Optional(Type.String({ description: '任务描述' })),
+  type: Type.Optional(Type.String({ description: '任务类型: one_time | price_trigger | monitoring | date_driven，默认 one_time' })),
+  priority: Type.Optional(Type.String({ description: '优先级: low | medium | high | urgent，默认 medium' })),
+  linked_symbols: Type.Optional(Type.Array(Type.String(), { description: '关联资产代号列表，如 ["AAPL", "NVDA"]' })),
+  due_date: Type.Optional(Type.String({ description: '截止日期 (YYYY-MM-DD 格式)' })),
+  source_type: Type.Optional(Type.String({ description: '来源类型: manual | agent_chat | analysis_report，默认 agent_chat' })),
+  source_id: Type.Optional(Type.String({ description: '来源ID（如聊天会话ID或报告ID）' })),
+});
+
+const taskListSchema = Type.Object({
+  status: Type.Optional(Type.String({ description: '按状态过滤: pending | in_progress | completed | cancelled | expired' })),
+  priority: Type.Optional(Type.String({ description: '按优先级过滤: low | medium | high | urgent' })),
+  search: Type.Optional(Type.String({ description: '搜索关键词（标题或描述）' })),
+  limit: Type.Optional(Type.Number({ description: '每页数量，默认20' })),
+  offset: Type.Optional(Type.Number({ description: '偏移量，默认0' })),
+});
+
+const taskUpdateSchema = Type.Object({
+  task_id: Type.String({ description: '任务ID' }),
+  status: Type.Optional(Type.String({ description: '新状态: pending | in_progress | completed | cancelled' })),
+  title: Type.Optional(Type.String({ description: '新标题' })),
+  description: Type.Optional(Type.String({ description: '新描述' })),
+  priority: Type.Optional(Type.String({ description: '新优先级: low | medium | high | urgent' })),
+  execution_notes: Type.Optional(Type.String({ description: '执行备注（完成任务时记录执行结果）' })),
+  linked_symbols: Type.Optional(Type.Array(Type.String(), { description: '关联资产代号列表' })),
+});
+
 // ============== Tool Names ==============
 
 export type BusinessToolName =
@@ -271,7 +304,10 @@ export type BusinessToolName =
   | 'asset_market_info_delete'
   | 'report_list'
   | 'report_detail'
-  | 'portfolio_query';
+  | 'portfolio_query'
+  | 'task_create'
+  | 'task_list'
+  | 'task_update';
 
 export interface BusinessToolsConfig {
   enable?: BusinessToolName[];
@@ -314,6 +350,9 @@ export function registerBusinessTools(
         'report_list',
         'report_detail',
         'portfolio_query',
+        'task_create',
+        'task_list',
+        'task_update',
       ]);
 
   const wrap =
@@ -810,6 +849,64 @@ export function registerBusinessTools(
             fullName: args.fullName !== undefined ? String(args.fullName) : undefined,
             logoUrl: args.logoUrl !== undefined ? String(args.logoUrl) : undefined,
             investmentMemo: args.investmentMemo !== undefined ? String(args.investmentMemo) : undefined,
+          }),
+        )(),
+    );
+  }
+
+  // Task Tools
+  if (enabled.has('task_create')) {
+    registry.register(
+      'task_create',
+      '创建投资任务（用于跟踪投资建议、监控条件等）',
+      taskCreateSchema,
+      async (_id, args) =>
+        wrap(async () =>
+          createTaskBiz(String(args.title), {
+            description: args.description ? String(args.description) : undefined,
+            type: args.type ? String(args.type) as 'one_time' | 'price_trigger' | 'monitoring' | 'date_driven' : undefined,
+            priority: args.priority ? String(args.priority) as 'low' | 'medium' | 'high' | 'urgent' : undefined,
+            linkedSymbols: args.linked_symbols ? (args.linked_symbols as string[]) : undefined,
+            dueDate: args.due_date ? String(args.due_date) : undefined,
+            sourceType: args.source_type ? String(args.source_type) as 'manual' | 'agent_chat' | 'analysis_report' : 'agent_chat',
+            sourceId: args.source_id ? String(args.source_id) : undefined,
+          }),
+        )(),
+    );
+  }
+
+  if (enabled.has('task_list')) {
+    registry.register(
+      'task_list',
+      '查询当前用户的投资任务列表（支持按状态、优先级、关键词过滤）',
+      taskListSchema,
+      async (_id, args) =>
+        wrap(async () =>
+          listTasksBiz({
+            status: args.status ? String(args.status) as any : undefined,
+            priority: args.priority ? String(args.priority) as any : undefined,
+            search: args.search ? String(args.search) : undefined,
+            limit: args.limit ? Number(args.limit) : undefined,
+            offset: args.offset ? Number(args.offset) : undefined,
+          }),
+        )(),
+    );
+  }
+
+  if (enabled.has('task_update')) {
+    registry.register(
+      'task_update',
+      '更新投资任务（修改状态、内容、添加执行备注等）',
+      taskUpdateSchema,
+      async (_id, args) =>
+        wrap(async () =>
+          updateTaskBiz(String(args.task_id), {
+            status: args.status ? String(args.status) as any : undefined,
+            title: args.title ? String(args.title) : undefined,
+            description: args.description ? String(args.description) : undefined,
+            priority: args.priority ? String(args.priority) as any : undefined,
+            executionNotes: args.execution_notes ? String(args.execution_notes) : undefined,
+            linkedSymbols: args.linked_symbols ? (args.linked_symbols as string[]) : undefined,
           }),
         )(),
     );

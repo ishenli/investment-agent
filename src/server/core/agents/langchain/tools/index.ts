@@ -8,3 +8,4 @@ export * from './searchTool';
 export * from './dbQueryTool';
 export * from './transactionTool';
 export * from './portfolioTool';
+export * from './taskTool';

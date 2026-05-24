@@ -18,6 +18,7 @@ import {
   IconTelescope,
   IconCamera,
   IconNotification,
+  IconChecklist,
 } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 
@@ -76,6 +77,11 @@ export const data = {
       title: 'sidebar.navMain.deepAnalysis',
       url: '/research',
       icon: IconTelescope,
+    },
+    {
+      title: 'sidebar.navMain.taskManagement',
+      url: '/tasks',
+      icon: IconChecklist,
     },
   ],
   documents: [
