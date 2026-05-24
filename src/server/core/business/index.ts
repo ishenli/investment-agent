@@ -1,3 +1,4 @@
+export { createAssetMeta, updateAssetMeta } from './assetMeta';
 export {
   getMarketType,
   fetchStockPrice,

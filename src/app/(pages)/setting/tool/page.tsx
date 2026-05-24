@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { Eye, EyeOff, Key as KeyIcon } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@renderer/components/ui/tabs';
 import { useTranslation } from 'react-i18next';
+import { ToolList } from './components/ToolList';
 
 // 定义允许的设置键
 const ALLOWED_KEYS = [
@@ -45,6 +46,7 @@ export default function ToolSettings({
   const [visibleKeys, setVisibleKeys] = useState<Record<string, boolean>>({});
   const [activeTab, setActiveTab] = useState<string>(ALLOWED_KEYS[0]);
 
+
   // 获取所有设置
   useEffect(() => {
     const fetchSettings = async () => {
@@ -70,6 +72,7 @@ export default function ToolSettings({
 
     fetchSettings();
   }, []);
+
 
   // 切换密钥可见性
   const toggleVisibility = (key: SettingKey) => {
@@ -177,9 +180,9 @@ export default function ToolSettings({
     <div className="flex flex-1 flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{t('tool.title', 'API KEY 配置')}</h1>
+          <h1 className="text-2xl font-bold">{t('tool.title', '工具配置')}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {t('tool.description', '管理您的外部服务 API 密钥')}
+            {t('tool.description', '管理您的 API 密钥和内置工具')}
           </p>
         </div>
       </div>
@@ -196,75 +199,94 @@ export default function ToolSettings({
         </div>
       )}
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
-          {ALLOWED_KEYS.map((key) => (
-            <TabsTrigger key={key} value={key} className="text-sm">
-              {t(`tool.tabs.${key.toLowerCase().replace('_api_key', '').replace('_key', '')}`, key.replace('_API_KEY', '').replace('_KEY', ''))}
-            </TabsTrigger>
-          ))}
+      <Tabs defaultValue="api-keys" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="api-keys" className="text-sm">
+            {t('tool.builtin.tabApiKeys', 'API 密钥配置')}
+          </TabsTrigger>
+          <TabsTrigger value="builtin-tools" className="text-sm">
+            {t('tool.builtin.tabBuiltinTools', '内置工具')}
+          </TabsTrigger>
         </TabsList>
 
-        {ALLOWED_KEYS.map((key) => (
-          <TabsContent key={key} value={key}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <KeyIcon className="h-5 w-5" />
-                  {t(`tool.descriptions.${key}`, getSettingDescription(key))}
-                </CardTitle>
-                <CardDescription>{t(`tool.details.${key}`, getSettingDetail(key))}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor={key}>
-                    {key} <span className="text-muted-foreground text-xs ml-2">({t('tool.fields.envVarName', '环境变量名')})</span>
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id={key}
-                      type={visibleKeys[key] ? 'text' : 'password'}
-                      value={settings[key] || ''}
-                      onChange={(e) => setSettings((prev) => ({ ...prev, [key]: e.target.value }))}
-                      placeholder={t('tool.fields.inputPlaceholder', '请输入 %s 的值').replace('%s', key)}
-                      className="pr-10"
-                    />
-                    {isSensitiveKey(key) && (
-                      <button
-                        type="button"
-                        onClick={() => toggleVisibility(key)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
-                      >
-                        {visibleKeys[key] ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </button>
-                    )}
-                  </div>
-                </div>
+        {/* API 密钥配置 Tab */}
+        <TabsContent value="api-keys" className="space-y-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-3">
+              {ALLOWED_KEYS.map((key) => (
+                <TabsTrigger key={key} value={key} className="text-sm">
+                  {t(`tool.tabs.${key.toLowerCase().replace('_api_key', '').replace('_key', '')}`, key.replace('_API_KEY', '').replace('_KEY', ''))}
+                </TabsTrigger>
+              ))}
+            </TabsList>
 
-                <div className="flex gap-2 pt-2">
-                  <Button
-                    onClick={() => updateSetting(key, settings[key] || '')}
-                    disabled={saving}
-                    className="flex-1"
-                  >
-                    {saving ? t('tool.actions.saving', '保存中...') : t('tool.actions.save', '保存')}
-                  </Button>
-                  <Button
-                    onClick={() => deleteSetting(key)}
-                    variant="outline"
-                    className="hover:bg-destructive hover:text-destructive-foreground"
-                  >
-                    {t('tool.actions.delete', '删除')}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        ))}
+            {ALLOWED_KEYS.map((key) => (
+              <TabsContent key={key} value={key}>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <KeyIcon className="h-5 w-5" />
+                      {t(`tool.descriptions.${key}`, getSettingDescription(key))}
+                    </CardTitle>
+                    <CardDescription>{t(`tool.details.${key}`, getSettingDetail(key))}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor={key}>
+                        {key} <span className="text-muted-foreground text-xs ml-2">({t('tool.fields.envVarName', '环境变量名')})</span>
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id={key}
+                          type={visibleKeys[key] ? 'text' : 'password'}
+                          value={settings[key] || ''}
+                          onChange={(e) => setSettings((prev) => ({ ...prev, [key]: e.target.value }))}
+                          placeholder={t('tool.fields.inputPlaceholder', '请输入 %s 的值').replace('%s', key)}
+                          className="pr-10"
+                        />
+                        {isSensitiveKey(key) && (
+                          <button
+                            type="button"
+                            onClick={() => toggleVisibility(key)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
+                          >
+                            {visibleKeys[key] ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 pt-2">
+                      <Button
+                        onClick={() => updateSetting(key, settings[key] || '')}
+                        disabled={saving}
+                        className="flex-1"
+                      >
+                        {saving ? t('tool.actions.saving', '保存中...') : t('tool.actions.save', '保存')}
+                      </Button>
+                      <Button
+                        onClick={() => deleteSetting(key)}
+                        variant="outline"
+                        className="hover:bg-destructive hover:text-destructive-foreground"
+                      >
+                        {t('tool.actions.delete', '删除')}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            ))}
+          </Tabs>
+        </TabsContent>
+
+        {/* 内置工具 Tab */}
+        <TabsContent value="builtin-tools">
+          <ToolList />
+        </TabsContent>
       </Tabs>
     </div>
   );

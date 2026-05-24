@@ -98,7 +98,6 @@ export class AssetMetaBizController extends BaseBizController {
         fullName: data.fullName,
         logoUrl: data.logoUrl || null,
         investmentMemo: data.investmentMemo,
-        updatedAt: new Date(),
       });
 
       // 5. 返回成功响应

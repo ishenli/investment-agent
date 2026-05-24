@@ -1,4 +1,4 @@
-import { assetMetaRepository, type AssetMetaEntity } from '@server/repository/assetMetaRepository';
+import { assetMetaRepository, type AssetMetaEntity, type CreateAssetMetaData, type UpdateAssetMetaData } from '@server/repository/assetMetaRepository';
 import logger from '@server/base/logger';
 import { AssetMetaType } from '@/types/assetMeta';
 
@@ -79,7 +79,7 @@ export class AssetMetaService {
    * @returns 创建的 assetMeta 记录
    */
   async createAssetMeta(
-    assetMetaData: Omit<AssetMetaType, 'id' | 'createdAt'>,
+    assetMetaData: CreateAssetMetaData,
   ): Promise<AssetMetaType> {
     try {
       const newAssetMeta = await assetMetaRepository.createAssetMeta({
@@ -113,7 +113,7 @@ export class AssetMetaService {
    */
   async updateAssetMeta(
     id: number,
-    assetMetaData: Partial<Omit<AssetMetaType, 'id'>>,
+    assetMetaData: UpdateAssetMetaData,
   ): Promise<AssetMetaType | null> {
     try {
       const updated = await assetMetaRepository.updateAssetMeta(id, {

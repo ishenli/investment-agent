@@ -577,7 +577,29 @@
       "save": "保存",
       "saving": "保存中..."
     },
-    "description": "管理您的外部服务 API 密钥",
+    "builtin": {
+      "all": "全部",
+      "empty": "未找到匹配的工具",
+      "loading": "加载工具列表...",
+      "noParams": "无参数",
+      "paramCount": "参数 ({{count}})",
+      "searchPlaceholder": "搜索工具名称或描述...",
+      "sourceBuiltin": "内置",
+      "sourceBusiness": "业务",
+      "tabApiKeys": "API 密钥配置",
+      "tabBuiltinTools": "内置工具"
+    },
+    "categories": {
+      "system": "系统",
+      "stock": "股票",
+      "asset": "资产",
+      "note": "笔记",
+      "search": "搜索",
+      "transaction": "交易",
+      "market": "市场",
+      "report": "报告"
+    },
+    "description": "管理您的 API 密钥和内置工具",
     "descriptions": {
       "FINANCIAL_DATASETS_KEY": "Financial Datasets密钥",
       "FINNHUB_API_KEY": "Finnhub API密钥",
@@ -608,7 +630,7 @@
       "langsmith": "LANGSMITH",
       "tavily": "TAVILY"
     },
-    "title": "API KEY 配置"
+    "title": "工具配置"
   },
   "observability": {
     "title": "观测历史",

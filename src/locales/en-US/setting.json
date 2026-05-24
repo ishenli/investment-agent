@@ -522,7 +522,29 @@
       "save": "Save",
       "saving": "Saving..."
     },
-    "description": "Manage your external service API keys",
+    "builtin": {
+      "all": "All",
+      "empty": "No matching tools found",
+      "loading": "Loading tool list...",
+      "noParams": "No parameters",
+      "paramCount": "Parameters ({{count}})",
+      "searchPlaceholder": "Search tool name or description...",
+      "sourceBuiltin": "Built-in",
+      "sourceBusiness": "Business",
+      "tabApiKeys": "API Keys",
+      "tabBuiltinTools": "Built-in Tools"
+    },
+    "categories": {
+      "system": "System",
+      "stock": "Stock",
+      "asset": "Asset",
+      "note": "Note",
+      "search": "Search",
+      "transaction": "Transaction",
+      "market": "Market",
+      "report": "Report"
+    },
+    "description": "Manage your API keys and built-in tools",
     "descriptions": {
       "FINANCIAL_DATASETS_KEY": "Financial Datasets Key",
       "FINNHUB_API_KEY": "Finnhub API Key",
@@ -553,7 +575,7 @@
       "langsmith": "LANGSMITH",
       "tavily": "TAVILY"
     },
-    "title": "API KEY Configuration"
+    "title": "Tool Configuration"
   },
   "channel": {
     "title": "Channel Settings",
