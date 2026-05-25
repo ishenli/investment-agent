@@ -20,6 +20,7 @@ export async function createTask(
     linkedSymbols?: string[];
     dueDate?: string;
     sourceType?: TaskSourceType;
+    sourceId?: string;
   },
 ): Promise<string> {
   const userId = await authService.getCurrentUserId();
@@ -37,6 +38,7 @@ export async function createTask(
       linkedSymbols: options?.linkedSymbols ?? [],
       dueDate: options?.dueDate ?? null,
       sourceType: options?.sourceType ?? 'agent_chat',
+      sourceId: options?.sourceId ?? null,
     });
     return `任务创建成功！\nID: ${task.id}\n标题: ${task.title}\n类型: ${task.type}\n优先级: ${task.priority}\n状态: ${task.status}${task.dueDate ? `\n截止日期: ${new Date(task.dueDate).toISOString().slice(0, 10)}` : ''}${task.linkedSymbols.length > 0 ? `\n关联资产: ${task.linkedSymbols.join(', ')}` : ''}`;
   } catch (e) {

@@ -59,6 +59,7 @@ async function executeCreateTask(params: {
       linkedSymbols: params.linked_symbols,
       dueDate: params.due_date,
       sourceType: params.source_type,
+      sourceId: params.source_id,
     });
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
