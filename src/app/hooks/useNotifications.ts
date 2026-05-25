@@ -14,7 +14,7 @@ import type {
   NotificationPriorityValue,
 } from '@/types/notification';
 
-const POLL_INTERVAL_MS = 15000;
+const POLL_INTERVAL_MS = 60000;
 
 const ALWAYS_NATIVE_TYPES: NotificationTypeValue[] = [
   'report_completed',
