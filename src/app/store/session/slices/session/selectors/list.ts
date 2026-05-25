@@ -2,7 +2,7 @@ import { DEFAULT_AGENT_LOBE_SESSION, INBOX_SESSION_ID } from '@renderer/const/se
 import { sessionHelpers } from '@renderer/store/session/slices/session/helpers';
 import { MetaData } from '@typings/meta';
 import { CustomSessionGroup, LobeAgentSession, LobeSessions } from '@typings/session';
-import { EngineType, LobeAgentConfig } from '@typings/agent';
+import { EngineType, LobeAgentConfig, PermissionLevelType } from '@typings/agent';
 import { DEFAULT_MODEL } from '@renderer/const/settings';
 
 import { SessionStore } from '../../../store';
@@ -90,6 +90,13 @@ const currentSessionSystemRole = (s: SessionStore): string => {
 };
 
 /**
+ * 获取当前 Session 的权限等级（Hermes 引擎）
+ */
+const currentSessionPermissionLevel = (s: SessionStore): PermissionLevelType => {
+  return currentSessionConfig(s).permissionLevel || 'auto';
+};
+
+/**
  * 获取当前 Session 的插件列表
  */
 const currentSessionPlugins = (s: SessionStore): string[] => {
@@ -145,6 +152,7 @@ export const sessionSelectors = {
   currentSessionProvider,
   currentSessionEngineType,
   currentSessionSystemRole,
+  currentSessionPermissionLevel,
   currentSessionPlugins,
   hasSystemRole,
   openingQuestions,

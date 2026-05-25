@@ -160,10 +160,10 @@ describe('useNotifications', () => {
 
     expect(mockedGet).toHaveBeenCalledTimes(1);
 
-    await vi.advanceTimersByTimeAsync(15000);
+    await vi.advanceTimersByTimeAsync(60000);
     expect(mockedGet).toHaveBeenCalledTimes(2);
 
-    await vi.advanceTimersByTimeAsync(15000);
+    await vi.advanceTimersByTimeAsync(60000);
     expect(mockedGet).toHaveBeenCalledTimes(3);
   });
 

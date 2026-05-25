@@ -335,6 +335,7 @@ export function registerBusinessTools(
         wrap(async () =>
           fetchStockPrice(String(args.stock_code), String(args.start_date), String(args.end_date)),
         )(),
+      'read',
     );
   }
 
@@ -345,6 +346,7 @@ export function registerBusinessTools(
       stockMarketInfoSchema,
       async (_id, args) =>
         wrap(async () => fetchStockMarketInfo(String(args.symbol)))(),
+      'read',
     );
   }
 
@@ -355,6 +357,7 @@ export function registerBusinessTools(
       stockCompanyInfoSchema,
       async (_id, args) =>
         wrap(async () => fetchStockCompanyInfo(String(args.symbol)))(),
+      'read',
     );
   }
 
@@ -367,6 +370,7 @@ export function registerBusinessTools(
         wrap(async () =>
           tavilySearch(`${args.symbol} stock news latest`),
         )(),
+      'read',
     );
   }
 
@@ -377,6 +381,7 @@ export function registerBusinessTools(
       noteQuerySchema,
       async (_id, args) =>
         wrap(async () => searchNotes(String(args.query)))(),
+      'read',
     );
   }
 
@@ -389,6 +394,7 @@ export function registerBusinessTools(
         wrap(async () =>
           createNote(String(args.title), String(args.content), (args.tags as string[]) ?? undefined),
         )(),
+      'write',
     );
   }
 
@@ -408,6 +414,7 @@ export function registerBusinessTools(
             args.sort_order ? String(args.sort_order) as 'asc' | 'desc' : undefined,
           ),
         )(),
+      'read',
     );
   }
 
@@ -418,6 +425,7 @@ export function registerBusinessTools(
       noteGetSchema,
       async (_id, args) =>
         wrap(async () => getNote(String(args.note_id)))(),
+      'read',
     );
   }
 
@@ -435,6 +443,7 @@ export function registerBusinessTools(
             args.tags !== undefined ? (args.tags as string[]) : undefined,
           ),
         )(),
+      'write',
     );
   }
 
@@ -445,6 +454,7 @@ export function registerBusinessTools(
       noteDeleteSchema,
       async (_id, args) =>
         wrap(async () => deleteNote(String(args.note_id)))(),
+      'system',
     );
   }
 
@@ -455,6 +465,7 @@ export function registerBusinessTools(
       tavilySearchSchema,
       async (_id, args) =>
         wrap(async () => tavilySearch(String(args.query)))(),
+      'read',
     );
   }
 
@@ -475,6 +486,7 @@ export function registerBusinessTools(
             limit: Math.min(100, Math.max(1, Number(args.limit ?? 10))),
           }),
         )(),
+      'read',
     );
   }
 
@@ -492,6 +504,7 @@ export function registerBusinessTools(
             args.offset ? Number(args.offset) : undefined,
           ),
         )(),
+      'read',
     );
   }
 
@@ -510,6 +523,7 @@ export function registerBusinessTools(
             args.offset ? Number(args.offset) : undefined,
           ),
         )(),
+      'read',
     );
   }
 
@@ -525,6 +539,7 @@ export function registerBusinessTools(
             args.before_transaction_id ? String(args.before_transaction_id) : undefined,
           ),
         )(),
+      'read',
     );
   }
 
@@ -540,6 +555,7 @@ export function registerBusinessTools(
             args.limit ? Number(args.limit) : undefined,
           ),
         )(),
+      'read',
     );
   }
 
@@ -563,6 +579,7 @@ export function registerBusinessTools(
             tradeTime: args.trade_time ? String(args.trade_time) : undefined,
           }),
         )(),
+      'finance',
     );
   }
 
@@ -582,6 +599,7 @@ export function registerBusinessTools(
           });
           return unwrap(result);
         })(),
+      'read',
     );
   }
 
@@ -599,6 +617,7 @@ export function registerBusinessTools(
           });
           return unwrap(result);
         })(),
+      'read',
     );
   }
 
@@ -616,6 +635,7 @@ export function registerBusinessTools(
           });
           return unwrap(result);
         })(),
+      'read',
     );
   }
 
@@ -647,6 +667,7 @@ export function registerBusinessTools(
           });
           return unwrap(result);
         })(),
+      'write',
     );
   }
 
@@ -675,6 +696,7 @@ export function registerBusinessTools(
           const result = await controller.updateMarketInfo(body);
           return unwrap(result);
         })(),
+      'write',
     );
   }
 
@@ -689,6 +711,7 @@ export function registerBusinessTools(
           const result = await controller.deleteMarketInfo({ id: String(args.id) });
           return unwrap(result);
         })(),
+      'system',
     );
   }
 
@@ -711,6 +734,7 @@ export function registerBusinessTools(
           });
           return unwrap(result);
         })(),
+      'read',
     );
   }
 
@@ -727,6 +751,7 @@ export function registerBusinessTools(
           });
           return unwrap(result);
         })(),
+      'read',
     );
   }
     
@@ -739,6 +764,7 @@ export function registerBusinessTools(
         wrap(async () =>
           queryPortfolio(''),
         )(),
+      'read',
     );
   }
 

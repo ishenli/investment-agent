@@ -41,6 +41,29 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 - **网页搜索**：基于 Tavily 的市场研究
 - **股票分析**：技术指标和市场情绪分析
 
+## 工具权限与安全控制
+
+<CardGrid>
+  <Card title="策略矩阵" icon="shield">
+    权限等级 × 工具类别的二维策略矩阵，精细控制每个工具的执行行为。
+  </Card>
+  <Card title="实时确认" icon="approve-check">
+    敏感操作在聊天界面弹出确认卡片，用户一键批准或拒绝。
+  </Card>
+</CardGrid>
+
+- **三级权限模式**：`safe`（全部确认）、`auto`（智能判断）、`full-access`（全部自动）
+- **四类工具分级**：`read`（只读）、`write`（写入）、`system`（系统）、`finance`（金融）
+- **SSE 实时通知**：工具需要确认时，通过 Server-Sent Events 推送到前端
+- **超时自动拒绝**：30 秒未响应自动拒绝，防止流程阻塞
+- **灵活切换**：用户可在聊天界面随时切换权限等级
+
+### 技术实现
+
+权限控制基于**策略矩阵**（Policy Matrix）设计。每个工具在 `ToolRegistry` 中注册时声明类别，运行时引擎根据当前权限等级和工具类别查询策略矩阵，决定自动执行、请求确认或拒绝。
+
+确认流程采用 Promise 阻塞模式：引擎发送 SSE `permission_request` 事件后挂起工具执行，前端渲染确认卡片，用户决策通过 HTTP API 回传，解除 Promise 阻塞继续执行。整个链路支持 AbortSignal 取消和超时保护。
+
 ## 智能体可观测性
 
 - **追踪与跨度系统**：为每次智能体执行提供分层追踪，支持显式上下文传递

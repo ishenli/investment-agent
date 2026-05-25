@@ -7,6 +7,7 @@
  */
 
 import type { ToolRegistry } from '../tools';
+import type { PermissionLevel } from '../permission/types';
 import { readFileSchema, readFileHandler } from './read-file';
 import { writeFileSchema, writeFileHandler } from './write-file';
 import { patchSchema, patchHandler } from './patch';
@@ -35,6 +36,8 @@ export interface BuiltinToolsConfig {
   memoryDir?: string;
   /** Which tools to enable (default: all) */
   enable?: BuiltinToolName[];
+  /** Permission level (used for registry configuration) */
+  permissionLevel?: PermissionLevel;
 }
 
 export function registerBuiltinTools(
@@ -48,30 +51,14 @@ export function registerBuiltinTools(
         'terminal', 'web_search', 'web_fetch', 'think', 'memory',
       ]);
 
+  // Read-only tools (category: 'read')
   if (enabled.has('read_file')) {
     registry.register(
       'read_file',
       'Read file content with optional line pagination. Supports offset and limit for large files.',
       readFileSchema,
       readFileHandler,
-    );
-  }
-
-  if (enabled.has('write_file')) {
-    registry.register(
-      'write_file',
-      'Write content to a file. Creates parent directories if needed. Overwrites existing file.',
-      writeFileSchema,
-      writeFileHandler,
-    );
-  }
-
-  if (enabled.has('patch')) {
-    registry.register(
-      'patch',
-      'Make targeted text replacements in a file. Finds old_string and replaces with new_string.',
-      patchSchema,
-      patchHandler,
+      'read', // Low risk: read-only operation
     );
   }
 
@@ -81,6 +68,7 @@ export function registerBuiltinTools(
       'Search for text patterns (regex) in file contents, or find files by name glob.',
       searchFilesSchema,
       searchFilesHandler,
+      'read', // Low risk: read-only operation
     );
   }
 
@@ -90,15 +78,7 @@ export function registerBuiltinTools(
       'List files and directories in a tree structure with depth control. Ignores node_modules/.git.',
       listDirectorySchema,
       listDirectoryHandler,
-    );
-  }
-
-  if (enabled.has('terminal')) {
-    registry.register(
-      'terminal',
-      'Execute a shell command and return stdout/stderr with exit code.',
-      terminalSchema,
-      terminalHandler,
+      'read', // Low risk: read-only operation
     );
   }
 
@@ -108,6 +88,7 @@ export function registerBuiltinTools(
       'Search the web for information. Uses Tavily API if TAVILY_API_KEY is set, otherwise DuckDuckGo.',
       webSearchSchema,
       webSearchHandler,
+      'read', // Low risk: read-only operation
     );
   }
 
@@ -117,6 +98,7 @@ export function registerBuiltinTools(
       'Fetch content from a URL. Extracts readable text from HTML, returns raw content for JSON/text.',
       webFetchSchema,
       webFetchHandler,
+      'read', // Low risk: read-only operation
     );
   }
 
@@ -126,6 +108,7 @@ export function registerBuiltinTools(
       'Internal reasoning scratchpad. Use to think through complex problems step by step before acting. No side effects.',
       thinkSchema,
       thinkHandler,
+      'read', // Low risk: no side effects
     );
   }
 
@@ -136,6 +119,39 @@ export function registerBuiltinTools(
       'Read, add, replace, or remove entries in persistent agent memory (MEMORY.md) or user profile (USER.md).',
       memorySchema,
       createMemoryHandler(store),
+      'read', // Low risk: memory is internal data
+    );
+  }
+
+  // Write operations (category: 'write')
+  if (enabled.has('write_file')) {
+    registry.register(
+      'write_file',
+      'Write content to a file. Creates parent directories if needed. Overwrites existing file.',
+      writeFileSchema,
+      writeFileHandler,
+      'write', // Medium risk: writes to filesystem
+    );
+  }
+
+  if (enabled.has('patch')) {
+    registry.register(
+      'patch',
+      'Make targeted text replacements in a file. Finds old_string and replaces with new_string.',
+      patchSchema,
+      patchHandler,
+      'write', // Medium risk: modifies files
+    );
+  }
+
+  // System operations (category: 'system')
+  if (enabled.has('terminal')) {
+    registry.register(
+      'terminal',
+      'Execute a shell command and return stdout/stderr with exit code.',
+      terminalSchema,
+      terminalHandler,
+      'system', // High risk: arbitrary shell execution
     );
   }
 }

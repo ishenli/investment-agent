@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { BaseController } from '../../base/baseController';
 import { WithRequestContextStatic } from '@server/base/decorators';
 import { resolvePendingPermission } from '@/server/core/agents/claude/permissionRegistry';
+import { resolveHermesPermission } from '@/server/core/agents/hermes/permissionRegistry';
 import logger from '@server/base/logger';
 import type { PermissionResult } from '@anthropic-ai/claude-agent-sdk';
 
@@ -48,8 +49,10 @@ class PermissionController extends BaseController {
           ? { behavior: 'allow', updatedInput: decision.updatedInput }
           : { behavior: 'deny', message: decision.message || 'User denied permission' };
 
-      // 3. 解析权限请求
-      const success = resolvePendingPermission(permissionRequestId, permissionResult);
+      // 3. 解析权限请求（尝试两个引擎的注册表）
+      const hermesDecision = decision.behavior === 'allow' ? 'allow' as const : 'deny' as const;
+      const success = resolvePendingPermission(permissionRequestId, permissionResult)
+        || resolveHermesPermission(permissionRequestId, hermesDecision);
 
       if (!success) {
         return this.error('权限请求不存在或已过期', 'permission_not_found');
