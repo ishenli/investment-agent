@@ -549,6 +549,44 @@ export const evaluationBaselines = sqliteTable('evaluation_baselines', {
   index('idx_evaluation_baselines_run_id').on(table.runId),
 ]);
 
+// 任务表：用户创建或 AI 推荐的投资任务
+export const tasks = sqliteTable('tasks', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id),
+  title: text('title').notNull(),
+  description: text('description'),
+  status: text('status', { enum: ['pending', 'in_progress', 'completed', 'cancelled', 'expired'] })
+    .notNull()
+    .default('pending'),
+  type: text('type', { enum: ['one_time', 'price_trigger', 'monitoring', 'date_driven'] })
+    .notNull()
+    .default('one_time'),
+  priority: text('priority', { enum: ['low', 'medium', 'high', 'urgent'] })
+    .notNull()
+    .default('medium'),
+  linkedSymbols: text('linked_symbols', { mode: 'json' }).$type<string[]>().default([]),
+  triggerPrice: real('trigger_price'),
+  triggerDirection: text('trigger_direction', { enum: ['above', 'below'] }),
+  triggerExecutedAt: integer('trigger_executed_at', { mode: 'timestamp' }),
+  dueDate: integer('due_date', { mode: 'timestamp' }),
+  completedAt: integer('completed_at', { mode: 'timestamp' }),
+  executionNotes: text('execution_notes'),
+  sourceType: text('source_type', { enum: ['agent_chat', 'analysis_report', 'manual'] })
+    .notNull()
+    .default('manual'),
+  sourceId: text('source_id'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  deletedAt: integer('deleted_at', { mode: 'timestamp' }),
+}, (table) => [
+  index('idx_tasks_user_id').on(table.userId),
+  index('idx_tasks_user_status').on(table.userId, table.status),
+  index('idx_tasks_due_date').on(table.dueDate),
+  index('idx_tasks_deleted_at').on(table.deletedAt),
+]);
+
 // ============== Chat Storage Tables ==============
 // 聊天存储相关表，从 drizzle/schema/chat.ts 导入
 export {

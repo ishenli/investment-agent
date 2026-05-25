@@ -24,3 +24,8 @@ export {
   addTransaction,
 } from './transaction';
 export { queryPortfolio } from './portfolio';
+export {
+  createTask as createTaskBiz,
+  listTasks as listTasksBiz,
+  updateTask as updateTaskBiz,
+} from './task';

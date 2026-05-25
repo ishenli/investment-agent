@@ -1,0 +1,103 @@
+{
+  "title": "任务管理",
+  "description": "管理您的投资任务与提醒",
+  "tabs": {
+    "board": "看板视图",
+    "list": "列表视图"
+  },
+  "actions": {
+    "create": "新建任务",
+    "edit": "编辑",
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "confirm": "确认",
+    "saving": "保存中...",
+    "close": "关闭"
+  },
+  "status": {
+    "pending": "待处理",
+    "in_progress": "进行中",
+    "completed": "已完成",
+    "cancelled": "已取消",
+    "expired": "已过期"
+  },
+  "type": {
+    "one_time": "一次性",
+    "price_trigger": "价格触发",
+    "monitoring": "持续监控",
+    "date_driven": "日期驱动"
+  },
+  "priority": {
+    "low": "低",
+    "medium": "中",
+    "high": "高",
+    "urgent": "紧急"
+  },
+  "sourceType": {
+    "agent_chat": "AI对话",
+    "analysis_report": "分析报告",
+    "manual": "手动创建"
+  },
+  "triggerDirection": {
+    "above": "高于",
+    "below": "低于"
+  },
+  "fields": {
+    "title": "标题",
+    "titlePlaceholder": "请输入任务标题",
+    "description": "描述",
+    "descriptionPlaceholder": "请输入任务描述（可选）",
+    "type": "任务类型",
+    "priority": "优先级",
+    "status": "状态",
+    "linkedSymbols": "关联股票",
+    "linkedSymbolsPlaceholder": "请输入股票代码，逗号分隔（如 AAPL,MSFT）",
+    "triggerPrice": "触发价格",
+    "triggerPricePlaceholder": "请输入触发价格",
+    "triggerDirection": "触发方向",
+    "dueDate": "截止日期",
+    "executionNotes": "执行备注",
+    "executionNotesPlaceholder": "请输入执行备注",
+    "createdAt": "创建时间",
+    "updatedAt": "更新时间",
+    "completedAt": "完成时间",
+    "triggerCondition": "触发条件"
+  },
+  "editor": {
+    "createTitle": "新建任务",
+    "editTitle": "编辑任务",
+    "viewTitle": "任务详情"
+  },
+  "filters": {
+    "searchPlaceholder": "搜索任务...",
+    "allStatuses": "全部状态",
+    "allPriorities": "全部优先级",
+    "allTypes": "全部类型"
+  },
+  "board": {
+    "emptyColumn": "暂无任务",
+    "invalidMove": "无法移动到该状态"
+  },
+  "list": {
+    "empty": "暂无任务",
+    "loading": "加载中..."
+  },
+  "messages": {
+    "createSuccess": "任务创建成功",
+    "updateSuccess": "任务更新成功",
+    "deleteSuccess": "任务删除成功",
+    "deleteConfirm": "确定要删除这个任务吗？",
+    "fetchError": "获取任务列表失败",
+    "createError": "创建任务失败",
+    "updateError": "更新任务失败",
+    "deleteError": "删除任务失败",
+    "titleRequired": "标题不能为空",
+    "networkError": "网络错误"
+  },
+  "empty": {
+    "title": "还没有任务",
+    "description": "点击「新建任务」按钮创建您的第一个投资任务"
+  },
+  "moveTo": "移动到"
+}

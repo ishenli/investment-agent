@@ -542,7 +542,8 @@
       "search": "Search",
       "transaction": "Transaction",
       "market": "Market",
-      "report": "Report"
+      "report": "Report",
+      "task": "Task"
     },
     "description": "Manage your API keys and built-in tools",
     "descriptions": {

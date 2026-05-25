@@ -116,6 +116,7 @@ vi.mock('@/drizzle/schema', () => ({
   skills: {},
   exchangeRates: {},
   agent: {},
+  tasks: {},
 }));
 
 

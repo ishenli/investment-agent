@@ -9,6 +9,7 @@ vi.mock('@/drizzle/schema', () => ({
   modelProviders: {},
   providerModels: {},
   skills: {},
+  tasks: {},
 }));
 
 // Mock dependencies

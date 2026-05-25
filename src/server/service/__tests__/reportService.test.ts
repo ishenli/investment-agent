@@ -15,6 +15,7 @@ vi.mock('@/drizzle/schema', () => ({
   assetMeta: {},
   assetMarketInfo: {},
   assetMarketInfoToAssetMeta: {},
+  tasks: {},
   userSelectedAccounts: {},
 }));
 

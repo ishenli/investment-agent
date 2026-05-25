@@ -359,6 +359,45 @@ export const BUSINESS_TOOL_DEFINITIONS: RawToolDefinition[] = [
       { name: 'investmentMemo', type: 'string', description: '投资备忘录，传空字符串表示清空', required: false },
     ],
   },
+  {
+    name: 'task_create',
+    description: '创建投资任务（用于跟踪投资建议、监控条件等）',
+    category: 'task',
+    parameters: [
+      { name: 'title', type: 'string', description: '任务标题', required: true },
+      { name: 'description', type: 'string', description: '任务描述', required: false },
+      { name: 'type', type: 'string', description: '任务类型: one_time | price_trigger | monitoring | date_driven，默认 one_time', required: false, enum: ['one_time', 'price_trigger', 'monitoring', 'date_driven'] },
+      { name: 'priority', type: 'string', description: '优先级: low | medium | high | urgent，默认 medium', required: false, enum: ['low', 'medium', 'high', 'urgent'] },
+      { name: 'linked_symbols', type: 'array', description: '关联资产代号列表，如 ["AAPL", "NVDA"]', required: false },
+      { name: 'due_date', type: 'string', description: '截止日期 (YYYY-MM-DD 格式)', required: false },
+    ],
+  },
+  {
+    name: 'task_list',
+    description: '查询当前用户的投资任务列表（支持按状态、优先级、关键词过滤）',
+    category: 'task',
+    parameters: [
+      { name: 'status', type: 'string', description: '按状态过滤: pending | in_progress | completed | cancelled | expired', required: false, enum: ['pending', 'in_progress', 'completed', 'cancelled', 'expired'] },
+      { name: 'priority', type: 'string', description: '按优先级过滤: low | medium | high | urgent', required: false, enum: ['low', 'medium', 'high', 'urgent'] },
+      { name: 'search', type: 'string', description: '搜索关键词（标题或描述）', required: false },
+      { name: 'limit', type: 'number', description: '每页数量，默认20', required: false },
+      { name: 'offset', type: 'number', description: '偏移量，默认0', required: false },
+    ],
+  },
+  {
+    name: 'task_update',
+    description: '更新投资任务（修改状态、内容、添加执行备注等）',
+    category: 'task',
+    parameters: [
+      { name: 'task_id', type: 'string', description: '任务ID', required: true },
+      { name: 'status', type: 'string', description: '新状态: pending | in_progress | completed | cancelled', required: false, enum: ['pending', 'in_progress', 'completed', 'cancelled'] },
+      { name: 'title', type: 'string', description: '新标题', required: false },
+      { name: 'description', type: 'string', description: '新描述', required: false },
+      { name: 'priority', type: 'string', description: '新优先级: low | medium | high | urgent', required: false, enum: ['low', 'medium', 'high', 'urgent'] },
+      { name: 'execution_notes', type: 'string', description: '执行备注（完成任务时记录执行结果）', required: false },
+      { name: 'linked_symbols', type: 'array', description: '关联资产代号列表', required: false },
+    ],
+  },
 ];
 
 // ============= 工具清单构建 =============
