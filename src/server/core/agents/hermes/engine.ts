@@ -24,17 +24,20 @@ import { defaultModelPricing } from '@server/config/modelPricing';
 import logger from '@server/base/logger';
 import path from 'path';
 import type { IAgentEngine, EngineRunContext, EngineRunResult, EngineEventSink } from '@server/core/engine/types';
+import type { ConfirmationRequest } from '@investment-agent/hermes-agent';
+import { registerHermesPermission } from './permissionRegistry';
 
 export class HermesEngine implements IAgentEngine {
   readonly name = 'hermes';
 
-  async run(ctx: EngineRunContext, eventSink: EngineEventSink): Promise<EngineRunResult> {
-    const { model: modelSlug, provider = 'openai', messages, systemPrompt, signal, messageId, userId, extra, topicId } = ctx;
+ async run(ctx: EngineRunContext, eventSink: EngineEventSink): Promise<EngineRunResult> {
+   const { model: modelSlug, provider = 'openai', messages, systemPrompt, signal, messageId, userId, extra, topicId } = ctx;
+
+   // 1. 解析模型配置
     const enableTools = (extra?.enableTools as boolean) ?? true;
     const maxIterations = (extra?.maxIterations as number) ?? 30;
-    const permissionLevel = (extra?.permissionLevel as 'safe' | 'standard' | 'power' | 'unrestricted') ?? 'standard';
+    const permissionLevel = (extra?.permissionLevel as 'safe' | 'auto' | 'full-access') ?? 'auto';
 
-    // 1. 解析模型配置
     await eventSink.sendStatus(`初始化模型 ${provider}/${modelSlug}`, {
       id: messageId,
       level: 'info',
@@ -112,6 +115,22 @@ export class HermesEngine implements IAgentEngine {
         logger.warn('[HermesEngine] Error in loop:', {
           errorMessage: error.message
         });
+      },
+      onConfirmationRequest: async (request: ConfirmationRequest) => {
+        const permissionId = `hermes_perm_${crypto.randomUUID()}`;
+        const toolUseId = `tool_${crypto.randomUUID()}`;
+
+        await eventSink.send({
+          type: 'permission_request',
+          permissionRequestId: permissionId,
+          toolName: request.toolName,
+          toolInput: request.args,
+          toolUseId,
+          description: `工具 "${request.toolName}" 需要确认执行`,
+        });
+
+        const decision = await registerHermesPermission(permissionId, request.toolName, signal);
+        return decision === 'allow' ? 'confirm' : 'decline';
       },
     };
 

@@ -70,3 +70,5 @@ packages/*/dist
 docs/plans/
 docs/brainstorms/
 .omc
+.cursor
+.codegraph

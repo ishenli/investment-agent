@@ -6,12 +6,11 @@
 
 /**
  * Permission levels define who can execute what.
- * - safe: Most restrictive, only read/write operations
- * - standard: Default, requires confirmation for system/finance operations
- * - power: Advanced, auto for finance, confirm for system
- * - unrestricted: Least restrictive, all operations auto (ContentGuard still applies)
+ * - safe: Most restrictive, all operations require user confirmation
+ * - auto: Default, read/write operations auto, system/finance operations require confirmation
+ * - full-access: Least restrictive, all operations auto (ContentGuard still applies)
  */
-export type PermissionLevel = 'safe' | 'standard' | 'power' | 'unrestricted';
+export type PermissionLevel = 'safe' | 'auto' | 'full-access';
 
 /**
  * Tool categories define the risk level and nature of operations.

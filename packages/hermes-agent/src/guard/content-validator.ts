@@ -6,6 +6,7 @@
  * to prevent dangerous operations even when permissions allow them.
  */
 
+import nodePath from 'node:path';
 import type { GuardDecision } from '../permission/types';
 
 /**
@@ -23,8 +24,6 @@ export const DANGEROUS_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
   { pattern: /\bchmod\s+[0-7]*777\b/i, reason: 'Overly permissive file permissions' },
   { pattern: /\bchown\s+.*:\s*\//i, reason: 'Changing ownership of system files' },
   { pattern: />\s*\/dev\/(sda|hda|nvme|disk)/i, reason: 'Writing directly to disk device' },
-  { pattern: /\bcurl\b.*\|\s*(ba)?sh\b/i, reason: 'Piping curl output to shell' },
-  { pattern: /\bwget\b.*\|\s*(ba)?sh\b/i, reason: 'Piping wget output to shell' },
   { pattern: /\bcurl\b.*\|\s*(ba)?sh\b/i, reason: 'Piping curl output to shell' },
   { pattern: /\bwget\b.*\|\s*(ba)?sh\b/i, reason: 'Piping wget output to shell' },
   { pattern: /\beval\s+["'].*http/i, reason: 'Evaluating network-sourced content' },
@@ -180,11 +179,11 @@ export class ContentGuard {
    */
   private validatePath(path: string): GuardDecision {
     // Resolve the path to handle .., ./, etc.
-    const resolvedPath = require('path').resolve(path);
+    const resolvedPath = nodePath.resolve(path);
 
     // Check if path is within allowed directories
     const isAllowed = this.allowedPaths.some((allowedPath) => {
-      const resolved = require('path').resolve(allowedPath);
+      const resolved = nodePath.resolve(allowedPath);
       return resolvedPath.startsWith(resolved);
     });
 

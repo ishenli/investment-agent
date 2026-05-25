@@ -84,8 +84,9 @@ export interface HermesAgentConfig {
   observability?: ObservabilityConfig;
   /** Reflection / self-improvement configuration */
   reflectionConfig?: ReflectionConfig;
-  /** Permission level for tool execution (default: 'standard') */
-  permissionLevel?: import('./permission/types').PermissionLevel;
+ /** Permission level for tool execution (default: 'standard') */
+  /** Permission level for tool execution (default: 'auto') */
+ permissionLevel?: import('./permission/types').PermissionLevel;
 }
 
 /** Default maximum skills to create per reflection turn. */
@@ -227,6 +228,7 @@ export class HermesAgent {
       turnNumber: this.turnCount,
       observability: this.config.observability,
       permissionLevel: this.config.permissionLevel,
+      toolRegistry: this.config.toolRegistry,
     };
 
     const result = await runAgentLoop(agentConfig, context, traceCtx, this.tracer, this.metrics, costTracker);

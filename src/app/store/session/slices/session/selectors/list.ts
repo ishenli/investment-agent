@@ -93,7 +93,7 @@ const currentSessionSystemRole = (s: SessionStore): string => {
  * 获取当前 Session 的权限等级（Hermes 引擎）
  */
 const currentSessionPermissionLevel = (s: SessionStore): PermissionLevelType => {
-  return currentSessionConfig(s).permissionLevel || 'standard';
+  return currentSessionConfig(s).permissionLevel || 'auto';
 };
 
 /**

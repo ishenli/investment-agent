@@ -33,12 +33,12 @@ export interface ToolRegistryOptions {
 
 export class ToolRegistry {
   private readonly _tools = new Map<string, RegisteredTool>();
-  private readonly _permissionLevel: PermissionLevel;
+  private _permissionLevel: PermissionLevel;
   private readonly _devMode: boolean;
 
-  constructor(options: ToolRegistryOptions = {}) {
-    this._permissionLevel = options.permissionLevel ?? 'standard';
-    this._devMode = options.devMode ?? (process.env.NODE_ENV === 'development');
+ constructor(options: ToolRegistryOptions = {}) {
+    this._permissionLevel = options.permissionLevel ?? 'auto';
+   this._devMode = options.devMode ?? (process.env.NODE_ENV === 'development');
   }
 
   /**
@@ -61,13 +61,12 @@ export class ToolRegistry {
       throw new Error(`Tool "${name}" is already registered`);
     }
 
-    const toolCategory = category ?? 'read';
-    
-    // Warn if no category is provided in development mode
+    const toolCategory = category ?? 'write';
+
     if (!category && this._devMode) {
       console.warn(
         `[ToolRegistry] Tool "${name}" registered without explicit category. ` +
-        `Defaulting to 'read'. Consider specifying a category for proper permission handling.`
+        `Defaulting to 'write'. Consider specifying a category for proper permission handling.`
       );
     }
 
@@ -105,7 +104,7 @@ export class ToolRegistry {
 
   /** Set the permission level. */
   setPermissionLevel(level: PermissionLevel): void {
-    (this as { _permissionLevel: PermissionLevel })._permissionLevel = level;
+    this._permissionLevel = level;
   }
 
   /** Get pi-ai Tool definitions for the LLM context. */

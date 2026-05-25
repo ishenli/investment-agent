@@ -14,7 +14,7 @@ export {
 } from './content-validator';
 
 export {
-  AuditLogger,
+  type AuditLogger,
   ConsoleAuditLogger,
   NoOpAuditLogger,
   CompositeAuditLogger,

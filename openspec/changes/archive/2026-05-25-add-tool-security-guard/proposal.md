@@ -9,9 +9,15 @@
 ## What Changes
 
 - **引入 PermissionSystem**：
-  - `PermissionLevel` 定义 4 个代理级别：`safe`、`standard`、`power`、`unrestricted`
+  - `PermissionLevel` 定义 3 个权限档位：`safe`、`auto`、`full-access`
   - `ToolCategory` 定义 4 个工具分类：`read`、`write`、`system`、`finance`
   - `PermissionPolicy` 实现策略矩阵（`level × category` → `auto` / `confirm` / `deny`）
+
+- **权限档位说明**：
+  - **Safe（安全模式）**：最严格，所有操作都需要用户确认
+  - **Auto（自动模式，默认）**：读/写操作自动执行，系统/金融操作需要确认
+  - **Full Access（完全访问）**：所有操作自动执行，ContentGuard 仍然生效
+
 - **工具注册引入 `ToolCategory`**：每个工具注册时只需标注一个分类（`read`/`write`/`system`/`finance`），策略矩阵自动决定执行策略。
 - **分层安全架构**：
   - **Layer 1 — PermissionSystem**：按权限级别决定工具是否允许执行
@@ -20,10 +26,10 @@
 - **审计日志**：在 PermissionSystem + ContentGuard 的决策点记录日志（fire-and-forget）。
 
 **BREAKING**：
-- `AgentConfig` 新增 `permissionLevel` 字段（默认 `standard`）
+- `AgentConfig` 新增 `permissionLevel` 字段（默认 `auto`）
 - `ToolRegistry.register()` 新增可选的 `category` 参数，用于标注工具的权限分类
 - `AgentCallbacks` 新增可选的 `onConfirmationRequest` 回调
-- `db_query` 工具的 `ToolCategory` 标为 `system`（高风险），在 `safe`/`standard` 权限下默认拒绝
+- `db_query` 工具的 `ToolCategory` 标为 `system`（高风险），在 `safe` 权限下需要确认
 
 **NOT included（后续 change）**：
 - Docker 沙箱隔离 → P1 后续

@@ -2,7 +2,7 @@ import { createStyles } from 'antd-style';
 import { Select, Icon } from '@lobehub/ui';
 import { memo } from 'react';
 import { Flexbox } from 'react-layout-kit';
-import { ShieldCheck, Shield, ShieldAlert, ShieldOff, Check } from 'lucide-react';
+import { ShieldCheck, Shield, ShieldOff, Check } from 'lucide-react';
 
 import { useSessionStore } from '@renderer/store/session';
 import { sessionSelectors } from '@renderer/store/session/selectors';
@@ -74,28 +74,21 @@ const PermissionLevelSwitch = () => {
       value: 'safe',
       icon: ShieldCheck,
       label: 'Safe',
-      description: '安全模式 — 禁止系统/金融操作',
+      description: '安全模式 — 所有可能的操作都需要用户确认',
       color: '#52c41a',
     },
     {
-      value: 'standard',
+      value: 'auto',
       icon: Shield,
-      label: 'Standard',
-      description: '标准模式 — 系统/金融需确认',
+      label: 'Auto',
+      description: '自动模式 — 读/写操作自动执行，系统/金融操作需确认',
       color: '#1890ff',
     },
     {
-      value: 'power',
-      icon: ShieldAlert,
-      label: 'Power',
-      description: '高级模式 — 金融自动，系统需确认',
-      color: '#faad14',
-    },
-    {
-      value: 'unrestricted',
+      value: 'full-access',
       icon: ShieldOff,
-      label: 'Unrestricted',
-      description: '无限制 — 所有操作自动执行',
+      label: 'Full Access',
+      description: '完全访问 — 所有操作自动执行',
       color: '#ff4d4f',
     },
   ];

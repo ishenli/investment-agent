@@ -4,7 +4,7 @@
  * Request validation schemas for chat API endpoints
  */
 import { z } from 'zod';
-import { ENGINE_TYPES } from '../agent';
+import { ENGINE_TYPES, PERMISSION_LEVELS } from '../agent';
 
 // ============== Common ==============
 
@@ -38,6 +38,7 @@ const AgentConfigSchema = z.object({
   openingMessage: z.string().optional(),
   openingQuestions: z.array(z.string()).optional(),
   plugins: z.array(z.string()).optional(),
+  permissionLevel: z.enum(PERMISSION_LEVELS).optional(),
 });
 
 const SessionMetaSchema = z.object({

@@ -22,8 +22,8 @@ import {
 import { IterationBudget } from './budget';
 import { HermesAgentError } from './error';
 import { withRetry } from './retry';
-import { PermissionPolicy } from './permission/policy';
-import type { ToolCategory, ConfirmationRequest } from './permission/types';
+import { defaultPermissionPolicy } from './permission/policy';
+import type { ToolCategory, ConfirmationRequest, ConfirmationResult } from './permission/types';
 import { defaultContentGuard } from './guard/content-validator';
 import { defaultAuditLogger } from './guard/audit-logger';
 import { ContextCompressor } from './context';
@@ -337,6 +337,10 @@ export async function runAgentLoop(
       toolCalls.map((tc) => tc.name),
     );
 
+   // Permission configuration (constant per turn)
+    const permissionLevel = config.permissionLevel ?? 'auto';
+   const CONFIRMATION_TIMEOUT_MS = 60_000;
+
     // Execute tool calls
     for (const toolCall of toolCalls) {
       // Check abort between tool calls
@@ -351,234 +355,112 @@ export async function runAgentLoop(
       }
 
       callbacks?.onToolStart?.(toolCall.name, toolCall.arguments);
-    // ============== Permission Check ==============
-    const permissionLevel = config.permissionLevel ?? 'standard';
-    const permissionPolicy = new PermissionPolicy();
-    const contentGuard = defaultContentGuard;
-    const auditLogger = defaultAuditLogger;
-    const CONFIRMATION_TIMEOUT_MS = 60000;
 
-    // Get tool category from registry if available
-    const toolCategory = (toolExecutor as any)?.getCategory?.(toolCall.name) ?? 'read';
-    const policy = permissionPolicy.evaluate(toolCategory, permissionLevel);
+      // ============== Permission & Content Guard Check ==============
+      const toolCategory: ToolCategory = config.toolRegistry?.getCategory(toolCall.name) ?? 'write';
+      const policy = defaultPermissionPolicy.evaluate(toolCategory, permissionLevel);
 
-    // Audit: log permission check
-    auditLogger.log({
-      toolName: toolCall.name,
-      toolCategory,
-      permissionLevel,
-      policy,
-      decision: policy === 'deny' ? 'denied' : 'allowed',
-      reason: policy === 'deny' ? `Permission level ${permissionLevel} denies ${toolCategory} operations` : undefined,
-    });
-
-    // Handle deny policy
-    if (policy === 'deny') {
-      callbacks?.onToolEnd?.({
-        toolCallId: toolCall.id,
+      defaultAuditLogger.log({
         toolName: toolCall.name,
-        content: [{
-          type: 'text' as const,
-          text: `Permission denied: Tool "${toolCall.name}" (${toolCategory}) is not allowed at ${permissionLevel} permission level.`
-        }],
-        isError: true,
+        toolCategory,
+        permissionLevel,
+        policy,
+        decision: policy === 'deny' ? 'denied' : 'allowed',
+        reason: policy === 'deny' ? `Permission level ${permissionLevel} denies ${toolCategory} operations` : undefined,
       });
 
-      resultMessage = {
-        role: 'toolResult',
-        toolCallId: toolCall.id,
-        toolName: toolCall.name,
-        content: [{
-          type: 'text' as const,
-          text: `Permission denied: Tool "${toolCall.name}" (${toolCategory}) is not allowed at ${permissionLevel} permission level.`
-        }],
-        isError: true,
-        timestamp: Date.now(),
-      };
-      context.messages.push(resultMessage);
-      continue;
-    }
-
-    // Handle confirm policy
-    if (policy === 'confirm' && callbacks?.onConfirmationRequest) {
-      const confirmationRequest: ConfirmationRequest = {
-        toolName: toolCall.name,
-        args: toolCall.arguments,
-        permissionLevel,
-        toolCategory,
-        timestamp: Date.now(),
-      };
-
-      let confirmed = false;
-      try {
-        const result = await Promise.race([
-          callbacks.onConfirmationRequest(confirmationRequest),
-          new Promise<'decline'>((_, reject) =>
-            setTimeout(() => reject(new Error('Confirmation timeout')), CONFIRMATION_TIMEOUT_MS)
-          ),
-        ]);
-        confirmed = result === 'confirm';
-
-        auditLogger.log({
-          toolName: toolCall.name,
-          toolCategory,
-          permissionLevel,
-          policy: 'confirm',
-          decision: confirmed ? 'allowed' : 'denied',
-          confirmationRequested: true,
-          confirmationResult: result,
-          reason: confirmed ? undefined : 'User declined',
-        });
-      } catch (error) {
-        auditLogger.log({
-          toolName: toolCall.name,
-          toolCategory,
-          permissionLevel,
-          policy: 'confirm',
-          decision: 'denied',
-          confirmationRequested: true,
-          confirmationResult: 'decline',
-          reason: 'Confirmation timeout or error',
-        });
-
-        callbacks?.onToolEnd?.({
-          toolCallId: toolCall.id,
-          toolName: toolCall.name,
-          content: [{
-            type: 'text' as const,
-            text: `Confirmation timeout for "${toolCall.name}". Operation cancelled.`
-          }],
-          isError: true,
-        });
-
-        resultMessage = {
-          role: 'toolResult',
-          toolCallId: toolCall.id,
-          toolName: toolCall.name,
-          content: [{
-            type: 'text' as const,
-            text: `Confirmation timeout for "${toolCall.name}". Operation cancelled.`
-          }],
-          isError: true,
-          timestamp: Date.now(),
-        };
-        context.messages.push(resultMessage);
+      if (policy === 'deny') {
+        const msg = `Permission denied: Tool "${toolCall.name}" (${toolCategory}) is not allowed at ${permissionLevel} permission level.`;
+        context.messages.push(buildBlockedResult(toolCall, msg, callbacks));
         continue;
       }
 
-      if (!confirmed) {
-        callbacks?.onToolEnd?.({
-          toolCallId: toolCall.id,
+      if (policy === 'confirm' && callbacks?.onConfirmationRequest) {
+        const confirmationRequest: ConfirmationRequest = {
           toolName: toolCall.name,
-          content: [{
-            type: 'text' as const,
-            text: `User declined execution of "${toolCall.name}".`
-          }],
-          isError: true,
-        });
-
-        resultMessage = {
-          role: 'toolResult',
-          toolCallId: toolCall.id,
-          toolName: toolCall.name,
-          content: [{
-            type: 'text' as const,
-            text: `User declined execution of "${toolCall.name}".`
-          }],
-          isError: true,
-          timestamp: Date.now(),
-        };
-        context.messages.push(resultMessage);
-        continue;
-      }
-    }
-
-    // ============== Content Guard Check ==============
-    if (toolCall.name === 'terminal' && toolCall.arguments.command) {
-      const guardDecision = contentGuard.validateCommand(
-        String(toolCall.arguments.command),
-        toolCall.arguments.workdir ? String(toolCall.arguments.workdir) : undefined
-      );
-
-      if (!guardDecision.allowed) {
-        auditLogger.log({
-          toolName: toolCall.name,
-          toolCategory,
+          args: toolCall.arguments,
           permissionLevel,
-          policy,
-          decision: 'denied',
-          reason: guardDecision.reason,
-          contentGuardPattern: guardDecision.pattern,
-        });
-
-        callbacks?.onToolEnd?.({
-          toolCallId: toolCall.id,
-          toolName: toolCall.name,
-          content: [{
-            type: 'text' as const,
-            text: `Content guard blocked: ${guardDecision.reason}`
-          }],
-          isError: true,
-        });
-
-        resultMessage = {
-          role: 'toolResult',
-          toolCallId: toolCall.id,
-          toolName: toolCall.name,
-          content: [{
-            type: 'text' as const,
-            text: `Content guard blocked: ${guardDecision.reason}`
-          }],
-          isError: true,
-          timestamp: Date.now(),
-        };
-        context.messages.push(resultMessage);
-        continue;
-      }
-    }
-
-    if (toolCall.name === 'patch' && toolCall.arguments.filePath) {
-      const guardDecision = contentGuard.validateFilePath(String(toolCall.arguments.filePath));
-
-      if (!guardDecision.allowed) {
-        auditLogger.log({
-          toolName: toolCall.name,
           toolCategory,
-          permissionLevel,
-          policy,
-          decision: 'denied',
-          reason: guardDecision.reason,
-          contentGuardPattern: guardDecision.pattern,
-        });
-
-        callbacks?.onToolEnd?.({
-          toolCallId: toolCall.id,
-          toolName: toolCall.name,
-          content: [{
-            type: 'text' as const,
-            text: `Content guard blocked: ${guardDecision.reason}`
-          }],
-          isError: true,
-        });
-
-        resultMessage = {
-          role: 'toolResult',
-          toolCallId: toolCall.id,
-          toolName: toolCall.name,
-          content: [{
-            type: 'text' as const,
-            text: `Content guard blocked: ${guardDecision.reason}`
-          }],
-          isError: true,
           timestamp: Date.now(),
         };
-        context.messages.push(resultMessage);
-        continue;
+
+        let confirmed = false;
+        try {
+          const result = await withTimeout<ConfirmationResult>(
+            callbacks.onConfirmationRequest(confirmationRequest),
+            CONFIRMATION_TIMEOUT_MS,
+            `Confirmation timeout for "${toolCall.name}"`,
+          );
+          confirmed = result === 'confirm';
+
+          defaultAuditLogger.log({
+            toolName: toolCall.name,
+            toolCategory,
+            permissionLevel,
+            policy: 'confirm',
+            decision: confirmed ? 'allowed' : 'denied',
+            confirmationRequested: true,
+            confirmationResult: result,
+            reason: confirmed ? undefined : 'User declined',
+          });
+        } catch {
+          defaultAuditLogger.log({
+            toolName: toolCall.name,
+            toolCategory,
+            permissionLevel,
+            policy: 'confirm',
+            decision: 'denied',
+            confirmationRequested: true,
+            confirmationResult: 'decline',
+            reason: 'Confirmation timeout or error',
+          });
+
+          context.messages.push(buildBlockedResult(toolCall, `Confirmation timeout for "${toolCall.name}". Operation cancelled.`, callbacks));
+          continue;
+        }
+
+        if (!confirmed) {
+          context.messages.push(buildBlockedResult(toolCall, `User declined execution of "${toolCall.name}".`, callbacks));
+          continue;
+        }
       }
-    }
 
-    // ============== Execute Tool ==============
+      // Content Guard: validate system-category tools for dangerous commands
+      if (toolCategory === 'system') {
+        const command = toolCall.arguments.command ?? toolCall.arguments.cmd;
+        if (command) {
+          const guardDecision = defaultContentGuard.validateCommand(
+            String(command),
+            toolCall.arguments.workdir ? String(toolCall.arguments.workdir) : undefined,
+          );
+          if (!guardDecision.allowed) {
+            defaultAuditLogger.log({
+              toolName: toolCall.name, toolCategory, permissionLevel, policy,
+              decision: 'denied', reason: guardDecision.reason, contentGuardPattern: guardDecision.pattern,
+            });
+            context.messages.push(buildBlockedResult(toolCall, `Content guard blocked: ${guardDecision.reason}`, callbacks));
+            continue;
+          }
+        }
+      }
 
+      // Content Guard: validate write-category tools for sensitive file paths
+      if (toolCategory === 'write') {
+        const filePath = toolCall.arguments.filePath ?? toolCall.arguments.file_path ?? toolCall.arguments.path;
+        if (filePath) {
+          const guardDecision = defaultContentGuard.validateFilePath(String(filePath));
+          if (!guardDecision.allowed) {
+            defaultAuditLogger.log({
+              toolName: toolCall.name, toolCategory, permissionLevel, policy,
+              decision: 'denied', reason: guardDecision.reason, contentGuardPattern: guardDecision.pattern,
+            });
+            context.messages.push(buildBlockedResult(toolCall, `Content guard blocked: ${guardDecision.reason}`, callbacks));
+            continue;
+          }
+        }
+      }
+
+      // ============== Execute Tool ==============
       let resultMessage: ToolResultMessage;
       const toolSpan = traceCtx && tracer ? tracer.startSpan(traceCtx, 'tool_call', 'internal', { tool: toolCall.name }) : undefined;
       const toolStartTime = Date.now();
@@ -737,6 +619,31 @@ function extractText(message: AssistantMessage): string {
     )
     .map((block) => block.text)
     .join('');
+}
+
+/**
+ * Build a blocked tool result message and notify callbacks.
+ */
+function buildBlockedResult(
+  toolCall: ToolCall,
+  text: string,
+  callbacks?: AgentCallbacks,
+): ToolResultMessage {
+  const content = [{ type: 'text' as const, text }];
+  callbacks?.onToolEnd?.({
+    toolCallId: toolCall.id,
+    toolName: toolCall.name,
+    content,
+    isError: true,
+  });
+  return {
+    role: 'toolResult',
+    toolCallId: toolCall.id,
+    toolName: toolCall.name,
+    content,
+    isError: true,
+    timestamp: Date.now(),
+  };
 }
 
 /**

@@ -8,30 +8,24 @@ import type { PermissionLevel, ToolCategory, ToolPolicy, IPermissionPolicy } fro
 
 /**
  * The permission policy matrix.
- * Rows: PermissionLevel (safe, standard, power, unrestricted)
+ * Rows: PermissionLevel (safe, auto, full-access)
  * Columns: ToolCategory (read, write, system, finance)
  * Values: ToolPolicy (auto, confirm, deny)
  */
 const POLICY_MATRIX: Record<PermissionLevel, Record<ToolCategory, ToolPolicy>> = {
   safe: {
-    read: 'auto',
-    write: 'auto',
-    system: 'deny',
-    finance: 'deny',
+    read: 'confirm',
+    write: 'confirm',
+    system: 'confirm',
+    finance: 'confirm',
   },
-  standard: {
+  auto: {
     read: 'auto',
     write: 'auto',
     system: 'confirm',
     finance: 'confirm',
   },
-  power: {
-    read: 'auto',
-    write: 'auto',
-    system: 'confirm',
-    finance: 'auto',
-  },
-  unrestricted: {
+  'full-access': {
     read: 'auto',
     write: 'auto',
     system: 'auto',
@@ -41,7 +35,7 @@ const POLICY_MATRIX: Record<PermissionLevel, Record<ToolCategory, ToolPolicy>> =
 
 /**
  * Default permission policy implementation.
- * Uses the standard 4x4 policy matrix.
+ * Uses the standard 3x4 policy matrix.
  */
 export class PermissionPolicy implements IPermissionPolicy {
   /**

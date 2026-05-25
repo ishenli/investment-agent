@@ -42,8 +42,8 @@ const HermesChatRequestSchema = z.object({
   enableTools: z.boolean().optional().default(true),
   /** Max tool-calling iterations */
   maxIterations: z.number().optional().default(30),
-  /** Permission level for tool execution (default: 'standard') */
-  permissionLevel: z.enum(['safe', 'standard', 'power', 'unrestricted']).optional().default('standard'),
+ /** Permission level for tool execution (default: 'standard') */
+  permissionLevel: z.enum(['safe', 'auto', 'full-access']).optional().default('auto'),
 });
 
 type HermesChatRequest = z.infer<typeof HermesChatRequestSchema>;

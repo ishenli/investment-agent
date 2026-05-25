@@ -260,6 +260,7 @@ interface BaiLingParams {
   mode?: 'code' | 'plan' | 'ask';
   /** 会话级激活的 skill slugs，用于服务端按需注入 skill prompt */
   skills?: string[];
+  permissionLevel?: PermissionLevelType;  
 }
 
 interface BailingAgentStreamParams {
@@ -427,6 +428,7 @@ class ChatService {
           engineType: params.engineType,
           mode: params.mode,
           skills: params.skills,
+          permissionLevel: params.permissionLevel,
         },
         abortController,
         onMessageHandle,

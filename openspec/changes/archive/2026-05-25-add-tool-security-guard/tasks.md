@@ -31,12 +31,12 @@
 **目的**：定义 PermissionSystem 类型、策略矩阵和 ContentGuard 接口
 
 - [ ] T001 [P] 在 `packages/hermes-agent/src/permission/types.ts` 定义：
-  - `PermissionLevel` 枚举/常量：`'safe' | 'standard' | 'power' | 'unrestricted'`
+  - `PermissionLevel` 枚举/常量：`'safe' | 'auto' | 'full-access'`
   - `ToolCategory` 枚举/常量：`'read' | 'write' | 'system' | 'finance'`
   - `ToolPolicy` 类型：`'auto' | 'confirm' | 'deny'`
   - `PermissionPolicy` 接口：`evaluate(category: ToolCategory, level: PermissionLevel): ToolPolicy` <!-- id: 1 -->
 - [ ] T002 在 `packages/hermes-agent/src/permission/policy.ts` 实现策略矩阵：
-  - 4×4 策略表（safe/standard/power/unrestricted × read/write/system/finance）
+  - 3×4 策略表（safe/standard/power/unrestricted × read/write/system/finance）
   - 具体规则见 plan.md 策略矩阵
   - `db_query`（system 类）在 safe/standard 下返回 deny <!-- id: 2 -->
 - [ ] T003 在 `packages/hermes-agent/src/guard/content-validator.ts` 定义 `ContentGuard` 接口和最小实现：

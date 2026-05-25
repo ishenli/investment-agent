@@ -222,6 +222,9 @@ export interface AgentConfig {
   turnNumber?: number;
   /** Observability configuration */
   observability?: ObservabilityConfig;
-  /** Permission level for tool execution (default: 'standard') */
-  permissionLevel?: PermissionLevel;
+ /** Permission level for tool execution (default: 'standard') */
+  /** Permission level for tool execution (default: 'auto') */
+ permissionLevel?: PermissionLevel;
+  /** Tool registry for category-based permission checks */
+  toolRegistry?: import('./tools').ToolRegistry;
 }

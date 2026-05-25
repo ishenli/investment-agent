@@ -12,7 +12,7 @@ export type EngineType = (typeof ENGINE_TYPES)[number];
 /**
  * 权限模式等级 — Hermes 引擎工具执行权限控制
  */
-export const PERMISSION_LEVELS = ['safe', 'standard', 'power', 'unrestricted'] as const;
+export const PERMISSION_LEVELS = ['safe', 'auto', 'full-access'] as const;
 export type PermissionLevelType = (typeof PERMISSION_LEVELS)[number];
 
 export interface LobeAgentTTSConfig {
@@ -47,11 +47,11 @@ export interface LobeAgentConfig {
    */
   claudeMode?: 'code' | 'plan' | 'ask';
 
-  /**
-   * Hermes 引擎权限等级
-   * @default standard
-   */
-  permissionLevel?: PermissionLevelType;
+ /**
+  * Hermes 引擎权限等级
+   * @default auto
+  */
+ permissionLevel?: PermissionLevelType;
 
   /**
    * 开场白
