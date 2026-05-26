@@ -1,4 +1,4 @@
-CREATE TABLE `tasks` (
+CREATE TABLE IF NOT EXISTS `tasks` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`user_id` integer NOT NULL,
 	`title` text NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE `tasks` (
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE INDEX `idx_tasks_user_id` ON `tasks` (`user_id`);--> statement-breakpoint
-CREATE INDEX `idx_tasks_user_status` ON `tasks` (`user_id`,`status`);--> statement-breakpoint
-CREATE INDEX `idx_tasks_due_date` ON `tasks` (`due_date`);--> statement-breakpoint
-CREATE INDEX `idx_tasks_deleted_at` ON `tasks` (`deleted_at`);
+CREATE INDEX IF NOT EXISTS `idx_tasks_user_id` ON `tasks` (`user_id`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_tasks_user_status` ON `tasks` (`user_id`,`status`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_tasks_due_date` ON `tasks` (`due_date`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `idx_tasks_deleted_at` ON `tasks` (`deleted_at`);
