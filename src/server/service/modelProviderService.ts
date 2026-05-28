@@ -37,8 +37,8 @@ export class ModelProviderService {
         userId: accountId,
         slug: request.slug,
         name: request.name,
-        baseUrl: request.baseUrl,
-        anthropicUrl: request.anthropicUrl ?? request.baseUrl, // 默认使用 baseUrl，如果未提供 anthropicUrl
+        baseUrl: request.baseUrl || '',
+        anthropicUrl: request.anthropicUrl || '',
         apiKey: request.apiKey ?? null,
         description: request.description ?? null,
         isActive: request.isActive ?? true,

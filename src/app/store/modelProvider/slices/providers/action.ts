@@ -5,7 +5,7 @@ import { ModelProvider } from '@/types/modelProvider';
 
 export interface ProvidersAction {
   fetchProviders: () => Promise<void>;
-  createProvider: (provider: Partial<ModelProvider> & Pick<ModelProvider, 'name' | 'slug' | 'baseUrl'>) => Promise<void>;
+  createProvider: (provider: Partial<ModelProvider> & Pick<ModelProvider, 'name' | 'slug'>) => Promise<void>;
   updateProvider: (id: number, provider: Partial<ModelProvider>) => Promise<void>;
   deleteProvider: (id: number) => Promise<void>;
   setProviderActive: (id: number, isActive: boolean) => Promise<void>;

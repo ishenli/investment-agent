@@ -142,14 +142,16 @@ export default function ProviderSettings(
     } else if (!/^[a-zA-Z0-9_.-]+$/.test(draftProvider.slug)) {
       errors.slug = t('provider.form.fields.slug.invalid', 'Slug只能包含字母、数字、连字符、下划线和点');
     }
-    if (!draftProvider.baseUrl?.trim()) {
-      errors.baseUrl = t('provider.form.fields.baseUrl.required', 'Base URL不能为空');
-    } else if (!/^https:\/\//.test(draftProvider.baseUrl)) {
+    const hasBaseUrl = !!draftProvider.baseUrl?.trim();
+    const hasAnthropicUrl = !!draftProvider.anthropicUrl?.trim();
+
+    if (!hasBaseUrl && !hasAnthropicUrl) {
+      errors.baseUrl = t('provider.form.fields.url.atLeastOne', 'Base URL 和 Anthropic URL 至少填写一个');
+    }
+    if (hasBaseUrl && !/^https:\/\//.test(draftProvider.baseUrl!)) {
       errors.baseUrl = t('provider.form.fields.baseUrl.invalid', 'URL必须使用https协议');
     }
-    
-    // 验证 anthropicUrl (如果提供了的话)
-    if (draftProvider.anthropicUrl && !/^https:\/\//.test(draftProvider.anthropicUrl)) {
+    if (hasAnthropicUrl && !/^https:\/\//.test(draftProvider.anthropicUrl!)) {
       errors.anthropicUrl = t('provider.form.fields.anthropicUrl.invalid', 'Anthropic URL必须使用https协议');
     }
 
@@ -160,12 +162,14 @@ export default function ProviderSettings(
       Object.keys(errors).forEach((field) => clearFormError(field));
     }
 
+    const providerData = { ...draftProvider };
+
     if (mode === 'create') {
       await createProvider(
-        draftProvider as Partial<ModelProvider> & Pick<ModelProvider, 'name' | 'slug' | 'baseUrl'>,
+        providerData as Partial<ModelProvider> & Pick<ModelProvider, 'name' | 'slug'>,
       );
     } else if (mode === 'edit' && activeProviderId) {
-      await updateProvider(activeProviderId, draftProvider);
+      await updateProvider(activeProviderId, providerData);
     }
 
     if (!error) {
@@ -588,7 +592,7 @@ export default function ProviderSettings(
             </div>
             <div className="grid gap-2">
               <Label htmlFor="baseUrl">
-                {t('provider.form.fields.baseUrl.label', 'Base URL')} <span className="text-destructive">*</span>
+                {t('provider.form.fields.baseUrl.label', 'Base URL')}
               </Label>
               <Input
                 id="baseUrl"
@@ -597,7 +601,7 @@ export default function ProviderSettings(
                 placeholder={t('provider.form.fields.baseUrl.placeholder', 'https://api.openai.com/v1')}
                 className={errors.baseUrl ? 'border-destructive' : ''}
               />
-              <p className="text-xs text-muted-foreground">{t('provider.form.fields.baseUrl.note', '必须使用 https 协议')}</p>
+              <p className="text-xs text-muted-foreground">{t('provider.form.fields.baseUrl.note', 'OpenAI 兼容 API 地址，与 Anthropic URL 至少填一个')}</p>
               {errors.baseUrl && <p className="text-sm text-destructive">{errors.baseUrl}</p>}
             </div>
             <div className="grid gap-2">
@@ -607,8 +611,10 @@ export default function ProviderSettings(
                 value={draftProvider.anthropicUrl || ''}
                 onChange={(e) => setDraftProvider({ anthropicUrl: e.target.value })}
                 placeholder={t('provider.form.fields.anthropicUrl.placeholder', 'https://api.anthropic.com/v1')}
+                className={errors.anthropicUrl ? 'border-destructive' : ''}
               />
-              <p className="text-xs text-muted-foreground">{t('provider.form.fields.anthropicUrl.note', '可选的 Claude 专用 API 地址，如果不填则使用 Base URL')}</p>
+              <p className="text-xs text-muted-foreground">{t('provider.form.fields.anthropicUrl.note', 'Claude 专用 API 地址，与 Base URL 至少填一个')}</p>
+              {errors.anthropicUrl && <p className="text-sm text-destructive">{errors.anthropicUrl}</p>}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="apiKey">{t('provider.form.fields.apiKey.label', 'API Key')}</Label>

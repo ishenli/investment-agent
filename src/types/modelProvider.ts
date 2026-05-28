@@ -36,7 +36,7 @@ export interface ProviderModel {
 export interface CreateModelProviderRequest {
   name: string;
   slug: string;
-  baseUrl: string;
+  baseUrl?: string;
   anthropicUrl?: string;
   apiKey?: string;
   description?: string;

@@ -45,6 +45,8 @@ export class HermesEngine implements IAgentEngine {
 
     const { model: piModel, apiKey } = await resolveAgentModel(userId, provider, modelSlug);
 
+    logger.info(`[HermesEngine] Resolved model: id=${piModel.id} api=${piModel.api} provider=${piModel.provider} baseUrl=${piModel.baseUrl} apiKey=${apiKey ? '***' : 'NONE'}`);
+
     // 2. 注册工具
     let registry: ToolRegistry | undefined;
     if (enableTools) {
@@ -112,8 +114,9 @@ export class HermesEngine implements IAgentEngine {
         });
       },
       onError: (error: Error) => {
-        logger.warn('[HermesEngine] Error in loop:', {
-          errorMessage: error.message
+        logger.error('[HermesEngine] Error in agent loop:', {
+          errorMessage: error.message,
+          errorStack: error.stack?.split('\n').slice(0, 3).join(' | '),
         });
       },
       onConfirmationRequest: async (request: ConfirmationRequest) => {
@@ -201,13 +204,32 @@ export class HermesEngine implements IAgentEngine {
       },
     });
 
-    const result = await agent.run({
-      message: messages.findLast((m) => m.role === 'user')!.content,
-      context: {
-        systemPrompt: agent.getSystemPrompt(),
-        messages: piMessages.slice(0, -1) as any,
-      },
-    });
+    logger.info(`[HermesEngine] Starting agent.run() with ${piMessages.length} messages`);
+
+    let result;
+    try {
+      result = await agent.run({
+        message: messages.findLast((m) => m.role === 'user')!.content,
+        context: {
+          systemPrompt: agent.getSystemPrompt(),
+          messages: piMessages.slice(0, -1) as any,
+        },
+      });
+    } catch (runError) {
+      logger.error(`[HermesEngine] agent.run() threw:`, runError);
+      throw runError;
+    }
+
+    logger.info(`[HermesEngine] agent.run() returned: completed=${result.completed} apiCalls=${result.apiCalls} error=${result.error ?? 'none'} finalResponse.length=${result.finalResponse?.length ?? 0}`);
+
+    // Debug: log last assistant message from context
+    const contextMessages = result.context?.messages ?? [];
+    const lastAssistantMsg = contextMessages.filter((m: any) => m.role === 'assistant').pop();
+    if (lastAssistantMsg) {
+      logger.info(`[HermesEngine] Last assistant msg content: ${JSON.stringify(lastAssistantMsg.content)?.slice(0, 500)}`);
+    } else {
+      logger.warn(`[HermesEngine] No assistant message found in context (total messages: ${contextMessages.length})`);
+    }
 
     // 7. 发送最终结果
     if (result.completed) {

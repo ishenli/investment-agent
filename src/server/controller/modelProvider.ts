@@ -19,7 +19,8 @@ const ModelProviderSchema = z.object({
   baseUrl: z.string()
     .url('无效的URL格式')
     .max(500, 'URL不能超过500个字符')
-    .refine(val => val.startsWith('https://'), 'URL必须使用https协议'),
+    .refine(val => val.startsWith('https://'), 'URL必须使用https协议')
+    .optional(),
   anthropicUrl: z.string()
     .url('无效的URL格式')
     .max(500, 'URL不能超过500个字符')
@@ -31,6 +32,9 @@ const ModelProviderSchema = z.object({
     .optional(),
   isActive: z.boolean().optional(),
   displayOrder: z.number().int().min(0).optional(),
+}).refine(data => data.baseUrl || data.anthropicUrl, {
+  message: 'Base URL 和 Anthropic URL 至少填写一个',
+  path: ['baseUrl'],
 });
 
 type ModelProviderType = z.infer<typeof ModelProviderSchema>;
