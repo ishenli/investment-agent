@@ -394,7 +394,6 @@ export const BUSINESS_TOOL_DEFINITIONS: RawToolDefinition[] = [
       { name: 'title', type: 'string', description: '新标题', required: false },
       { name: 'description', type: 'string', description: '新描述', required: false },
       { name: 'priority', type: 'string', description: '新优先级: low | medium | high | urgent', required: false, enum: ['low', 'medium', 'high', 'urgent'] },
-      { name: 'execution_notes', type: 'string', description: '执行备注（完成任务时记录执行结果）', required: false },
       { name: 'linked_symbols', type: 'array', description: '关联资产代号列表', required: false },
     ],
   },

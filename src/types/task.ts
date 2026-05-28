@@ -28,7 +28,6 @@ export interface Task {
   triggerExecutedAt: Date | null;
   dueDate: Date | null;
   completedAt: Date | null;
-  executionNotes: string | null;
   sourceType: TaskSourceType;
   sourceId: string | null;
   createdAt: Date;
@@ -60,7 +59,6 @@ export interface UpdateTaskInput {
   triggerPrice?: number | null;
   triggerDirection?: TriggerDirection | null;
   dueDate?: string | null; // ISO string from frontend
-  executionNotes?: string | null;
 }
 
 // ============== Filter / Query Types ==============
@@ -96,7 +94,7 @@ export interface TasksByStatusResponse {
 export const VALID_STATUS_TRANSITIONS: Record<TaskStatus, TaskStatus[]> = {
   pending: ['in_progress', 'cancelled', 'expired'],
   in_progress: ['completed', 'cancelled', 'expired'],
-  completed: [],
+  completed: ['pending', 'in_progress'],
   cancelled: ['pending', 'in_progress'],
   expired: [],
 };

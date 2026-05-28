@@ -35,7 +35,6 @@ const UpdateTaskParams = z.object({
   title: z.string().optional().describe('新标题'),
   description: z.string().optional().describe('新描述'),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).optional().describe('新优先级'),
-  execution_notes: z.string().optional().describe('执行备注（完成任务时记录执行结果）'),
   linked_symbols: z.array(z.string()).optional().describe('关联资产代号列表'),
 });
 
@@ -96,7 +95,6 @@ async function executeUpdateTask(params: {
   title?: string;
   description?: string;
   priority?: 'low' | 'medium' | 'high' | 'urgent';
-  execution_notes?: string;
   linked_symbols?: string[];
 }): Promise<string> {
   try {
@@ -105,7 +103,6 @@ async function executeUpdateTask(params: {
       title: params.title,
       description: params.description,
       priority: params.priority,
-      executionNotes: params.execution_notes,
       linkedSymbols: params.linked_symbols,
     });
   } catch (error) {
@@ -223,7 +220,6 @@ export const updateTaskClaudeTool = claudeTool(
     title: z.string().optional().describe('新标题'),
     description: z.string().optional().describe('新描述'),
     priority: z.enum(['low', 'medium', 'high', 'urgent']).optional().describe('新优先级'),
-    execution_notes: z.string().optional().describe('执行备注（完成任务时记录执行结果）'),
     linked_symbols: z.array(z.string()).optional().describe('关联资产代号列表'),
   },
   async (args) => {
@@ -234,7 +230,6 @@ export const updateTaskClaudeTool = claudeTool(
         title: args.title as string | undefined,
         description: args.description as string | undefined,
         priority: (args.priority as 'low' | 'medium' | 'high' | 'urgent' | undefined),
-        execution_notes: args.execution_notes as string | undefined,
         linked_symbols: args.linked_symbols as string[] | undefined,
       });
       return { content: [{ type: 'text', text: result }] };

@@ -1,10 +1,9 @@
 'use client';
 
-import { Badge } from '@renderer/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@renderer/components/ui/card';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
-import type { Task, TaskPriority, TaskStatus } from '@/types/task';
+import type { Task, TaskPriority } from '@/types/task';
 
 interface TaskCardProps {
   task: Task;
@@ -18,14 +17,6 @@ const priorityColorMap: Record<TaskPriority, string> = {
   urgent: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
 };
 
-const statusVariantMap: Record<TaskStatus, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  pending: 'outline',
-  in_progress: 'default',
-  completed: 'secondary',
-  cancelled: 'destructive',
-  expired: 'destructive',
-};
-
 export function TaskCard({ task, onClick }: TaskCardProps) {
   const { t } = useTranslation('task');
 
@@ -33,18 +24,13 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
 
   return (
     <Card
-      className="cursor-pointer hover:shadow-md transition-shadow gap-2"
+      className="hover:shadow-md transition-shadow gap-2 py-2"
       onClick={() => onClick?.(task)}
     >
       <CardHeader className="pb-2">
-        <div className="flex items-start justify-between gap-2">
-          <CardTitle className="text-sm font-medium leading-tight line-clamp-2">
-            {task.title}
-          </CardTitle>
-          <Badge variant={statusVariantMap[task.status]} className="shrink-0 text-xs">
-            {t(`status.${task.status}`)}
-          </Badge>
-        </div>
+        <CardTitle className="text-sm font-medium leading-tight line-clamp-2">
+          {task.title}
+        </CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
         {task.description && (

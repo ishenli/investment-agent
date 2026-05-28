@@ -100,7 +100,6 @@ export async function updateTask(
     title?: string;
     description?: string;
     priority?: TaskPriority;
-    executionNotes?: string;
     linkedSymbols?: string[];
   },
 ): Promise<string> {
@@ -116,7 +115,6 @@ export async function updateTask(
       title: options?.title,
       description: options?.description,
       priority: options?.priority,
-      executionNotes: options?.executionNotes,
       linkedSymbols: options?.linkedSymbols,
     });
 

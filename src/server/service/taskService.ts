@@ -18,17 +18,8 @@ import type {
   TaskPagination,
   TaskListResponse,
   TasksByStatusResponse,
-  VALID_STATUS_TRANSITIONS,
 } from '@/types/task';
 
-// Re-import the constant (cannot import `const` from type import)
-const VALID_TRANSITIONS: Record<TaskStatus, TaskStatus[]> = {
-  pending: ['in_progress', 'cancelled', 'expired'],
-  in_progress: ['completed', 'cancelled', 'expired'],
-  completed: [],
-  cancelled: ['pending', 'in_progress'],
-  expired: [],
-};
 
 // ============== Entity → DTO Transform ==============
 
@@ -47,7 +38,6 @@ function toTaskResponse(entity: TaskEntity): Task {
     triggerExecutedAt: entity.triggerExecutedAt,
     dueDate: entity.dueDate,
     completedAt: entity.completedAt,
-    executionNotes: entity.executionNotes,
     sourceType: entity.sourceType as TaskSourceType,
     sourceId: entity.sourceId,
     createdAt: entity.createdAt,
@@ -75,7 +65,6 @@ export class TaskService {
         triggerExecutedAt: null,
         dueDate: input.dueDate ? new Date(input.dueDate) : null,
         completedAt: null,
-        executionNotes: null,
         sourceType: input.sourceType ?? 'manual',
         sourceId: input.sourceId ?? null,
         deletedAt: null,
@@ -168,17 +157,6 @@ export class TaskService {
         return { task: null, error: 'task_not_found' };
       }
 
-      // Validate status transition if status is being changed
-      if (input.status && input.status !== existing.status) {
-        const currentStatus = existing.status as TaskStatus;
-        const allowedTransitions = VALID_TRANSITIONS[currentStatus];
-        if (!allowedTransitions.includes(input.status)) {
-          return {
-            task: null,
-            error: `Invalid status transition from ${currentStatus} to ${input.status}`,
-          };
-        }
-      }
 
       // Build update data
       const updateData: UpdateTaskData = {};
@@ -191,8 +169,6 @@ export class TaskService {
       if (input.triggerPrice !== undefined) updateData.triggerPrice = input.triggerPrice;
       if (input.triggerDirection !== undefined) updateData.triggerDirection = input.triggerDirection;
       if (input.dueDate !== undefined) updateData.dueDate = input.dueDate ? new Date(input.dueDate) : null;
-      if (input.executionNotes !== undefined) updateData.executionNotes = input.executionNotes === '' ? null : input.executionNotes;
-
       // Auto-set completedAt when status becomes completed
       if (input.status === 'completed' && existing.status !== 'completed') {
         updateData.completedAt = new Date();

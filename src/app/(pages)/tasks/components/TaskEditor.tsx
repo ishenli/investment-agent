@@ -60,8 +60,6 @@ export function TaskEditor({ open, onOpenChange, mode, task, onSave, onDelete }:
   const [triggerPrice, setTriggerPrice] = useState('');
   const [triggerDirection, setTriggerDirection] = useState<TriggerDirection>('above');
   const [dueDate, setDueDate] = useState('');
-  const [executionNotes, setExecutionNotes] = useState('');
-
   // Reset form when opening or task changes
   useEffect(() => {
     setCurrentMode(mode);
@@ -74,7 +72,6 @@ export function TaskEditor({ open, onOpenChange, mode, task, onSave, onDelete }:
       setTriggerPrice(task.triggerPrice != null ? String(task.triggerPrice) : '');
       setTriggerDirection(task.triggerDirection ?? 'above');
       setDueDate(task.dueDate ? new Date(task.dueDate).toISOString().slice(0, 10) : '');
-      setExecutionNotes(task.executionNotes ?? '');
     } else {
       setTitle('');
       setDescription('');
@@ -84,7 +81,6 @@ export function TaskEditor({ open, onOpenChange, mode, task, onSave, onDelete }:
       setTriggerPrice('');
       setTriggerDirection('above');
       setDueDate('');
-      setExecutionNotes('');
     }
   }, [task, mode, open]);
 
@@ -124,7 +120,6 @@ export function TaskEditor({ open, onOpenChange, mode, task, onSave, onDelete }:
           triggerPrice: isPriceTrigger && triggerPrice ? Number(triggerPrice) : null,
           triggerDirection: isPriceTrigger ? triggerDirection : null,
           dueDate: dueDate || null,
-          executionNotes: executionNotes.trim() || null,
         };
         await onSave(input);
       }
@@ -277,20 +272,6 @@ export function TaskEditor({ open, onOpenChange, mode, task, onSave, onDelete }:
             />
           </div>
 
-          {/* Execution Notes (only in edit/view mode for existing tasks) */}
-          {currentMode !== 'create' && task && (
-            <div className="space-y-2">
-              <Label htmlFor="task-notes">{t('fields.executionNotes')}</Label>
-              <Textarea
-                id="task-notes"
-                value={executionNotes}
-                onChange={(e) => setExecutionNotes(e.target.value)}
-                placeholder={t('fields.executionNotesPlaceholder')}
-                disabled={isReadOnly}
-                className="min-h-16"
-              />
-            </div>
-          )}
         </div>
 
         <DialogFooter>

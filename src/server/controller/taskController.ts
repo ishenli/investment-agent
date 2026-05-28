@@ -149,7 +149,6 @@ export class TaskController extends BaseBizController {
         triggerPrice: body.triggerPrice,
         triggerDirection: body.triggerDirection,
         dueDate: body.dueDate === '' ? null : body.dueDate,
-        executionNotes: body.executionNotes === '' ? null : body.executionNotes,
       });
 
       if (error === 'task_not_found') {

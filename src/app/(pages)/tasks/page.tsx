@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@renderer/components/ui/tabs';
 import { useTranslation } from 'react-i18next';
+import { notificationManager } from '@/app/lib/notification';
 import { TaskBoard } from './components/TaskBoard';
 import { TaskList } from './components/TaskList';
 import { TaskEditor } from './components/TaskEditor';
@@ -36,7 +37,6 @@ export default function TasksPage() {
   // Loading / error state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Filter state
   const [search, setSearch] = useState('');
@@ -53,8 +53,7 @@ export default function TasksPage() {
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const showMessage = useCallback((type: 'success' | 'error', text: string) => {
-    setMessage({ type, text });
-    setTimeout(() => setMessage(null), 3000);
+    notificationManager.toast({ title: text, variant: type });
   }, []);
 
   // Fetch board (grouped) data
@@ -190,6 +189,26 @@ export default function TasksPage() {
   };
 
   const handleStatusChange = async (taskId: string, newStatus: TaskStatus) => {
+    const previousBoardData = { ...boardData };
+
+    setBoardData((prev) => {
+      const next = { ...prev };
+      let movedTask: Task | undefined;
+      for (const status of Object.keys(next) as (keyof TasksByStatusResponse)[]) {
+        const idx = next[status].findIndex((t) => t.id === taskId);
+        if (idx !== -1) {
+          movedTask = { ...next[status][idx], status: newStatus };
+          next[status] = next[status].filter((_, i) => i !== idx);
+          break;
+        }
+      }
+      if (movedTask && newStatus in next) {
+        const key = newStatus as keyof TasksByStatusResponse;
+        next[key] = [movedTask, ...next[key]];
+      }
+      return next;
+    });
+
     try {
       const res = await fetch(`/api/tasks/${taskId}`, {
         method: 'PUT',
@@ -198,12 +217,13 @@ export default function TasksPage() {
       });
       const result = await res.json();
       if (!result.success) {
+        setBoardData(previousBoardData);
         showMessage('error', result.message ?? t('messages.updateError'));
         return;
       }
       showMessage('success', t('messages.updateSuccess'));
-      await fetchData();
     } catch {
+      setBoardData(previousBoardData);
       showMessage('error', t('messages.networkError'));
     }
   };
@@ -228,24 +248,10 @@ export default function TasksPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{t('title')}</h1>
           <p className="text-sm text-muted-foreground mt-1">{t('description')}</p>
         </div>
         <Button onClick={handleCreateClick}>{t('actions.create')}</Button>
       </div>
-
-      {/* Messages */}
-      {message && (
-        <div
-          className={`p-4 rounded ${
-            message.type === 'success'
-              ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-              : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-          }`}
-        >
-          {message.text}
-        </div>
-      )}
 
       {/* Error */}
       {error && (

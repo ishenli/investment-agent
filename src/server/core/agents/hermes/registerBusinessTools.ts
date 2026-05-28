@@ -270,7 +270,6 @@ const taskUpdateSchema = Type.Object({
   title: Type.Optional(Type.String({ description: '新标题' })),
   description: Type.Optional(Type.String({ description: '新描述' })),
   priority: Type.Optional(Type.String({ description: '新优先级: low | medium | high | urgent' })),
-  execution_notes: Type.Optional(Type.String({ description: '执行备注（完成任务时记录执行结果）' })),
   linked_symbols: Type.Optional(Type.Array(Type.String(), { description: '关联资产代号列表' })),
 });
 
@@ -905,7 +904,6 @@ export function registerBusinessTools(
             title: args.title ? String(args.title) : undefined,
             description: args.description ? String(args.description) : undefined,
             priority: args.priority ? String(args.priority) as any : undefined,
-            executionNotes: args.execution_notes ? String(args.execution_notes) : undefined,
             linkedSymbols: args.linked_symbols ? (args.linked_symbols as string[]) : undefined,
           }),
         )(),
