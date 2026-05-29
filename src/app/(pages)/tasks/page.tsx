@@ -95,21 +95,26 @@ export default function TasksPage() {
     }
   }, [search, statusFilter, priorityFilter, typeFilter, t]);
 
-  // Fetch data based on active tab
-  const fetchData = useCallback(async () => {
-    setLoading(true);
+  // Fetch all data (both views)
+  const fetchAllData = useCallback(async () => {
     setError(null);
-    if (activeTab === 'board') {
-      await fetchBoardData();
-    } else {
-      await fetchListData();
-    }
-    setLoading(false);
-  }, [activeTab, fetchBoardData, fetchListData]);
+    await Promise.all([fetchBoardData(), fetchListData()]);
+  }, [fetchBoardData, fetchListData]);
 
-  // Initial load and tab change
+  // Initial load
   useEffect(() => {
-    fetchData();
+    setLoading(true);
+    fetchAllData().finally(() => setLoading(false));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Silent background refresh on tab switch (skip initial)
+  const isInitialMount = useRef(true);
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    fetchAllData();
   }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Re-fetch list when filters change (debounced for search)
@@ -167,7 +172,7 @@ export default function TasksPage() {
         }
         showMessage('success', t('messages.createSuccess'));
       }
-      await fetchData();
+      await fetchAllData();
     } catch {
       showMessage('error', t('messages.networkError'));
     }
@@ -182,7 +187,7 @@ export default function TasksPage() {
         return;
       }
       showMessage('success', t('messages.deleteSuccess'));
-      await fetchData();
+      await fetchAllData();
     } catch {
       showMessage('error', t('messages.networkError'));
     }
@@ -238,10 +243,8 @@ export default function TasksPage() {
     );
   }
 
-  const hasTasks =
-    activeTab === 'board'
-      ? boardData.pending.length + boardData.in_progress.length + boardData.completed.length + boardData.cancelled.length > 0
-      : listData.length > 0;
+  const hasBoardTasks = boardData.pending.length + boardData.in_progress.length + boardData.completed.length + boardData.cancelled.length > 0;
+  const hasListTasks = listData.length > 0;
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-4">
@@ -268,12 +271,12 @@ export default function TasksPage() {
         </TabsList>
 
         {/* Board View */}
-        <TabsContent value="board" className="mt-4">
+        <TabsContent value="board" forceMount className="mt-4 data-[state=inactive]:hidden">
           {loading ? (
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
-          ) : !hasTasks ? (
+          ) : !hasBoardTasks ? (
             <div className="text-center py-16">
               <p className="text-lg font-medium text-muted-foreground">{t('empty.title')}</p>
               <p className="text-sm text-muted-foreground mt-2">{t('empty.description')}</p>
@@ -291,7 +294,7 @@ export default function TasksPage() {
         </TabsContent>
 
         {/* List View */}
-        <TabsContent value="list" className="mt-4 space-y-4">
+        <TabsContent value="list" forceMount className="mt-4 space-y-4 data-[state=inactive]:hidden">
           <TaskFilters
             search={search}
             onSearchChange={setSearch}
@@ -307,7 +310,7 @@ export default function TasksPage() {
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
-          ) : !hasTasks ? (
+          ) : !hasListTasks ? (
             <div className="text-center py-16">
               <p className="text-lg font-medium text-muted-foreground">{t('empty.title')}</p>
               <p className="text-sm text-muted-foreground mt-2">{t('empty.description')}</p>
