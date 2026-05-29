@@ -68,6 +68,7 @@ export class TaskService {
         sourceType: input.sourceType ?? 'manual',
         sourceId: input.sourceId ?? null,
         deletedAt: null,
+        executionNotes: null,
       });
 
       logger.info(`[TaskService] Task created: id=${entity.id}, userId=${userId}`);
