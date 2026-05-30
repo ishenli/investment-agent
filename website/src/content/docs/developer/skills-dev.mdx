@@ -1,0 +1,50 @@
+---
+title: 技能开发
+description: Investment Agent 自定义技能开发与接口规范
+---
+
+## 自定义技能
+
+Investment Agent 支持自定义技能开发，技能以 Markdown 文件形式组织：
+
+```yaml
+# skills/custom/SKILL.md
+---
+name: custom-analysis
+description: 自定义分析技能
+version: "1.0.0"
+---
+
+# 自定义分析技能
+
+技能描述和使用指南...
+```
+
+## 技能引用
+
+在技能中引用详细的策略文档：
+
+```
+skills/
+├── stock-analysis/
+│   ├── SKILL.md           # 技能主文件
+│   └── references/
+│       ├── UVXY.md        # UVXY 策略指引
+│       └── VIX.md         # VIX 产品分析
+```
+
+## 接口规范
+
+所有工具遵循统一的接口设计：
+
+| 接口 | 说明 |
+|------|------|
+| `LangChain Tools` | LangChain/LangGraph 引擎使用 |
+| `Claude Tools` | Claude Agent SDK 引擎使用 |
+| `Hermes Tools` | Hermes 轻量级引擎使用 |
+
+工具定义包含：
+- 输入参数 Schema（Zod/TypeBox）
+- 描述文档（供 AI 理解用途）
+- 执行器（业务逻辑实现）
+- 错误处理与日志记录

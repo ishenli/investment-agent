@@ -30,16 +30,7 @@ Investment Agent 集成了丰富的 AI 技能和工具，为投资分析提供�
 
 ### 资产信息查询
 
-```typescript
-// 支持查询类型
-searchAssetInfoTool({
-  query: "苹果股票最新价格"  // 股票
-  query: "黄金今日行情"      // 商品
-  query: "某基金净值"        // 基金
-})
-```
-
-**数据来源**：Finnhub 实时市场数据 API
+支持查询股票、基金、商品等多种资产类型的实时行情和基本信息。**数据来源**：Finnhub 实时市场数据 API。
 
 ### 投资笔记管理
 
@@ -57,21 +48,13 @@ searchAssetInfoTool({
 
 ### 自然语言数据库查询
 
-使用自然语言直接查询投资组合数据：
+使用自然语言直接查询投资组合数据，例如：
 
-```typescript
-queryDbTool({
-  query: "查询过去一周的所有交易记录"
-  query: "统计本月盈利最多的持仓"
-  query: "找出持仓超过 10 万的股票"
-})
-```
+- "查询过去一周的所有交易记录"
+- "统计本月盈利最多的持仓"
+- "找出持仓超过 10 万的股票"
 
-**支持的查询类型**：
-- 交易历史查询
-- 持仓统计分析
-- 账户余额检查
-- 收益汇总报告
+**支持的查询类型**：交易历史查询、持仓统计分析、账户余额检查、收益汇总报告。
 
 ### 网络搜索与市场研究
 
@@ -94,50 +77,6 @@ queryDbTool({
 - 交易摘要与统计报告
 - 新增交易记录（手工录入或导入）
 
-## 技能扩展
-
-### 自定义技能
-
-Investment Agent 支持自定义技能开发：
-
-```yaml
-# skills/custom/SKILL.md
----
-name: custom-analysis
-description: 自定义分析技能
-version: "1.0.0"
 ---
 
-# 自定义分析技能
-
-技能描述和使用指南...
-```
-
-### 技能引用
-
-在技能中引用详细的策略文档：
-
-```
-skills/
-├── stock-analysis/
-│   ├── SKILL.md           # 技能主文件
-│   └── references/
-│       ├── UVXY.md        # UVXY 策略指引
-│       └── VIX.md         # VIX 产品分析
-```
-
-## 接口规范
-
-所有工具遵循统一的接口设计：
-
-| 接口 | 说明 |
-|------|------|
-| `LangChain Tools` | LangChain/LangGraph 引擎使用 |
-| `Claude Tools` | Claude Agent SDK 引擎使用 |
-| `Hermes Tools` | Hermes 轻量级引擎使用 |
-
-工具定义包含：
-- 输入参数 Schema（Zod/TypeBox）
-- 描述文档（供 AI 理解用途）
-- 执行器（业务逻辑实现）
-- 错误处理与日志记录
+如需了解自定义技能开发和接口规范，请参阅 [开发者文档：技能开发](/developer/skills-dev/)。

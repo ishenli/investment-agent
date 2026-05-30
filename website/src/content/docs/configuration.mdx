@@ -1,0 +1,186 @@
+---
+title: 配置指南
+description: Investment Agent 的配置说明
+---
+
+import { Card, CardGrid, Steps } from '@astrojs/starlight/components';
+
+Investment Agent 的所有配置均可在应用的**设置页面**完成，无需手动编辑配置文件。
+
+## 配置入口
+
+<Steps>
+1. **打开设置页面**
+   在应用左侧导航栏点击 **设置** 图标
+
+2. **选择配置类别**
+   - **AI 模型配置**：配置 OpenAI、Anthropic 等 AI 服务
+   - **数据源配置**：配置股票行情、网络搜索等数据服务
+   - **渠道配置**：配置微信、飞书等通信渠道
+</Steps>
+
+## AI 模型配置
+
+### OpenAI
+
+<CardGrid>
+  <Card title="配置项" icon="settings">
+    - **API Key**：从 [platform.openai.com](https://platform.openai.com) 获取
+    - **模型选择**：GPT-4、GPT-4 Turbo、GPT-3.5 等
+    - **Base URL**：可选，用于自定义端点
+  </Card>
+  <Card title="获取方式" icon="key">
+    1. 访问 [OpenAI Platform](https://platform.openai.com)
+    2. 进入 API Keys 页面
+    3. 点击 "Create new secret key"
+  </Card>
+</CardGrid>
+
+### Anthropic Claude
+
+<CardGrid>
+  <Card title="配置项" icon="settings">
+    - **API Key**：从 [console.anthropic.com](https://console.anthropic.com) 获取
+    - **模型选择**：Claude 3.5 Sonnet、Claude 3 Opus 等
+  </Card>
+  <Card title="获取方式" icon="key">
+    1. 访问 [Anthropic Console](https://console.anthropic.com)
+    2. 进入 API Keys 页面
+    3. 点击 "Create Key"
+  </Card>
+</CardGrid>
+
+## 数据源配置
+
+### Finnhub（股票行情）
+
+<CardGrid>
+  <Card title="配置项" icon="settings">
+    - **API Key**：从 [finnhub.io](https://finnhub.io) 获取
+  </Card>
+  <Card title="用途" icon="chart">
+    - 实时股票价格查询
+    - 公司基本面数据
+    - 市场新闻
+  </Card>
+</CardGrid>
+
+### Tavily（网络搜索）
+
+<CardGrid>
+  <Card title="配置项" icon="settings">
+    - **API Key**：从 [tavily.com](https://tavily.com) 获取
+  </Card>
+  <Card title="用途" icon="search">
+    - AI 驱动的网络搜索
+    - 市场研究
+    - 新闻聚合
+  </Card>
+</CardGrid>
+
+## 渠道配置
+
+### 微信渠道
+
+通过 iLink 接入个人微信账号，实现移动端 AI 助手功能：
+
+<CardGrid>
+  <Card title="配置项" icon="settings">
+    - **iLink API 地址**：iLink 服务端点
+    - **认证信息**：登录凭证
+  </Card>
+  <Card title="使用说明" icon="message">
+    1. 在设置页面配置 iLink 服务
+    2. 扫码登录微信账号
+    3. 开始接收和回复消息
+  </Card>
+</CardGrid>
+
+详细的微信渠道配置请参阅 [微信集成文档](/developer/weixin/)。
+
+## 数据存储
+
+### 数据库位置
+
+所有数据存储在本地 SQLite 数据库中：
+
+| 平台 | 数据目录 |
+|------|---------|
+| macOS | `~/Library/Application Support/ig/` |
+| Web 应用 | 项目目录下的 `data/` 文件夹 |
+
+<details>
+<summary>**自定义数据目录**</summary>
+
+通过环境变量 `INVESTMENT_AGENT_DATA_DIR` 指定数据存储位置：
+
+```bash
+# macOS
+export INVESTMENT_AGENT_DATA_DIR=/path/to/your/data
+```
+
+此配置对 Electron 桌面应用和 Web 应用均有效。
+
+</details>
+
+## 数据备份与恢复
+
+### 备份数据
+
+在设置页面可以导出所有数据：
+
+1. 进入 **设置 → 数据管理**
+2. 点击 **导出数据**
+3. 选择导出格式（JSON/SQLite）
+4. 选择保存位置
+
+### 恢复数据
+
+1. 进入 **设置 → 数据管理**
+2. 点击 **导入数据**
+3. 选择之前导出的备份文件
+4. 确认导入
+
+### 手动备份
+
+如需手动备份数据库文件：
+
+```bash
+# 备份数据目录
+cp -r ~/Library/Application\ Support/ig/ backup/ig_$(date +%Y%m%d)/
+```
+
+## 安全建议
+
+<CardGrid>
+  <Card title="API Key 保护" icon="shield">
+    - 不要在公共场所或截图中暴露 API Key
+    - 定期轮换 API Key
+    - 为不同用途创建不同的 Key
+  </Card>
+  <Card title="数据安全" icon="lock">
+    - 定期备份重要数据
+    - 数据库文件仅存储在本地
+    - 敏感操作需二次确认
+  </Card>
+</CardGrid>
+
+## 常见问题
+
+<details>
+<summary>**配置保存后未生效？**</summary>
+
+尝试刷新页面或重启应用。如仍有问题，检查浏览器控制台是否有错误信息。
+</details>
+
+<details>
+<summary>**如何查看当前配置？**</summary>
+
+在设置页面顶部可以看到当前所有已配置服务的状态指示器。
+</details>
+
+<details>
+<summary>**配置数据存储在哪里？**</summary>
+
+配置信息加密存储在本地 SQLite 数据库中，不会上传到云端。
+</details>

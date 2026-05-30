@@ -21,8 +21,6 @@ Investment Agent 采用多引擎架构，支持三种不同的 AI 引擎，各�
   </Card>
 </CardGrid>
 
----
-
 ## Hermes 引擎
 
 轻量级智能体引擎，专注于**可观测性**和**快速响应**。
@@ -59,48 +57,13 @@ Hermes 引擎自动加载所有业务工具：
 
 Hermes 引擎内置工具权限管理系统，通过**权限等级 × 工具类别**的策略矩阵控制工具执行行为。
 
-#### 权限等级
-
 | 等级 | 说明 |
 |------|------|
 | `safe` | 安全模式，所有工具调用均需用户确认 |
 | `auto` | 自动模式（默认），敏感操作需确认，常规操作自动执行 |
 | `full-access` | 完全访问，所有工具自动执行 |
 
-#### 工具类别
-
-每个工具在注册时声明所属类别：
-
-| 类别 | 说明 | 示例工具 |
-|------|------|----------|
-| `read` | 只读操作 | `read_file`、`list_directory`、`web_search` |
-| `write` | 写入操作 | `write_file`、`note_create` |
-| `system` | 系统操作 | `note_delete`、`execute_command` |
-| `finance` | 金融操作 | `execute_trade`、`transfer_funds` |
-
-#### 策略矩阵
-
-权限等级与工具类别的组合决定执行策略（`auto` / `confirm` / `deny`）：
-
-| | read | write | system | finance |
-|------|------|-------|--------|---------|
-| **safe** | confirm | confirm | confirm | confirm |
-| **auto** | auto | auto | confirm | confirm |
-| **full-access** | auto | auto | auto | auto |
-
-- `auto`：直接执行，无需确认
-- `confirm`：暂停执行，等待用户在聊天界面点击确认或拒绝
-- `deny`：拒绝执行（保留策略，当前未启用）
-
-#### 确认流程
-
-当策略为 `confirm` 时，引擎通过 SSE 事件向前端发送确认请求，用户可在聊天界面中看到权限确认卡片，点击"允许"或"拒绝"。超时 30 秒未响应将自动拒绝。
-
-```
-用户发送消息 → LLM 决策调用工具 → 查询策略矩阵
-  → auto: 直接执行
-  → confirm: 发送 SSE 事件 → 前端弹出确认卡片 → 用户决策 → 执行或跳过
-```
+Hermes 引擎支持 `read`、`write`、`system`、`finance` 四类工具分级。具体的策略矩阵和确认流程实现，请参阅 [工具权限与安全](/permissions/)。
 
 ### 适用场景
 
@@ -108,8 +71,6 @@ Hermes 引擎内置工具权限管理系统，通过**权限等级 × 工具类�
 - 调试和开发新工具
 - 成本敏感的应用
 - 快速迭代原型
-
----
 
 ## Claude 引擎
 
@@ -121,25 +82,6 @@ Hermes 引擎内置工具权限管理系统，通过**权限等级 × 工具类�
 - **文件附件支持**：直接分析 PDF、图片等文件
 - **MCP 服务器集成**：扩展工具生态
 - **权限控制**：code/plan/ask 三种模式
-
-### 文件支持
-
-支持多种文件类型作为上下文：
-
-```typescript
-files: [
-  {
-    name: "report.pdf",
-    data: fileBuffer,
-    type: "application/pdf"
-  },
-  {
-    name: "chart.png", 
-    data: imageBuffer,
-    type: "image/png"
-  }
-]
-```
 
 ### 权限模式
 
@@ -155,8 +97,6 @@ files: [
 - 需要理解文件内容
 - 多步骤决策场景
 - 对质量要求高的任务
-
----
 
 ## DeepAgents 引擎
 
@@ -189,28 +129,12 @@ files: [
   </Card>
 </CardGrid>
 
-### 配套工具
-
-DeepAgents 针对投资顾问场景优化，内置专用工具：
-
-```typescript
-// 工具示例
-stockSearchNewsTool      // 股票新闻搜索
-stockGetPriceTool        // 获取股票价格
-stockRecallMarketInfo    // 市场信息召回
-stockRecallCompanyInfo   // 公司信息召回
-noteQueryTool            // 投资笔记查询
-TravilySearchTool        // 网络搜索
-```
-
 ### 适用场景
 
 - 投资咨询和顾问
 - 多步骤复杂分析
 - 需要状态管理的工作流
 - 结构化输出场景
-
----
 
 ## 引擎对比
 
@@ -228,39 +152,13 @@ TravilySearchTool        // 网络搜索
 
 ## 如何选择
 
-**快速开发** → 选择 **Hermes**  
+**快速开发** → 选择 **Hermes**
 完整的可观测性帮助你快速调试和迭代
 
-**高质量输出** → 选择 **Claude**  
+**高质量输出** → 选择 **Claude**
 顶级推理能力，适合复杂的分析和代码任务
 
-**投资咨询** → 选择 **DeepAgents**  
+**投资咨询** → 选择 **DeepAgents**
 专为投资顾问设计，工作流完整
 
-## 配置使用
-
-```typescript
-// 默认引擎配置
-{
-  "defaultEngine": "hermes"
-}
-
-// 运行时切换引擎
-const response = await agent.execute({
-  engine: "claude",
-  model: "claude-3-5-sonnet-latest",
-  messages: [...]
-});
-
-// DeepAgents 投资顾问
-const advisor = await investmentAdvisorAgent.chat({
-  messages: [...],
-  accountId: "user_123",
-  model: "gpt-4-turbo"
-});
-```
-
-## 扩展阅读
-
-- [AI 技能](/skills/) - 了解如何创建自定义技能
-- [架构设计](/architecture/) - 深入了解系统架构
+对于开发者而言，引擎运行时切换和 TypeScript API 的详细说明请参阅 [开发者文档：引擎开发指南](/developer/engines/)。

@@ -1,0 +1,195 @@
+---
+title: 自我部署
+description: Investment Agent 的源码部署与维护指南
+---
+
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+## 源码部署
+
+从源代码自行构建并运行 Investment Agent：
+
+<Steps>
+1. **克隆仓库**
+   ```bash
+   git clone https://github.com/ishenli/investment-agent.git
+   cd investment-agent
+   ```
+
+2. **安装依赖**
+   ```bash
+   pnpm install
+   ```
+
+3. **配置服务**
+   在应用设置页面配置所需的 API Key 和服务：
+   - OpenAI / Anthropic API Key
+   - Finnhub API Key
+   - Tavily API Key（可选）
+   
+   详细的配置说明请参阅 [配置指南](/configuration/)。
+
+4. **初始化数据库**
+   ```bash
+   pnpm db:push
+   ```
+
+5. **启动应用**
+   ```bash
+   pnpm dev
+   # 访问 http://localhost:3000
+   ```
+</Steps>
+
+## 更新策略
+
+### Web 应用更新
+
+```bash
+# 拉取最新代码
+git pull origin main
+
+# 更新依赖
+pnpm install
+
+# 推送数据库 schema 变更（如有）
+pnpm db:push
+
+# 重新启动
+pnpm dev
+```
+
+### Electron 应用更新
+
+Electron 应用内置自动更新功能：
+- 启动后 30 秒首次检查更新
+- 之后每小时自动检查一次
+- 更新下载完成后弹出通知
+
+<Aside type="caution">
+自动更新仅在使用正式签名打包的应用中生效。开发环境需手动构建更新。
+</Aside>
+
+## 数据迁移
+
+数据库使用 SQLite，所有数据存储在本地文件。升级时数据库文件会自动保留，但重大版本更新可能需要执行数据库迁移：
+
+```bash
+# 推送数据库 schema 变更
+pnpm db:push
+
+# 生成迁移文件
+pnpm db:generate
+
+# 运行迁移
+pnpm db:migrate
+```
+
+## 数据备份
+
+```bash
+# 备份数据目录
+cp -r data/ backup/data_$(date +%Y%m%d)/
+
+# 导出数据库为 JSON（需要应用运行）
+# 可通过 Web 界面的设置页面导出
+```
+
+## 生产环境部署
+
+### 使用 PM2 管理进程
+
+```bash
+# 安装 PM2
+npm install -g pm2
+
+# 构建生产版本
+pnpm build
+
+# 启动服务
+pm2 start pnpm --name "investment-agent" -- start
+
+# 设置开机自启
+pm2 startup
+pm2 save
+```
+
+### 使用 Docker 部署
+
+```dockerfile
+FROM node:20-alpine
+
+WORKDIR /app
+
+# 安装 pnpm
+RUN npm install -g pnpm
+
+# 复制依赖文件
+COPY package.json pnpm-lock.yaml ./
+COPY drizzle ./drizzle/
+
+# 安装依赖
+RUN pnpm install --frozen-lockfile
+
+# 复制源码
+COPY . .
+
+# 构建应用
+RUN pnpm build
+
+# 暴露端口
+EXPOSE 3000
+
+# 启动命令
+CMD ["pnpm", "start"]
+```
+
+```bash
+# 构建镜像
+docker build -t investment-agent .
+
+# 运行容器
+docker run -d \
+  --name investment-agent \
+  -p 3000:3000 \
+  -v $(pwd)/data:/app/data \
+  investment-agent
+
+# 启动后访问 http://localhost:3000，在设置页面配置 API Key
+```
+
+## 常见问题
+
+### 端口被占用？
+
+```bash
+# 查看端口占用
+lsof -i :3000
+
+# 修改启动端口
+PORT=8080 pnpm dev
+```
+
+### 依赖安装缓慢？
+
+```bash
+# 使用国内镜像
+pnpm config set registry https://registry.npmmirror.com
+```
+
+### 数据库迁移失败？
+
+```bash
+# 检查迁移状态
+pnpm db:check
+
+# 强制推送 schema（注意：会重置数据库）
+pnpm db:push
+```
+
+### 构建内存不足？
+
+```bash
+# 增加 Node.js 内存限制
+NODE_OPTIONS="--max-old-space-size=4096" pnpm build
+```

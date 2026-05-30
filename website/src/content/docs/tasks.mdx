@@ -1,0 +1,30 @@
+---
+title: 任务管理
+description: Investment Agent 的任务看板系统
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## 概述
+
+任务管理是 Investment Agent 的工作流组织中心，帮助用户将 Agent 输出、投资调研线索和日常备忘统一在看板中管理，避免优质信息散落在对话历史中。
+
+## 核心能力
+
+<CardGrid>
+  <Card title="看板视图" icon="list">
+    拖拽式任务卡片在状态列之间流转，所见即所得。支持键盘快捷键，操作流畅无抖动。
+  </Card>
+  <Card title="灵活组织" icon="tag">
+    通过优先级、截止日期、颜色标签多维组织任务，支持子任务拆分与依赖追踪。
+  </Card>
+  <Card title="Agent 联动" icon="message">
+    从 AI 对话一键创建任务，将 Agent 的投资建议、调研结论直接落地为行动项。
+  </Card>
+</CardGrid>
+
+## 设计理念
+
+- **轻量优先**：不替代专业项目管理工具，专注于投资分析场景的快速任务组织。
+- **自然衔接**：任务卡片自动携带对话上下文，回顾时无需翻查聊天记录。
+- **即时反馈**：所有状态变更本地实时生效，服务端持久化在后台完成。

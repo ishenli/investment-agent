@@ -1,0 +1,168 @@
+---
+title: Electron 开发与打包
+description: Investment Agent Electron 桌面应用的开发与打包指南
+---
+
+import { Card, CardGrid, Steps, Aside } from '@astrojs/starlight/components';
+
+## 开发环境
+
+- Node.js 18+
+- pnpm
+- macOS: Xcode Command Line Tools（用于编译原生模块）
+
+## 启动开发模式
+
+```bash
+# 同时启动 Web 服务端和 Electron
+pnpm electron:dev
+```
+
+此命令会：1) 启动 Next.js 开发服务器（端口 8888）；2) 等待服务就绪后启动 Electron；3) 支持热更新。
+
+## 构建应用
+
+```bash
+# 构建 Electron 可执行文件（不打包）
+pnpm electron:build
+
+# 构建并打包 macOS 安装包
+pnpm electron:build:pack
+
+# 仅打包 macOS（需先执行 build）
+pnpm electron:pack:mac
+```
+
+构建产物说明：
+
+| 输出目录 | 说明 |
+|---------|------|
+| `dist-electron/` | Electron 主进程和预加载脚本 |
+| `.next/standalone/` | Next.js 独立服务端（用于打包） |
+| `release/` | 最终安装包（.dmg） |
+
+## 调试
+
+<CardGrid>
+  <Card title="主进程" icon="setting">
+    启动时添加 `--inspect` 参数，使用 Chrome DevTools 调试 Node.js。
+  </Card>
+  <Card title="渲染进程" icon="laptop">
+    按 `Cmd + Option + I` 打开 Chromium DevTools。
+  </Card>
+  <Card title="日志文件" icon="document">
+    数据目录下的 `logs/` 文件夹包含运行日志。
+  </Card>
+</CardGrid>
+
+## IPC 通信
+
+主进程与渲染进程通过预加载脚本暴露的安全 API 通信：
+
+```typescript
+// 渲染进程调用示例
+if (window.electronAPI) {
+  console.log('Electron:', window.electronAPI.versions.electron);
+  window.electronAPI.notification.showNativeNotification({
+    title: '投资提醒',
+    body: 'AAPL 达到目标价格'
+  });
+}
+```
+
+暴露的 API：
+
+| 命名空间 | 方法 | 说明 |
+|---------|------|------|
+| `versions` | `electron`, `node`, `chrome` | 运行时版本信息 |
+| `updater` | `checkForUpdates()`, `quitAndInstall()` | 自动更新控制 |
+| `updater` | `onUpdateAvailable(callback)` | 监听更新事件 |
+| `notification` | `showNativeNotification(options)` | 发送系统通知 |
+| `notification` | `setBadgeCount(count)` | 设置 Dock 徽章数字 |
+| `notification` | `onNotificationClick(callback)` | 监听通知点击 |
+
+## 自动更新
+
+<Aside type="caution" title="仅支持已签名的正式包">
+  自动更新功能仅在使用正式签名打包的应用中生效。
+</Aside>
+
+应用启动后 30 秒首次检查更新，之后每小时自动检查一次：
+
+<Steps>
+1. **检测新版本**：对比 GitHub Releases 上的 `latest-mac.yml`
+2. **后台下载**：自动下载更新包，期间不影响使用
+3. **提示安装**：下载完成后弹出通知，用户可选择立即安装或稍后
+4. **安全重启**：安装时保存所有状态，重启后自动恢复
+</Steps>
+
+更新配置位于 `electron-builder.yml`：
+
+```yaml
+publish:
+  - provider: github
+    owner: ishenli
+    repo: investment-agent
+    releaseType: release
+```
+
+## 环境变量加载
+
+Electron 从 GUI 启动（Dock/Finder）时，`process.env` 通常不完整。应用会自动执行登录 Shell 读取用户配置：
+
+```bash
+$SHELL -ilc env
+```
+
+这确保了 API Key（`OPENAI_API_KEY`、`ANTHROPIC_API_KEY` 等）可用，Node 版本管理器的 PATH 正确，自定义环境变量生效。
+
+## 服务端进程管理
+
+Electron 使用 `utilityProcess` 启动独立的 Node.js 服务端：
+
+- **进程隔离**：服务端崩溃不会导致 Electron 主进程退出
+- **端口自分配**：自动寻找可用端口（`127.0.0.1:0`），避免冲突
+- **优雅退出**：应用关闭时发送信号，服务端有时间保存数据和关闭连接
+- **错误恢复**：服务端异常退出时，主进程记录日志并显示用户友好的错误提示
+
+## 打包配置
+
+### electron-builder.yml
+
+```yaml
+appId: com.ig.app
+productName: ig
+directories:
+  output: release
+files:
+  - dist-electron/**/*
+  - node_modules/@libsql/**/*
+extraResources:
+  - from: .next/standalone/
+    to: standalone/
+```
+
+| 配置项 | 说明 |
+|--------|------|
+| `files` | 打包时包含的文件，排除源码和开发依赖 |
+| `extraResources` | 将 Next.js standalone 输出复制到应用资源目录 |
+| `asarUnpack` | `@libsql` 模块必须解压，否则会加载失败 |
+| `publish` | 自动更新源配置，指向 GitHub Releases |
+
+### 构建脚本
+
+`scripts/build-electron.mjs` 在打包前执行预处理：
+
+1. **生成版本信息**：写入 `public/version.json` 和 `standalone/version.json`
+2. **解析符号链接**：将 `.next/standalone/.next/node_modules` 中的 symlink 替换为真实文件（`electron-builder` 不支持打包 symlink）
+3. **编译主进程**：使用 esbuild 将 `electron/main.ts` 和 `electron/preload.ts` 打包为 `dist-electron/`
+
+## 相关文件
+
+| 文件 | 说明 |
+|------|------|
+| [`electron/main.ts`](https://github.com/ishenli/investment-agent/blob/main/electron/main.ts) | Electron 主进程入口 |
+| [`electron/preload.ts`](https://github.com/ishenli/investment-agent/blob/main/electron/preload.ts) | IPC 预加载脚本 |
+| [`electron/updater.ts`](https://github.com/ishenli/investment-agent/blob/main/electron/updater.ts) | 自动更新管理 |
+| [`electron-builder.yml`](https://github.com/ishenli/investment-agent/blob/main/electron-builder.yml) | 打包配置 |
+| [`scripts/build-electron.mjs`](https://github.com/ishenli/investment-agent/blob/main/scripts/build-electron.mjs) | 构建预处理脚本 |

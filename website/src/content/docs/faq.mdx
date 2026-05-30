@@ -9,10 +9,20 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 
 ### 支持哪些操作系统？
 
-Investment Agent 支持：
-- **macOS** 10.15+ (Intel 和 Apple Silicon)
-- **Windows** 10/11
-- **Linux** (Ubuntu 18.04+, Debian 10+, CentOS 8+)
+Investment Agent 桌面应用目前仅支持：
+- **macOS** 11+ (Intel 和 Apple Silicon)
+
+<details>
+<summary>**其他平台支持计划**</summary>
+
+Windows 和 Linux 平台支持正在规划中，目前可以通过 Web 应用方式在其他操作系统上使用。
+
+Web 应用支持所有主流操作系统，只需运行源码即可：
+```bash
+pnpm dev
+# 访问 http://localhost:3000
+```
+</details>
 
 ### Node.js 版本要求？
 

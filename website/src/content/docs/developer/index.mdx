@@ -1,0 +1,43 @@
+---
+title: 开发者文档
+description: Investment Agent 开发者文档入口
+---
+
+欢迎访问 Investment Agent 开发者文档。这里涵盖了系统架构、引擎集成、技能开发、评测系统和 Electron 打包的详细技术参考。
+
+## 文档导航
+
+| 文档 | 内容 |
+|------|------|
+| [系统架构](/developer/architecture/) | 多引擎架构、数据层、可观测性系统概览 |
+| [评测系统](/developer/evaluation/) | AI 智能体评测框架、维度评分、评测器实现 |
+| [引擎开发指南](/developer/engines/) | 引擎接口、权限矩阵代码、运行时配置、TypeScript API |
+| [技能开发](/developer/skills-dev/) | 自定义技能格式、目录结构、接口规范 |
+| [Electron 开发与打包](/developer/electron-dev/) | 开发环境、IPC 通信、构建脚本、打包配置 |
+
+## 技术栈速览
+
+| 组件 | 技术选型 |
+|------|---------|
+| 框架 | Next.js + TypeScript |
+| 智能体运行时 | LangGraph、Claude SDK、自研 Hermes |
+| 数据库 | SQLite + Drizzle ORM |
+| 界面 | React + shadcn/ui |
+| 桌面应用 | Electron |
+| AI 模型 | OpenAI、Anthropic Claude |
+
+## 源码结构
+
+```
+investment-agent/
+├── src/                 # 主应用源码
+│   ├── app/             # Next.js 应用路由
+│   ├── server/          # 后端服务层
+│   └── types/           # TypeScript 类型定义
+├── packages/            # monorepo 子包
+│   └── evaluation/      # 评测系统
+├── electron/            # Electron 主进程
+├── drizzle/             # 数据库迁移
+├── skills/              # AI 技能定义
+└── website/             # 文档站点（此站点）
+```

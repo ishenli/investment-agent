@@ -49,11 +49,10 @@ English Version | [中文版本](./doc/zh/README.md)
 
 ### Permission Mode Control
 - **Conversation-level permission switcher** - Toggle Hermes engine permission levels right next to the chat input box
-- **Four permission tiers**:
-  - **Safe** — Read/write operations only; system and finance tools are blocked entirely
-  - **Standard** — System and finance operations require user confirmation
-  - **Power** — Finance operations execute automatically; system operations still require confirmation
-  - **Unrestricted** — All operations execute automatically (ContentGuard still applies)
+- **Three permission tiers**:
+  - **safe** — All operations require user confirmation
+  - **auto** — Read/write operations execute automatically; system and finance operations require confirmation (default)
+  - **full-access** — All operations execute automatically (ContentGuard still applies)
 - **Real-time effect** — Permission settings take effect immediately per conversation; each session can have its own level
 - **Content safety layer** — ContentGuard runs independently beneath the permission layer, catching dangerous commands and sensitive file access
 

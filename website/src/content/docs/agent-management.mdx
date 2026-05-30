@@ -1,0 +1,47 @@
+---
+title: Agent 管理
+description: Investment Agent 的配置与资产管理体系
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## 概述
+
+Agent 管理是 Investment Agent 的智能体配置中枢。传统 Agent 配置将模型参数、工具权限、知识库等混在一起填写，耦合度高、复用性差。v0.15.0 引入 **Runtime Assets** 模式，将 Agent 运行所需的各类配置拆分为独立资产单元，实现灵活组合与复用。
+
+## 核心概念
+
+### Runtime Assets
+
+<CardGrid>
+  <Card title="配置资产化" icon="seti:config">
+    将模型参数、系统提示词、工具权限、知识库等抽取为独立 Assets，按需挂载到 Agent。
+  </Card>
+  <Card title="资产编辑器" icon="pencil">
+    可视化编辑环境，自带格式校验与类型提示，降低配置门槛，减少手写 JSON 的出错率。
+  </Card>
+  <Card title="热更新" icon="zap">
+    资产修改后即时生效，无需重启 Agent 即可适配新的策略或知识库。
+  </Card>
+</CardGrid>
+
+### Agent 与资产的关系
+
+- 一个 Agent 可关联多类 Assets（配置、权限、知识库等）。
+- 同一 Asset 可被多个 Agent 复用，避免重复配置。
+- Assets 支持版本化管理，便于回滚与对比。
+
+## 与旧版本的区别
+
+| 维度 | 旧版 (v0.14.x) | 新版 (v0.15.0+) |
+|------|---------------|----------------|
+| 配置方式 | 固定表单，字段耦合 | 资产化拆解，灵活组合 |
+| 复用性 | 无法复用，重复填写 | 资产多 Agent 复用 |
+| 更新方式 | 修改 Agent 整体配置 | 独立更新单 Asset |
+| 编辑体验 | 纯代码 / JSON | 可视化编辑器 + 校验 |
+
+## 使用场景
+
+- **策略切换**：同一 Agent 在不同市场环境下挂载不同的交易策略 Asset。
+- **知识库更新**：补充新的研报或政策文件，单独更新知识库 Asset 即可。
+- **权限管控**：为敏感操作创建独立权限 Asset，仅在需要时挂载，保障安全。
