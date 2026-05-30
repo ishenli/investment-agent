@@ -587,6 +587,52 @@ export const tasks = sqliteTable('tasks', {
   index('idx_tasks_deleted_at').on(table.deletedAt),
 ]);
 
+// 可配置定时任务表
+export const scheduledJobs = sqliteTable('scheduled_jobs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id),
+  name: text('name').notNull(),
+  cronExpression: text('cron_expression').notNull(),
+  jobType: text('job_type', { enum: ['insight', 'report_weekly', 'report_monthly'] }).notNull(),
+  accountId: integer('account_id').references(() => accounts.id),
+  config: text('config', { mode: 'json' }).$type<Record<string, unknown>>(),
+  timeoutMs: integer('timeout_ms').notNull().default(300000),
+  isEnabled: integer('is_enabled', { mode: 'boolean' }).notNull().default(true),
+  lastRunAt: integer('last_run_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  deletedAt: integer('deleted_at', { mode: 'timestamp' }),
+}, (table) => [
+  index('idx_scheduled_jobs_user_id').on(table.userId),
+  index('idx_scheduled_jobs_user_enabled').on(table.userId, table.isEnabled),
+  index('idx_scheduled_jobs_deleted_at').on(table.deletedAt),
+]);
+
+// 可配置定时任务执行日志表
+export const scheduledJobLogs = sqliteTable('scheduled_job_logs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  jobId: integer('job_id')
+    .notNull()
+    .references(() => scheduledJobs.id),
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id),
+  status: text('status', { enum: ['pending', 'running', 'success', 'failed', 'missed'] }).notNull(),
+  startedAt: integer('started_at', { mode: 'timestamp' }).notNull(),
+  completedAt: integer('completed_at', { mode: 'timestamp' }),
+  result: text('result', { mode: 'json' }).$type<Record<string, unknown>>(),
+  errorMessage: text('error_message'),
+  metadata: text('metadata', { mode: 'json' }).$type<Record<string, unknown>>(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+}, (table) => [
+  index('idx_scheduled_job_logs_job_id').on(table.jobId),
+  index('idx_scheduled_job_logs_user_id').on(table.userId),
+  index('idx_scheduled_job_logs_status').on(table.status),
+]);
+
 // ============== Chat Storage Tables ==============
 // 聊天存储相关表，从 drizzle/schema/chat.ts 导入
 export {

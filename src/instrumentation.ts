@@ -66,5 +66,15 @@ export async function register() {
       .catch((error) => {
         logger.error('[Instrumentation] Account price update failed:', error);
       });
+
+    // 6. 启动可配置定时任务调度器（非阻塞，后台执行）
+    import('@server/service/jobSchedulerService')
+      .then(({ default: jobSchedulerService }) => jobSchedulerService.init())
+      .then(() => {
+        logger.info('[Instrumentation] Job scheduler initialized');
+      })
+      .catch((error) => {
+        logger.error('[Instrumentation] Job scheduler initialization failed:', error);
+      });
   }
 }

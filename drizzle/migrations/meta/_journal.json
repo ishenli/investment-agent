@@ -323,6 +323,13 @@
       "when": 1779662689234,
       "tag": "0045_orange_dragon_man",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "6",
+      "when": 1779894901208,
+      "tag": "0046_great_moon_knight",
+      "breakpoints": true
     }
   ]
 }
