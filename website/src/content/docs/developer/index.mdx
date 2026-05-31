@@ -3,7 +3,7 @@ title: 开发者文档
 description: Investment Agent 开发者文档入口
 ---
 
-欢迎访问 Investment Agent 开发者文档。这里涵盖了系统架构、引擎集成、技能开发、评测系统和 Electron 打包的详细技术参考。
+欢迎访问 Investment Agent 开发者文档。这里涵盖了系统架构、引擎集成、Hermes 引擎、技能开发、评测系统和 Electron 打包的详细技术参考。
 
 ## 文档导航
 
@@ -12,6 +12,7 @@ description: Investment Agent 开发者文档入口
 | [系统架构](/developer/architecture/) | 多引擎架构、数据层、可观测性系统概览 |
 | [评测系统](/developer/evaluation/) | AI 智能体评测框架、维度评分、评测器实现 |
 | [引擎开发指南](/developer/engines/) | 引擎接口、权限矩阵代码、运行时配置、TypeScript API |
+| [Hermes 系统](/developer/hermes/) | Hermes Agent 的设计、可观测性、内置记忆与工具调用 |
 | [技能开发](/developer/skills-dev/) | 自定义技能格式、目录结构、接口规范 |
 | [Electron 开发与打包](/developer/electron-dev/) | 开发环境、IPC 通信、构建脚本、打包配置 |
 
@@ -25,6 +26,13 @@ description: Investment Agent 开发者文档入口
 | 界面 | React + shadcn/ui |
 | 桌面应用 | Electron |
 | AI 模型 | OpenAI、Anthropic Claude |
+
+## 运行时架构
+
+- **LangGraph**：负责多智能体编排、跨工具调用和执行策略调度。
+- **Claude SDK**：集成 Anthropic Claude 以提供高级语言理解与推理能力。
+- **Hermes 引擎**：自研轻量智能体运行时，支持内置持久记忆、工具能力、安全权限、成本可观测性和本地部署场景。
+- **技能与工具**：统一的技能格式和权限矩阵，便于快速扩展业务能力。
 
 ## 源码结构
 

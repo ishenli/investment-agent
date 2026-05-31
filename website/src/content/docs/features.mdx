@@ -5,19 +5,7 @@ description: Investment Agent 的核心功能详解
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
-## 多引擎 AI 架构
-
-<CardGrid>
-  <Card title="DeepAgents 引擎" icon="settings">
-    基于 LangChain/LangGraph 的智能体编排，用于复杂的金融分析工作流。
-  </Card>
-  <Card title="Claude 引擎" icon="code">
-    集成 Anthropic Claude Agent SDK，提供高级推理能力。
-  </Card>
-  <Card title="Hermes 引擎" icon="zap">
-    轻量级智能体框架，完整可观测性支持，包括追踪、指标和成本跟踪。
-  </Card>
-</CardGrid>
+# 产品功能
 
 ## 多渠道通信
 
@@ -35,30 +23,29 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 
 ## AI 智能分析工具
 
-- **资产信息查询**：通过 Finnhub 获取实时股票、基金和黄金价格
-- **投资笔记搜索**：对投资笔记进行语义搜索
-- **数据库查询**：自然语言转 SQL，查询投资组合数据
-- **网页搜索**：基于 Tavily 的市场研究
-- **股票分析**：技术指标和市场情绪分析
+投资助手在聊天中为你提供以下分析能力：
 
-## 工具权限与安全控制
+- **资产信息查询**：通过 Finnhub 获取实时股票、基金和黄金价格
+- **投资笔记搜索**：对投资笔记进行语义搜索，快速找到相关研究
+- **自然语言数据查询**：用中文提问投资组合数据，自动转换为 SQL
+- **市场研究**：基于 Tavily 的实时网页搜索与行业研究
+- **技术指标分析**：股票图表、技术指标和市场情绪分析
+
+## 账户与持仓管理
 
 <CardGrid>
-  <Card title="策略矩阵" icon="shield">
-    权限等级 × 工具类别的二维策略矩阵，精细控制每个工具的执行行为。
+  <Card title="多账户追踪" icon="wallet">
+    绑定多个投资账户，统一管理股票、基金、加密等不同资产。
   </Card>
-  <Card title="实时确认" icon="approve-check">
-    敏感操作在聊天界面弹出确认卡片，用户一键批准或拒绝。
+  <Card title="持仓实时监控" icon="trending-up">
+    自动同步持仓数据，展示价格、浮盈/浮损、收益率等核心指标。
+  </Card>
+  <Card title="资产配置分析" icon="pie-chart">
+    可视化展示投资组合的行业分布和风险配置，发现配置失衡。
   </Card>
 </CardGrid>
 
-- **三级权限模式**：`safe`（全部确认）、`auto`（智能判断）、`full-access`（全部自动）
-- **四类工具分级**：`read`（只读）、`write`（写入）、`system`（系统）、`finance`（金融）
-- **SSE 实时通知**：工具需要确认时，通过 Server-Sent Events 推送到前端
-- **超时自动拒绝**：30 秒未响应自动拒绝，防止流程阻塞
-- **灵活切换**：用户可在聊天界面随时切换权限等级
-
-完整的权限控制说明请参阅 [工具权限与安全](/permissions/)。
+详见 [账户与持仓管理](/portfolio-management/)。
 
 ## 任务管理
 
@@ -71,21 +58,71 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
   </Card>
 </CardGrid>
 
-## Agent 管理
+## 权限与安全
 
 <CardGrid>
-  <Card title="Runtime Assets" icon="seti:config">
-    将 Agent 配置拆分为可复用资产，灵活组合、独立更新。
+  <Card title="灵活的权限控制" icon="shield">
+    三级权限模式：`safe`（全部确认）、`auto`（智能判断）、`full-access`（全部自动）。
   </Card>
-  <Card title="资产编辑器" icon="pencil">
-    可视化编辑界面，实时校验，降低配置门槛。
+  <Card title="实时操作确认" icon="approve-check">
+    敏感操作在聊天界面弹出确认卡片，用户一键批准或拒绝。
   </Card>
 </CardGrid>
 
-## 智能体可观测性
+**权限控制特性：**
+- **工具分类策略**：按工具类型分级（只读、写入、系统、金融），精细控制执行行为
+- **实时通知**：工具需要确认时，通过 Server-Sent Events 推送到前端
+- **超时保护**：30 秒未响应自动拒绝，防止流程阻塞
+- **灵活切换**：用户可在聊天界面随时调整权限等级
 
-- **追踪与跨度系统**：为每次智能体执行提供分层追踪，支持显式上下文传递
-- **实时指标**：Token 使用量、延迟、工具调用次数、迭代统计
-- **成本跟踪**：基于模型定价表的会话成本明细
-- **实时可观测性面板**：聊天侧边栏显示追踪时间线、跨度详情和聚合指标
-- **持久化存储**：追踪/跨度数据保存到 SQLite，支持历史分析
+完整的权限控制说明请参阅 [工具权限与安全](/permissions/)。
+
+## Agent 个性化管理
+
+<CardGrid>
+  <Card title="记忆与档案" icon="seti:config">
+    管理 Agent 的持久化记忆（MEMORY.md）和用户投资档案（USER.md）。
+  </Card>
+  <Card title="编辑器" icon="pencil">
+    在 Settings 中直接编辑，修改立即对后续对话生效。
+  </Card>
+</CardGrid>
+
+详见 [Agent 管理](/agent-management/)。
+
+---
+
+# 技术架构
+
+## 多引擎 AI 架构
+
+<CardGrid>
+  <Card title="DeepAgents 引擎" icon="settings">
+    基于 LangChain/LangGraph 的智能体编排，用于复杂的金融分析工作流。
+  </Card>
+  <Card title="Claude 引擎" icon="code">
+    集成 Anthropic Claude Agent SDK，提供高级推理能力。
+  </Card>
+  <Card title="Hermes 引擎" icon="zap">
+    轻量级智能体框架，完整可观测性支持，包括追踪、指标和成本跟踪。
+  </Card>
+</CardGrid>
+
+## 可观测性与监控
+
+<CardGrid>
+  <Card title="分层追踪系统" icon="activity">
+    为每次智能体执行提供分层追踪，支持显式上下文传递。
+  </Card>
+  <Card title="实时指标面板" icon="graph">
+    Token 使用量、延迟、工具调用次数、迭代统计等实时展示。
+  </Card>
+  <Card title="成本分析" icon="calculator">
+    基于模型定价表的会话成本明细和趋势分析。
+  </Card>
+</CardGrid>
+
+**可观测性特性：**
+- **完整追踪数据**：在聊天侧边栏查看追踪时间线、跨度详情和聚合指标
+- **历史分析**：追踪/跨度数据持久化到 SQLite，支持历史回溯和分析
+- **成本透明**：每次对话的 AI 调用成本完全可见，助力预算规划

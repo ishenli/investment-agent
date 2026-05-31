@@ -7,41 +7,54 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 
 ## 概述
 
-Agent 管理是 Investment Agent 的智能体配置中枢。传统 Agent 配置将模型参数、工具权限、知识库等混在一起填写，耦合度高、复用性差。v0.15.0 引入 **Runtime Assets** 模式，将 Agent 运行所需的各类配置拆分为独立资产单元，实现灵活组合与复用。
+Agent 管理是 Investment Agent 的智能体记忆与档案管理中心。通过 **运行时资产编辑器**，你可以直接管理 Claude Code 和 Hermes Agent 在运行时使用的持久化信息——包括智能体记忆（MEMORY.md）和用户档案（USER.md），帮助智能体更好地学习和适应你的投资需求。
 
 ## 核心概念
 
-### Runtime Assets
+### 核心特性
 
 <CardGrid>
-  <Card title="配置资产化" icon="seti:config">
-    将模型参数、系统提示词、工具权限、知识库等抽取为独立 Assets，按需挂载到 Agent。
+  <Card title="记忆管理" icon="seti:config">
+    在 MEMORY.md 中记录智能体的学习和推理过程
   </Card>
-  <Card title="资产编辑器" icon="pencil">
-    可视化编辑环境，自带格式校验与类型提示，降低配置门槛，减少手写 JSON 的出错率。
+  <Card title="用户档案" icon="pencil">
+    在 USER.md 中定义你的投资偏好和风险承受能力
   </Card>
-  <Card title="热更新" icon="zap">
-    资产修改后即时生效，无需重启 Agent 即可适配新的策略或知识库。
+  <Card title="双运行时支持" icon="zap">
+    同时支持 Claude Code 和 Hermes Agent 的资产管理
+  </Card>
+  <Card title="实时编辑" icon="pencil">
+    在 Settings 中直接编辑和保存，修改立即生效
   </Card>
 </CardGrid>
 
-### Agent 与资产的关系
+### 资产存储位置
 
-- 一个 Agent 可关联多类 Assets（配置、权限、知识库等）。
-- 同一 Asset 可被多个 Agent 复用，避免重复配置。
-- Assets 支持版本化管理，便于回滚与对比。
+- **Claude Code**：资产存储在 `workspace/{userId}/` 目录
+- **Hermes Agent**：资产存储在 `workspace/{userId}/.hermes/memories/` 目录
+- **MEMORY.md**：记录智能体的持久化记忆（最大 2200 字）
+- **USER.md**：记录用户档案信息（最大 1375 字）
 
-## 与旧版本的区别
+## 资产类型说明
 
-| 维度 | 旧版 (v0.14.x) | 新版 (v0.15.0+) |
-|------|---------------|----------------|
-| 配置方式 | 固定表单，字段耦合 | 资产化拆解，灵活组合 |
-| 复用性 | 无法复用，重复填写 | 资产多 Agent 复用 |
-| 更新方式 | 修改 Agent 整体配置 | 独立更新单 Asset |
-| 编辑体验 | 纯代码 / JSON | 可视化编辑器 + 校验 |
+| 资产 | 目的 | 存储位置 | 容量限制 |
+|------|------|---------|----------|
+| **MEMORY.md** | 记录智能体学到的信息、发现的规律、用户的偏好等 | `workspace/{userId}/` | 2200 字 |
+| **USER.md** | 定义用户的投资背景、风险偏好、约束条件等 | `workspace/{userId}/` | 1375 字 |
 
 ## 使用场景
 
-- **策略切换**：同一 Agent 在不同市场环境下挂载不同的交易策略 Asset。
-- **知识库更新**：补充新的研报或政策文件，单独更新知识库 Asset 即可。
-- **权限管控**：为敏感操作创建独立权限 Asset，仅在需要时挂载，保障安全。
+### 1. 记忆学习
+定期更新 MEMORY.md，让智能体记住：
+- 之前分析过的行业趋势
+- 发现的投资机会和陷阱
+- 对你投资风格的洞察
+
+### 2. 用户档案
+在 USER.md 中描述：
+- 你的投资目标和时间跨度
+- 风险承受能力和禁区
+- 重点关注的行业或公司
+
+### 3. 多运行时同步
+ Claude Code 和 Hermes Agent 可共享相同的记忆和档案，实现一致的投资决策。

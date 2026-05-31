@@ -31,6 +31,7 @@ export default defineConfig({
           label: '产品功能',
           items: [
             { label: '功能特性总览', link: '/features/' },
+            { label: '账户与持仓管理', link: '/portfolio-management/' },
             { label: '任务管理', link: '/tasks/' },
             { label: 'Agent 管理', link: '/agent-management/' },
             { label: 'AI 技能与工具', link: '/skills/' },
@@ -50,17 +51,19 @@ export default defineConfig({
           items: [
             { label: '开发者首页', link: '/developer/' },
             { label: '系统架构', link: '/developer/architecture/' },
+            {
+              label: '引擎架构',
+              link: '/developer/engines/',
+            },
+            { label: 'Hermes 引擎', link: '/developer/hermes/' },
+            { label: '技能系统', link: '/developer/skills-dev/' },
             { label: '评测系统', link: '/developer/evaluation/' },
-            { label: '引擎开发指南', link: '/developer/engines/' },
-            { label: '技能开发', link: '/developer/skills-dev/' },
             { label: 'Electron 开发与打包', link: '/developer/electron-dev/' },
           ],
         },
         {
           label: '其他',
-          items: [
-            { label: '更新日志', link: '/changelog/' },
-          ],
+          items: [{ label: '更新日志', link: '/changelog/' }],
         },
       ],
     }),
