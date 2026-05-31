@@ -1,0 +1,31 @@
+{
+  "title": "资产趋势",
+  "subtitle": "查看资产随时间的变化趋势",
+  "backToAsset": "返回资产概览",
+  "timeRange": "时间范围",
+  "period7D": "7天",
+  "period30D": "30天",
+  "period90D": "90天",
+  "period1Y": "1年",
+  "periodAll": "全部",
+  "stats": {
+    "currentTotal": "当前总资产",
+    "cashBalance": "现金余额",
+    "positionValue": "持仓市值",
+    "periodChange": "区间变化"
+  },
+  "chart": {
+    "title": "资产变化趋势",
+    "description": "Total Balance 与 Cash Balance 历史走势",
+    "totalBalance": "总资产",
+    "cashBalance": "现金余额",
+    "positionValue": "持仓市值",
+    "date": "日期"
+  },
+  "emptyState": {
+    "title": "暂无快照数据",
+    "description": "需要先创建组合快照才能查看趋势图",
+    "goToSnapshot": "前往快照页面"
+  },
+  "loading": "加载中..."
+}

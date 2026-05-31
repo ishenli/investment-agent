@@ -51,6 +51,7 @@ export const namespaces = [
   'settingNotification',
   'task',
   'scheduled-job',
+  'asset-trend',
 ] as const;
 
 const dayjsLocaleMap: Record<string, string> = {
@@ -93,6 +94,7 @@ import zhCNAssetManagement from '@/locales/zh-CN/asset-management.json';
 import zhCNNotification from '@/locales/zh-CN/notification.json';
 import zhCNTask from '@/locales/zh-CN/task.json';
 import zhCNScheduledJob from '@/locales/zh-CN/scheduled-job.json';
+import zhCNAssetTrend from '@/locales/zh-CN/asset-trend.json';
 
 
 import enUSCommon from '@/locales/en-US/common.json';
@@ -121,6 +123,7 @@ import enUSNotification from '@/locales/en-US/notification.json';
 import enUSSettingNotification from '@/locales/en-US/setting.notification.json';
 import enUSTask from '@/locales/en-US/task.json';
 import enUSScheduledJob from '@/locales/en-US/scheduled-job.json';
+import enUSAssetTrend from '@/locales/en-US/asset-trend.json';
 
 
 
@@ -152,6 +155,7 @@ export const resources = {
     notification: zhCNNotification,
     task: zhCNTask,
     'scheduled-job': zhCNScheduledJob,
+    'asset-trend': zhCNAssetTrend,
   },
   'en-US': {
     common: enUSCommon,
@@ -180,6 +184,7 @@ export const resources = {
     notification: enUSNotification,
     task: enUSTask,
     'scheduled-job': enUSScheduledJob,
+    'asset-trend': enUSAssetTrend,
   },
 
 };

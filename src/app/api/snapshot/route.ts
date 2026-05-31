@@ -3,6 +3,7 @@ import { BaseController } from '@/app/api/base/baseController';
 import portfolioSnapshotService from '@/server/service/portfolioSnapshotService';
 import { z } from 'zod';
 import authService from '@/server/service/authService';
+import logger from '@server/base/logger';
 
 // 验证模式
 const CreateSnapshotSchema = z.object({
@@ -11,8 +12,8 @@ const CreateSnapshotSchema = z.object({
 });
 
 const ListSnapshotsSchema = z.object({
-  startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
   limit: z.string().optional(),
   offset: z.string().optional(),
 });
@@ -40,6 +41,7 @@ export class SnapshotController extends BaseController {
 
       return this.success(snapshot);
     } catch (error) {
+      logger.error('[SnapshotController] POST create snapshot failed:', error);
       if (error instanceof Error && error.message.includes('Validation')) {
         return this.responseValidateError(JSON.parse(error.message));
       }
@@ -61,15 +63,17 @@ export class SnapshotController extends BaseController {
       const accountId = parseInt(accountInfo.id);
 
       let snapshots;
-      if (query.startDate && query.endDate) {
-        // 按日期范围查询
+      if (query.startDate || query.endDate) {
+        const start = query.startDate ? new Date(query.startDate) : new Date(0);
+        const end = query.endDate ? new Date(query.endDate) : new Date();
         snapshots = await portfolioSnapshotService.getSnapshotsByDateRange(
           accountId,
-          new Date(query.startDate),
-          new Date(query.endDate),
+          start,
+          end,
         );
+        // getSnapshotsByDateRange returns ASC; normalize to DESC (newest first)
+        snapshots.reverse();
       } else {
-        // 获取所有快照
         snapshots = await portfolioSnapshotService.getAllSnapshots(accountId);
       }
 
@@ -85,6 +89,7 @@ export class SnapshotController extends BaseController {
         offset,
       });
     } catch (error) {
+      logger.error('[SnapshotController] GET snapshots failed:', error);
       if (error instanceof Error && error.message.includes('Validation')) {
         return this.responseValidateError(JSON.parse(error.message));
       }
