@@ -1,5 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { get } from '@/app/lib/request/index';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { get, post } from '@/app/lib/request/index';
+import type { AiInsightListResponse } from '@/types/aiInsight';
 
 // 获取持仓数据
 export const usePositionsQuery = () => {
@@ -19,11 +20,27 @@ export const useAIInsightsQuery = () => {
   return useQuery({
     queryKey: ['ai-insights'],
     queryFn: async () => {
-      const response = await get('/api/position/ai-insights');
-      return response.data.insights;
+      const response = await get<{ data: AiInsightListResponse }>('/api/ai-insights', {
+        params: { page: 1, pageSize: 20 },
+      });
+      return response.data.items;
     },
     staleTime: 1000 * 60 * 5, // 5分钟内数据视为新鲜
     retry: 1,
+  });
+};
+
+// 手动生成并保存 AI 洞察
+export const useGenerateAIInsightsMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      return post('/api/position/ai-insights', {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ai-insights'] });
+    },
   });
 };
 

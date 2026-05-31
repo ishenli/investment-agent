@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -20,10 +19,13 @@ import {
 import dayjs from 'dayjs';
 import { Button } from '@renderer/components/ui/button';
 import { Spinner } from '@renderer/components/ui/spinner';
-import { useAIInsightsQuery } from '@renderer/hooks/usePositionQueries';
-import { AIInsight } from '@renderer/store/position/aiInsightsTypes';
+import {
+  useAIInsightsQuery,
+  useGenerateAIInsightsMutation,
+} from '@renderer/hooks/usePositionQueries';
 import { cn } from '@/app/lib/utils';
 import { useTranslation } from 'react-i18next';
+import type { AiInsightResponse } from '@/types/aiInsight';
 
 // 数据新鲜度映射到中文和颜色
 const dataFreshnessConfig = {
@@ -32,6 +34,18 @@ const dataFreshnessConfig = {
   daily: { label: '当日', color: 'bg-yellow-500' },
   historical: { label: '历史', color: 'bg-gray-500' },
 };
+
+type DataFreshness = keyof typeof dataFreshnessConfig;
+
+function getMetadataString(metadata: Record<string, unknown> | null, key: string): string | null {
+  const value = metadata?.[key];
+  return typeof value === 'string' ? value : null;
+}
+
+function getRelatedAssets(metadata: Record<string, unknown> | null): unknown[] {
+  const value = metadata?.relatedAssets;
+  return Array.isArray(value) ? value : [];
+}
 
 // 置信度颜色映射
 const getConfidenceColor = (confidence: number): string => {
@@ -44,23 +58,12 @@ const getConfidenceColor = (confidence: number): string => {
 // AI洞察显示组件
 export function AIInsightsDisplay() {
   const { t } = useTranslation('insight');
-  const {
-    data: aiInsights,
-    isLoading: isAIInsightsLoading,
-    refetch,
-    isRefetching,
-  } = useAIInsightsQuery();
-
-  const [loading, setLoading] = useState(false);
+  const { data: aiInsights, isLoading: isAIInsightsLoading, isRefetching } = useAIInsightsQuery();
+  const generateMutation = useGenerateAIInsightsMutation();
 
   // 手动触发AI洞察请求
   const handleFetchAIInsights = async () => {
-    setLoading(true);
-    try {
-      await refetch();
-    } finally {
-      setLoading(false);
-    }
+    await generateMutation.mutateAsync();
   };
 
   // 加载中状态
@@ -68,7 +71,9 @@ export function AIInsightsDisplay() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">{t('opportunityFinder.loadingTitle')}</CardTitle>
+          <CardTitle className="text-lg font-semibold">
+            {t('opportunityFinder.loadingTitle')}
+          </CardTitle>
           <CardDescription>{t('opportunityFinder.loadingDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
@@ -93,26 +98,27 @@ export function AIInsightsDisplay() {
           <div className="text-center py-8 text-muted-foreground">
             <LightbulbIcon className="h-12 w-12 mx-auto mb-4 text-yellow-500" />
             <p>{t('aiInsights.noData')}</p>
-          </div>
+            <p className="mt-1 text-sm text-muted-foreground/70">{t('aiInsights.noDataHint')}</p>
             <Button
               variant="outline"
               size="sm"
               className="mt-4"
               onClick={handleFetchAIInsights}
-              disabled={loading}
+              disabled={generateMutation.isPending}
             >
-              {loading ? (
+              {generateMutation.isPending ? (
                 <>
                   <Spinner className="mr-2 h-4 w-4" />
-                  {t('loading.refreshing')}
+                  {t('loading.analyzing')}
                 </>
               ) : (
                 <>
                   <RotateCcwIcon className="h-4 w-4 mr-2" />
-                  {t('common.refresh')}
+                  {t('aiInsights.generate')}
                 </>
               )}
             </Button>
+          </div>
         </CardContent>
       </Card>
     );
@@ -123,28 +129,36 @@ export function AIInsightsDisplay() {
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle className="text-lg font-semibold">{t('aiInsights.title')}</CardTitle>
             <CardDescription>{t('aiInsights.description')}</CardDescription>
           </div>
           <Button
-            variant="ghost"
-            size="icon"
+            variant="outline"
+            size="sm"
             onClick={() => handleFetchAIInsights()}
-            disabled={loading || isRefetching}
-            className="h-8 w-8"
+            disabled={generateMutation.isPending || isRefetching}
           >
             <RefreshCw
-              className={cn('h-4 w-4', (loading || isRefetching) && 'animate-spin')}
+              className={cn(
+                'h-4 w-4 mr-2',
+                (generateMutation.isPending || isRefetching) && 'animate-spin',
+              )}
             />
+            {generateMutation.isPending ? t('loading.analyzing') : t('aiInsights.generate')}
           </Button>
         </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {aiInsights.map((insight: AIInsight) => {
-            const freshness = insight.metadata?.dataFreshness
-              ? dataFreshnessConfig[insight.metadata.dataFreshness]
-              : null;
+          {aiInsights.map((insight: AiInsightResponse) => {
+            const confidence = Number(insight.confidence ?? 0);
+            const dataFreshness = getMetadataString(insight.metadata, 'dataFreshness');
+            const confidenceReason = getMetadataString(insight.metadata, 'confidenceReason');
+            const lastDataUpdate = getMetadataString(insight.metadata, 'lastDataUpdate');
+            const relatedAssets = getRelatedAssets(insight.metadata);
+            const freshness =
+              dataFreshness && dataFreshness in dataFreshnessConfig
+                ? dataFreshnessConfig[dataFreshness as DataFreshness]
+                : null;
 
             return (
               <div key={insight.id} className="flex flex-col gap-3 p-4 rounded-lg border">
@@ -163,10 +177,8 @@ export function AIInsightsDisplay() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-medium text-sm">{insight.title}</h3>
-                      <Badge
-                        className={`text-xs ${getConfidenceColor(insight.confidence)} text-white`}
-                      >
-                        {insight.confidence.toFixed(0)}% {t('badge.confidence')}
+                      <Badge className={`text-xs ${getConfidenceColor(confidence)} text-white`}>
+                        {confidence.toFixed(0)}% {t('badge.confidence')}
                       </Badge>
                       {freshness && (
                         <Badge variant="outline" className="text-xs gap-1">
@@ -180,43 +192,42 @@ export function AIInsightsDisplay() {
                 </div>
 
                 {/* 置信度说明和时间信息 */}
-                {(insight.metadata?.confidenceReason ||
-                  insight.metadata?.lastDataUpdate ||
-                  insight.metadata?.relatedAssets?.length) && (
-                    <div className="bg-muted/50 rounded-md p-3 text-xs space-y-2">
-                      {insight.metadata?.confidenceReason && (
-                        <div className="flex gap-2">
-                          <span className="text-muted-foreground font-medium">{t('metadata.confidenceBasis')}：</span>
-                          <span className="text-foreground">{insight.metadata.confidenceReason}</span>
+                {(confidenceReason || lastDataUpdate || relatedAssets.length > 0) && (
+                  <div className="bg-muted/50 rounded-md p-3 text-xs space-y-2">
+                    {confidenceReason && (
+                      <div className="flex gap-2">
+                        <span className="text-muted-foreground font-medium">
+                          {t('metadata.confidenceBasis')}：
+                        </span>
+                        <span className="text-foreground">{confidenceReason}</span>
+                      </div>
+                    )}
+                    {lastDataUpdate && (
+                      <div className="flex gap-2">
+                        <span className="text-muted-foreground font-medium">
+                          {t('metadata.dataTime')}：
+                        </span>
+                        <span className="text-foreground">
+                          {dayjs(lastDataUpdate).format('YYYY-MM-DD HH:mm')}
+                        </span>
+                      </div>
+                    )}
+                    {relatedAssets.length > 0 && (
+                      <div className="flex gap-2">
+                        <span className="text-muted-foreground font-medium">
+                          {t('metadata.relatedAssets')}：
+                        </span>
+                        <div className="flex gap-1 flex-wrap">
+                          {relatedAssets.map((asset, idx: number) => (
+                            <Badge key={idx} variant="outline" className="text-xs px-1.5 py-0 h-5">
+                              {String(asset)}
+                            </Badge>
+                          ))}
                         </div>
-                      )}
-                      {insight.metadata?.lastDataUpdate && (
-                        <div className="flex gap-2">
-                          <span className="text-muted-foreground font-medium">{t('metadata.dataTime')}：</span>
-                          <span className="text-foreground">
-                            {dayjs(insight.metadata.lastDataUpdate).format('YYYY-MM-DD HH:mm')}
-                          </span>
-                        </div>
-                      )}
-                      {insight.metadata?.relatedAssets &&
-                        insight.metadata?.relatedAssets.length > 0 && (
-                          <div className="flex gap-2">
-                            <span className="text-muted-foreground font-medium">{t('metadata.relatedAssets')}：</span>
-                            <div className="flex gap-1 flex-wrap">
-                              {insight.metadata.relatedAssets.map((asset: string, idx: number) => (
-                                <Badge
-                                  key={idx}
-                                  variant="outline"
-                                  className="text-xs px-1.5 py-0 h-5"
-                                >
-                                  {asset}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                    </div>
-                  )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}

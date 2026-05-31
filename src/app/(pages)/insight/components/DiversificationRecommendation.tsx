@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -8,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@renderer/components/ui/card';
+import { Badge } from '@renderer/components/ui/badge';
 import { Button } from '@renderer/components/ui/button';
 import {
   Table,
@@ -20,7 +20,7 @@ import {
 import { useDiversificationRecommendationsQuery } from '@renderer/hooks/usePositionQueries';
 import { Spinner } from '@renderer/components/ui/spinner';
 import { RecommendationType } from '@typings/insight';
-import { RefreshCw } from 'lucide-react';
+import { PieChartIcon, RefreshCw } from 'lucide-react';
 import { cn } from '@renderer/lib/utils';
 import { useTranslation } from 'react-i18next';
 
@@ -37,7 +37,10 @@ export function DiversificationRecommendation() {
   const header = (
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
       <div className="flex flex-col space-y-1.5">
-        <CardTitle className="text-lg font-semibold">{t('diversification.title')}</CardTitle>
+        <div className="flex flex-wrap items-center gap-2">
+          <CardTitle className="text-lg font-semibold">{t('portfolioCheck.title')}</CardTitle>
+          <Badge variant="outline">{t('portfolioCheck.badge')}</Badge>
+        </div>
         <CardDescription>{t('diversification.description')}</CardDescription>
       </div>
       <Button
@@ -73,7 +76,9 @@ export function DiversificationRecommendation() {
       <Card>
         {header}
         <CardContent>
-          <div className="text-center py-8 text-muted-foreground">{t('diversification.noData')}</div>
+          <div className="text-center py-8 text-muted-foreground">
+            {t('diversification.noData')}
+          </div>
         </CardContent>
       </Card>
     );
@@ -83,6 +88,10 @@ export function DiversificationRecommendation() {
     <Card>
       {header}
       <CardContent>
+        <div className="mb-4 flex items-start gap-3 rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground">
+          <PieChartIcon className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>{t('portfolioCheck.explanation')}</p>
+        </div>
         <Table>
           <TableHeader>
             <TableRow>

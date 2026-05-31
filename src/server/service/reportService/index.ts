@@ -92,6 +92,7 @@ export type GenerateReportRequest = {
   endDate?: Date;
   modelSlug?: string; // 可选的模型标识，用于选择特定的 AI 模型
   agentType?: 'claude-sdk' | 'langchain'; // 可选的 Agent 类型，默认使用 claude-sdk
+  scheduledJobId?: number;
 };
 
 // 报告列表项类型
@@ -102,6 +103,7 @@ export type ReportListItem = {
   startDate: Date | null;
   endDate: Date | null;
   createdAt: Date;
+  scheduledJobId?: number | null;
 };
 
 // 报告详情类型
@@ -664,6 +666,7 @@ export class ReportService {
         endDate,
         request.modelSlug,
         request.agentType,
+        request.scheduledJobId,
       ).catch(async (error) => {
         logger.error('[ReportService] 报告生成失败', { reportId: reportRecord.id, error });
         // 更新报告状态为失败
@@ -698,6 +701,7 @@ export class ReportService {
     endDate: Date,
     modelSlug?: string,
     agentType?: 'claude-sdk' | 'langchain',
+    scheduledJobId?: number,
   ): Promise<void> {
     try {
       // 更新报告状态为处理中
@@ -712,11 +716,15 @@ export class ReportService {
       // 生成AI报告内容
       const reportContent = await this.generateAIReportContent(reportData, modelSlug, agentType);
 
+      const summaryObj = reportData.dataSourceSummary
+        ? { ...reportData.dataSourceSummary, ...(scheduledJobId ? { scheduledJobId } : {}) }
+        : scheduledJobId ? { scheduledJobId } : undefined;
+
       // 更新报告内容和状态（标记为完成）
       await analysisReportRepository.updateContent(
         parseInt(reportId),
         reportContent,
-        JSON.stringify(reportData.dataSourceSummary),
+        summaryObj ? JSON.stringify(summaryObj) : undefined,
       );
 
       logger.info('[ReportService] 报告生成完成', { reportId });
@@ -1315,14 +1323,24 @@ ${rows.join('\n')}
         totalCount = await analysisReportRepository.countByAccountId(parseInt(accountId));
       }
 
-      const items: ReportListItem[] = reportRows.map((report) => ({
-        id: report.id.toString(),
-        title: report.title,
-        type: report.type as ReportType,
-        startDate: report.startDate ? new Date(report.startDate) : null,
-        endDate: report.endDate ? new Date(report.endDate) : null,
-        createdAt: new Date(report.createdAt),
-      }));
+      const items: ReportListItem[] = reportRows.map((report) => {
+        let scheduledJobId: number | null = null;
+        if (report.dataSourceSummary) {
+          try {
+            const parsed = JSON.parse(report.dataSourceSummary);
+            if (parsed?.scheduledJobId) scheduledJobId = parsed.scheduledJobId;
+          } catch { /* ignore */ }
+        }
+        return {
+          id: report.id.toString(),
+          title: report.title,
+          type: report.type as ReportType,
+          startDate: report.startDate ? new Date(report.startDate) : null,
+          endDate: report.endDate ? new Date(report.endDate) : null,
+          createdAt: new Date(report.createdAt),
+          scheduledJobId,
+        };
+      });
 
       return { items, totalCount: totalCount || 0 };
     } catch (error) {

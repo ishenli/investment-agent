@@ -1,15 +1,29 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
 import { RiskDashboard } from './modules/InsightDashboard';
+import { InsightHistory } from './modules/InsightHistory';
 import { useAccountGuard } from '@renderer/hooks/useAccountGuard';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@renderer/components/ui/tabs';
 
 export default function InsightPage() {
-  // 保护页面，确保用户有账户才能访问
   useAccountGuard();
+  const { t } = useTranslation('insight');
 
   return (
     <div className="container mx-auto p-8">
-      <RiskDashboard />
+      <Tabs defaultValue="dashboard">
+        <TabsList>
+          <TabsTrigger value="dashboard">{t('tabs.today')}</TabsTrigger>
+          <TabsTrigger value="history">{t('tabs.history')}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="dashboard">
+          <RiskDashboard />
+        </TabsContent>
+        <TabsContent value="history">
+          <InsightHistory />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

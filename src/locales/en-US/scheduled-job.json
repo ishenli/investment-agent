@@ -1,0 +1,128 @@
+{
+  "title": "Scheduled Jobs",
+  "description": "Manage automation rules for AI insights and reports",
+  "actions": {
+    "create": "New Scheduled Job",
+    "edit": "Edit",
+    "delete": "Delete",
+    "execute": "Run Now",
+    "enable": "Enable",
+    "disable": "Disable",
+    "viewLogs": "View Logs",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
+  },
+  "tabs": {
+    "jobs": "Job List",
+    "templates": "Quick Create",
+    "jobList": "Job List",
+    "quickCreate": "Quick Create"
+  },
+  "templates": {
+    "title": "Job Templates",
+    "description": "Quickly create scheduled jobs from templates",
+    "insight": {
+      "name": "Daily AI Investment Insights",
+      "description": "Automatically analyze positions daily and generate investment insights",
+      "instructions": "Analyze my portfolio risks, unusual movements, and opportunities every day. Focus on position changes, abnormal volatility, risk exposure, and actionable suggestions."
+    },
+    "reportWeekly": {
+      "name": "Weekly Investment Review",
+      "description": "Automatically generate a weekly investment report every Monday",
+      "instructions": "Review last week's portfolio performance, explain return drivers, major risks, key position changes, and market events to watch next week."
+    },
+    "reportMonthly": {
+      "name": "Monthly Asset Report",
+      "description": "Automatically generate a monthly investment report on the 1st",
+      "instructions": "Summarize last month's asset performance, attribution, drawdown risk, trading behavior, and allocation changes, then list focus areas for next month."
+    },
+    "selectAccount": "Select Account",
+    "createFromTemplate": "Create from Template"
+  },
+  "form": {
+    "createTitle": "Create Scheduled Job",
+    "createDescription": "Run AI analysis on a schedule, with manual runs available anytime.",
+    "template": "Task Type",
+    "notificationChannel": "Notification",
+    "notificationChannels": {
+      "app": "App Reminder"
+    },
+    "name": "Job Name",
+    "namePlaceholder": "Enter job name",
+    "schedule": "Schedule",
+    "frequency": {
+      "daily": "Every day",
+      "weekly": "Every Monday",
+      "monthly": "On the 1st"
+    },
+    "instructions": "What should AI do?",
+    "instructionsPlaceholder": "Describe what this job should focus on, such as risks, report priorities, or output style.",
+    "instructionsHint": "This will be saved as generation preferences for insights or reports; the selected task type still defines what can run.",
+    "cronExpression": "Cron Expression",
+    "cronPlaceholder": "e.g., 0 8 * * *",
+    "jobType": "Job Type",
+    "account": "Account",
+    "selectAccount": "Select account",
+    "accountPlaceholder": "Select account (optional)",
+    "timeout": "Timeout (ms)",
+    "timeoutPlaceholder": "Default 300000",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
+  "jobTypes": {
+    "insight": "AI Insights",
+    "report_weekly": "Weekly Report",
+    "report_monthly": "Monthly Report"
+  },
+  "status": {
+    "enabled": "Enabled",
+    "disabled": "Disabled"
+  },
+  "table": {
+    "name": "Name",
+    "type": "Type",
+    "cron": "Schedule",
+    "status": "Status",
+    "lastRun": "Last Run",
+    "nextRun": "Next Run",
+    "actions": "Actions",
+    "noJobs": "No scheduled jobs",
+    "noJobsHint": "Create your first scheduled job from a template"
+  },
+  "logs": {
+    "title": "Execution Logs",
+    "status": "Status",
+    "startedAt": "Started",
+    "completedAt": "Completed",
+    "duration": "Duration",
+    "message": "Message",
+    "result": "Result",
+    "error": "Error",
+    "noLogs": "No execution logs",
+    "statusLabels": {
+      "pending": "Pending",
+      "running": "Running",
+      "success": "Success",
+      "failed": "Failed",
+      "missed": "Missed"
+    }
+  },
+  "messages": {
+    "createSuccess": "Job created successfully",
+    "createError": "Failed to create job",
+    "updateSuccess": "Job updated successfully",
+    "updateError": "Failed to update job",
+    "deleteSuccess": "Job deleted successfully",
+    "deleteError": "Failed to delete job",
+    "executeSuccess": "Job execution started",
+    "executeError": "Failed to execute job",
+    "confirmDelete": "Are you sure you want to delete this job?",
+    "fetchError": "Failed to fetch data",
+    "networkError": "Network error"
+  },
+  "empty": {
+    "title": "No Scheduled Jobs",
+    "description": "Create your first AI scheduled job from a template"
+  },
+  "loading": "Loading..."
+}

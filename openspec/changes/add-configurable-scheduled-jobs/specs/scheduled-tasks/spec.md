@@ -9,6 +9,65 @@
 
 ## ADDED Requirements
 
+### Requirement: AI 分析能力与自动化配置的产品边界
+
+系统 SHALL 将 AI 洞察、AI 报告和定时任务的产品职责清晰分离：AI 洞察承载轻量分析结果，AI 报告承载结构化长文沉淀，定时任务承载自动化触发规则和执行日志。
+
+#### Scenario: 定时任务页只管理自动化规则
+
+- **GIVEN** 用户打开 `/setting/scheduled-jobs`
+- **WHEN** 页面加载完成
+- **THEN** 系统展示定时任务规则列表、启用状态、下次执行时间、最近执行结果和执行日志入口
+- **AND** 页面 MAY 展示最近执行结果摘要和跳转链接
+- **AND** 页面 MUST NOT 展示完整 AI 洞察正文
+- **AND** 页面 MUST NOT 展示完整 AI 报告正文
+
+#### Scenario: 内容消费回到洞察和报告页面
+
+- **GIVEN** 一个定时任务成功生成 AI 洞察或提交 AI 报告生成请求
+- **WHEN** 用户在定时任务页查看该任务的最近执行结果
+- **THEN** 洞察类结果提供跳转到 AI 洞察历史或对应洞察详情的入口
+- **AND** 报告类结果提供跳转到报告列表或对应报告详情的入口
+- **AND** 用户在洞察页消费轻量分析结果，在报告页消费和编辑长文报告
+
+#### Scenario: 使用任务模板创建自动化规则
+
+- **GIVEN** 用户创建新的定时任务
+- **WHEN** 系统展示创建入口
+- **THEN** 主流程 SHALL 展示面向用户的任务模板，如“每日 AI 投资洞察”“每周投资复盘”“每月资产报告”
+- **AND** 系统内部 MAY 将模板映射为 `jobType = "insight"`、`jobType = "report_weekly"` 或 `jobType = "report_monthly"`
+- **AND** 主流程 SHOULD NOT 直接要求用户理解 `jobType` 枚举
+
+#### Scenario: 用户直接新建定时任务
+
+- **GIVEN** 用户打开定时任务页
+- **WHEN** 用户点击“新建定时任务”
+- **THEN** 系统 SHALL 打开同一个新建定时任务面板
+- **AND** 面板 SHALL 默认选择一个可用任务类型
+- **AND** 用户 SHALL 能在面板内切换任务类型、修改任务名称、计划时间、通知方式、关联账户和自然语言说明
+- **AND** 用户不必先点击固定模板卡片才能创建任务
+
+#### Scenario: 创建面板支持自然语言任务说明
+
+- **GIVEN** 用户选择了一个任务模板
+- **WHEN** 系统打开新建定时任务面板
+- **THEN** 面板 SHALL 展示任务模板、通知方式、任务名称、计划时间、关联账户和“让 AI 帮你做什么”说明输入框
+- **AND** “让 AI 帮你做什么”输入框 SHALL 允许用户用自然语言描述分析重点、报告偏好或需要关注的风险
+- **AND** 系统 SHALL 将该说明保存到 `scheduledJobs.config.instructions`
+- **AND** 系统 SHALL 将通知方式保存到 `scheduledJobs.config.notificationChannel`
+- **AND** MVP 阶段通知方式 MAY 仅支持 `app`
+- **AND** 面板 MUST NOT 暗示系统支持任意 Agent 工作流；任务执行范围仍受当前任务模板约束
+
+#### Scenario: 内容页提供自动化设置入口但不重复配置能力
+
+- **GIVEN** 用户位于 AI 洞察页或 AI 报告页
+- **WHEN** 用户点击“自动分析设置”或“定期生成设置”
+- **THEN** 系统跳转到 `/setting/scheduled-jobs` 并预选对应任务模板
+- **AND** AI 洞察页和 AI 报告页 MUST NOT 各自实现独立的周期配置表单
+- **AND** 调度周期、启停、日志和删除能力统一由定时任务页管理
+
+---
+
 ### Requirement: 可配置定时任务规则存储
 
 系统 SHALL 允许用户创建、读取、更新、删除定时任务配置，每项配置包含任务名称、cron 调度表达式、任务类型、关联参数、启用状态和所属用户。

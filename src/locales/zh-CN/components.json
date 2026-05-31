@@ -16,6 +16,7 @@
       "deepAnalysis": "深度分析",
       "positionManagement": "持仓管理",
       "taskManagement": "任务管理",
+      "scheduledJobs": "定时任务",
       "tradeRecords": "交易记录"
     },
     "settings": {

@@ -104,6 +104,7 @@ export interface JobExecutionResult {
   reportId?: number;
   reportStatus?: 'pending';
   insightCount?: number;
+  insightIds?: number[];
   message?: string;
 }
 

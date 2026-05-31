@@ -6,6 +6,7 @@ import { z } from 'zod';
 import authService from '@server/service/authService';
 import { BaseBizController } from './base';
 import { AIInsightsService } from '../service/aiInsightsService';
+import aiInsightService from '../service/aiInsightService';
 import { PortfolioService } from '../service/portfolioService';
 import { RiskCalculatorService } from '../service/riskCalculatorService';
 import { RiskInsights } from '@/app/store/position/types';
@@ -74,25 +75,28 @@ export class PositionBizController extends BaseBizController {
   @WithRequestContext()
   async getAIInsights(query: any) {
     try {
-      // 1. 获取当前用户ID
+      // 1. 获取当前用户和账户
       const accountInfo = await authService.getCurrentUserAccount();
       if (!accountInfo) {
         return this.error('用户未登录', 'unauthorized');
       }
 
-      const accountId = accountInfo.id;
+      const userId = await authService.getCurrentUserId();
+      if (!userId) {
+        return this.error('用户未登录', 'unauthorized');
+      }
 
-      // 2. 获取投资组合和持仓数据
-      const portfolio = await PortfolioService.calculatePortfolio(accountId);
-      const positions = await PortfolioService.getPositions(accountId, portfolio.totalValue);
+      // 2. GET 只读取已保存洞察，不触发 AI 生成
+      const numericAccountId = parseInt(String(accountInfo.id));
+      const result = await aiInsightService.getInsights(parseInt(userId), {
+        page: 1,
+        pageSize: 20,
+        accountId: numericAccountId,
+      });
 
-      const insights = await AIInsightsService.generateAIInsights(positions, portfolio);
-
-      // 4. 返回成功响应
       return this.success({
-        insights: insights,
-        generatedAt: new Date().toISOString(),
-        modelVersion: 'v1.0',
+        insights: result.items,
+        totalCount: result.totalCount,
       });
     } catch (error) {
       logger.error('[PositionBizController] 获取AI洞察失败:', error);
@@ -103,32 +107,42 @@ export class PositionBizController extends BaseBizController {
   @WithRequestContext()
   async generateAIInsights(body: any) {
     try {
-      // 1. 获取当前用户ID
+      // 1. 获取当前用户和账户
       const accountInfo = await authService.getCurrentUserAccount();
-
       if (!accountInfo) {
         return this.error('用户未认证', 'unauthorized');
       }
 
-      // 2. 获取请求参数
-      const { positions, portfolio, marketContext } = body;
-
-      if (!positions || !portfolio) {
-        return this.error('缺少必要参数', 'missing_parameters');
+      const userId = await authService.getCurrentUserId();
+      if (!userId) {
+        return this.error('用户未认证', 'unauthorized');
       }
 
-      // 3. 生成AI洞察
-      // 注意：这里需要根据实际的AIInsightsService实现来调整
-      // 暂时返回模拟数据
-      const mockInsights = {
-        recommendations: ['根据您提供的数据，建议关注市场趋势', '考虑根据风险偏好调整投资组合'],
-        riskAssessment: '基于输入数据的风险评估',
-        opportunities: ['基于输入数据识别的投资机会'],
-      };
+      const numericAccountId = parseInt(String(accountInfo.id));
+      const accountId = String(accountInfo.id);
+      const { marketContext } = body ?? {};
 
-      // 4. 返回成功响应
+      // 2. 服务端自行读取最新组合和持仓，避免前端传入陈旧数据
+      const portfolio = await PortfolioService.calculatePortfolio(accountId);
+      const positions = await PortfolioService.getPositions(accountId, portfolio.totalValue);
+
+      // 3. 手动生成并持久化
+      const insights = await AIInsightsService.generateAIInsights(
+        positions,
+        portfolio,
+        marketContext,
+      );
+      const insightIds = await aiInsightService.createInsights(
+        parseInt(userId),
+        numericAccountId,
+        null,
+        insights,
+        'manual',
+      );
+
       return this.success({
-        insights: mockInsights,
+        insights,
+        insightIds,
         generatedAt: new Date().toISOString(),
         modelVersion: 'v1.0',
       });

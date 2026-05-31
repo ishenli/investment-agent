@@ -330,6 +330,13 @@
       "when": 1779894901208,
       "tag": "0046_great_moon_knight",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "6",
+      "when": 1780159359351,
+      "tag": "0047_sour_the_initiative",
+      "breakpoints": true
     }
   ]
 }

@@ -1,14 +1,21 @@
 import type { NextConfig } from 'next';
 import { createRequire } from 'module';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 const require = createRequire(import.meta.url);
 const pkg = require('./package.json');
+const projectRoot = dirname(fileURLToPath(import.meta.url));
 
 const isElectron = process.env.BUILD_TARGET === 'electron';
 
 const nextConfig: NextConfig = {
   // Configure allowed development origins for cross-origin requests
+  outputFileTracingRoot: projectRoot,
   output: isElectron ? 'standalone' : undefined,
+  turbopack: {
+    root: projectRoot,
+  },
   images: {
     remotePatterns: [
       {

@@ -1,0 +1,128 @@
+{
+  "title": "定时任务",
+  "description": "管理 AI 洞察和报告的自动生成规则",
+  "actions": {
+    "create": "新建定时任务",
+    "edit": "编辑",
+    "delete": "删除",
+    "execute": "立即执行",
+    "enable": "启用",
+    "disable": "停用",
+    "viewLogs": "查看日志",
+    "confirm": "确认",
+    "cancel": "取消"
+  },
+  "tabs": {
+    "jobs": "任务列表",
+    "templates": "快速创建",
+    "jobList": "任务列表",
+    "quickCreate": "快速创建"
+  },
+  "templates": {
+    "title": "任务模板",
+    "description": "从模板快速创建定时任务",
+    "insight": {
+      "name": "每日 AI 投资洞察",
+      "description": "每日自动分析持仓，生成投资洞察建议",
+      "instructions": "每天分析我的持仓风险、异动和机会，生成简洁的 AI 投资洞察。重点关注仓位变化、异常波动、风险暴露和可执行建议。"
+    },
+    "reportWeekly": {
+      "name": "每周投资复盘",
+      "description": "每周一自动生成投资分析周报",
+      "instructions": "复盘上周组合表现，说明收益来源、主要风险、关键持仓变化和下周需要关注的市场事件。"
+    },
+    "reportMonthly": {
+      "name": "每月资产报告",
+      "description": "每月 1 日自动生成投资分析月报",
+      "instructions": "总结上月资产表现、收益归因、回撤风险、交易行为和资产配置变化，并给出下月观察重点。"
+    },
+    "selectAccount": "选择关联账户",
+    "createFromTemplate": "从模板创建"
+  },
+  "form": {
+    "createTitle": "创建定时任务",
+    "createDescription": "按计划自动执行 AI 分析，也可随时手动触发。",
+    "template": "任务类型",
+    "notificationChannel": "通知方式",
+    "notificationChannels": {
+      "app": "App 提醒"
+    },
+    "name": "任务名称",
+    "namePlaceholder": "请输入任务名称",
+    "schedule": "计划时间",
+    "frequency": {
+      "daily": "每天",
+      "weekly": "每周一",
+      "monthly": "每月 1 日"
+    },
+    "instructions": "让 AI 帮你做什么",
+    "instructionsPlaceholder": "描述任务执行时要完成的事情，例如需要关注的风险、报告重点或输出风格。",
+    "instructionsHint": "说明会作为 AI 洞察或报告生成的偏好输入；任务范围仍由所选任务类型决定。",
+    "cronExpression": "Cron 表达式",
+    "cronPlaceholder": "如: 0 8 * * *",
+    "jobType": "任务类型",
+    "account": "关联账户",
+    "selectAccount": "选择账户",
+    "accountPlaceholder": "选择账户（可选）",
+    "timeout": "超时时间（毫秒）",
+    "timeoutPlaceholder": "默认 300000",
+    "cancel": "取消",
+    "confirm": "确认"
+  },
+  "jobTypes": {
+    "insight": "AI 洞察",
+    "report_weekly": "投资周报",
+    "report_monthly": "投资月报"
+  },
+  "status": {
+    "enabled": "已启用",
+    "disabled": "已停用"
+  },
+  "table": {
+    "name": "任务名称",
+    "type": "类型",
+    "cron": "执行周期",
+    "status": "状态",
+    "lastRun": "上次执行",
+    "nextRun": "下次执行",
+    "actions": "操作",
+    "noJobs": "暂无定时任务",
+    "noJobsHint": "从模板快速创建您的第一个定时任务"
+  },
+  "logs": {
+    "title": "执行日志",
+    "status": "状态",
+    "startedAt": "开始时间",
+    "completedAt": "完成时间",
+    "duration": "耗时",
+    "message": "信息",
+    "result": "结果",
+    "error": "错误信息",
+    "noLogs": "暂无执行记录",
+    "statusLabels": {
+      "pending": "等待中",
+      "running": "执行中",
+      "success": "成功",
+      "failed": "失败",
+      "missed": "错过"
+    }
+  },
+  "messages": {
+    "createSuccess": "任务创建成功",
+    "createError": "创建任务失败",
+    "updateSuccess": "任务更新成功",
+    "updateError": "更新任务失败",
+    "deleteSuccess": "任务删除成功",
+    "deleteError": "删除任务失败",
+    "executeSuccess": "任务已开始执行",
+    "executeError": "执行任务失败",
+    "confirmDelete": "确定要删除该任务吗？",
+    "fetchError": "获取数据失败",
+    "networkError": "网络错误"
+  },
+  "empty": {
+    "title": "暂无定时任务",
+    "description": "从模板快速创建您的第一个 AI 定时任务"
+  },
+  "loading": "加载中..."
+}

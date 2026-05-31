@@ -163,7 +163,7 @@ export const data = {
       url: '/notifications',
       icon: IconNotification,
     },
-  ]
+  ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -184,23 +184,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }, [initializeAccount]);
 
   // 使用翻译函数转换菜单项
-  const translatedNavMain = data.navMain.map(item => ({
+  const translatedNavMain = data.navMain.map((item) => ({
     ...item,
-    title: t(item.title as any)
+    title: t(item.title as any),
   }));
 
-  const translatedDocuments = data.documents.map(item => ({
+  const translatedDocuments = data.documents.map((item) => ({
     ...item,
     name: t(item.name as any),
-    dropdownItems: item.dropdownItems?.map(dropdownItem => ({
+    dropdownItems: item.dropdownItems?.map((dropdownItem) => ({
       ...dropdownItem,
-      label: t(dropdownItem.label as any)
-    }))
+      label: t(dropdownItem.label as any),
+    })),
   }));
 
-  const translatedSettings = data.settings.map(item => ({
+  const translatedSettings = data.settings.map((item) => ({
     ...item,
-    name: t(item.name as any)
+    name: t(item.name as any),
   }));
 
   return (

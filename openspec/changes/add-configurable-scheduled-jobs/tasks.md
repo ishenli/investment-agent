@@ -98,12 +98,13 @@
 
 - [ ] T023 [P] [US1] 新建 `src/app/(pages)/setting/scheduled-jobs/page.tsx` 设置页面骨架 <!-- id: 23 -->
 - [ ] T024 [P] [US1] 新建 `src/app/(pages)/setting/scheduled-jobs/components/JobList.tsx` — 任务列表组件（状态、下次执行时间、最近结果、启用开关） <!-- id: 24 -->
-- [ ] T025 [P] [US1] 新建 `src/app/(pages)/setting/scheduled-jobs/components/JobForm.tsx` — 添加/编辑表单（名称、cron 选择器、任务类型下拉、关联账户、配置参数） <!-- id: 25 -->
+- [ ] T025 [P] [US1] 新建 `src/app/(pages)/setting/scheduled-jobs/components/JobForm.tsx` — 添加/编辑表单（任务模板、通知方式、名称、计划时间、关联账户、自然语言说明；主流程不直接暴露 `jobType` 枚举，并将说明写入 `config.instructions`） <!-- id: 25 -->
 - [ ] T026 [P] [US1] 新建 `src/app/(pages)/setting/scheduled-jobs/components/JobLogs.tsx` — 执行日志面板（时间、状态、耗时、错误信息） <!-- id: 26 -->
 - [ ] T027 [US1] 新建 `src/app/(pages)/setting/scheduled-jobs/components/CronInput.tsx` — cron 表达式输入组件，优先评估 `react-cron-generator` 等开源方案，不满足再自研（简化版：分钟/小时/日/月/周几） <!-- id: 27 -->
 - [ ] T028 [US1] 在设置侧边栏 `settings-sidebar.tsx` 中添加 "定时任务" 入口（同步修改 `SettingsCategory` union type + `settingsItems` 数组 + `pathname.split('/').pop()` 路由映射逻辑） <!-- id: 28 -->
 - [ ] T029 [US1] 实现"立即执行"按钮及加载状态；报告类任务成功文案显示“已开始生成”，不显示“已完成生成” <!-- id: 29 -->
 - [ ] T030 [US1] 前端 CRUD 操作成功后调用 `window.electronAPI.reloadScheduledJob(jobId)` 触发 IPC 热重载 <!-- id: 30 -->
+- [ ] T030A [US1] 确保定时任务页仅展示自动化规则、执行摘要和结果跳转；完整 AI 洞察内容回到洞察页，完整报告内容回到报告页 <!-- id: 59 -->
 
 **检查点**：US1 功能完整可用
 

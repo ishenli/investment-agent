@@ -15,6 +15,7 @@ export type ReportListItem = {
   startDate: string | null;
   endDate: string | null;
   createdAt: string;
+  scheduledJobId?: number | null;
 };
 
 export type ReportDetail = {

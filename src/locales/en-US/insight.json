@@ -1,8 +1,10 @@
 {
   "aiInsights": {
-    "description": "Intelligent insights based on data analysis",
+    "description": "Lightweight risk, opportunity, and anomaly prompts that answer what deserves attention now.",
+    "generate": "Generate AI Insights",
     "noData": "No AI insights",
-    "title": "AI Insights"
+    "noDataHint": "Generate manually now, or create a scheduled job to save insights automatically.",
+    "title": "Today's AI Insights"
   },
   "alert": {
     "dismiss": "Dismiss",
@@ -16,12 +18,14 @@
   },
   "dashboard": {
     "riskAlert": "Risk Alert",
+    "todayDescription": "Start with fresh insights, then review action items, and finally check whether the portfolio structure needs diversification.",
+    "todayTitle": "Today's Insights",
     "title": "Insight Dashboard"
   },
   "diversification": {
-    "description": "Portfolio optimization recommendations based on risk analysis",
+    "description": "Check portfolio structure through concentration, correlation, and liquidity. Candidate assets are references for diversification direction.",
     "noData": "No diversification recommendation",
-    "title": "Diversification Recommendation"
+    "title": "Portfolio Checkup: Diversification"
   },
   "loading": {
     "analyzing": "Analyzing...",
@@ -41,6 +45,20 @@
     "noData": "No strategy advice",
     "title": "Strategy Advice"
   },
+  "actionPlan": {
+    "description": "Turn insights into next steps, separating actions to handle now from items to keep watching.",
+    "noData": "No action plan",
+    "priority": {
+      "now": "Act Now",
+      "watch": "Watch"
+    },
+    "title": "Action Plan"
+  },
+  "portfolioCheck": {
+    "badge": "Structure Check",
+    "explanation": "This section checks whether the portfolio structure is healthy, not a single market event. Review correlation, concentration, and liquidity before adjusting allocation.",
+    "title": "Portfolio Checkup: Diversification"
+  },
   "strategyAdvice": {
     "cardDescription": "Personalized strategy advice based on your portfolio",
     "cardTitle": "Strategy Advice"
@@ -52,5 +70,38 @@
     "reason": "Reason",
     "suggestedAmount": "Suggested Amount"
   },
-  "title": "Insight"
+  "title": "Insight",
+  "history": {
+    "title": "Insight History",
+    "description": "View all generated AI insight records",
+    "noData": "No insight history",
+    "noDataHint": "Manually generated and scheduled insights will be saved here automatically",
+    "filters": {
+      "all": "All",
+      "source": "Source",
+      "type": "Type",
+      "manual": "Manual",
+      "scheduled": "Scheduled",
+      "opportunity": "Opportunity",
+      "risk": "Risk",
+      "suggestion": "Suggestion"
+    },
+    "source": {
+      "manual": "Manual",
+      "scheduled": "Scheduled"
+    },
+    "type": {
+      "opportunity": "Opportunity",
+      "risk": "Risk",
+      "suggestion": "Suggestion"
+    },
+    "confidence": "Confidence",
+    "loadMore": "Load More",
+    "total": "{{count}} total"
+  },
+  "tabs": {
+    "dashboard": "Live Insights",
+    "history": "History",
+    "today": "Today"
+  }
 }

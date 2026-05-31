@@ -52,6 +52,8 @@ async function executeInsightJob(
 ): Promise<JobExecutionResult> {
   const { AIInsightsService } = await import('@server/service/aiInsightsService');
   const { PortfolioService } = await import('@server/service/portfolioService');
+  const aiInsightService = (await import('@server/service/aiInsightService')).default;
+  const notificationService = (await import('@server/service/notificationService')).default;
 
   const accountId = String(job.accountId!);
   const portfolio = await PortfolioService.calculatePortfolio(accountId);
@@ -62,9 +64,27 @@ async function executeInsightJob(
     portfolio,
   );
 
+  const insightIds = await aiInsightService.createInsights(
+    job.userId,
+    job.accountId,
+    job.id,
+    insights,
+    'scheduled',
+  );
+
+  await notificationService.createNotification(job.userId, {
+    type: 'analysis_completed',
+    title: `${job.name}已完成`,
+    message: `共生成 ${insights.length} 条洞察`,
+    link: '/insight',
+    priority: 'medium',
+    data: { jobId: job.id, insightCount: insights.length },
+  });
+
   return {
     success: true,
     insightCount: insights.length,
+    insightIds,
     message: `共生成 ${insights.length} 条洞察`,
   };
 }
@@ -74,17 +94,30 @@ async function executeReportJob(
   reportType: 'weekly' | 'monthly',
 ): Promise<JobExecutionResult> {
   const reportService = (await import('@server/service/reportService')).default;
+  const notificationService = (await import('@server/service/notificationService')).default;
 
   const result = await reportService.generateReport({
     accountId: String(job.accountId),
     type: reportType,
+    scheduledJobId: job.id,
+  });
+
+  const label = reportType === 'weekly' ? '周报' : '月报';
+
+  await notificationService.createNotification(job.userId, {
+    type: 'report_completed',
+    title: `${job.name}已完成`,
+    message: `${label}已开始生成`,
+    link: `/report/${result.id}`,
+    priority: 'medium',
+    data: { jobId: job.id, reportId: result.id },
   });
 
   return {
     success: true,
     reportId: parseInt(result.id),
     reportStatus: 'pending',
-    message: reportType === 'weekly' ? '周报已开始生成' : '月报已开始生成',
+    message: `${label}已开始生成`,
   };
 }
 

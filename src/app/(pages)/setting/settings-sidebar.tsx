@@ -14,6 +14,7 @@ import {
   IconBell,
   IconChartLine,
   IconTestPipe,
+  IconClock,
   type Icon,
 } from '@tabler/icons-react';
 import {
@@ -22,10 +23,22 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@renderer/components/ui/sidebar';
-import { usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
-export type SettingsCategory = 'provider' | 'tool' | 'agent' | 'channel' | 'theme' | 'general' | 'exchange' | 'about' | 'skills' | 'notification' | 'observability' | 'evaluation';
+export type SettingsCategory =
+  | 'provider'
+  | 'tool'
+  | 'agent'
+  | 'channel'
+  | 'theme'
+  | 'general'
+  | 'exchange'
+  | 'about'
+  | 'skills'
+  | 'notification'
+  | 'observability'
+  | 'evaluation'
+  | 'scheduled-jobs';
 
 const settingsItems: {
   id: SettingsCategory;
@@ -47,6 +60,13 @@ const settingsItems: {
     icon: IconBell,
     url: '/setting/notification',
     description: '管理通知偏好和推送设置',
+  },
+  {
+    id: 'scheduled-jobs',
+    title: '定时任务',
+    icon: IconClock,
+    url: '/setting/scheduled-jobs',
+    description: '管理 AI 洞察和报告的自动生成规则',
   },
   {
     id: 'provider',
@@ -130,7 +150,6 @@ export function SettingsSidebar({
   onCategoryChange,
 }: SettingsSidebarProps) {
   const { t } = useTranslation('setting');
-  const pathname = usePathname();
 
   return (
     <SidebarGroup className="p-2">
@@ -141,7 +160,7 @@ export function SettingsSidebar({
           return (
             <SidebarMenuItem key={item.id}>
               <SidebarMenuButton
-                className='cursor-pointer'
+                className="cursor-pointer"
                 asChild
                 tooltip={t(`sidebar.${item.id}`, item.title)}
                 isActive={isActive}
