@@ -15,7 +15,10 @@ interface ListProps {
 }
 
 const Content = memo<ListProps>(({ mobile }) => {
-  const [isCurrentChatLoaded] = useChatStore((s) => [chatSelectors.isCurrentChatLoaded(s)]);
+  const [isCurrentChatLoaded, isCreatingMessage] = useChatStore((s) => [
+    chatSelectors.isCurrentChatLoaded(s),
+    chatSelectors.isCreatingMessage(s),
+  ]);
 
   useFetchMessages();
   const data = useChatStore(chatSelectors.mainDisplayChatIDs);
@@ -26,6 +29,8 @@ const Content = memo<ListProps>(({ mobile }) => {
   );
 
   if (!isCurrentChatLoaded) return <SkeletonList mobile={mobile} />;
+
+  if (data.length === 0 && isCreatingMessage) return null;
 
   if (data.length === 0) return <Welcome />;
 
