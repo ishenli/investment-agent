@@ -73,6 +73,8 @@ export class HermesEngine implements IAgentEngine {
       });
     }
 
+    const userSkillsDir = skillFileScanner.getUserSkillsRoot(userId);
+
     // 3. Build pi-ai message context
     const piMessages = messages.map((msg) => {
       if (msg.role === 'user') {
@@ -201,6 +203,20 @@ export class HermesEngine implements IAgentEngine {
         sinks: [],
         callbacks: observabilityCallbacks,
         pricing: defaultModelPricing,
+      },
+      reflectionConfig: {
+        enabled: true,
+        backgroundMode: true,
+        frameworksPath: path.join(
+          getProjectRoot(),
+          'packages/hermes-agent/src/reflection/frameworks/investment-analysis.json',
+        ),
+        localSkillsDir: userSkillsDir,
+        onSkillChanged: async (event) => {
+          await skillService.ensureSkillRecord(userId, event.slug);
+          skillRegistry.invalidate(userId);
+          await skillService.syncDeployment(userId);
+        },
       },
     });
 
