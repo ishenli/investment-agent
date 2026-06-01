@@ -18,7 +18,7 @@ import { skillRegistry } from '@server/lib/skill/SkillRegistry';
 import { resolveAgentModel } from '@server/service/agentModelResolver';
 import { skillService } from '@server/service/skillService';
 import { registerBusinessTools } from '@server/core/agents/hermes';
-import { getProjectRoot } from '@server/base/env';
+import { getProjectRoot, getProjectDir } from '@server/base/env';
 import { observabilityService } from '@server/service/observabilityService';
 import { defaultModelPricing } from '@server/config/modelPricing';
 import logger from '@server/base/logger';
@@ -48,6 +48,13 @@ export class HermesEngine implements IAgentEngine {
     logger.info(`[HermesEngine] Resolved model: id=${piModel.id} api=${piModel.api} provider=${piModel.provider} baseUrl=${piModel.baseUrl} apiKey=${apiKey ? '***' : 'NONE'}`);
 
     // 2. 注册工具
+    const userSkillsDir = skillFileScanner.ensureUserSkillsRoot(userId);
+    const handleSkillChanged = async (event: { slug: string }) => {
+      await skillService.ensureSkillRecord(userId, event.slug);
+      skillRegistry.invalidate(userId);
+      await skillService.syncDeployment(userId);
+    };
+
     let registry: ToolRegistry | undefined;
     if (enableTools) {
       registry = ToolRegistry.create();
@@ -59,17 +66,12 @@ export class HermesEngine implements IAgentEngine {
       const enabledSkills = await skillRegistry.getEnabledSkills(userId);
       // Reverse so that more specific/later skill roots override earlier ones
       // in registerSkillTools (user skills > bundled skills).
-      const userSkillsDir = skillFileScanner.ensureUserSkillsRoot(userId);
       registerSkillTools(registry, {
         skillRoots: [...skillFileScanner.getSkillRoots(userSkillsDir)].reverse(),
         localSkillsDir: userSkillsDir,
         sessionId: String(userId),
         enabledSlugs: enabledSkills.map((s) => s.id),
-        onSkillChanged: async (event) => {
-          await skillService.ensureSkillRecord(userId, event.slug);
-          skillRegistry.invalidate(userId);
-          await skillService.syncDeployment(userId);
-        },
+        onSkillChanged: handleSkillChanged,
       });
     }
 
@@ -201,6 +203,16 @@ export class HermesEngine implements IAgentEngine {
         sinks: [],
         callbacks: observabilityCallbacks,
         pricing: defaultModelPricing,
+      },
+      reflectionConfig: {
+        enabled: true,
+        backgroundMode: true,
+        frameworksPath: path.join(
+          getProjectDir(),
+          'packages/hermes-agent/src/reflection/frameworks/investment-analysis.json',
+        ),
+        localSkillsDir: userSkillsDir,
+        onSkillChanged: handleSkillChanged,
       },
     });
 
