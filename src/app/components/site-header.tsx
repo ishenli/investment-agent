@@ -44,6 +44,7 @@ export function SiteHeader() {
     }
 
     // Special case for create-account page
+    if (pathname.startsWith('/asset-trend')) return t('common:header.assetTrend');
     if (pathname.startsWith('/account/create')) return t('common:header.createTradingAccount');
     if (pathname.startsWith('/account/setting')) return t('common:header.accountSetting');
     if (pathname.startsWith('/asset-market-info')) return t('common:header.assetMarketInfo');

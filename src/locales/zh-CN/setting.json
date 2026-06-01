@@ -371,7 +371,8 @@
     "skills": "技能设置",
     "tool": "工具设置",
     "observability": "观测历史",
-    "evaluation": "评测"
+    "evaluation": "评测",
+    "scheduled-jobs": "定时任务"
   },
   "channel": {
     "title": "渠道设置",

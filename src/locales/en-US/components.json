@@ -16,6 +16,7 @@
       "deepAnalysis": "Deep Analysis",
       "positionManagement": "Holdings",
       "taskManagement": "Tasks",
+      "scheduledJobs": "Scheduled Jobs",
       "tradeRecords": "Activities"
     },
     "settings": {

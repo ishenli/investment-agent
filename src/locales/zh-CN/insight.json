@@ -1,8 +1,10 @@
 {
   "aiInsights": {
-    "description": "基于数据分析的智能洞察",
+    "description": "风险、机会和异常变化的轻量提示，用来回答“现在有什么值得注意”。",
+    "generate": "生成 AI 洞察",
     "noData": "暂无AI洞察",
-    "title": "AI洞察"
+    "noDataHint": "点击按钮手动生成，或创建定时任务后自动保存。",
+    "title": "今日 AI 洞察"
   },
   "alert": {
     "dismiss": "忽略",
@@ -16,12 +18,14 @@
   },
   "dashboard": {
     "riskAlert": "风险提醒",
+    "todayDescription": "先看最新洞察，再看可执行行动，最后检查组合结构是否需要分散。",
+    "todayTitle": "今日洞察",
     "title": "洞察仪表板"
   },
   "diversification": {
-    "description": "基于风险分析的投资组合优化建议",
+    "description": "从集中度、相关性和流动性角度检查组合结构，候选标的只作为分散方向参考。",
     "noData": "暂无分散投资建议",
-    "title": "分散投资建议"
+    "title": "组合体检：分散配置"
   },
   "loading": {
     "analyzing": "正在分析中...",
@@ -41,6 +45,20 @@
     "noData": "暂无策略建议",
     "title": "策略建议"
   },
+  "actionPlan": {
+    "description": "把洞察转成下一步动作，帮助你区分现在处理和继续观察。",
+    "noData": "暂无行动计划",
+    "priority": {
+      "now": "建议处理",
+      "watch": "继续观察"
+    },
+    "title": "行动计划"
+  },
+  "portfolioCheck": {
+    "badge": "结构检查",
+    "explanation": "这里关注的是组合结构是否健康，不是单条市场事件。建议优先看相关性、集中度和流动性，再决定是否调整配置。",
+    "title": "组合体检：分散配置"
+  },
   "strategyAdvice": {
     "cardDescription": "基于您投资组合的个性化策略建议",
     "cardTitle": "策略建议"
@@ -52,5 +70,38 @@
     "reason": "理由",
     "suggestedAmount": "建议金额"
   },
-  "title": "洞察"
+  "title": "洞察",
+  "history": {
+    "title": "历史洞察",
+    "description": "查看所有已生成的 AI 洞察记录",
+    "noData": "暂无历史洞察",
+    "noDataHint": "手动生成或定时任务生成的洞察会自动保存在这里",
+    "filters": {
+      "all": "全部",
+      "source": "来源",
+      "type": "类型",
+      "manual": "手动",
+      "scheduled": "定时",
+      "opportunity": "机会",
+      "risk": "风险",
+      "suggestion": "建议"
+    },
+    "source": {
+      "manual": "手动",
+      "scheduled": "定时"
+    },
+    "type": {
+      "opportunity": "机会",
+      "risk": "风险",
+      "suggestion": "建议"
+    },
+    "confidence": "置信度",
+    "loadMore": "加载更多",
+    "total": "共 {{count}} 条"
+  },
+  "tabs": {
+    "dashboard": "实时洞察",
+    "history": "历史记录",
+    "today": "今日洞察"
+  }
 }

@@ -371,7 +371,8 @@
     "channel": "Channel",
     "tool": "Tool",
     "observability": "Observability",
-    "evaluation": "Evaluation"
+    "evaluation": "Evaluation",
+    "scheduled-jobs": "Scheduled Jobs"
   },
   "exchange": {
     "title": "Exchange Rate Settings",

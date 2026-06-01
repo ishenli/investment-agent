@@ -1,0 +1,31 @@
+{
+  "title": "Asset Trend",
+  "subtitle": "View asset changes over time",
+  "backToAsset": "Back to Assets",
+  "timeRange": "Time Range",
+  "period7D": "7D",
+  "period30D": "30D",
+  "period90D": "90D",
+  "period1Y": "1Y",
+  "periodAll": "All",
+  "stats": {
+    "currentTotal": "Current Total",
+    "cashBalance": "Cash Balance",
+    "positionValue": "Position Value",
+    "periodChange": "Period Change"
+  },
+  "chart": {
+    "title": "Asset Trend",
+    "description": "Total Balance and Cash Balance over time",
+    "totalBalance": "Total Balance",
+    "cashBalance": "Cash Balance",
+    "positionValue": "Position Value",
+    "date": "Date"
+  },
+  "emptyState": {
+    "title": "No Snapshot Data",
+    "description": "Create portfolio snapshots first to view trends",
+    "goToSnapshot": "Go to Snapshots"
+  },
+  "loading": "Loading..."
+}

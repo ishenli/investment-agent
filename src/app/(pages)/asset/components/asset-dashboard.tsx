@@ -28,6 +28,7 @@ import { EditCashBalanceDialog } from './edit-cash-balance-dialog';
 import { useTranslation } from 'react-i18next';
 import { EXCHANGE_RATES } from '@shared/constant';
 import { USD_TO_CNY } from '@/shared';
+import Link from 'next/link';
 
 // ====== 币种切换相关 ======
 
@@ -248,25 +249,28 @@ export function AssetDashboard({ accountId, displayCurrency }: { accountId: stri
       {/* ===== 顶部：总览 + 现金 + 资产类型 一行展示 ===== */}
       <div className={`grid gap-3 ${hasCnyAssets ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
         {/* 总余额 */}
-        <Card className="group">
-          <CardContent className="pt-4 pb-3">
-            <div className="mb-2">
-              <span className="text-xs font-medium text-muted-foreground">{t('dashboard.totalBalance')}</span>
-            </div>
-            <div className="text-2xl font-bold tracking-tight">{<AmountText value={fmt(displayTotalBalance)} />}</div>
-            <div className="flex items-center gap-1 mt-1">
-              {displayAllGain >= 0 ? (
-                <ArrowUpIcon className="h-3 w-3 text-green-500" />
-              ) : (
-                <ArrowDownIcon className="h-3 w-3 text-red-500" />
-              )}
-              <span className={`text-xs font-medium ${displayAllGain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                <AmountText value={`${displayAllGain >= 0 ? '+' : ''}${fmt(displayAllGain)}`} />
-              </span>
-              <span className="text-xs text-muted-foreground">{t('dashboard.unrealizedPnL')}</span>
-            </div>
-          </CardContent>
-        </Card>
+        <Link href="/asset-trend" className="block">
+          <Card className="group cursor-pointer hover:border-primary/40 transition-colors h-full">
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground">{t('dashboard.totalBalance')}</span>
+                <TrendingUpIcon className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+              <div className="text-2xl font-bold tracking-tight">{<AmountText value={fmt(displayTotalBalance)} />}</div>
+              <div className="flex items-center gap-1 mt-1">
+                {displayAllGain >= 0 ? (
+                  <ArrowUpIcon className="h-3 w-3 text-green-500" />
+                ) : (
+                  <ArrowDownIcon className="h-3 w-3 text-red-500" />
+                )}
+                <span className={`text-xs font-medium ${displayAllGain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <AmountText value={`${displayAllGain >= 0 ? '+' : ''}${fmt(displayAllGain)}`} />
+                </span>
+                <span className="text-xs text-muted-foreground">{t('dashboard.unrealizedPnL')}</span>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
 
         {/* 现金余额 */}
         <Card className="group">
