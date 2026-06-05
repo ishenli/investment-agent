@@ -344,13 +344,6 @@
       "when": 1780550408000,
       "tag": "0048_add_ui_artifacts_column",
       "breakpoints": true
-    },
-    {
-      "idx": 49,
-      "version": "6",
-      "when": 1780562261833,
-      "tag": "0049_vengeful_rictor",
-      "breakpoints": true
     }
   ]
 }
