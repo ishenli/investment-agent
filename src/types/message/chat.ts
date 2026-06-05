@@ -1,3 +1,4 @@
+import { UIArtifact } from '../chat/uiArtifact';
 import { GroundingSearch } from '../search';
 import { MessageMetadata, MessageRoleType, ModelReasoning, ModelThoughtChain, AgentEventEntry } from './base';
 import { ChatImageItem } from './image';
@@ -119,6 +120,7 @@ export interface ChatMessage {
   threadId?: string | null;
   tool_call_id?: string;
   tools?: ChatToolPayload[];
+  uiArtifacts?: UIArtifact[];
   /**
    * 保存到主题的消息
    */

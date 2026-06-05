@@ -378,6 +378,7 @@ export class ChatController extends BaseBizController {
 
       return this.success({ messages });
     } catch (error) {
+      logger.error('[ChatController] getMessages error', error);
       return this.error('获取消息列表失败', 'get_messages_error');
     }
   }
@@ -393,6 +394,7 @@ export class ChatController extends BaseBizController {
     model?: string;
     provider?: string;
     traceId?: string;
+    uiArtifacts?: Record<string, unknown>[];
   }) {
     try {
       const userId = await getCurrentUserIdAsNumber();
@@ -423,6 +425,7 @@ export class ChatController extends BaseBizController {
         model: body.model,
         provider: body.provider,
         traceId: body.traceId,
+        uiArtifacts: body.uiArtifacts,
       });
       return this.success({ id, message: '消息创建成功' });
     } catch (error) {
@@ -432,7 +435,7 @@ export class ChatController extends BaseBizController {
   }
 
   @WithRequestContext()
-  async updateMessage(body: { id: string; content?: string; userLikeTag?: 'like' | 'dislike' | 'unknown' }) {
+  async updateMessage(body: { id: string; content?: string; userLikeTag?: 'like' | 'dislike' | 'unknown'; uiArtifacts?: Record<string, unknown>[] }) {
     try {
       const userId = await getCurrentUserIdAsNumber();
       if (!userId) {

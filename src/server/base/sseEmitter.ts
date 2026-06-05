@@ -4,6 +4,8 @@
  * 实现 EngineEventSink 接口，用于 HTTP SSE 流式响应。
  */
 import { AgentStreamEvent } from '@typings/agentStream';
+import type { UIArtifactType } from '@typings/chat/uiArtifact';
+import { UI_ARTIFACT_VERSION } from '@typings/chat/uiArtifact';
 import { UIMessageChunk } from 'ai';
 import {
   convertToOpenAICompatibleMessage,
@@ -140,6 +142,19 @@ export class SSEEmitter implements EngineEventSink {
       code,
       details,
     });
+  }
+
+  async sendUIArtifact(
+    messageId: string,
+    artifact: {
+      id: string;
+      type: UIArtifactType;
+      version: typeof UI_ARTIFACT_VERSION;
+      props: Record<string, unknown>;
+      fallbackText: string;
+    },
+  ): Promise<boolean> {
+    return this.sendAgentEvent({ type: 'ui_artifact', messageId, artifact });
   }
 
   async sendDone(): Promise<boolean> {

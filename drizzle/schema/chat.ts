@@ -183,6 +183,7 @@ export const chatMessages = sqliteTable('chat_messages', {
   model: text('model'),
   provider: text('provider'),
   related: text('related', { mode: 'json' }).$type<string[]>(),
+  uiArtifacts: text('ui_artifacts', { mode: 'json' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 }, (table) => [

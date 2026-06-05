@@ -495,6 +495,7 @@ export const generateAIChat: StateCreator<
           traceId,
           chatId,
           sessionId,
+          uiArtifacts,
         }: onFinishContext,
       ) => {
         // 隐藏 Loading 的状态
@@ -521,6 +522,7 @@ export const generateAIChat: StateCreator<
           search: !!grounding?.citations ? grounding : undefined,
           related: related,
           traceId: traceId,
+          uiArtifacts: uiArtifacts,
         });
       },
       onMessageHandle: async (chunk) => {
@@ -623,6 +625,17 @@ export const generateAIChat: StateCreator<
               id: messageId,
               type: 'updateMessage',
               value: { agentEvents: [...prevEvents, chunk.event] },
+            });
+            break;
+          }
+
+          case 'uiArtifacts': {
+            const msg = chatSelectors.getMessageById(messageId)(get());
+            const prevArtifacts = msg?.uiArtifacts ?? [];
+            internal_dispatchMessage({
+              id: messageId,
+              type: 'updateMessage',
+              value: { uiArtifacts: [...prevArtifacts, chunk.artifact] },
             });
             break;
           }

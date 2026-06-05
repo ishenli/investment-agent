@@ -23,10 +23,18 @@
 
 ### AI 驱动的分析工具
 - **资产信息查询** - 通过 Finnhub 实时获取股票、基金、黄金价格
+- **生成式 UI 卡片** - 在 assistant 消息中内联展示股票行情、基金详情、数据图表和交易意图确认
 - **投资笔记搜索** - 语义化搜索投资笔记
 - **数据库查询** - 自然语言转 SQL，查询持仓数据
 - **网络搜索** - Tavily 驱动的市场研究
 - **股票分析** - 技术指标和市场情绪分析
+
+### Server-Driven 生成式 UI
+- **受控 UI Artifact** - Agent 通过 `create_ui_artifact` 生成经过校验的 `UIArtifact` JSON，不生成任意 JSX 或 HTML
+- **白名单组件渲染** - 前端只渲染已注册卡片类型：`stock_quote_card`、`fund_detail_panel`、`data_chart`、`trade_intent_card`
+- **流式更新** - SSE 同时推送文本增量和 `ui_artifact` 事件，更新同一条 assistant 消息
+- **安全 fallback** - 每张卡片都包含 `fallbackText`，用于复制、分享、导出、渲染失败和历史兼容
+- **交易安全边界** - 交易意图卡只表达待确认的买入/卖出意图，真实执行必须经过用户确认和服务端校验
 
 ### 权限模式控制
 - **对话级权限切换** - 在聊天输入框旁实时切换 Hermes 引擎的权限等级
@@ -122,6 +130,10 @@ investment-agent [command]  # 或：ig [command]
 │  • 追踪/Span   • 指标统计  • 成本追踪          │
 │  • 实时面板    • 持久化存储                   │
 ├──────────────────────────────────────────────┤
+│          生成式 UI 层                         │
+│  • UIArtifact  • 白名单组件  • fallback 文本   │
+│  • SSE 事件    • 消息内卡片                   │
+├──────────────────────────────────────────────┤
 │          多渠道通信层                         │
 │  • 微信       • 飞书      • Web 界面         │
 ├──────────────────────────────────────────────┤
@@ -133,6 +145,7 @@ investment-agent [command]  # 或：ig [command]
 - **引擎注册中心** - 动态注册和切换 AI 引擎
 - **工具系统** - 标准化工具接口，支持 LangChain/Claude SDK 适配
 - **可观测系统** - 分层追踪、指标采集和智能体执行成本统计
+- **生成式 UI 渲染器** - 在聊天消息内安全渲染经过校验的 UI artifacts
 - **渠道路由器** - 统一消息路由，跨平台支持
 - **会话管理** - 多轮对话，上下文持久化
 - **数据层** - SQLite + Drizzle ORM，类型安全查询
@@ -184,6 +197,7 @@ investment-agent [command]  # 或：ig [command]
 - **Next.js 16 + React 19** - 现代化 Web 框架
 - **Ant Design + Radix UI** - UI 组件库
 - **TailwindCSS** - 样式方案
+- **生成式 UI 渲染器** - 通过 Zod 校验后在投资对话中展示内联业务卡片
 
 ## 常用命令
 
@@ -211,8 +225,10 @@ pnpm test             # 运行测试
 ```
 src/
 ├── app/              # Next.js 页面和路由
-│   └── api/channel/  # 微信/飞书 Webhook 路由
-│   └── api/chat/     # 对话与可观测性 API
+│   ├── api/channel/  # 微信/飞书 Webhook 路由
+│   ├── api/chat/     # 对话、可观测性与交易意图 API
+│   └── (pages)/chat/features/Conversation/components/GenerativeUI/
+│                     # 消息内 UI artifact 渲染器与卡片注册表
 ├── server/
 │   ├── core/
 │   │   ├── agents/   # AI 智能体实现
@@ -227,6 +243,7 @@ src/
 │   └── repository/   # 数据访问层
 │       └── chat/     # 对话与可观测性仓库
 ├── types/            # TypeScript 类型定义
+│   └── chat/         # 对话 schema，包括 UIArtifact 协议
 └── locales/          # 国际化翻译
 packages/
 ├── agent-channel/    # 多平台消息 SDK
@@ -241,6 +258,7 @@ packages/
 | 模块 | 路径 | 说明 |
 |-----|------|-----|
 | 对话 | `/chat` | AI 驱动的对话界面 |
+| 生成式 UI | `/chat` | 股票、图表、基金和交易意图的消息内 UI artifacts |
 | 资产 | `/asset` | 持仓和仓位管理 |
 | 研究 | `/research` | 市场研究和分析 |
 | 笔记 | `/note` | 投资知识库 |

@@ -1,53 +1,144 @@
-/**
- * Permission Request Card for Chat Interface
- * 
- * 在聊天界面中显示 Claude SDK 权限请求的专用卡片组件
- * 作为独立卡片在 Assistant 消息下方展示
- */
 'use client';
 
 import React from 'react';
 import { memo, useState } from 'react';
-import { Alert, Highlighter } from '@lobehub/ui';
-import { Button, Typography, Flex } from 'antd';
+import { Highlighter } from '@lobehub/ui';
 import { createStyles } from 'antd-style';
+import { Flexbox } from 'react-layout-kit';
+import { ShieldAlert, Check, X } from 'lucide-react';
+
 import { approvePermission, denyPermission } from '@/app/services/permission';
 
-const { Text } = Typography;
-
 const useStyles = createStyles(({ css, token }) => ({
-  container: css`
-    margin-block: 8px;
-    max-width: 600px;
+  card: css`
+    overflow: hidden;
+    border: 1px solid ${token.colorBorderSecondary};
+    border-radius: ${token.borderRadiusLG}px;
+    background: ${token.colorBgContainer};
   `,
-
-  description: css`
-    color: ${token.colorTextSecondary};
-    font-size: 13px;
-    margin-bottom: 8px;
+  header: css`
+    padding: 16px;
+    border-bottom: 1px solid ${token.colorBorderSecondary};
   `,
-
-  metaText: css`
-    color: ${token.colorTextDescription};
+  badge: css`
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: ${token.borderRadiusSM}px;
     font-size: 12px;
+    font-weight: 600;
+    background: ${token.colorWarningBg};
+    color: ${token.colorWarningText};
   `,
-
+  toolName: css`
+    font-size: 14px;
+    font-weight: 600;
+    color: ${token.colorText};
+  `,
+  description: css`
+    font-size: 12px;
+    color: ${token.colorTextSecondary};
+  `,
+  body: css`
+    padding: 12px 16px;
+  `,
+  metaGrid: css`
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  `,
+  metaItem: css`
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  `,
+  metaLabel: css`
+    font-size: 11px;
+    color: ${token.colorTextTertiary};
+  `,
+  metaValue: css`
+    font-size: 13px;
+    font-weight: 500;
+    color: ${token.colorText};
+    word-break: break-all;
+  `,
   codeBlock: css`
-    margin-bottom: 12px;
-    border-radius: 6px;
+    margin-top: 12px;
+    border-radius: ${token.borderRadiusSM}px;
     overflow: hidden;
     border: 1px solid ${token.colorBorderSecondary};
   `,
-
-  actions: css`
-    margin-top: 12px;
+  footer: css`
     display: flex;
     gap: 8px;
-    justify-content: flex-end;
+    padding: 12px 16px;
+    border-top: 1px solid ${token.colorBorderSecondary};
   `,
+  btn: css`
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: ${token.borderRadius}px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
 
-  successAlert: css`
-    margin-block: 8px;
+    &:hover {
+      opacity: 0.85;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  `,
+  btnDeny: css`
+    background: ${token.colorFillSecondary};
+    color: ${token.colorTextSecondary};
+  `,
+  btnApprove: css`
+    background: ${token.colorSuccess};
+    color: #fff;
+  `,
+  hint: css`
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 500;
+    animation: hintEnter 0.3s ease both;
+
+    @keyframes hintEnter {
+      from {
+        opacity: 0;
+        transform: scale(0.92);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+  `,
+  hintApproved: css`
+    background: ${token.colorSuccessBg};
+    color: ${token.colorSuccess};
+    border: 1px solid ${token.colorSuccessBorder};
+  `,
+  hintDenied: css`
+    background: ${token.colorFillSecondary};
+    color: ${token.colorTextSecondary};
+    border: 1px solid ${token.colorBorderSecondary};
+  `,
+  hintToolName: css`
+    font-weight: 600;
   `,
 }));
 
@@ -66,7 +157,7 @@ interface PermissionRequestCardProps {
 
 const PermissionRequestCard = memo<PermissionRequestCardProps>(
   ({ data }) => {
-    const { styles } = useStyles();
+    const { styles, cx } = useStyles();
     const [loading, setLoading] = useState(false);
     const [responded, setResponded] = useState(false);
     const [responseType, setResponseType] = useState<'approved' | 'denied' | null>(null);
@@ -107,82 +198,96 @@ const PermissionRequestCard = memo<PermissionRequestCardProps>(
 
     if (responded) {
       return (
-        <div className={styles.successAlert}>
-          <Alert
-            message={responseType === 'approved' ? '权限已批准' : '权限已拒绝'}
-            type={responseType === 'approved' ? 'success' : 'info'}
-            showIcon
-            variant="filled"
-          />
-        </div>
+        <span
+          className={cx(
+            styles.hint,
+            responseType === 'approved' ? styles.hintApproved : styles.hintDenied,
+          )}
+        >
+          {responseType === 'approved' ? <Check size={14} /> : <X size={14} />}
+          <span className={styles.hintToolName}>{data.toolName}</span>
+          {responseType === 'approved' ? '已授权' : '已拒绝'}
+        </span>
       );
     }
 
+    const hasToolInput = Object.keys(data.toolInput).length > 0;
+    const hasMeta = !!(data.decisionReason || data.blockedPath);
+
     return (
-      <div className={styles.container}>
-        <Alert
-          type="warning"
-          showIcon
-          variant="outlined"
-          message={<span style={{ fontWeight: 600 }}>权限请求: {data.toolName}</span>}
-          description={
-            <div style={{ marginTop: 8 }}>
-              <div className={styles.description}>
-                {data.description || `工具需要您的授权才能继续执行。`}
+      <div className={styles.card}>
+        <div className={styles.header}>
+          <Flexbox align="center" gap={8} horizontal justify="space-between">
+            <Flexbox gap={2}>
+              <span className={styles.toolName}>{data.toolName}</span>
+              <span className={styles.description}>
+                {data.description || '工具需要您的授权才能继续执行'}
+              </span>
+            </Flexbox>
+            <span className={styles.badge}>
+              <ShieldAlert size={14} />
+              授权
+            </span>
+          </Flexbox>
+        </div>
+
+        {(hasMeta || hasToolInput) && (
+          <div className={styles.body}>
+            {hasMeta && (
+              <div className={styles.metaGrid}>
+                {data.decisionReason && (
+                  <div className={styles.metaItem}>
+                    <span className={styles.metaLabel}>原因</span>
+                    <span className={styles.metaValue}>{data.decisionReason}</span>
+                  </div>
+                )}
+                {data.blockedPath && (
+                  <div className={styles.metaItem}>
+                    <span className={styles.metaLabel}>路径</span>
+                    <span className={styles.metaValue}>{data.blockedPath}</span>
+                  </div>
+                )}
               </div>
+            )}
 
-              {(data.decisionReason || data.blockedPath) && (
-                <Flex vertical gap={4} style={{ marginBottom: 12 }}>
-                  {data.decisionReason && (
-                    <div className={styles.metaText}>
-                      <Text type="secondary">原因:</Text> {data.decisionReason}
-                    </div>
-                  )}
-                  {data.blockedPath && (
-                    <div className={styles.metaText}>
-                      <Text type="secondary">路径:</Text> {data.blockedPath}
-                    </div>
-                  )}
-                </Flex>
-              )}
-
-              {Object.keys(data.toolInput).length > 0 && (
-                <div className={styles.codeBlock}>
-                  <Highlighter
-                    language="json"
-                    copyable={false}
-                    variant="borderless"
-                    style={{ background: 'transparent' }}
-                  >
-                    {JSON.stringify(data.toolInput, null, 2)}
-                  </Highlighter>
-                </div>
-              )}
-
-              <div className={styles.actions}>
-                <Button
-                  danger
-                  loading={loading}
-                  onClick={handleDeny}
-                  size="small"
+            {hasToolInput && (
+              <div className={styles.codeBlock}>
+                <Highlighter
+                  copyable={false}
+                  language="json"
+                  style={{ background: 'transparent' }}
+                  variant="borderless"
                 >
-                  ✗ 拒绝
-                </Button>
-                <Button
-                  type="primary"
-                  loading={loading}
-                  onClick={handleApprove}
-                  size="small"
-                >
-                  ✓ 批准
-                </Button>
+                  {JSON.stringify(data.toolInput, null, 2)}
+                </Highlighter>
               </div>
-            </div>
-          }
-        />
+            )}
+          </div>
+        )}
+
+        <div className={styles.footer}>
+          <button
+            className={cx(styles.btn, styles.btnDeny)}
+            disabled={loading}
+            onClick={handleDeny}
+            type="button"
+          >
+            <X size={14} />
+            {loading ? '处理中...' : '拒绝'}
+          </button>
+          <button
+            className={cx(styles.btn, styles.btnApprove)}
+            disabled={loading}
+            onClick={handleApprove}
+            type="button"
+          >
+            <Check size={14} />
+            {loading ? '处理中...' : '批准'}
+          </button>
+        </div>
       </div>
     );
-  }
+  },
 );
 
 PermissionRequestCard.displayName = 'PermissionRequestCard';

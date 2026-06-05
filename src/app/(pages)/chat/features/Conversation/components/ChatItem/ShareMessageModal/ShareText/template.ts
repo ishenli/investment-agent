@@ -8,6 +8,11 @@ const markdownTemplate = template(
 
 {{chat.content}}
 
+<% if (chat.uiArtifacts && chat.uiArtifacts.length > 0) { %>
+<% chat.uiArtifacts.forEach(function(a) { %>
+> {{a.fallbackText}}
+<% }); %>
+<% } %>
 <% }); %>
 `,
   {

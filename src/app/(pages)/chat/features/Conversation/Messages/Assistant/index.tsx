@@ -8,6 +8,7 @@ import { ChatMessage } from '@typings/message';
 
 import React from 'react';
 import AgentEvents from '@renderer/(pages)/chat/components/AgentEvents';
+import { GenerativeUIRenderer } from '@renderer/(pages)/chat/features/Conversation/components/GenerativeUI';
 import { DefaultMessage } from '../Default';
 import IntentUnderstanding from './IntentUnderstanding';
 import Reasoning from './Reasoning';
@@ -17,7 +18,7 @@ export const AssistantMessage = memo<
   ChatMessage & {
     editableContent: ReactNode;
   }
->(({ id, tools, content, chunksList, search, imageList, permissionRequest, agentEvents, ...props }) => {
+>(({ id, tools, content, chunksList, search, imageList, permissionRequest, agentEvents, uiArtifacts, ...props }) => {
   const editing = useChatStore(chatSelectors.isMessageEditing(id));
   const generating = useChatStore(chatSelectors.isMessageGenerating(id));
 
@@ -36,6 +37,15 @@ export const AssistantMessage = memo<
     (!props.reasoning && isReasoning);
 
   const showAgentEvents = !!agentEvents && agentEvents.length > 0;
+
+  const artifactToolCount = agentEvents
+    ? agentEvents.filter(
+        (e) => e.eventType === 'tool_use' && e.toolName === 'create_ui_artifact',
+      ).length
+    : 0;
+  const pendingArtifactCount = Math.max(0, artifactToolCount - (uiArtifacts?.length ?? 0));
+  const hasArtifacts =
+    (uiArtifacts && uiArtifacts.length > 0) || (generating && pendingArtifactCount > 0);
 
   return editing ? (
     <DefaultMessage
@@ -63,7 +73,13 @@ export const AssistantMessage = memo<
           />
         )
       )}
-      {/* 权限请求卡片 - 独立显示在消息下方 */}
+      {hasArtifacts && (
+        <GenerativeUIRenderer
+          artifacts={uiArtifacts}
+          generating={generating}
+          pendingCount={pendingArtifactCount}
+        />
+      )}
       {permissionRequest && <PermissionRequestCard data={permissionRequest} />}
     </Flexbox>
   );

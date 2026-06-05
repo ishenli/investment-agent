@@ -1,5 +1,7 @@
 import { AgentEventEntry, ModelThoughtChain } from './base';
 import { MessageToolCall } from './tools';
+import type { UIArtifactType } from '@typings/chat/uiArtifact';
+import { UI_ARTIFACT_VERSION } from '@typings/chat/uiArtifact';
 
 export * from './base';
 export * from './chat';
@@ -83,4 +85,15 @@ export interface MessageAgentEventsChunk {
   /** 新增的单个事件 */
   event: AgentEventEntry;
   type: 'agentEvents';
+}
+
+export interface MessageUIArtifactChunk {
+  artifact: {
+    id: string;
+    type: UIArtifactType;
+    version: typeof UI_ARTIFACT_VERSION;
+    props: Record<string, unknown>;
+    fallbackText: string;
+  };
+  type: 'uiArtifacts';
 }

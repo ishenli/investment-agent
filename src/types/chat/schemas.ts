@@ -118,12 +118,14 @@ export const CreateMessageSchema = z.object({
   model: z.string().optional(),
   provider: z.string().optional(),
   traceId: z.string().optional(),
+  uiArtifacts: z.array(z.record(z.string(), z.unknown())).optional(),
 });
 
 export const UpdateMessageSchema = z.object({
   id: z.string().min(1, 'ID不能为空'),
   content: z.string().optional(),
   userLikeTag: z.enum(['like', 'dislike', 'unknown']).optional(),
+  uiArtifacts: z.array(z.record(z.string(), z.unknown())).optional(),
 });
 
 export const DeleteMessageSchema = z.object({

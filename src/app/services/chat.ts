@@ -11,6 +11,7 @@ import {
   MessageThoughtChainChunk,
   MessageToolCall,
   MessageToolCallsChunk,
+  MessageUIArtifactChunk,
   ModelReasoning,
   ModelSpeed,
   ModelThoughtChain,
@@ -23,6 +24,8 @@ import {
 } from '@typings/openai/chat';
 import { GroundingSearch } from '@typings/search';
 import { EngineType, PermissionLevelType } from '@typings/agent';
+import type { UIArtifactType } from '@typings/chat/uiArtifact';
+import { UI_ARTIFACT_VERSION, validateUIArtifact } from '@typings/chat/uiArtifact';
 import { get, isEmpty, merge } from 'lodash';
 import { post } from '../lib/request';
 import { connectAgentStream, formatToolMessage } from '@/app/lib/agentStreamClient';
@@ -87,6 +90,13 @@ export type onFinishContext = {
   type?: SSEFinishType;
   usage?: ModelTokensUsage;
   related?: string[];
+  uiArtifacts?: Array<{
+    id: string;
+    type: UIArtifactType;
+    version: typeof UI_ARTIFACT_VERSION;
+    props: Record<string, unknown>;
+    fallbackText: string;
+  }>;
 };
 
 export type onMessageHandle = (
@@ -97,7 +107,8 @@ export type onMessageHandle = (
     | MessageReasoningChunk
     | MessageRelatedChunk
     | MessageThoughtChainChunk
-    | MessageAgentEventsChunk,
+    | MessageAgentEventsChunk
+    | MessageUIArtifactChunk,
 ) => void;
 
 export type OnFinishHandler = (text: string, context: onFinishContext) => Promise<void>;
@@ -612,6 +623,13 @@ class ChatService {
   }: BailingLLMStreamParams) => {
     let textFinal = '';
     let reasonTextFinal = '';
+    const uiArtifactsAccum: Array<{
+      id: string;
+      type: UIArtifactType;
+      version: typeof UI_ARTIFACT_VERSION;
+      props: Record<string, unknown>;
+      fallbackText: string;
+    }> = [];
 
     // 拦截逻辑：当 model 参数为空时，直接返回提示消息
     if (!params.model || params.model.trim() === '') {
@@ -810,6 +828,19 @@ class ChatService {
             });
             break;
           }
+          case 'ui_artifact': {
+            const validation = validateUIArtifact(event.artifact);
+            if (!validation.success) {
+              console.warn('[chat] Dropped invalid ui_artifact from stream', validation.error);
+              break;
+            }
+            uiArtifactsAccum.push(event.artifact);
+            onMessageHandle?.({
+              type: 'uiArtifacts',
+              artifact: event.artifact,
+            });
+            break;
+          }
           case 'error': {
             // 错误在 onError 回调中处理
             break;
@@ -828,6 +859,7 @@ class ChatService {
           usage: {},
           speed: {},
           type: 'abort',
+          uiArtifacts: uiArtifactsAccum.length > 0 ? uiArtifactsAccum : undefined,
         });
       },
       onDone: () => {
@@ -839,6 +871,7 @@ class ChatService {
           usage: {},
           speed: {},
           type: 'done',
+          uiArtifacts: uiArtifactsAccum.length > 0 ? uiArtifactsAccum : undefined,
         });
       },
     });

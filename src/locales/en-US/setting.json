@@ -544,7 +544,8 @@
       "transaction": "Transaction",
       "market": "Market",
       "report": "Report",
-      "task": "Task"
+      "task": "Task",
+      "ui": "UI Components"
     },
     "description": "Manage your API keys and built-in tools",
     "descriptions": {

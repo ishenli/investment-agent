@@ -33,6 +33,10 @@ import {
 import { MarketBizController } from '@server/controller/market';
 import { ReportController } from '@server/controller/report';
 import { ReportDetailController } from '@server/controller/reportDetail';
+import type { UIArtifactType } from '@typings/chat/uiArtifact';
+import { validateUIArtifact, UI_ARTIFACT_TYPES, UI_ARTIFACT_VERSION } from '@typings/chat/uiArtifact';
+import type { EngineEventSink } from '@server/core/engine/types';
+import logger from '@server/base/logger';
 
 type HandlerResult = { content: TextContent[]; isError?: boolean };
 
@@ -273,6 +277,25 @@ const taskUpdateSchema = Type.Object({
   linked_symbols: Type.Optional(Type.Array(Type.String(), { description: '关联资产代号列表' })),
 });
 
+const createUIArtifactSchema = Type.Object({
+  artifact_type: Type.Union(
+    UI_ARTIFACT_TYPES.map((t) => Type.Literal(t)),
+    { description: 'UI component type. Must be one of: stock_quote_card, fund_detail_panel, data_chart, trade_intent_card' },
+  ),
+  props: Type.Record(Type.String(), Type.Unknown(), {
+    description: `Component props object. Structure depends on artifact_type:
+
+[stock_quote_card] Required: symbol(string), displayName(string), price(number), change(number), changePercent(number). Optional: currency(string), metrics(array of {label,value}), miniTrend(array of {timestamp,value}).
+
+[fund_detail_panel] Required: fundName(string), returnMetrics(array of {period,value}), riskLevel("low"|"medium"|"high"). Optional: fundCode(string), holdings(array of {name,percentage}).
+
+[data_chart] Required: chartType("line"|"bar"|"pie"), series(array of {name, data:[{x,y}], color?}). Optional: title(string), xAxisLabel(string), yAxisLabel(string).
+
+[trade_intent_card] Required: action("buy"|"sell"), symbol(string), displayName(string), quantity(number>0), status("pending"), idempotencyKey(string). Optional: price(number>0), orderType("market"|"limit").`,
+  }),
+  fallback_text: Type.String({ description: 'Fallback text shown when the client does not support this component. Always provide a meaningful text summary of the data.' }),
+});
+
 // ============== Tool Names ==============
 
 export type BusinessToolName =
@@ -306,10 +329,12 @@ export type BusinessToolName =
   | 'portfolio_query'
   | 'task_create'
   | 'task_list'
-  | 'task_update';
+  | 'task_update'
+  | 'create_ui_artifact';
 
 export interface BusinessToolsConfig {
   enable?: BusinessToolName[];
+  exclude?: BusinessToolName[];
 }
 
 // ============== Registration ==============
@@ -317,9 +342,11 @@ export interface BusinessToolsConfig {
 export function registerBusinessTools(
   registry: ToolRegistry,
   config: BusinessToolsConfig = {},
+  eventSink?: EngineEventSink,
 ): void {
+  const excludeSet = new Set(config.exclude ?? []);
   const enabled = config.enable
-    ? new Set(config.enable)
+    ? new Set(config.enable.filter((t) => !excludeSet.has(t)))
     : new Set<BusinessToolName>([
         'stock_get_price',
         'stock_market_info',
@@ -352,7 +379,10 @@ export function registerBusinessTools(
         'task_create',
         'task_list',
         'task_update',
+        'create_ui_artifact',
       ]);
+
+  for (const t of excludeSet) enabled.delete(t);
 
   const wrap =
     (fn: () => Promise<string>) =>
@@ -907,6 +937,54 @@ export function registerBusinessTools(
             linkedSymbols: args.linked_symbols ? (args.linked_symbols as string[]) : undefined,
           }),
         )(),
+    );
+  }
+
+  if (enabled.has('create_ui_artifact')) {
+    const PROPS_HINT: Record<string, string> = {
+      stock_quote_card: 'Required: symbol(string), displayName(string), price(number), change(number), changePercent(number). Optional: currency, metrics([{label,value}]), miniTrend([{timestamp,value}]).',
+      fund_detail_panel: 'Required: fundName(string), returnMetrics([{period,value}]), riskLevel("low"|"medium"|"high"). Optional: fundCode, holdings([{name,percentage}]).',
+      data_chart: 'Required: chartType("line"|"bar"|"pie"), series([{name, data:[{x,y}], color?}]). Optional: title, xAxisLabel, yAxisLabel.',
+      trade_intent_card: 'Required: action("buy"|"sell"), symbol(string), displayName(string), quantity(number>0), status("pending"), idempotencyKey(string). Optional: price(number>0), orderType("market"|"limit").',
+    };
+
+    registry.register(
+      'create_ui_artifact',
+      'Create a rich interactive UI component and push it to the client in real-time. ' +
+        'Use this tool when the user asks about stock prices, fund details, data visualization, or trading. ' +
+        'You MUST fill all required props for the chosen artifact_type — see the props parameter description for the full schema per type. ' +
+        'Always provide a meaningful fallback_text summarizing the data in plain text.',
+      createUIArtifactSchema,
+      async (_id, args) => {
+        const artifactType = String(args.artifact_type) as UIArtifactType;
+        const artifactId = `artifact_${crypto.randomUUID()}`;
+        const artifact = {
+          id: artifactId,
+          type: artifactType,
+          version: UI_ARTIFACT_VERSION,
+          props: args.props as Record<string, unknown>,
+          fallbackText: String(args.fallback_text),
+        };
+
+        const validation = validateUIArtifact(artifact);
+        if (!validation.success) {
+          const fields = validation.error?.issues.map((i) => `${i.path.join('.')}: ${i.message}`) ?? [];
+          const hint = PROPS_HINT[artifactType] ?? '';
+          const errMsg =
+            `Validation failed for artifact_type="${artifactType}". ` +
+            `Issues: ${fields.join('; ')}. ` +
+            (hint ? `Expected props schema: ${hint}` : '');
+          logger.warn(`[create_ui_artifact] ${errMsg}`);
+          return { content: [{ type: 'text', text: errMsg }], isError: true };
+        }
+
+        if (eventSink) {
+          await eventSink.send({ type: 'ui_artifact', messageId: _id, artifact });
+        }
+
+        return { content: [{ type: 'text', text: JSON.stringify(artifact) }] };
+      },
+      'write',
     );
   }
 }

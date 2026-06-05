@@ -1,43 +1,28 @@
-# Astro Starter Kit: Minimal
+# Investment Agent Documentation Site
 
-```sh
-npm create astro@latest -- --template minimal
+This directory contains the Astro Starlight documentation site for Investment Agent.
+
+## Content
+
+- Product docs live in `src/content/docs/`.
+- Sidebar navigation is configured in `astro.config.mjs`.
+- Static images live in `public/asset/`.
+- The generated documentation is published at https://ishenli.github.io/investment-agent/.
+
+## Generative UI Docs
+
+The Server-driven Generative UI feature is documented in:
+
+- `src/content/docs/generative-ui.mdx`
+- `src/content/docs/features.mdx`
+
+It covers the `UIArtifact` protocol, whitelisted renderers, SSE `ui_artifact` events, persistence, fallback text, and trade intent safety boundaries.
+
+## Commands
+
+```bash
+npm install
+npm run dev
+npm run build
+npm run preview
 ```
-
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
-
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
