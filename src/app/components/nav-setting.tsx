@@ -2,6 +2,7 @@
 
 import { IconDots, type Icon } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
+import { useNotificationStore } from '@/app/store/notification';
 
 import {
   DropdownMenu,
@@ -47,6 +48,7 @@ export function NavSettings({
   const { isMobile } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
+  const unreadCount = useNotificationStore((s) => s.unreadCount);
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
@@ -58,7 +60,12 @@ export function NavSettings({
             <SidebarMenuItem key={item.name}>
               <SidebarMenuButton asChild isActive={isActive}>
                 <Link href={item.url}>
-                  <item.icon size={16} strokeWidth={1.5} />
+                  <span className="relative">
+                    <item.icon size={16} strokeWidth={1.5} />
+                    {item.url === '/notifications' && unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-destructive" />
+                    )}
+                  </span>
                   <span>{item.name}</span>
                 </Link>
               </SidebarMenuButton>

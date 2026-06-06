@@ -13,6 +13,7 @@ import type {
   NotificationTypeValue,
   NotificationPriorityValue,
 } from '@/types/notification';
+import { useNotificationStore } from '@/app/store/notification';
 
 const POLL_INTERVAL_MS = 60000;
 
@@ -56,6 +57,7 @@ export function useNotifications(): UseNotificationsReturn {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const setGlobalUnreadCount = useNotificationStore((s) => s.setUnreadCount);
   const seenIdsRef = useRef<Set<number>>(new Set());
 
   const updateBadgeCount = useCallback((count: number) => {
@@ -88,6 +90,7 @@ export function useNotifications(): UseNotificationsReturn {
 
       setNotifications(response.items);
       setUnreadCount(response.unreadCount);
+      setGlobalUnreadCount(response.unreadCount);
       updateBadgeCount(response.unreadCount);
 
       const newItems = response.items.filter(
