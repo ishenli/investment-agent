@@ -9,7 +9,10 @@ export type JobTemplateTranslationKey =
   | 'templates.reportWeekly.instructions'
   | 'templates.reportMonthly.name'
   | 'templates.reportMonthly.description'
-  | 'templates.reportMonthly.instructions';
+  | 'templates.reportMonthly.instructions'
+  | 'templates.agent.name'
+  | 'templates.agent.description'
+  | 'templates.agent.instructions';
 
 export interface JobTemplate {
   nameKey: JobTemplateTranslationKey;
@@ -44,5 +47,13 @@ export const JOB_TEMPLATES: JobTemplate[] = [
     jobType: 'report_monthly',
     cronExpression: '0 9 1 * *',
     requiresAccount: true,
+  },
+  {
+    nameKey: 'templates.agent.name',
+    descriptionKey: 'templates.agent.description',
+    instructionKey: 'templates.agent.instructions',
+    jobType: 'agent',
+    cronExpression: '0 9 * * *',
+    requiresAccount: false,
   },
 ];

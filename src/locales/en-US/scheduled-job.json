@@ -36,6 +36,11 @@
       "description": "Automatically generate a monthly investment report on the 1st",
       "instructions": "Summarize last month's asset performance, attribution, drawdown risk, trading behavior, and allocation changes, then list focus areas for next month."
     },
+    "agent": {
+      "name": "Custom Agent Task",
+      "description": "Describe a task in natural language, AI Agent executes it on schedule",
+      "instructions": "Describe what you want AI to do periodically, e.g., check if Tesla drops below $200 every day and notify me."
+    },
     "selectAccount": "Select Account",
     "createFromTemplate": "Create from Template"
   },
@@ -58,6 +63,9 @@
     "instructions": "What should AI do?",
     "instructionsPlaceholder": "Describe what this job should focus on, such as risks, report priorities, or output style.",
     "instructionsHint": "This will be saved as generation preferences for insights or reports; the selected task type still defines what can run.",
+    "agentPrompt": "Task Instructions",
+    "agentPromptPlaceholder": "Describe in natural language what you want AI to do periodically.\n\nExamples:\n- Check if Tesla drops below $200 every day and notify me\n- Analyze which stocks in my portfolio have upcoming earnings\n- Review latest news for my tech holdings and summarize key points",
+    "agentPromptHint": "The AI Agent reads this instruction on each run, uses available tools (stock prices, news search, portfolio analysis, etc.) to complete the task, and sends results via notification.",
     "cronExpression": "Cron Expression",
     "cronPlaceholder": "e.g., 0 8 * * *",
     "jobType": "Job Type",
@@ -72,7 +80,8 @@
   "jobTypes": {
     "insight": "AI Insights",
     "report_weekly": "Weekly Report",
-    "report_monthly": "Monthly Report"
+    "report_monthly": "Monthly Report",
+    "agent": "Agent Task"
   },
   "status": {
     "enabled": "Enabled",

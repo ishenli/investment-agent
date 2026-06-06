@@ -225,6 +225,10 @@ export class JobExecutorService {
         return executeReportJob(job, 'weekly');
       case 'report_monthly':
         return executeReportJob(job, 'monthly');
+      case 'agent': {
+        const { executeAgentJob } = await import('./agentJobExecutor');
+        return executeAgentJob(job);
+      }
       default:
         throw new Error(`Unknown job type: ${jobType}`);
     }

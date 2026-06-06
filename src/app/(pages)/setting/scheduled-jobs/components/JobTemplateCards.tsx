@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@renderer/components/ui/card';
-import { IconEye, IconReport, IconCalendar } from '@tabler/icons-react';
+import { IconEye, IconReport, IconCalendar, IconRobot } from '@tabler/icons-react';
 import { JOB_TEMPLATES, type JobTemplate } from '../constants';
 import type { JobType } from '@/types/scheduledJob';
 
@@ -17,6 +17,7 @@ const JOB_TYPE_ICONS: Record<JobType, typeof IconEye> = {
   insight: IconEye,
   report_weekly: IconReport,
   report_monthly: IconCalendar,
+  agent: IconRobot,
 };
 
 interface JobTemplateCardsProps {
@@ -28,7 +29,7 @@ export function JobTemplateCards({ onCreateFromTemplate, loading }: JobTemplateC
   const { t } = useTranslation('scheduled-job');
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {JOB_TEMPLATES.map((template) => {
         const Icon = JOB_TYPE_ICONS[template.jobType];
         return (

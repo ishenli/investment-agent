@@ -98,8 +98,11 @@ export function CreateJobDialog({
   const activeTemplate =
     JOB_TEMPLATES.find((item) => item.jobType === selectedJobType) ?? template ?? JOB_TEMPLATES[0];
 
+  const isAgentType = selectedJobType === 'agent';
+
   const handleConfirm = () => {
     if (!name.trim()) return;
+    if (isAgentType && !instructions.trim()) return;
     onConfirm({
       name: name.trim(),
       cronExpression: buildCronExpression(frequency, time),
@@ -108,6 +111,7 @@ export function CreateJobDialog({
       config: {
         notificationChannel,
         instructions: instructions.trim(),
+        ...(isAgentType && { prompt: instructions.trim() }),
         template: activeTemplate.jobType,
       },
     });
@@ -215,15 +219,20 @@ export function CreateJobDialog({
           )}
 
           <div className="grid gap-2">
-            <Label htmlFor="job-instructions">{t('form.instructions')}</Label>
+            <Label htmlFor="job-instructions">
+              {isAgentType ? t('form.agentPrompt') : t('form.instructions')}
+              {isAgentType && <span className="text-destructive ml-1">*</span>}
+            </Label>
             <Textarea
               id="job-instructions"
               value={instructions}
               onChange={(e) => setInstructions(e.target.value)}
-              placeholder={t('form.instructionsPlaceholder')}
-              className="min-h-[180px] resize-none"
+              placeholder={isAgentType ? t('form.agentPromptPlaceholder') : t('form.instructionsPlaceholder')}
+              className={isAgentType ? 'min-h-[220px] resize-none' : 'min-h-[180px] resize-none'}
             />
-            <p className="text-xs text-muted-foreground">{t('form.instructionsHint')}</p>
+            <p className="text-xs text-muted-foreground">
+              {isAgentType ? t('form.agentPromptHint') : t('form.instructionsHint')}
+            </p>
           </div>
         </div>
 
@@ -231,7 +240,7 @@ export function CreateJobDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t('form.cancel')}
           </Button>
-          <Button onClick={handleConfirm} disabled={loading || !name.trim()}>
+          <Button onClick={handleConfirm} disabled={loading || !name.trim() || (isAgentType && !instructions.trim())}>
             {t('form.confirm')}
           </Button>
         </DialogFooter>

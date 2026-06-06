@@ -6,7 +6,7 @@
 
 // ============== Enums / Unions ==============
 
-export type JobType = 'insight' | 'report_weekly' | 'report_monthly';
+export type JobType = 'insight' | 'report_weekly' | 'report_monthly' | 'agent';
 
 export type JobLogStatus = 'pending' | 'running' | 'success' | 'failed' | 'missed';
 
@@ -110,7 +110,7 @@ export interface JobExecutionResult {
 
 // ============== Constants ==============
 
-export const JOB_TYPES: JobType[] = ['insight', 'report_weekly', 'report_monthly'];
+export const JOB_TYPES: JobType[] = ['insight', 'report_weekly', 'report_monthly', 'agent'];
 
 export const JOB_LOG_STATUSES: JobLogStatus[] = ['pending', 'running', 'success', 'failed', 'missed'];
 

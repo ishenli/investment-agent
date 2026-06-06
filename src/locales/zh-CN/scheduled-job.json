@@ -36,6 +36,11 @@
       "description": "每月 1 日自动生成投资分析月报",
       "instructions": "总结上月资产表现、收益归因、回撤风险、交易行为和资产配置变化，并给出下月观察重点。"
     },
+    "agent": {
+      "name": "自定义 Agent 任务",
+      "description": "用自然语言描述任务，AI Agent 定时自动执行",
+      "instructions": "描述你希望 AI 定期执行的任务，例如：每天检查特斯拉是否跌破200美元，如果是就提醒我。"
+    },
     "selectAccount": "选择关联账户",
     "createFromTemplate": "从模板创建"
   },
@@ -58,6 +63,9 @@
     "instructions": "让 AI 帮你做什么",
     "instructionsPlaceholder": "描述任务执行时要完成的事情，例如需要关注的风险、报告重点或输出风格。",
     "instructionsHint": "说明会作为 AI 洞察或报告生成的偏好输入；任务范围仍由所选任务类型决定。",
+    "agentPrompt": "任务指令",
+    "agentPromptPlaceholder": "用自然语言描述你希望 AI 定期执行的任务。\n\n例如：\n- 每天检查特斯拉是否跌破200美元，如果是就提醒我\n- 分析我的持仓中哪些股票近期有财报发布\n- 查看我持有的科技股最新新闻并总结要点",
+    "agentPromptHint": "AI Agent 会在每次执行时读取此指令，使用可用工具（查询股价、搜索新闻、分析持仓等）完成任务，并通过通知发送结果。",
     "cronExpression": "Cron 表达式",
     "cronPlaceholder": "如: 0 8 * * *",
     "jobType": "任务类型",
@@ -72,7 +80,8 @@
   "jobTypes": {
     "insight": "AI 洞察",
     "report_weekly": "投资周报",
-    "report_monthly": "投资月报"
+    "report_monthly": "投资月报",
+    "agent": "Agent 任务"
   },
   "status": {
     "enabled": "已启用",

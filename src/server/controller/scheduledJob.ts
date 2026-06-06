@@ -9,7 +9,7 @@ import type { JobType } from '@/types/scheduledJob';
 const CreateJobSchema = z.object({
   name: z.string().min(1).max(100),
   cronExpression: z.string().min(1),
-  jobType: z.enum(['insight', 'report_weekly', 'report_monthly']),
+  jobType: z.enum(['insight', 'report_weekly', 'report_monthly', 'agent']),
   accountId: z.number().optional(),
   config: z.record(z.string(), z.unknown()).optional(),
   timeoutMs: z.number().min(1000).max(3600000).optional(),
@@ -18,7 +18,7 @@ const CreateJobSchema = z.object({
 const UpdateJobSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   cronExpression: z.string().min(1).optional(),
-  jobType: z.enum(['insight', 'report_weekly', 'report_monthly']).optional(),
+  jobType: z.enum(['insight', 'report_weekly', 'report_monthly', 'agent']).optional(),
   isEnabled: z.boolean().optional(),
   accountId: z.number().nullable().optional(),
   config: z.record(z.string(), z.unknown()).nullable().optional(),
@@ -26,7 +26,7 @@ const UpdateJobSchema = z.object({
 });
 
 const ListJobsQuerySchema = z.object({
-  jobType: z.enum(['insight', 'report_weekly', 'report_monthly']).optional(),
+  jobType: z.enum(['insight', 'report_weekly', 'report_monthly', 'agent']).optional(),
   isEnabled: z
     .string()
     .transform((v) => v === 'true')

@@ -595,7 +595,7 @@ export const scheduledJobs = sqliteTable('scheduled_jobs', {
     .references(() => users.id),
   name: text('name').notNull(),
   cronExpression: text('cron_expression').notNull(),
-  jobType: text('job_type', { enum: ['insight', 'report_weekly', 'report_monthly'] }).notNull(),
+  jobType: text('job_type', { enum: ['insight', 'report_weekly', 'report_monthly', 'agent'] }).notNull(),
   accountId: integer('account_id').references(() => accounts.id),
   config: text('config', { mode: 'json' }).$type<Record<string, unknown>>(),
   timeoutMs: integer('timeout_ms').notNull().default(300000),

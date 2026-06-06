@@ -1,0 +1,4 @@
+-- Add 'agent' to scheduled_jobs.job_type enum
+-- SQLite text columns have no real enum constraint, so no ALTER is needed.
+-- This migration documents the schema intent change for tracking purposes.
+-- The application-level validation (Drizzle schema + Zod) enforces the allowed values.
