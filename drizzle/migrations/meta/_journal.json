@@ -337,6 +337,13 @@
       "when": 1780159359351,
       "tag": "0047_sour_the_initiative",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "6",
+      "when": 1780550408000,
+      "tag": "0048_add_ui_artifacts_column",
+      "breakpoints": true
     }
   ]
 }

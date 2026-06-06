@@ -124,8 +124,8 @@ export class PriceService {
       // 检查是否存在相同symbol和asset_type的最新记录（排除已删除的）
       const existingPrice = await db.query.assetMeta.findFirst({
         where: and(
-          eq(assetMeta.symbol, priceData.symbol), 
-          eq(assetMeta.assetType, assetType),
+          eq(assetMeta.symbol, priceData.symbol),
+          eq(assetMeta.market, dbMarket),
           isNull(assetMeta.deletedAt)
         ),
         orderBy: [desc(assetMeta.createdAt)],
@@ -155,7 +155,7 @@ export class PriceService {
         const softDeletedPrice = await db.query.assetMeta.findFirst({
           where: and(
             eq(assetMeta.symbol, priceData.symbol),
-            eq(assetMeta.assetType, assetType)
+            eq(assetMeta.market, dbMarket)
           ),
           orderBy: [desc(assetMeta.createdAt)],
         });
@@ -168,18 +168,29 @@ export class PriceService {
           return null;
         }
 
-        // 插入新记录
+        // 原子 upsert：按 (symbol, market) 做冲突更新，避免并发竞态和唯一索引冲突
+        const values = {
+          symbol: priceData.symbol,
+          priceCents,
+          assetType,
+          currency: priceData.currency || 'USD',
+          createdAt: new Date(),
+          source: priceData.source || 'finnhub',
+          market: dbMarket,
+          updatedAt: new Date(),
+        } as const;
+
         const [inserted] = await db
           .insert(assetMeta)
-          .values({
-            symbol: priceData.symbol,
-            priceCents,
-            assetType,
-            currency: priceData.currency || 'USD',
-            createdAt: new Date(),
-            source: priceData.source || 'finnhub',
-            market: dbMarket,
-            updatedAt: new Date(),
+          .values(values)
+          .onConflictDoUpdate({
+            target: [assetMeta.symbol, assetMeta.market],
+            set: {
+              priceCents,
+              updatedAt: new Date(),
+              source: priceData.source || 'finnhub',
+              currency: priceData.currency || 'USD',
+            },
           })
           .returning();
 

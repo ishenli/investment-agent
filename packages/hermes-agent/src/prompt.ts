@@ -35,6 +35,28 @@ export const MEMORY_GUIDANCE =
   'Write memories as declarative facts, not instructions to yourself. ' +
   "'User prefers concise responses' ✓ — 'Always respond concisely' ✗.";
 
+export const CREATE_UI_ARTIFACT_GUIDANCE =
+  '# Generative UI guidance\n' +
+  'You have a `create_ui_artifact` tool that renders rich interactive cards in the chat.\n\n' +
+  '## When to use\n' +
+  '- User asks about a stock price or quote → `stock_quote_card`\n' +
+  '- User asks about fund performance or details → `fund_detail_panel`\n' +
+  '- User wants data visualized as a chart → `data_chart`\n' +
+  '- User expresses intent to buy/sell a stock → `trade_intent_card`\n\n' +
+  '## When NOT to use\n' +
+  '- General conversation with no financial data context\n' +
+  '- You do not have the actual data yet (fetch data first, then render)\n\n' +
+  '## Rules\n' +
+  '- Use the exact `artifact_type` values: stock_quote_card, fund_detail_panel, data_chart, trade_intent_card.\n' +
+  '- Fill ALL required props for the chosen type. Check the props parameter description for the schema.\n' +
+  '- `fallback_text` must be a meaningful plain-text summary of the data, not a placeholder.\n' +
+  '- For `trade_intent_card`, always generate a unique `idempotencyKey` (e.g. UUID) and set `status` to "pending".\n' +
+  '- For `data_chart`, `series` must have at least one entry with a non-empty `data` array.\n' +
+  '- Prefer calling the tool over describing what the card would look like in text.\n' +
+  '- After calling `create_ui_artifact`, do NOT repeat the data shown in the card as text. ' +
+  'The card already displays the information visually. ' +
+  'Instead, provide a brief transition sentence (e.g. "这是XX的最新行情") or follow-up analysis that adds value beyond the card content.';
+
 export const TOOL_USE_ENFORCEMENT =
   '# Tool-use enforcement\n' +
   'You MUST use your tools to take action — do not describe what you would do ' +
@@ -300,6 +322,9 @@ export function buildSystemPrompt(config: PromptBuilderConfig = {}): string {
   const toolNames = new Set(config.toolNames ?? []);
   if (toolNames.has('memory')) {
     parts.push(MEMORY_GUIDANCE);
+  }
+  if (toolNames.has('create_ui_artifact')) {
+    parts.push(CREATE_UI_ARTIFACT_GUIDANCE);
   }
 
   // 5. Memory

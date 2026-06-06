@@ -37,6 +37,7 @@ export class HermesEngine implements IAgentEngine {
     const enableTools = (extra?.enableTools as boolean) ?? true;
     const maxIterations = (extra?.maxIterations as number) ?? 30;
     const permissionLevel = (extra?.permissionLevel as 'safe' | 'auto' | 'full-access') ?? 'auto';
+    const platform = (extra?.platform as string) ?? 'web';
 
     await eventSink.sendStatus(`初始化模型 ${provider}/${modelSlug}`, {
       id: messageId,
@@ -61,7 +62,11 @@ export class HermesEngine implements IAgentEngine {
       registerBuiltinTools(registry, {
         enable: ['read_file', 'search_files', 'list_directory', 'web_search', 'web_fetch', 'think'],
       });
-      registerBusinessTools(registry);
+      registerBusinessTools(
+        registry,
+        { exclude: platform !== 'web' ? ['create_ui_artifact'] : [] },
+        eventSink,
+      );
       // Respect UI-level skill enablement toggles.
       const enabledSkills = await skillRegistry.getEnabledSkills(userId);
       // Reverse so that more specific/later skill roots override earlier ones
@@ -175,7 +180,6 @@ export class HermesEngine implements IAgentEngine {
     };
 
     // 6. 创建并运行 Agent
-    const platform = (extra?.platform as string) ?? 'web';
     const name = (extra?.name as string) ?? 'hermes';
     const agent = new HermesAgent({
       model: piModel,

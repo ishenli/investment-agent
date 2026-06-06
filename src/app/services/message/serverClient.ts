@@ -48,6 +48,7 @@ export class ServerService implements IMessageService {
         model: data.fromModel,
         provider: data.fromProvider,
         traceId: data.traceId,
+        uiArtifacts: data.uiArtifacts,
       }),
     });
 

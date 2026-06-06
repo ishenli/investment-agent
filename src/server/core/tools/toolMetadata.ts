@@ -397,6 +397,16 @@ export const BUSINESS_TOOL_DEFINITIONS: RawToolDefinition[] = [
       { name: 'linked_symbols', type: 'array', description: '关联资产代号列表', required: false },
     ],
   },
+  {
+    name: 'create_ui_artifact',
+    description: '创建富交互 UI 组件并实时推送给客户端（股票卡片、基金面板、图表、交易意向卡等）',
+    category: 'ui',
+    parameters: [
+      { name: 'artifact_type', type: 'string', description: 'UI 组件类型', required: true, enum: ['stock_quote_card', 'fund_detail_panel', 'data_chart', 'trade_intent_card'] },
+      { name: 'props', type: 'object', description: '组件属性（JSON 对象），结构取决于 artifact_type', required: true },
+      { name: 'fallback_text', type: 'string', description: '当客户端不支持该组件时显示的降级文本', required: true },
+    ],
+  },
 ];
 
 // ============= 工具清单构建 =============

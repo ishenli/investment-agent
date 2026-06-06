@@ -33,6 +33,7 @@ export default defineConfig({
             { label: '功能特性总览', link: '/features/' },
             { label: '账户与持仓管理', link: '/portfolio-management/' },
             { label: '任务管理', link: '/tasks/' },
+            { label: '生成式 UI', link: '/generative-ui/' },
             { label: 'Agent 管理', link: '/agent-management/' },
             { label: 'AI 技能与工具', link: '/skills/' },
             { label: '工具权限与安全', link: '/permissions/' },

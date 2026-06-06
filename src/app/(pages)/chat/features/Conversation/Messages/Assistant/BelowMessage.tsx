@@ -38,7 +38,6 @@ const useStyles = createStyles(({ css, token, responsive }) => ({
 const SuggestionBelowMessage = memo<ChatMessage>(({ id, related, role }) => {
   const latest = useChatStore(chatSelectors.latestMessage);
   const [updateInputMessage] = useChatStore((s) => [s.updateInputMessage]);
-  const generating = useChatStore(chatSelectors.isMessageGenerating(id));
 
   const { styles } = useStyles();
   const { send: sendMessage } = useSendMessage();
@@ -51,7 +50,7 @@ const SuggestionBelowMessage = memo<ChatMessage>(({ id, related, role }) => {
     <div className={styles.container}>
       <p className={styles.title}>可以接着问：</p>
       <Flexbox gap={8} horizontal wrap={'wrap'}>
-        {related.slice(0, 3).map((suggestion) => {
+        {related!.slice(0, 3).map((suggestion) => {
           return (
             <Block
               className={styles.card}

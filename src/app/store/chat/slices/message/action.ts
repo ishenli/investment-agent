@@ -78,6 +78,7 @@ export interface ChatMessageAction {
       chatId?: string;
       sessionId?: string;
       traceId?: string;
+      uiArtifacts?: import('@typings/chat/uiArtifact').UIArtifact[];
       permissionRequest?: {
         permissionRequestId: string;
         toolName: string;
@@ -281,6 +282,7 @@ export const chatMessage: StateCreator<
         content,
         related: extra?.related,
         traceId: extra?.traceId,
+        uiArtifacts: extra?.uiArtifacts,
         permissionRequest: extra?.permissionRequest,
       },
     });
@@ -297,6 +299,7 @@ export const chatMessage: StateCreator<
       imageList: extra?.imageList,
       related: extra?.related,
       traceId: extra?.traceId,
+      uiArtifacts: extra?.uiArtifacts,
     });
   },
   modifyMessageContent: async (id, content) => {

@@ -1,3 +1,6 @@
+import type { UIArtifactType } from '@typings/chat/uiArtifact';
+import { UI_ARTIFACT_VERSION } from '@typings/chat/uiArtifact';
+
 export type AgentStreamEvent =
   | {
       type: 'status';
@@ -67,6 +70,17 @@ export type AgentStreamEvent =
       blockedPath?: string;
       toolUseId: string;
       description?: string;
+    }
+  | {
+      type: 'ui_artifact';
+      messageId: string;
+      artifact: {
+        id: string;
+        type: UIArtifactType;
+        version: typeof UI_ARTIFACT_VERSION;
+        props: Record<string, unknown>;
+        fallbackText: string;
+      };
     }
   | {
       type: 'done';

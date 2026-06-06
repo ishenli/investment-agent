@@ -1,0 +1,126 @@
+---
+title: 生成式 UI
+description: 在聊天中用受控 UI 卡片展示股票、基金、图表和交易意图
+---
+
+import { Card, CardGrid, Steps } from '@astrojs/starlight/components';
+
+# 生成式 UI
+
+生成式 UI 让 AI 助手不只返回纯文本，还能在聊天消息里展示结构化的投资卡片、图表和确认面板。Investment Agent 采用的是 **Server-driven Generative UI**：模型不生成 JSX 或 HTML，而是通过受控工具生成 `UIArtifact` JSON，前端再用白名单组件渲染。
+
+这套方案适合金融产品：界面更清晰，同时保留 schema 校验、审计、消息历史兼容和交易安全边界。
+
+## 可以展示什么
+
+<CardGrid>
+  <Card title="股票行情卡片" icon="trending-up">
+    展示股票代码、名称、价格、涨跌幅、关键指标和迷你趋势数据。
+  </Card>
+  <Card title="基金详情面板" icon="pie-chart">
+    展示基金名称、收益指标、风险等级和持仓分布。
+  </Card>
+  <Card title="受限数据图表" icon="graph">
+    支持折线图、柱状图、饼图，并限制 series 和数据点数量，避免大 payload 拖慢长对话。
+  </Card>
+  <Card title="交易意图卡片" icon="approve-check">
+    只表达待确认的买入或卖出意图，不会直接成交。
+  </Card>
+</CardGrid>
+
+## 工作流程
+
+<Steps>
+  1. 用户在聊天中提出投资问题，例如查询股票行情、基金风险或收益曲线。
+  2. Hermes Agent 调用业务工具获取结构化数据。
+  3. Agent 在需要更丰富展示时调用 `create_ui_artifact` 工具。
+  4. 服务端使用 Zod 校验 artifact 类型和 props。
+  5. SSE 流推送 `text` 与 `ui_artifact` 事件。
+  6. 前端把 artifact 写入当前 assistant 消息的 `uiArtifacts`，并由 `GenerativeUIRenderer` 渲染。
+  7. 消息完成后，`content` 和 `uiArtifacts` 一起持久化到聊天历史。
+</Steps>
+
+## 消息协议
+
+每条助手消息仍然保留文本内容，生成式 UI 只是额外字段：
+
+```ts
+interface ChatMessage {
+  content: string;
+  uiArtifacts?: UIArtifact[];
+}
+
+interface UIArtifact {
+  id: string;
+  type:
+    | 'stock_quote_card'
+    | 'fund_detail_panel'
+    | 'data_chart'
+    | 'trade_intent_card';
+  version: 1;
+  props: Record<string, unknown>;
+  fallbackText: string;
+}
+```
+
+`fallbackText` 是必填字段，用于渲染失败、复制、分享、导出和历史兼容。旧消息没有 `uiArtifacts` 也可以正常显示。
+
+## 安全边界
+
+生成式 UI 的核心原则是“模型选择和填充受控卡片，系统负责校验和渲染”。
+
+- 模型只能输出 JSON artifact，不能输出 JSX、HTML、`script`、`style` 或 `iframe`。
+- artifact `type` 必须命中前端白名单组件注册表。
+- 每类 `props` 都必须通过 Zod schema 校验。
+- 未知类型或非法 props 会展示 fallback，而不是渲染任意 UI。
+- 图表数据有数量上限，防止超大 payload 影响虚拟列表性能。
+- 交易意图卡只触发 `/api/chat/trade-intent` 确认流程，不直接执行交易。
+
+## 支持的 Artifact
+
+| 类型 | 用途 | 关键约束 |
+|------|------|----------|
+| `stock_quote_card` | 股票行情卡片 | `metrics` 最多 10 项，`miniTrend` 最多 30 个点 |
+| `fund_detail_panel` | 基金详情面板 | `returnMetrics` 最多 10 项，`holdings` 最多 20 项 |
+| `data_chart` | 折线、柱状、饼图 | 最多 5 个 series，每个 series 最多 100 个数据点 |
+| `trade_intent_card` | 买入/卖出意图确认 | 状态必须是 `pending`，必须包含 `idempotencyKey` |
+
+## 开发入口
+
+当前实现的主要入口如下：
+
+| 能力 | 文件 |
+|------|------|
+| Artifact 类型与 Zod 校验 | `src/types/chat/uiArtifact.ts` |
+| 前端渲染器 | `src/app/(pages)/chat/features/Conversation/components/GenerativeUI/GenerativeUIRenderer.tsx` |
+| 白名单组件注册表 | `src/app/(pages)/chat/features/Conversation/components/GenerativeUI/registry.ts` |
+| Hermes 工具注册 | `src/server/core/agents/hermes/registerBusinessTools.ts` |
+| SSE artifact 事件 | `src/server/base/sseEmitter.ts` |
+| 消息持久化字段 | `drizzle/schema/chat.ts` 中的 `uiArtifacts` |
+| 交易意图 API | `src/app/api/chat/trade-intent/route.ts` |
+
+## 扩展新卡片
+
+新增一种生成式 UI 卡片时，按这个顺序接入：
+
+1. 在 `src/types/chat/uiArtifact.ts` 中新增 artifact 类型、props schema 和校验映射。
+2. 在 `GenerativeUI/components/` 下实现 React 组件。
+3. 在 `GenerativeUI/registry.ts` 中注册组件。
+4. 更新 `create_ui_artifact` 的提示词或工具描述，让 Agent 知道何时使用该类型。
+5. 为 schema、renderer fallback、组件渲染和流式事件补充测试。
+
+## 交易意图说明
+
+`trade_intent_card` 用于把 AI 的买入或卖出建议转成用户可确认的意图卡。它不是交易执行凭证，也不会绕过服务端验证。
+
+后续接入真实交易前，服务端必须完成：
+
+- 账户归属校验
+- 用户权限校验
+- 当前价格或报价有效期校验
+- 仓位、单日亏损、交易额度等风控校验
+- 基于 `idempotencyKey` 的幂等去重
+
+## 与 Artifact Portal 的区别
+
+Portal 更适合承载侧边栏里的大产物，例如长文档、报告或可编辑内容。生成式 UI 面向的是聊天气泡内的小型业务卡片：它跟随消息历史保存，适合展示行情、图表摘要和确认面板。

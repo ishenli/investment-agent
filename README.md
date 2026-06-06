@@ -42,10 +42,18 @@ English Version | [中文版本](./doc/zh/README.md)
 
 ### AI-Powered Analysis Tools
 - **Asset Information Query** - Real-time stock, fund, and gold prices via Finnhub
+- **Generative UI Cards** - Inline stock quotes, fund details, charts, and trade intent confirmations rendered inside assistant messages
 - **Investment Note Search** - Semantic search through investment notes
 - **Database Query** - Natural language to SQL queries on portfolio data
 - **Web Search** - Tavily-powered market research
 - **Stock Analysis** - Technical indicators and market sentiment
+
+### Server-Driven Generative UI
+- **Controlled UI artifacts** - Agents generate validated `UIArtifact` JSON through `create_ui_artifact`, not arbitrary JSX or HTML
+- **Whitelisted components** - Frontend renders only registered card types: `stock_quote_card`, `fund_detail_panel`, `data_chart`, and `trade_intent_card`
+- **Streaming updates** - SSE streams text deltas and `ui_artifact` events into the same assistant message
+- **Safe fallbacks** - Every card includes `fallbackText` for copy/share/export, rendering failures, and historical compatibility
+- **Trade safety** - Trade intent cards represent pending buy/sell intents only; execution must go through explicit confirmation and server-side checks
 
 ### Permission Mode Control
 - **Conversation-level permission switcher** - Toggle Hermes engine permission levels right next to the chat input box
@@ -125,6 +133,10 @@ investment-agent [command]  # or: ig [command]
 │  • Trace/Span   • Metrics   • Cost Tracking  │
 │  • Live Panel   • Persistent Storage          │
 ├──────────────────────────────────────────────┤
+│     Generative UI Layer                       │
+│  • UIArtifact   • Whitelist  • Fallback Text  │
+│  • SSE Events   • Inline Cards                │
+├──────────────────────────────────────────────┤
 │     Multi-Channel Communication Layer        │
 │  • WeChat    • Feishu    • Web Interface     │
 ├──────────────────────────────────────────────┤
@@ -136,6 +148,7 @@ investment-agent [command]  # or: ig [command]
 - **Engine Registry** - Dynamically register and switch AI engines
 - **Tool System** - Standardized tool interface with LangChain/Claude SDK adapters
 - **Observability System** - Hierarchical tracing, metrics collection, and cost tracking for agent runs
+- **Generative UI Renderer** - Safe inline rendering of validated UI artifacts in chat messages
 - **Channel Router** - Unified message routing across platforms
 - **Session Management** - Multi-turn conversation with context persistence
 - **Data Layer** - SQLite + Drizzle ORM for type-safe queries
@@ -187,6 +200,7 @@ The WeChat channel enables AI assistant access through personal WeChat accounts:
 - **Next.js 16 + React 19** - Modern web framework
 - **Ant Design + Radix UI** - UI components
 - **TailwindCSS** - Styling
+- **Generative UI Renderer** - Zod-validated inline cards for investment chat messages
 
 ## Available Scripts
 
@@ -214,8 +228,10 @@ pnpm test             # Run tests
 ```
 src/
 ├── app/              # Next.js pages and routes
-│   └── api/channel/  # WeChat/Feishu webhook routes
-│   └── api/chat/     # Chat & observability APIs
+│   ├── api/channel/  # WeChat/Feishu webhook routes
+│   ├── api/chat/     # Chat, observability & trade intent APIs
+│   └── (pages)/chat/features/Conversation/components/GenerativeUI/
+│                     # Inline UI artifact renderer and card registry
 ├── server/
 │   ├── core/
 │   │   ├── agents/   # AI agent implementations
@@ -230,6 +246,7 @@ src/
 │   └── repository/   # Data access layer
 │       └── chat/     # Chat & observability repositories
 ├── types/            # TypeScript definitions
+│   └── chat/         # Chat schemas, including UIArtifact protocol
 └── locales/          # i18n translations
 packages/
 ├── agent-channel/    # Multi-platform messaging SDK
@@ -244,6 +261,7 @@ packages/
 | Module | Path | Description |
 |--------|------|-------------|
 | Chat | `/chat` | AI-powered conversation interface |
+| Generative UI | `/chat` | Inline UI artifacts for quotes, charts, funds, and trade intents |
 | Asset | `/asset` | Portfolio and position management |
 | Research | `/research` | Market research and analysis |
 | Notes | `/note` | Investment knowledge base |

@@ -93,7 +93,12 @@ const Actions = memo<ActionsProps>(({ id, inPortalThread, index }) => {
 
       switch (action.key) {
         case 'copy': {
-          await copyMessage(id, item.content);
+          let text = item.content;
+          if (item.uiArtifacts?.length) {
+            const fallbacks = item.uiArtifacts.map((a) => a.fallbackText).filter(Boolean).join('\n');
+            if (fallbacks) text += '\n' + fallbacks;
+          }
+          await copyMessage(id, text);
           message.success(t('copySuccess'));
           break;
         }

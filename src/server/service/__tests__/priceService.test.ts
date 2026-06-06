@@ -152,7 +152,8 @@ describe('PriceService', () => {
 
       const newAsset = { ...mockAssetMeta, id: 2, symbol: 'MSFT', priceCents: 38000 };
       const mockReturning = vi.fn().mockResolvedValue([newAsset]);
-      const mockValues = vi.fn().mockReturnValue({ returning: mockReturning });
+      const mockOnConflict = vi.fn().mockReturnValue({ returning: mockReturning });
+      const mockValues = vi.fn().mockReturnValue({ onConflictDoUpdate: mockOnConflict });
       (db.insert as any).mockReturnValue({ values: mockValues });
 
       const result = await priceService.updatePrice({
@@ -200,7 +201,8 @@ describe('PriceService', () => {
       (db.query.assetMeta.findFirst as any).mockResolvedValue(null);
 
       const mockReturning = vi.fn().mockResolvedValue([mockAssetMeta]);
-      const mockValues = vi.fn().mockReturnValue({ returning: mockReturning });
+      const mockOnConflict = vi.fn().mockReturnValue({ returning: mockReturning });
+      const mockValues = vi.fn().mockReturnValue({ onConflictDoUpdate: mockOnConflict });
       (db.insert as any).mockReturnValue({ values: mockValues });
 
       const prices: BatchPriceUpdateRequest = [

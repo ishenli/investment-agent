@@ -1,3 +1,4 @@
+import { UIArtifact } from '../chat/uiArtifact';
 import { ChatMessageError } from '@typings/message/chat';
 import { ChatImageItem } from '@typings/message/image';
 import { GroundingSearch } from '@typings/search';
@@ -149,6 +150,7 @@ export interface UpdateMessageParams {
   search?: GroundingSearch;
   toolCalls?: any[];
   tools?: any[] | null;
+  uiArtifacts?: UIArtifact[];
 }
 
 export interface NewMessageQueryParams {

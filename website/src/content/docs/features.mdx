@@ -26,10 +26,27 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 投资助手在聊天中为你提供以下分析能力：
 
 - **资产信息查询**：通过 Finnhub 获取实时股票、基金和黄金价格
+- **生成式 UI 卡片**：在聊天消息中展示股票行情、基金详情、数据图表和交易意图确认
 - **投资笔记搜索**：对投资笔记进行语义搜索，快速找到相关研究
 - **自然语言数据查询**：用中文提问投资组合数据，自动转换为 SQL
 - **市场研究**：基于 Tavily 的实时网页搜索与行业研究
 - **技术指标分析**：股票图表、技术指标和市场情绪分析
+
+详见 [生成式 UI](/generative-ui/)。
+
+## 生成式 UI
+
+<CardGrid>
+  <Card title="受控业务卡片" icon="seti:json">
+    AI 通过 `create_ui_artifact` 生成结构化 JSON，前端只渲染白名单组件。
+  </Card>
+  <Card title="消息内展示" icon="message">
+    股票、基金、图表和交易意图卡片直接出现在 assistant 消息正文下方。
+  </Card>
+  <Card title="安全 fallback" icon="shield">
+    所有卡片都保留文本 fallback，未知类型或校验失败不会影响聊天渲染。
+  </Card>
+</CardGrid>
 
 ## 账户与持仓管理
 
