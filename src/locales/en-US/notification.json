@@ -71,5 +71,8 @@
     "analysis_completed": "Alert when analysis is done",
     "data_refreshed": "Alert when market data is updated",
     "system_announcement": "System maintenance and feature updates"
+  },
+  "detail": {
+    "goToLink": "Go to Details"
   }
 }

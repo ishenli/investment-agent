@@ -71,5 +71,8 @@
     "analysis_completed": "分析任务完成后提醒",
     "data_refreshed": "市场数据更新后提醒",
     "system_announcement": "系统维护和功能更新公告"
+  },
+  "detail": {
+    "goToLink": "前往查看"
   }
 }
