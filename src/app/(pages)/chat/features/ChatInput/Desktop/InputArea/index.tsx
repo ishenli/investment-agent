@@ -2,8 +2,10 @@ import { TextArea } from '@lobehub/ui';
 import { createStyles } from 'antd-style';
 import { TextAreaRef } from 'antd/es/input/TextArea';
 import React, { RefObject, memo, useEffect, useRef } from 'react';
-import { useAutoFocus } from '../useAutoFocus';
 import { useTranslation } from 'react-i18next';
+
+import SkillSlashCommand from '../SkillSlashCommand';
+import { useAutoFocus } from '../useAutoFocus';
 
 const useStyles = createStyles(({ css }) => {
   return {
@@ -26,13 +28,14 @@ const useStyles = createStyles(({ css }) => {
 });
 
 interface InputAreaProps {
+  chatInputExpand?: boolean;
   loading?: boolean;
   onChange: (string: string) => void;
   onSend: () => void;
   value: string;
 }
 
-const InputArea = memo<InputAreaProps>(({ onSend, value, loading, onChange }) => {
+const InputArea = memo<InputAreaProps>(({ chatInputExpand, onSend, value, loading, onChange }) => {
   const { styles } = useStyles();
   const { t } = useTranslation('chat');
   const ref = useRef<TextAreaRef>(null);
@@ -59,6 +62,7 @@ const InputArea = memo<InputAreaProps>(({ onSend, value, loading, onChange }) =>
 
   return (
     <div className={styles.textareaContainer}>
+      <SkillSlashCommand chatInputExpand={chatInputExpand} />
       <TextArea
         autoFocus
         className={styles.textarea}

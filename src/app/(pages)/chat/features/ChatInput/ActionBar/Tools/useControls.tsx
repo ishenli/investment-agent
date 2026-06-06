@@ -4,11 +4,13 @@ import { useTranslation } from 'react-i18next';
 
 import { useSessionStore } from '@renderer/store/session';
 import { sessionSelectors } from '@renderer/store/session/selectors';
+import { useChatStore } from '@renderer/store/chat';
 import { useToolStore } from '@renderer/store/tool';
 import { builtinToolSelectors } from '@renderer/store/tool/selectors';
 import { useSkillsStore } from '@/app/store/skills/store';
 
 import ToolItem from './ToolItem';
+import SkillToolItemView from './SkillToolItemView';
 
 /**
  * 自订阅 SessionStore 的 plugin 工具项。
@@ -39,16 +41,22 @@ export const PluginToolItem = ({ id, label, setUpdating }: {
 /**
  * 自订阅 SkillsStore 的 skill 工具项。
  * 同上原因：必须内部订阅 sessionActiveSkills 才能在 toggle 后正确反映勾选状态。
+ * 同时支持"指定下一条消息使用"的显式 skill 选择。
  */
-export const SkillToolItem = ({ slug, name, sessionId }: {
+export const SkillToolItem = ({ slug, name, description, sessionId }: {
+  description?: string;
   slug: string;
   name: string;
   sessionId: string;
 }) => {
-  const { skills, sessionActiveSkills, toggleSessionSkill } = useSkillsStore((s) => ({
+  const chatSessionId = useChatStore((s) => s.activeId);
+  const { skills, sessionActiveSkills, toggleSessionSkill, sessionExplicitSkill, setSessionExplicitSkill, clearSessionExplicitSkill } = useSkillsStore((s) => ({
     skills: s.skills,
     sessionActiveSkills: s.sessionActiveSkills,
     toggleSessionSkill: s.toggleSessionSkill,
+    sessionExplicitSkill: s.sessionExplicitSkill,
+    setSessionExplicitSkill: s.setSessionExplicitSkill,
+    clearSessionExplicitSkill: s.clearSessionExplicitSkill,
   }));
 
   // 计算 checked：会话有覆盖时用会话快照，否则回退到全局 isEnabled
@@ -57,13 +65,29 @@ export const SkillToolItem = ({ slug, name, sessionId }: {
     ? sessionSlugs.includes(slug)
     : skills.find((s) => s.slug === slug)?.isEnabled ?? false;
 
+  const isExplicit =
+    sessionExplicitSkill[sessionId] === slug || sessionExplicitSkill[chatSessionId] === slug;
+
   return (
-    <ToolItem
+    <SkillToolItemView
       checked={checked}
+      description={description}
       id={slug}
+      isExplicit={isExplicit}
       label={name}
-      onUpdate={async (_id, _enabled) => {
-        toggleSessionSkill(sessionId, slug);
+      onToggle={() => toggleSessionSkill(sessionId, slug)}
+      onPin={() => {
+        if (isExplicit) {
+          clearSessionExplicitSkill(sessionId);
+          if (chatSessionId && chatSessionId !== sessionId) {
+            clearSessionExplicitSkill(chatSessionId);
+          }
+        } else {
+          setSessionExplicitSkill(sessionId, slug);
+          if (chatSessionId && chatSessionId !== sessionId) {
+            setSessionExplicitSkill(chatSessionId, slug);
+          }
+        }
       }}
     />
   );
@@ -127,6 +151,7 @@ export const useSkillsControls = () => {
             key: `skill-${skill.slug}`,
             label: (
               <SkillToolItem
+                description={skill.description}
                 slug={skill.slug}
                 name={skill.name}
                 sessionId={sessionId}

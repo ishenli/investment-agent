@@ -12,6 +12,7 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { runEngine } from '@server/core/engine';
+import { buildExplicitSkillPrompt } from '@server/core/engine/skillPrompt';
 import { claudeService } from '@server/service/claudeService';
 import authService from '@server/service/authService';
 import { skillService } from '@server/service/skillService';
@@ -41,8 +42,10 @@ const ClaudeChatRequestSchema = z.object({
   agentId: z.string().optional(),
   stream: z.boolean().optional(),
   mode: z.enum(['code', 'plan', 'ask']).optional(),
-  /** T401: 会话级别激活的 skill slugs，作为全局已启用 skills 的子集过滤 */
+  /** 会话级别激活的 skill slugs，作为全局已启用 skills 的子集过滤 */
   skills: z.array(z.string()).optional(),
+  /** 显式指定的单个 skill slug，优先注入到 system prompt */
+  explicitSkill: z.string().optional(),
   files: z
     .array(
       z.object({
@@ -63,7 +66,7 @@ class ClaudeChatController extends BaseController {
     try {
       // 1. 参数验证
       const body = await this.validateBody(request, ClaudeChatRequestSchema);
-      const { sessionId, messages, model, mode, files, toolTimeout, skills: requestedSkills } = body;
+      const { sessionId, messages, model, mode, files, toolTimeout, skills: requestedSkills, explicitSkill: explicitSkillSlug } = body;
 
       // 提取最后一条用户消息作为 prompt
       const userMessage = messages.findLast((msg) => msg.role === 'user');
@@ -107,14 +110,28 @@ class ClaudeChatController extends BaseController {
         enabledSkills = enabledSkills.filter((s) => requestedSet.has(s.id));
       }
 
-      // T303: 构建 skillsSystemPrompt
-      // skillPath = SKILL.md 的绝对路径，其 dirname 即为 {baseDir}
+      // 显式技能解析与验证
+      let explicitSkillPrompt: string | undefined;
+      if (explicitSkillSlug) {
+        const resolvedExplicit = await skillService.getSkill(userIdNum, explicitSkillSlug);
+        if (!resolvedExplicit) {
+          logger.warn(`[ClaudeChatController] explicitSkill not found: slug="${explicitSkillSlug}"`);
+          return Response.json({ success: false, error: `Unknown skill: ${explicitSkillSlug}`, code: 'unknown_skill' }, { status: 400 });
+        }
+        if (!resolvedExplicit.prompt) {
+          return Response.json({ success: false, error: `Skill "${explicitSkillSlug}" has no prompt`, code: 'empty_skill_prompt' }, { status: 400 });
+        }
+        explicitSkillPrompt = buildExplicitSkillPrompt(resolvedExplicit);
+        // 去重：从隐式列表中移除已显式指定的 skill
+        enabledSkills = enabledSkills.filter((s) => s.id !== explicitSkillSlug);
+        logger.info(`[ClaudeChatController] Using explicit skill: ${explicitSkillSlug}`);
+      }
+
+      // 构建隐式 skillsSystemPrompt
       const skillsSystemPrompt = (() => {
         const skillItems = enabledSkills
           .filter((s) => s.prompt)
           .map((s) => {
-            // const baseDir = path.dirname(s.skillPath);
-            // const promptWithBaseDir = s.prompt.replace(/\{baseDir\}/g, baseDir);
             return [
               `<skill name="${s.name}">`,
               `<description>${s.description.replace(/"/g, '&quot;')}</description>`,
@@ -123,7 +140,7 @@ class ClaudeChatController extends BaseController {
             ].join('\n');
           });
         if (skillItems.length === 0) return undefined;
-        
+
         return [
           '# 内置技能列表',
           `<skills>\n${skillItems.join('\n')}\n</skills>`
@@ -152,7 +169,8 @@ class ClaudeChatController extends BaseController {
           break;
       }
 
-      // T304: 合并 systemPromptOverride 与 skillsSystemPrompt 为 finalSystemPrompt
+      // 合并顺序：systemPromptOverride → skillsSystemPrompt（稳定部分）
+      // explicitSkillPrompt 注入到用户 prompt 而非 systemPrompt，以保留 prompt cache
       const finalSystemPrompt =
         [systemPromptOverride, skillsSystemPrompt].filter(Boolean).join('\n\n') || undefined;
 
@@ -211,6 +229,7 @@ class ClaudeChatController extends BaseController {
                 permissionMode,
                 mcpServers: { 'ig-tools': igToolsServer },
                 allowedTools: ['Skill', 'Read', 'Write', 'Bash', 'Glob'],
+                explicitSkillDirective: explicitSkillPrompt,
               },
             },
             sseEmitter,

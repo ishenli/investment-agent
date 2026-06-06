@@ -39,6 +39,12 @@ export class ClaudeEngine implements IAgentEngine {
 
     const prompt = ['# 聊天记录', content, '# 用户问题', userMessage.content].join('\n');
 
+    // --- inject explicit skill directive into prompt (not systemPrompt) to preserve prompt cache ---
+    const explicitSkillDirective = extra.explicitSkillDirective as string | undefined;
+    const effectivePrompt = explicitSkillDirective
+      ? `${explicitSkillDirective}\n\n${prompt}`
+      : prompt;
+
     // --- resolve provider ---
     const provider = extra.provider as ApiProvider | undefined;
     if (!provider) {
@@ -65,7 +71,7 @@ export class ClaudeEngine implements IAgentEngine {
 
     try {
       const stream = streamClaude({
-        prompt,
+        prompt: effectivePrompt,
         sessionId: ctx.sessionId,
         sdkSessionId: undefined,
         model: ctx.model,

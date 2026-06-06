@@ -3,7 +3,22 @@ title: 技能开发
 description: Investment Agent 自定义技能开发与接口规范
 ---
 
-## 自定义技能
+## 技能模型
+
+Investment Agent 的技能是一组可被 Agent 读取的 Markdown 指令。它们不直接执行业务动作，而是提供分析框架、决策准则和上下文加载方式。
+
+一个技能在运行时会被解析为以下核心字段：
+
+| 字段 | 说明 |
+|------|------|
+| `slug` / `id` | 技能业务标识，通常来自目录名或 `name` |
+| `name` | 技能名称，用于 UI 展示和 prompt 中的 `<skill name="...">` |
+| `description` | 技能描述，用于技能面板 hover 和 prompt 元信息 |
+| `prompt` | 技能主体指令，最终提供给 Agent |
+| `isEnabled` | 用户全局启用状态 |
+| `source` | 技能来源，例如官方内置或用户自定义 |
+
+## 自定义技能文件
 
 Investment Agent 支持自定义技能开发，技能以 Markdown 文件形式组织：
 
@@ -20,6 +35,8 @@ version: "1.0.0"
 技能描述和使用指南...
 ```
 
+建议 `description` 写成一句清晰的适用场景说明。它会直接出现在聊天输入框技能面板的 hover 提示中，帮助用户判断何时启用该技能。
+
 ## 技能引用
 
 在技能中引用详细的策略文档：
@@ -33,7 +50,81 @@ skills/
 │       └── VIX.md         # VIX 产品分析
 ```
 
-## 接口规范
+## 前端运行时交互
+
+聊天输入框提供两类技能选择：
+
+| 入口 | 状态字段 | 请求参数 | 语义 |
+|------|----------|----------|------|
+| ActionBar Checkbox | `sessionActiveSkills` | `skills` | 当前会话启用的技能 slug 列表 |
+| ActionBar Sparkles | `sessionExplicitSkill` | `explicitSkill` | 下一条消息优先使用的单个技能 |
+| `/` slash command | `sessionExplicitSkill` | `explicitSkill` | 下一条消息优先使用的单个技能 |
+
+`skills` 和 `explicitSkill` 的生命周期不同：
+
+- `skills` 是会话级状态，会持续影响后续消息。
+- `explicitSkill` 是单次状态，发送后自动清除；发送失败时会恢复，方便用户重试。
+
+示例请求：
+
+```json
+{
+  "sessionId": "inbox_xxx",
+  "agentId": "investment_advisor",
+  "model": "Kimi-K2.5",
+  "stream": true,
+  "messages": [
+    { "role": "user", "content": "分析下阿里巴巴" }
+  ],
+  "skills": [
+    "fundamental-analysis",
+    "risk-assessment",
+    "valuation-models"
+  ],
+  "explicitSkill": "risk-assessment"
+}
+```
+
+## 服务端处理
+
+### Claude 引擎
+
+Claude API 接收：
+
+- `skills?: string[]`
+- `explicitSkill?: string`
+
+处理流程：
+
+1. 读取用户全局启用技能。
+2. 如果请求携带 `skills`，按 slug 过滤可注入技能。
+3. 如果请求携带 `explicitSkill`，单独解析该技能。
+4. 普通技能构造成稳定的 `skillsSystemPrompt`。
+5. 显式技能通过 `explicitSkillDirective` 注入到用户 prompt，而不是 system prompt，以保留 prompt cache。
+6. 显式技能会从普通技能列表中移除，避免重复注入。
+
+当 `explicitSkill` 不存在或没有 prompt 时，Claude API 会返回错误：
+
+| code | 说明 |
+|------|------|
+| `unknown_skill` | 请求的技能 slug 不存在 |
+| `empty_skill_prompt` | 技能存在但没有可注入 prompt |
+
+### Hermes 引擎
+
+Hermes API 同样接收：
+
+- `skills?: string[]`
+- `explicitSkill?: string`
+
+Hermes 的技能以工具形式注册。引擎启动时会：
+
+1. 扫描用户技能目录和内置技能目录。
+2. 根据 `skills` 构造 `enabledSlugs`。
+3. 如果存在 `explicitSkill` 且不在 `enabledSlugs` 中，将它追加进去，保证单次指定技能可用。
+4. 注册 `skills_list`、`skill_view`、`skill_manage` 等技能工具，由 Agent 按需查看技能内容。
+
+## 接口规范与工具体系
 
 所有工具遵循统一的接口设计：
 
@@ -48,3 +139,10 @@ skills/
 - 描述文档（供 AI 理解用途）
 - 执行器（业务逻辑实现）
 - 错误处理与日志记录
+
+## 调试建议
+
+- 如果请求里只有 `skills` 没有 `explicitSkill`，通常表示用户只是勾选了技能，没有通过 `/` 或 Sparkles 指定单次技能。
+- 如果 UI 已显示技能标签但请求没有 `explicitSkill`，优先检查 `sessionExplicitSkill` 是否被提前清理。
+- 如果 Claude 没有按指定技能输出，检查服务端日志中是否存在 `Using explicit skill: <slug>`。
+- 如果 Hermes 看不到技能，检查注册时的 `enabledSlugs` 是否包含该 slug。

@@ -20,6 +20,14 @@ export const sessionSkillSlugs = (sessionId: string) => (s: SkillsState): string
   return s.skills.filter((skill) => skill.isEnabled).map((skill) => skill.slug);
 };
 
+/**
+ * Returns the pending explicit skill slug for the given session, or null.
+ */
+export const sessionExplicitSkill = (sessionId: string) => (s: SkillsState): string | null => {
+  return s.sessionExplicitSkill[sessionId] ?? null;
+};
+
 export const skillsSelectors = {
   sessionSkillSlugs,
+  sessionExplicitSkill,
 };

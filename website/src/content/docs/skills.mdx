@@ -7,6 +7,75 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 
 Investment Agent 集成了丰富的 AI 技能和工具，为投资分析提供全面支持。
 
+## 技能是什么
+
+技能是给 Agent 使用的一段专业分析指令。它通常包含：
+
+- `name`：技能名称，用于界面展示
+- `slug`：技能标识，用于请求参数和服务端匹配
+- `description`：技能说明，帮助你判断适用场景
+- `prompt`：实际注入给 Agent 的分析框架或操作指南
+
+技能不同于普通工具。工具负责执行动作，例如搜索网页、查询数据库或读取文件；技能负责改变 Agent 的分析方法，例如要求它从风险、估值、情绪或事件驱动角度组织答案。
+
+## 在聊天中使用技能
+
+技能目前主要在 **Claude** 和 **Hermes** 引擎下使用。选择这两个引擎后，聊天输入框的工具面板会展示已启用技能。
+
+### 会话级技能开关
+
+点击输入框 ActionBar 中的工具按钮，可以看到技能列表。每个技能项包含：
+
+- 技能名称
+- Hover 时显示的技能描述
+- Checkbox：控制当前会话启用哪些技能
+- Sparkles 按钮：指定下一条消息优先使用该技能
+
+勾选状态会在请求中以 `skills` 数组传递。例如：
+
+```json
+{
+  "skills": [
+    "fundamental-analysis",
+    "risk-assessment",
+    "valuation-models"
+  ]
+}
+```
+
+这表示本轮请求只启用这些技能作为可用分析框架。
+
+### 单次指定技能
+
+当你希望下一条消息明确使用某个技能时，可以使用两种方式：
+
+- 在技能面板中点击技能项右侧的 Sparkles 按钮
+- 在输入框输入 `/`，从 slash command 浮层中选择技能
+
+选择后，输入框上方会出现一个技能标签。下一次发送消息时，请求会额外带上 `explicitSkill`：
+
+```json
+{
+  "skills": [
+    "event-driven-analysis",
+    "fundamental-analysis",
+    "risk-assessment"
+  ],
+  "explicitSkill": "risk-assessment"
+}
+```
+
+`explicitSkill` 是单次生效的：消息发送后会自动清除。如果发送失败，系统会恢复这个选择，方便你重试。
+
+### `skills` 与 `explicitSkill` 的区别
+
+| 参数 | 来源 | 含义 | 生命周期 |
+|------|------|------|----------|
+| `skills` | 技能面板 Checkbox | 当前会话启用的技能列表 | 会话内持续生效 |
+| `explicitSkill` | `/` 命令或 Sparkles 按钮 | 下一条消息优先使用的技能 | 单次消息生效 |
+
+如果同时存在，`explicitSkill` 的优先级更高。服务端会将它从普通技能列表中去重，避免同一技能被重复注入。
+
 ## 核心技能
 
 ### 股票分析技能
@@ -23,6 +92,23 @@ Investment Agent 集成了丰富的 AI 技能和工具，为投资分析提供�
   </Card>
   <Card title="市场情绪" icon="eye">
     恐慌/贪婪指数参考，新闻情绪结合技术面综合判断。
+  </Card>
+</CardGrid>
+
+### 投资分析框架
+
+<CardGrid>
+  <Card title="基本面分析" icon="chart">
+    从收入、利润、现金流、财务健康、竞争优势和管理层质量等维度分析公司长期价值。
+  </Card>
+  <Card title="风险评估" icon="shield">
+    聚焦回撤、仓位、估值安全边际、宏观冲击、流动性和组合敞口，适合在买入或调仓前使用。
+  </Card>
+  <Card title="估值模型" icon="calculator">
+    结合 DCF、相对估值、情景假设和敏感性分析，帮助判断价格与价值的偏离。
+  </Card>
+  <Card title="事件驱动分析" icon="bell">
+    评估财报、并购、政策、产品发布、监管变化等事件对资产价格的短中期影响。
   </Card>
 </CardGrid>
 

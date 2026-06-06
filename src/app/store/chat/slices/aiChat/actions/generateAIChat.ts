@@ -2,7 +2,11 @@ import { LOADING_FLAT, MESSAGE_CANCEL_FLAT } from '@renderer/const/message';
 import { chatService, onFinishContext } from '@renderer/services/chat';
 import { messageService } from '@renderer/services/message';
 import { getSessionStoreState, useSessionStore } from '@renderer/store/session';
-import { agentChatConfigSelectors, sessionSelectors } from '@renderer/store/session/selectors';
+import {
+  agentChatConfigSelectors,
+  agentSelectors,
+  sessionSelectors,
+} from '@renderer/store/session/selectors';
 import { chatHelpers } from '@renderer/store/chat/helpers';
 import { chatSelectors, topicSelectors } from '@renderer/store/chat/selectors';
 import { ChatStore } from '@renderer/store/chat/store';
@@ -409,8 +413,8 @@ export const generateAIChat: StateCreator<
     //   plugins: [],
     // };
     const sessionStoreState = getSessionStoreState();
-    const sessionConfig = sessionSelectors.currentSession(sessionStoreState)?.config || {} as LobeAgentConfig;
-    // 组合 sessionConfig 和 agentStoreState 的配置
+    const sessionConfig = agentSelectors.currentAgentConfig(sessionStoreState) || {} as LobeAgentConfig;
+    // 组合当前 agent config 和兜底配置
     const agentConfig = {
       ...sessionConfig,
       plugins: sessionConfig?.plugins || [],
@@ -462,24 +466,47 @@ export const generateAIChat: StateCreator<
     // 读取当前会话激活的 skill slugs（按需注入，仅 claude 引擎使用）
     const sessionSkillSlugsForRequest = skillsSelectors.sessionSkillSlugs(activeId)(getSkillsStoreState());
 
+    // 读取显式指定的 skill slug（单次使用），读取后立即清空
+    const requestSessionId = activeId + '_' + activeTopicId;
+    const sessionActiveId = useSessionStore.getState().activeId;
+    const explicitSkillLookupKeys = Array.from(
+      new Set([activeId, sessionActiveId, requestSessionId].filter(Boolean)),
+    );
+    const skillsStoreState = getSkillsStoreState();
+    const explicitSkillForRequest = explicitSkillLookupKeys
+      .map((key) => skillsSelectors.sessionExplicitSkill(key)(skillsStoreState))
+      .find((slug): slug is string => !!slug);
+    if (explicitSkillForRequest) {
+      explicitSkillLookupKeys.forEach((key) => {
+        getSkillsStoreState().clearSessionExplicitSkill(key);
+      });
+    }
+
     await chatService.createAssistantMessageStream({
       params: {
-        sessionId: activeId + '_' + activeTopicId,
+        sessionId: requestSessionId,
         messages: preprocessMsgs,
         model,
         provider,
         agentId: currentSession?.agentId || '',
         plugins: agentConfig.plugins,
-        engineType: currentSession?.config?.engineType,
-        mode: currentSession?.config?.claudeMode,
-        permissionLevel: currentSession?.config?.permissionLevel,
+        engineType: agentConfig.engineType,
+        mode: agentConfig.claudeMode,
+        permissionLevel: agentConfig.permissionLevel,
         skills: sessionSkillSlugsForRequest,
+        ...(explicitSkillForRequest ? { explicitSkill: explicitSkillForRequest } : {}),
         ...agentConfig.params,
       },
       historySummary: historySummary?.content,
       isWelcomeQuestion: params?.isWelcomeQuestion,
       abortController,
       onErrorHandle: async (error: ChatMessageError) => {
+        // 发送失败时恢复显式 skill 以便用户重试
+        if (explicitSkillForRequest) {
+          explicitSkillLookupKeys.forEach((key) => {
+            getSkillsStoreState().setSessionExplicitSkill(key, explicitSkillForRequest);
+          });
+        }
         await messageService.updateMessageError(messageId, error);
         await refreshMessages();
       },

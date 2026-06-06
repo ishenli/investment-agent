@@ -10,10 +10,17 @@ export class SettingService {
   }
 
   async getConfigValueByKey(key: string): Promise<string | undefined> {
-    const userId = await authService.getCurrentUserId();
-    const setting = await settingRepository.findByUserIdAndKey(parseInt(userId), key);
-    if (setting) {
-      return setting.value;
+    try {
+      const userId = await authService.getCurrentUserId();
+      const parsedUserId = parseInt(userId);
+      if (!Number.isNaN(parsedUserId)) {
+        const setting = await settingRepository.findByUserIdAndKey(parsedUserId, key);
+        if (setting) {
+          return setting.value;
+        }
+      }
+    } catch (error) {
+      logger.warn(`[SettingService] Failed to get setting ${key} from DB, falling back to env: ${error}`);
     }
     return process.env[key];
   }
@@ -96,8 +103,12 @@ export class SettingService {
   // 获取模型服务 API 地址
   async getModelServiceApiUrl(): Promise<string | null> {
     const userId = await authService.getCurrentUserId();
-    const setting = await settingRepository.findByUserIdAndKey(parseInt(userId), 'MODEL_PROVIDER_URL');
-    return setting ? setting.value : process.env.MODEL_PROVIDER_URL || null;
+    const parsedUserId = parseInt(userId);
+    if (!Number.isNaN(parsedUserId)) {
+      const setting = await settingRepository.findByUserIdAndKey(parsedUserId, 'MODEL_PROVIDER_URL');
+      if (setting) return setting.value;
+    }
+    return process.env.MODEL_PROVIDER_URL || null;
   }
 }
 

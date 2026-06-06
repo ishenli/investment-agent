@@ -22,6 +22,12 @@ export interface SkillsState {
    * Empty map means "use global isEnabled defaults".
    */
   sessionActiveSkills: Record<string, string[]>;
+  /**
+   * Per-session explicit skill slug (single-use per message).
+   * Key: sessionId, Value: skill slug or null.
+   * Set when user picks a skill via SkillPicker; cleared after send.
+   */
+  sessionExplicitSkill: Record<string, string | null>;
 }
 
 // ============== Action Types ==============
@@ -52,6 +58,13 @@ export interface SkillsActions {
 
   /** Returns the active skill slugs for a session, or null if no session override. */
   getSessionSkills: (sessionId: string) => string[] | null;
+
+  /** Set the explicit skill for a session (single-use, cleared after send). */
+  setSessionExplicitSkill: (sessionId: string, slug: string) => void;
+  /** Clear the explicit skill for a session (after send or user removal). */
+  clearSessionExplicitSkill: (sessionId: string) => void;
+  /** Get the pending explicit skill slug for a session. */
+  getSessionExplicitSkill: (sessionId: string) => string | null;
 
   // Custom skills
   createCustomSkill: (data: {
@@ -86,6 +99,7 @@ const initialState: SkillsState = {
   selectedSource: null,
   saving: false,
   sessionActiveSkills: {},
+  sessionExplicitSkill: {},
 };
 
 // ============== Store Implementation ==============
@@ -272,6 +286,28 @@ const createStore: StateCreator<SkillsStore, [['zustand/devtools', never]]> = (s
     const slugs = sessionActiveSkills[sessionId];
     // Return null when not initialized (means: use global isEnabled defaults)
     return slugs ?? null;
+  },
+
+  // ── Explicit skill (single-use per message) ─────────────────────────────
+
+  setSessionExplicitSkill: (sessionId: string, slug: string) => {
+    set(
+      produce((state: SkillsState) => {
+        state.sessionExplicitSkill[sessionId] = slug;
+      }),
+    );
+  },
+
+  clearSessionExplicitSkill: (sessionId: string) => {
+    set(
+      produce((state: SkillsState) => {
+        delete state.sessionExplicitSkill[sessionId];
+      }),
+    );
+  },
+
+  getSessionExplicitSkill: (sessionId: string) => {
+    return get().sessionExplicitSkill[sessionId] ?? null;
   },
 
   // ── Search and filter ──────────────────────────────────────────────────
