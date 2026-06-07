@@ -718,6 +718,7 @@
     "span": {
       "llmCall": "LLM 调用",
       "toolCall": "工具调用",
+      "skillUse": "技能使用",
       "contextCompression": "上下文压缩"
     },
     "model": "模型",
@@ -725,6 +726,9 @@
     "inputPrompt": "输入提示词",
     "output": "输出结果",
     "tool": "工具",
+    "skill": "技能",
+    "action": "动作",
+    "file": "文件",
     "arguments": "参数",
     "result": "结果",
     "saved": "节省",

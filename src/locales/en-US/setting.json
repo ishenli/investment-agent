@@ -646,6 +646,7 @@
     "span": {
       "llmCall": "LLM Call",
       "toolCall": "Tool Call",
+      "skillUse": "Skill Use",
       "contextCompression": "Context Compression"
     },
     "model": "Model",
@@ -653,6 +654,9 @@
     "inputPrompt": "Input Prompt",
     "output": "Output",
     "tool": "Tool",
+    "skill": "Skill",
+    "action": "Action",
+    "file": "File",
     "arguments": "Arguments",
     "result": "Result",
     "saved": "Saved",

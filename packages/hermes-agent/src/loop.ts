@@ -28,12 +28,7 @@ import { defaultContentGuard } from './guard/content-validator';
 import { defaultAuditLogger } from './guard/audit-logger';
 import { ContextCompressor } from './context';
 import { buildMemoryContextBlock } from './memory-manager';
-import type {
-  AgentConfig,
-  AgentCallbacks,
-  HermesAgentResult,
-  ToolExecutor,
-} from './types';
+import type { AgentConfig, AgentCallbacks, HermesAgentResult, ToolExecutor } from './types';
 import { ToolRegistry } from './tools';
 import type { TraceContext, Tracer, MetricsCollector, CostTracker } from './observability';
 
@@ -67,17 +62,40 @@ export async function runAgentLoop(
     if (!text) return '';
     return text.length > maxLen ? text.slice(0, maxLen) + '...' : text;
   };
-  
+
+  const skillToolActions: Record<string, string> = {
+    skills_list: 'list',
+    skill_view: 'view',
+    skill_manage: 'manage',
+  };
+
+  const buildSkillAttributes = (toolCall: ToolCall): Record<string, unknown> => {
+    const skillName =
+      toolCall.name === 'skills_list' ? toolCall.arguments.category : toolCall.arguments.name;
+
+    return {
+      tool: toolCall.name,
+      skillTool: true,
+      skillAction: skillToolActions[toolCall.name],
+      ...(skillName ? { skillName: String(skillName) } : {}),
+      ...(toolCall.arguments.file_path
+        ? { skillFilePath: String(toolCall.arguments.file_path) }
+        : {}),
+    };
+  };
+
   // Helper: extract full prompt from context messages
   const extractFullPrompt = (messages: Context['messages']): string => {
-    return messages.map(m => {
-      if (typeof m.content === 'string') return `[${m.role}]: ${m.content}`;
-      if (Array.isArray(m.content)) {
-        const textParts = m.content.filter((b: any) => b.type === 'text').map((b: any) => b.text);
-        return `[${m.role}]: ${textParts.join(' ')}`;
-      }
-      return `[${m.role}]: [non-text content]`;
-    }).join('\n\n');
+    return messages
+      .map((m) => {
+        if (typeof m.content === 'string') return `[${m.role}]: ${m.content}`;
+        if (Array.isArray(m.content)) {
+          const textParts = m.content.filter((b: any) => b.type === 'text').map((b: any) => b.text);
+          return `[${m.role}]: ${textParts.join(' ')}`;
+        }
+        return `[${m.role}]: [non-text content]`;
+      })
+      .join('\n\n');
   };
 
   // Extract abort signal from streamOptions for cancellation checks
@@ -102,7 +120,12 @@ export async function runAgentLoop(
       memoryManager.onTurnStart(turnNumber, originalUserContent);
       // Strip any existing ephemeral memory-context blocks before injecting the new one.
       context.messages = context.messages.filter(
-        (m) => !(m.role === 'user' && typeof m.content === 'string' && m.content.startsWith('<memory-context>')),
+        (m) =>
+          !(
+            m.role === 'user' &&
+            typeof m.content === 'string' &&
+            m.content.startsWith('<memory-context>')
+          ),
       );
       if (signal?.aborted) {
         console.warn('[AgentLoop] Memory prefetch skipped: aborted');
@@ -114,22 +137,26 @@ export async function runAgentLoop(
           `Memory prefetch timed out after ${prefetchTimeoutMs}ms`,
         );
         if (prefetch?.trim()) {
-        // Find the last user message by content (more robust than reference equality)
-        let lastUserIndex = -1;
-        for (let i = context.messages.length - 1; i >= 0; i--) {
-          const m = context.messages[i];
-          if (m.role === 'user' && typeof m.content === 'string' && m.content === originalUserContent) {
-            lastUserIndex = i;
-            break;
+          // Find the last user message by content (more robust than reference equality)
+          let lastUserIndex = -1;
+          for (let i = context.messages.length - 1; i >= 0; i--) {
+            const m = context.messages[i];
+            if (
+              m.role === 'user' &&
+              typeof m.content === 'string' &&
+              m.content === originalUserContent
+            ) {
+              lastUserIndex = i;
+              break;
+            }
           }
-        }
-        if (lastUserIndex >= 0) {
-          context.messages.splice(lastUserIndex, 0, {
-            role: 'user',
-            content: buildMemoryContextBlock(prefetch),
-            timestamp: Date.now(),
-          });
-        }
+          if (lastUserIndex >= 0) {
+            context.messages.splice(lastUserIndex, 0, {
+              role: 'user',
+              content: buildMemoryContextBlock(prefetch),
+              timestamp: Date.now(),
+            });
+          }
         }
       }
     } catch (e) {
@@ -168,7 +195,10 @@ export async function runAgentLoop(
 
     // Call LLM with retry (instrumented)
     let response: AssistantMessage;
-    const llmSpan = traceCtx && tracer ? tracer.startSpan(traceCtx, 'llm_call', 'client', { model: model.name }) : undefined;
+    const llmSpan =
+      traceCtx && tracer
+        ? tracer.startSpan(traceCtx, 'llm_call', 'client', { model: model.name })
+        : undefined;
     const llmStartTime = Date.now();
 
     try {
@@ -214,11 +244,15 @@ export async function runAgentLoop(
     // Record LLM usage and cost
     if (response.usage) {
       if (traceCtx && metrics) {
-        metrics.recordTokens(traceCtx, {
-          input: response.usage.input,
-          output: response.usage.output,
-          total: response.usage.totalTokens,
-        }, model.name);
+        metrics.recordTokens(
+          traceCtx,
+          {
+            input: response.usage.input,
+            output: response.usage.output,
+            total: response.usage.totalTokens,
+          },
+          model.name,
+        );
         metrics.recordLlmLatency(traceCtx, llmDurationMs, model.name);
       }
       if (traceCtx && costTracker && response.usage.totalTokens) {
@@ -270,12 +304,11 @@ export async function runAgentLoop(
       const tokensBefore = response.usage.input;
       compressor.updateFromResponse(response.usage);
       if (compressor.shouldCompress()) {
-        const compressionSpan = traceCtx && tracer ? tracer.startSpan(traceCtx, 'context_compression', 'internal') : undefined;
-        context.messages = await compressor.compress(
-          context.messages,
-          model,
-          response.usage.input,
-        );
+        const compressionSpan =
+          traceCtx && tracer
+            ? tracer.startSpan(traceCtx, 'context_compression', 'internal')
+            : undefined;
+        context.messages = await compressor.compress(context.messages, model, response.usage.input);
         const tokensAfter = estimateMessageTokens(context.messages);
         if (traceCtx && metrics) {
           metrics.recordCompression(traceCtx, tokensBefore, tokensAfter);
@@ -337,9 +370,9 @@ export async function runAgentLoop(
       toolCalls.map((tc) => tc.name),
     );
 
-   // Permission configuration (constant per turn)
+    // Permission configuration (constant per turn)
     const permissionLevel = config.permissionLevel ?? 'auto';
-   const CONFIRMATION_TIMEOUT_MS = 60_000;
+    const CONFIRMATION_TIMEOUT_MS = 60_000;
 
     // Execute tool calls
     for (const toolCall of toolCalls) {
@@ -366,7 +399,10 @@ export async function runAgentLoop(
         permissionLevel,
         policy,
         decision: policy === 'deny' ? 'denied' : 'allowed',
-        reason: policy === 'deny' ? `Permission level ${permissionLevel} denies ${toolCategory} operations` : undefined,
+        reason:
+          policy === 'deny'
+            ? `Permission level ${permissionLevel} denies ${toolCategory} operations`
+            : undefined,
       });
 
       if (policy === 'deny') {
@@ -415,12 +451,24 @@ export async function runAgentLoop(
             reason: 'Confirmation timeout or error',
           });
 
-          context.messages.push(buildBlockedResult(toolCall, `Confirmation timeout for "${toolCall.name}". Operation cancelled.`, callbacks));
+          context.messages.push(
+            buildBlockedResult(
+              toolCall,
+              `Confirmation timeout for "${toolCall.name}". Operation cancelled.`,
+              callbacks,
+            ),
+          );
           continue;
         }
 
         if (!confirmed) {
-          context.messages.push(buildBlockedResult(toolCall, `User declined execution of "${toolCall.name}".`, callbacks));
+          context.messages.push(
+            buildBlockedResult(
+              toolCall,
+              `User declined execution of "${toolCall.name}".`,
+              callbacks,
+            ),
+          );
           continue;
         }
       }
@@ -435,10 +483,21 @@ export async function runAgentLoop(
           );
           if (!guardDecision.allowed) {
             defaultAuditLogger.log({
-              toolName: toolCall.name, toolCategory, permissionLevel, policy,
-              decision: 'denied', reason: guardDecision.reason, contentGuardPattern: guardDecision.pattern,
+              toolName: toolCall.name,
+              toolCategory,
+              permissionLevel,
+              policy,
+              decision: 'denied',
+              reason: guardDecision.reason,
+              contentGuardPattern: guardDecision.pattern,
             });
-            context.messages.push(buildBlockedResult(toolCall, `Content guard blocked: ${guardDecision.reason}`, callbacks));
+            context.messages.push(
+              buildBlockedResult(
+                toolCall,
+                `Content guard blocked: ${guardDecision.reason}`,
+                callbacks,
+              ),
+            );
             continue;
           }
         }
@@ -446,15 +505,27 @@ export async function runAgentLoop(
 
       // Content Guard: validate write-category tools for sensitive file paths
       if (toolCategory === 'write') {
-        const filePath = toolCall.arguments.filePath ?? toolCall.arguments.file_path ?? toolCall.arguments.path;
+        const filePath =
+          toolCall.arguments.filePath ?? toolCall.arguments.file_path ?? toolCall.arguments.path;
         if (filePath) {
           const guardDecision = defaultContentGuard.validateFilePath(String(filePath));
           if (!guardDecision.allowed) {
             defaultAuditLogger.log({
-              toolName: toolCall.name, toolCategory, permissionLevel, policy,
-              decision: 'denied', reason: guardDecision.reason, contentGuardPattern: guardDecision.pattern,
+              toolName: toolCall.name,
+              toolCategory,
+              permissionLevel,
+              policy,
+              decision: 'denied',
+              reason: guardDecision.reason,
+              contentGuardPattern: guardDecision.pattern,
             });
-            context.messages.push(buildBlockedResult(toolCall, `Content guard blocked: ${guardDecision.reason}`, callbacks));
+            context.messages.push(
+              buildBlockedResult(
+                toolCall,
+                `Content guard blocked: ${guardDecision.reason}`,
+                callbacks,
+              ),
+            );
             continue;
           }
         }
@@ -462,7 +533,16 @@ export async function runAgentLoop(
 
       // ============== Execute Tool ==============
       let resultMessage: ToolResultMessage;
-      const toolSpan = traceCtx && tracer ? tracer.startSpan(traceCtx, 'tool_call', 'internal', { tool: toolCall.name }) : undefined;
+      const isSkillTool = toolCall.name in skillToolActions;
+      const toolSpan =
+        traceCtx && tracer
+          ? tracer.startSpan(
+              traceCtx,
+              isSkillTool ? 'skill_use' : 'tool_call',
+              'internal',
+              isSkillTool ? buildSkillAttributes(toolCall) : { tool: toolCall.name },
+            )
+          : undefined;
       const toolStartTime = Date.now();
 
       if (toolExecutor) {
@@ -496,7 +576,7 @@ export async function runAgentLoop(
           tracer.endSpan(toolSpan, {
             status: result.isError ? 'error' : 'ok',
             attributes: {
-              tool: toolCall.name,
+              ...(isSkillTool ? buildSkillAttributes(toolCall) : { tool: toolCall.name }),
               args: summarize(JSON.stringify(toolCall.arguments)),
               argsFull: JSON.stringify(toolCall.arguments, null, 2),
               isError: result.isError,
@@ -525,7 +605,7 @@ export async function runAgentLoop(
           tracer.endSpan(toolSpan, {
             status: 'error',
             attributes: {
-              tool: toolCall.name,
+              ...(isSkillTool ? buildSkillAttributes(toolCall) : { tool: toolCall.name }),
               args: summarize(JSON.stringify(toolCall.arguments)),
               argsFull: JSON.stringify(toolCall.arguments, null, 2),
               error: 'no executor',
@@ -599,10 +679,7 @@ async function streamWithCallbacks(
     if (event.type === 'text_delta') {
       callbacks.onTextDelta?.(event.delta);
     } else if (event.type === 'error') {
-      throw new HermesAgentError(
-        event.error.errorMessage ?? 'Stream error',
-        'API_ERROR',
-      );
+      throw new HermesAgentError(event.error.errorMessage ?? 'Stream error', 'API_ERROR');
     }
   }
 
@@ -614,9 +691,7 @@ async function streamWithCallbacks(
  */
 function extractText(message: AssistantMessage): string {
   return message.content
-    .filter((block): block is Extract<typeof block, { type: 'text' }> =>
-      block.type === 'text',
-    )
+    .filter((block): block is Extract<typeof block, { type: 'text' }> => block.type === 'text')
     .map((block) => block.text)
     .join('');
 }

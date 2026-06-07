@@ -7,7 +7,7 @@ export interface SpanData {
   spanId: string;
   traceId: string;
   parentSpanId?: string;
-  name: 'llm_call' | 'tool_call' | 'context_compression';
+  name: 'llm_call' | 'tool_call' | 'skill_use' | 'context_compression';
   kind: 'client' | 'internal';
   status: 'ok' | 'error';
   startTime: number;
@@ -67,7 +67,7 @@ export interface ObservabilityActions {
     traceId: string;
     spanId: string;
     parentSpanId?: string;
-    name: 'llm_call' | 'tool_call' | 'context_compression';
+    name: 'llm_call' | 'tool_call' | 'skill_use' | 'context_compression';
     kind: 'client' | 'internal';
     startTime: number;
     attributes?: Record<string, unknown>;
@@ -194,7 +194,17 @@ export const useObservabilityStore = createWithEqualityFn<ObservabilityStore>()(
         );
       },
 
-      handleSpanEnd: ({ traceId, spanId, status, endTime, durationMs, attributes, tokenInput, tokenOutput, cost }) => {
+      handleSpanEnd: ({
+        traceId,
+        spanId,
+        status,
+        endTime,
+        durationMs,
+        attributes,
+        tokenInput,
+        tokenOutput,
+        cost,
+      }) => {
         set(
           produce(get(), (draft) => {
             const spans = draft.spansByTraceId[traceId];

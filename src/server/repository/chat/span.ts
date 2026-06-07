@@ -12,7 +12,7 @@ export type SpanEntity = {
   id: string;
   traceId: string;
   parentSpanId: string | null;
-  name: 'llm_call' | 'tool_call' | 'context_compression';
+  name: 'llm_call' | 'tool_call' | 'skill_use' | 'context_compression';
   kind: 'client' | 'internal';
   status: 'ok' | 'error';
   attributes: Record<string, unknown> | null;
