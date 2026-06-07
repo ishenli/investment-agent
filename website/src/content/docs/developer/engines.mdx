@@ -37,6 +37,22 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 
 ## Claude 引擎
 
+### 技能参数
+
+Claude 聊天 API 支持两个技能相关参数：
+
+```typescript
+{
+  skills?: string[];
+  explicitSkill?: string;
+}
+```
+
+- `skills`：会话级启用技能 slug 列表，用于过滤全局启用技能。
+- `explicitSkill`：下一条消息优先使用的技能 slug，由 `/` 命令或技能面板 Sparkles 按钮产生。
+
+普通技能会进入稳定的 system prompt；`explicitSkill` 会转换成 `explicitSkillDirective`，注入到用户 prompt，而不是 system prompt，以保留 prompt cache。两者同时存在时，显式技能优先，并会从普通技能列表中去重。
+
 ### 文件支持
 
 支持多种文件类型作为上下文：
@@ -79,6 +95,18 @@ stockRecallCompanyInfo   // 公司信息召回
 noteQueryTool            // 投资笔记查询
 TravilySearchTool        // 网络搜索
 ```
+
+## Hermes 引擎技能参数
+
+Hermes 聊天 API 也接收 `skills` 和 `explicitSkill`。与 Claude 不同，Hermes 会把技能注册为工具：
+
+```typescript
+registerSkillTools(registry, {
+  enabledSlugs: [...skills, explicitSkill],
+});
+```
+
+Agent 会先通过 `skills_list` 浏览可用技能，再按需调用 `skill_view` 读取完整技能内容。若 `explicitSkill` 不在 `skills` 中，引擎会临时追加它，确保单次指定技能可用。
 
 ## 运行时配置
 

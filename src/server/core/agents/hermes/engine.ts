@@ -17,6 +17,7 @@ import { skillFileScanner } from '@server/lib/skill/SkillFileScanner';
 import { skillRegistry } from '@server/lib/skill/SkillRegistry';
 import { resolveAgentModel } from '@server/service/agentModelResolver';
 import { skillService } from '@server/service/skillService';
+import { buildExplicitSkillPrompt } from '@server/core/engine/skillPrompt';
 import { registerBusinessTools } from '@server/core/agents/hermes';
 import { getProjectRoot, getProjectDir } from '@server/base/env';
 import { observabilityService } from '@server/service/observabilityService';
@@ -38,6 +39,8 @@ export class HermesEngine implements IAgentEngine {
     const maxIterations = (extra?.maxIterations as number) ?? 30;
     const permissionLevel = (extra?.permissionLevel as 'safe' | 'auto' | 'full-access') ?? 'auto';
     const platform = (extra?.platform as string) ?? 'web';
+    const requestedSkillSlugs = Array.isArray(extra?.skills) ? (extra.skills as string[]) : undefined;
+    const explicitSkill = typeof extra?.explicitSkill === 'string' ? extra.explicitSkill : undefined;
 
     await eventSink.sendStatus(`初始化模型 ${provider}/${modelSlug}`, {
       id: messageId,
@@ -69,15 +72,32 @@ export class HermesEngine implements IAgentEngine {
       );
       // Respect UI-level skill enablement toggles.
       const enabledSkills = await skillRegistry.getEnabledSkills(userId);
+      const enabledSlugs = requestedSkillSlugs ?? enabledSkills.map((s) => s.id);
+      const effectiveEnabledSlugs =
+        explicitSkill && !enabledSlugs.includes(explicitSkill)
+          ? [...enabledSlugs, explicitSkill]
+          : enabledSlugs;
       // Reverse so that more specific/later skill roots override earlier ones
       // in registerSkillTools (user skills > bundled skills).
       registerSkillTools(registry, {
         skillRoots: [...skillFileScanner.getSkillRoots(userSkillsDir)].reverse(),
         localSkillsDir: userSkillsDir,
         sessionId: String(userId),
-        enabledSlugs: enabledSkills.map((s) => s.id),
+        enabledSlugs: effectiveEnabledSlugs,
         onSkillChanged: handleSkillChanged,
       });
+    }
+
+    // 2b. Resolve explicit skill prompt (injected into messages, not systemPrompt, to preserve prompt cache)
+    let explicitSkillDirective: string | undefined;
+    if (explicitSkill) {
+      const resolvedExplicit = await skillService.getSkill(userId, explicitSkill);
+      if (resolvedExplicit?.prompt) {
+        explicitSkillDirective = buildExplicitSkillPrompt(resolvedExplicit);
+        logger.info(`[HermesEngine] Using explicit skill: ${explicitSkill}`);
+      } else {
+        logger.warn(`[HermesEngine] Explicit skill not found or has no prompt: ${explicitSkill}`);
+      }
     }
 
     // 3. Build pi-ai message context
@@ -224,8 +244,12 @@ export class HermesEngine implements IAgentEngine {
 
     let result;
     try {
+      const lastUserContent = messages.findLast((m) => m.role === 'user')!.content;
+      const effectiveMessage = explicitSkillDirective
+        ? `${explicitSkillDirective}\n\n${lastUserContent}`
+        : lastUserContent;
       result = await agent.run({
-        message: messages.findLast((m) => m.role === 'user')!.content,
+        message: effectiveMessage,
         context: {
           systemPrompt: agent.getSystemPrompt(),
           messages: piMessages.slice(0, -1) as any,

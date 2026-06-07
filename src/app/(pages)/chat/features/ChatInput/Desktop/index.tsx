@@ -9,6 +9,7 @@ import { CHAT_TEXTAREA_HEIGHT, CHAT_TEXTAREA_MAX_HEIGHT } from '@renderer/const/
 import React from 'react';
 import { ActionKeys } from '../ActionBar/config';
 import Head from './Header';
+import SkillChipBar from './SkillChipBar';
 
 export type FooterRender = (params: {
   expand: boolean;
@@ -20,7 +21,7 @@ interface DesktopChatInputProps {
   leftActions: ActionKeys[];
   onInputHeightChange?: (height: number) => void;
   renderFooter: FooterRender;
-  renderTextArea: (onSend: () => void) => ReactNode;
+  renderTextArea: (onSend: () => void, expand: boolean) => ReactNode;
   rightActions: ActionKeys[];
 }
 
@@ -54,10 +55,9 @@ const DesktopChatInput = memo<DesktopChatInputProps>(
           }}
           placement="bottom"
           size={{ height: inputHeight, width: '100%' }}
-          style={{ zIndex: 10 }}
+          style={{ zIndex: 100, overflow: 'visible' }}
         >
           <Flexbox
-            data-aspm="c437890"
             id="chat-input-container"
             gap={8}
             height={'100%'}
@@ -74,7 +74,8 @@ const DesktopChatInput = memo<DesktopChatInputProps>(
               rightActions={rightActions}
               setExpand={setExpand}
             />
-            {renderTextArea(onSend)}
+            <SkillChipBar />
+            {renderTextArea(onSend, expand)}
             {renderFooter({ expand, onExpandChange: setExpand })}
           </Flexbox>
         </DraggablePanel>

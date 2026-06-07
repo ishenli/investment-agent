@@ -47,6 +47,8 @@ export interface ClaudeEngineExtra {
   mcpServers?: Record<string, unknown>;
   /** 允许使用的工具列表 */
   allowedTools?: string[];
+  /** 显式技能指令（注入到用户 prompt 而非 systemPrompt，以保留 prompt cache） */
+  explicitSkillDirective?: string;
 }
 
 /**

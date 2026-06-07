@@ -61,7 +61,6 @@ const Footer = memo<FooterProps>(({ onExpandChange, expand }) => {
         <MessageFromUrl />
       </Suspense>
       <Flexbox
-        data-aspm="c437890"
         data-aspm-expo
         align={'end'}
         className={styles.overrideAntdIcon}

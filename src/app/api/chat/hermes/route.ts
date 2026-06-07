@@ -44,6 +44,10 @@ const HermesChatRequestSchema = z.object({
   maxIterations: z.number().optional().default(30),
  /** Permission level for tool execution (default: 'standard') */
   permissionLevel: z.enum(['safe', 'auto', 'full-access']).optional().default('auto'),
+  /** 会话级别激活的 skill slugs，作为 Hermes skill tools 的启用列表 */
+  skills: z.array(z.string()).optional(),
+  /** 显式指定的单个 skill slug */
+  explicitSkill: z.string().optional(),
 });
 
 type HermesChatRequest = z.infer<typeof HermesChatRequestSchema>;
@@ -114,6 +118,8 @@ class HermesAgentController extends BaseController {
                 enableTools: body.enableTools,
                 maxIterations: body.maxIterations,
                 permissionLevel: body.permissionLevel,
+                skills: body.skills,
+                explicitSkill: body.explicitSkill,
               },
             },
             sseEmitter,

@@ -20,7 +20,9 @@ const leftActions = [
 
 const rightActions = ['clear'] as ActionKeys[];
 
-const renderTextArea = (onSend: () => void) => <TextArea onSend={onSend} />;
+const renderTextArea = (onSend: () => void, expand: boolean) => (
+  <TextArea chatInputExpand={expand} onSend={onSend} />
+);
 const renderFooter: FooterRender = ({ expand, onExpandChange }) => (
   <Footer expand={expand} onExpandChange={onExpandChange} />
 );

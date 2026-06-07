@@ -50,7 +50,6 @@ const Clear = memo(() => {
       }
     >
       <Action
-        data-aspm-click="c437890.d627180"
         icon={Eraser}
         title={actionTitle}
         tooltipProps={{
