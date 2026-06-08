@@ -7,6 +7,9 @@
  * 关键：确保 trace 在 span 之前创建，避免外键约束失败。
  */
 import { traceRepository, spanRepository } from '@server/repository/chat';
+import { db } from '@server/lib/db';
+import { chatMessages } from '@/drizzle/schema/chat';
+import { eq, and, asc, inArray } from 'drizzle-orm';
 import logger from '@server/base/logger';
 import type {
   TraceStartEvent,
@@ -153,6 +156,37 @@ export class ObservabilityService {
 
   async findSpansByTrace(traceId: string) {
     return spanRepository.findByTraceId(traceId);
+  }
+
+  /**
+   * Batch-lookup first user message per trace from chat_messages.
+   * @param traceIds Trace IDs to look up
+   * @returns Map of traceId → user input text (truncated to 200 chars)
+   */
+  async getTraceInputs(traceIds: string[]): Promise<Map<string, string>> {
+    const inputMap = new Map<string, string>();
+    if (traceIds.length === 0) return inputMap;
+
+    try {
+      const messages = await (db as any)
+        .select({ traceId: chatMessages.traceId, content: chatMessages.content })
+        .from(chatMessages)
+        .where(and(
+          eq(chatMessages.role, 'user'),
+          inArray(chatMessages.traceId, traceIds),
+        ))
+        .orderBy(asc(chatMessages.createdAt));
+
+      for (const msg of messages) {
+        if (msg.traceId && !inputMap.has(msg.traceId)) {
+          inputMap.set(msg.traceId, msg.content?.slice(0, 200) ?? '');
+        }
+      }
+    } catch (error) {
+      logger.error('[ObservabilityService] Failed to get trace inputs:', error);
+    }
+
+    return inputMap;
   }
 }
 
