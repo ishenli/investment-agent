@@ -1,5 +1,6 @@
 import type { UIArtifactType } from '@typings/chat/uiArtifact';
 import { UI_ARTIFACT_VERSION } from '@typings/chat/uiArtifact';
+import type { SpanName } from '@investment-agent/hermes-agent';
 
 export type AgentStreamEvent =
   | {
@@ -98,7 +99,7 @@ export type AgentStreamEvent =
       traceId: string;
       spanId: string;
       parentSpanId?: string;
-      name: 'llm_call' | 'tool_call' | 'context_compression';
+      name: SpanName;
       kind: 'client' | 'internal';
       startTime: number;
       attributes?: Record<string, unknown>;
@@ -107,7 +108,7 @@ export type AgentStreamEvent =
       type: 'span_end';
       traceId: string;
       spanId: string;
-      name: 'llm_call' | 'tool_call' | 'context_compression';
+      name: SpanName;
       status: 'ok' | 'error';
       startTime: number;
       endTime: number;

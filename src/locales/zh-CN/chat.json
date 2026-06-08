@@ -152,6 +152,7 @@
     "span": {
       "llmCall": "LLM 调用",
       "toolCall": "工具调用",
+      "skillUse": "技能使用",
       "contextCompression": "上下文压缩"
     },
     "status": {
@@ -168,6 +169,9 @@
     "output": "输出",
     "rawAttributes": "原始属性",
     "tool": "工具",
+    "skill": "技能",
+    "action": "动作",
+    "file": "文件",
     "arguments": "参数",
     "result": "结果",
     "tokensBefore": "压缩前 Token",

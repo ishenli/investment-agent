@@ -205,7 +205,16 @@ export class HermesAgent {
       ? new CostTracker(this.config.observability.pricing, this.config.observability.defaultPricing)
       : undefined;
 
-    const traceCtx = this.tracer?.startTrace(this.config.name ?? 'hermes');
+    const inputText = typeof input === 'string'
+      ? input
+      : typeof input.message === 'string'
+        ? input.message
+        : typeof input.message.content === 'string'
+          ? input.message.content
+          : '';
+    const traceCtx = this.tracer?.startTrace(this.config.name ?? 'hermes', {
+      metadata: { input: inputText.slice(0, 200) },
+    });
 
     const agentConfig: AgentConfig = {
       name: this.config.name ?? 'hermes',

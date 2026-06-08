@@ -7,6 +7,7 @@ import { Separator } from '@renderer/components/ui/separator';
 import {
   MessageSquare,
   FileSearch,
+  BookOpen,
   Cpu,
   Zap,
   Clock,
@@ -34,6 +35,7 @@ export interface Trace {
   latencyMs: number;
   toolCallCount: number;
   error: string | null;
+  input: string | null;
   metadata: Record<string, unknown> | null;
   createdAt: string;
   updatedAt: string;
@@ -66,6 +68,7 @@ export interface SpanStats {
 const SPAN_COLORS: Record<string, { bar: string; text: string }> = {
   llm_call: { bar: 'bg-blue-500', text: 'text-blue-500' },
   tool_call: { bar: 'bg-green-500', text: 'text-green-500' },
+  skill_use: { bar: 'bg-teal-500', text: 'text-teal-500' },
   context_compression: { bar: 'bg-orange-500', text: 'text-orange-500' },
 };
 
@@ -114,6 +117,11 @@ function getSpanLabel(span: Span, t: any): string | null {
   if (span.name === 'tool_call' && span.attributes?.tool) {
     return String(span.attributes.tool);
   }
+  if (span.name === 'skill_use') {
+    return String(
+      span.attributes?.skillName ?? span.attributes?.skillAction ?? span.attributes?.tool ?? '',
+    );
+  }
   if (span.name === 'context_compression') {
     const saved = span.attributes?.saved;
     if (typeof saved === 'number') return `${saved} ${t('observability.tokensShort', 'tokens')}`;
@@ -124,7 +132,9 @@ function getSpanLabel(span: Span, t: any): string | null {
 function getDisplayName(name: string, t: any): string {
   if (name === 'llm_call') return t('observability.span.llmCall', 'LLM Call');
   if (name === 'tool_call') return t('observability.span.toolCall', 'Tool Call');
-  if (name === 'context_compression') return t('observability.span.contextCompression', 'Context Compression');
+  if (name === 'skill_use') return t('observability.span.skillUse', 'Skill Use');
+  if (name === 'context_compression')
+    return t('observability.span.contextCompression', 'Context Compression');
   return name;
 }
 
@@ -135,6 +145,8 @@ const SpanIcon = memo<{ name: string }>(({ name }) => {
       return <MessageSquare className="w-3.5 h-3.5 text-blue-500" />;
     case 'tool_call':
       return <FileSearch className="w-3.5 h-3.5 text-green-500" />;
+    case 'skill_use':
+      return <BookOpen className="w-3.5 h-3.5 text-teal-500" />;
     case 'context_compression':
       return <Cpu className="w-3.5 h-3.5 text-orange-500" />;
     default:
@@ -143,17 +155,21 @@ const SpanIcon = memo<{ name: string }>(({ name }) => {
 });
 SpanIcon.displayName = 'SpanIcon';
 
-const InfoCard = memo<{ icon: React.ReactNode; label: string; value: string }>(({ icon, label, value }) => {
-  return (
-    <div className="flex items-center gap-2 p-2.5 rounded-md bg-muted/60">
-      <span className="w-4 h-4 opacity-60 flex-shrink-0">{icon}</span>
-      <div className="min-w-0 overflow-hidden">
-        <div className="text-[11px] text-muted-foreground whitespace-nowrap">{label}</div>
-        <div className="text-[13px] font-medium truncate" title={value}>{value}</div>
+const InfoCard = memo<{ icon: React.ReactNode; label: string; value: string }>(
+  ({ icon, label, value }) => {
+    return (
+      <div className="flex items-center gap-2 p-2.5 rounded-md bg-muted/60">
+        <span className="w-4 h-4 opacity-60 flex-shrink-0">{icon}</span>
+        <div className="min-w-0 overflow-hidden">
+          <div className="text-[11px] text-muted-foreground whitespace-nowrap">{label}</div>
+          <div className="text-[13px] font-medium truncate" title={value}>
+            {value}
+          </div>
+        </div>
       </div>
-    </div>
-  );
-});
+    );
+  },
+);
 InfoCard.displayName = 'InfoCard';
 
 const LLMCallDetail = memo<{ span: Span }>(({ span }) => {
@@ -170,47 +186,84 @@ const LLMCallDetail = memo<{ span: Span }>(({ span }) => {
       <div className="flex items-center gap-2 mb-1">
         <MessageSquare className="w-4 h-4 text-blue-500" />
         <span className="text-sm font-semibold">{t('observability.span.llmCall', 'LLM Call')}</span>
-        <Badge variant="outline" className="text-xs">{span.kind}</Badge>
-        <Badge
-          className="text-xs"
-          variant={span.status === 'ok' ? 'default' : 'destructive'}
-        >
-          {span.status === 'ok' ? t('observability.status.success', 'Success') : t('observability.status.error', 'Error')}
+        <Badge variant="outline" className="text-xs">
+          {span.kind}
+        </Badge>
+        <Badge className="text-xs" variant={span.status === 'ok' ? 'default' : 'destructive'}>
+          {span.status === 'ok'
+            ? t('observability.status.success', 'Success')
+            : t('observability.status.error', 'Error')}
         </Badge>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-        {model && <InfoCard icon={<Hash className="w-4 h-4" />} label={t('observability.model', 'Model')} value={model} />}
-        <InfoCard icon={<Clock className="w-4 h-4" />} label={t('observability.duration', 'Duration')} value={formatDuration(span.durationMs)} />
-        <InfoCard icon={<Hash className="w-4 h-4" />} label={t('observability.inputTokens', 'Input Tokens')} value={formatTokens(span.tokenInput)} />
-        <InfoCard icon={<Hash className="w-4 h-4" />} label={t('observability.outputTokens', 'Output Tokens')} value={formatTokens(span.tokenOutput)} />
-        <InfoCard icon={<Coins className="w-4 h-4" />} label={t('observability.cost', 'Cost')} value={span.cost != null ? `$${span.cost.toFixed(6)}` : '-'} />
+        {model && (
+          <InfoCard
+            icon={<Hash className="w-4 h-4" />}
+            label={t('observability.model', 'Model')}
+            value={model}
+          />
+        )}
+        <InfoCard
+          icon={<Clock className="w-4 h-4" />}
+          label={t('observability.duration', 'Duration')}
+          value={formatDuration(span.durationMs)}
+        />
+        <InfoCard
+          icon={<Hash className="w-4 h-4" />}
+          label={t('observability.inputTokens', 'Input Tokens')}
+          value={formatTokens(span.tokenInput)}
+        />
+        <InfoCard
+          icon={<Hash className="w-4 h-4" />}
+          label={t('observability.outputTokens', 'Output Tokens')}
+          value={formatTokens(span.tokenOutput)}
+        />
+        <InfoCard
+          icon={<Coins className="w-4 h-4" />}
+          label={t('observability.cost', 'Cost')}
+          value={span.cost != null ? `$${span.cost.toFixed(6)}` : '-'}
+        />
         {messageCount !== undefined && (
-          <InfoCard icon={<Hash className="w-4 h-4" />} label={t('observability.messages', 'Messages')} value={String(messageCount)} />
+          <InfoCard
+            icon={<Hash className="w-4 h-4" />}
+            label={t('observability.messages', 'Messages')}
+            value={String(messageCount)}
+          />
         )}
       </div>
 
       {(fullPrompt || promptSummary) && (
         <>
-          <div className="text-xs font-medium text-muted-foreground mt-2">{t('observability.inputPrompt', 'Input Prompt')}</div>
+          <div className="text-xs font-medium text-muted-foreground mt-2">
+            {t('observability.inputPrompt', 'Input Prompt')}
+          </div>
           <div className="border-l-2 border-primary bg-muted/30 rounded-r-md p-3">
-            <pre className="text-xs leading-relaxed whitespace-pre-wrap break-words overflow-y-auto max-h-40 font-mono">{fullPrompt || promptSummary}</pre>
+            <pre className="text-xs leading-relaxed whitespace-pre-wrap break-words overflow-y-auto max-h-40 font-mono">
+              {fullPrompt || promptSummary}
+            </pre>
           </div>
         </>
       )}
 
       {(fullResponse || responseSummary) && (
         <>
-          <div className="text-xs font-medium text-muted-foreground mt-2">{t('observability.output', 'Output')}</div>
+          <div className="text-xs font-medium text-muted-foreground mt-2">
+            {t('observability.output', 'Output')}
+          </div>
           <div className="border-l-2 border-green-500 bg-muted/30 rounded-r-md p-3">
-            <pre className="text-xs leading-relaxed whitespace-pre-wrap break-words overflow-y-auto max-h-40 font-mono">{fullResponse || responseSummary}</pre>
+            <pre className="text-xs leading-relaxed whitespace-pre-wrap break-words overflow-y-auto max-h-40 font-mono">
+              {fullResponse || responseSummary}
+            </pre>
           </div>
         </>
       )}
 
       <Separator className="my-2" />
 
-      <div className="text-xs font-medium text-muted-foreground">{t('observability.rawAttributes', 'Raw Attributes')}</div>
+      <div className="text-xs font-medium text-muted-foreground">
+        {t('observability.rawAttributes', 'Raw Attributes')}
+      </div>
       <div className="bg-muted/60 rounded-md p-3 overflow-x-auto">
         <pre className="text-[11px] font-mono">{JSON.stringify(span.attributes, null, 2)}</pre>
       </div>
@@ -233,39 +286,80 @@ const ToolCallDetail = memo<{ span: Span }>(({ span }) => {
     <div className="space-y-3">
       <div className="flex items-center gap-2 mb-1">
         <FileSearch className="w-4 h-4 text-green-500" />
-        <span className="text-sm font-semibold">{t('observability.span.toolCall', 'Tool Call')}</span>
-        <Badge variant="outline" className="text-xs">{span.kind}</Badge>
-        <Badge
-          className="text-xs"
-          variant={span.status === 'ok' ? 'default' : 'destructive'}
-        >
-          {span.status === 'ok' ? t('observability.status.success', 'Success') : t('observability.status.error', 'Error')}
+        <span className="text-sm font-semibold">
+          {t('observability.span.toolCall', 'Tool Call')}
+        </span>
+        <Badge variant="outline" className="text-xs">
+          {span.kind}
+        </Badge>
+        <Badge className="text-xs" variant={span.status === 'ok' ? 'default' : 'destructive'}>
+          {span.status === 'ok'
+            ? t('observability.status.success', 'Success')
+            : t('observability.status.error', 'Error')}
         </Badge>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-        {toolName && <InfoCard icon={<Hash className="w-4 h-4" />} label={t('observability.tool', 'Tool')} value={toolName} />}
-        <InfoCard icon={<Clock className="w-4 h-4" />} label={t('observability.duration', 'Duration')} value={formatDuration(span.durationMs)} />
-        {span.tokenInput !== null && <InfoCard icon={<Hash className="w-4 h-4" />} label={t('observability.inputTokens', 'Input Tokens')} value={formatTokens(span.tokenInput)} />}
-        {span.tokenOutput !== null && <InfoCard icon={<Hash className="w-4 h-4" />} label={t('observability.outputTokens', 'Output Tokens')} value={formatTokens(span.tokenOutput)} />}
-        {span.cost !== null && <InfoCard icon={<Coins className="w-4 h-4" />} label={t('observability.cost', 'Cost')} value={`$${span.cost.toFixed(6)}`} />}
+        {toolName && (
+          <InfoCard
+            icon={<Hash className="w-4 h-4" />}
+            label={t('observability.tool', 'Tool')}
+            value={toolName}
+          />
+        )}
+        <InfoCard
+          icon={<Clock className="w-4 h-4" />}
+          label={t('observability.duration', 'Duration')}
+          value={formatDuration(span.durationMs)}
+        />
+        {span.tokenInput !== null && (
+          <InfoCard
+            icon={<Hash className="w-4 h-4" />}
+            label={t('observability.inputTokens', 'Input Tokens')}
+            value={formatTokens(span.tokenInput)}
+          />
+        )}
+        {span.tokenOutput !== null && (
+          <InfoCard
+            icon={<Hash className="w-4 h-4" />}
+            label={t('observability.outputTokens', 'Output Tokens')}
+            value={formatTokens(span.tokenOutput)}
+          />
+        )}
+        {span.cost !== null && (
+          <InfoCard
+            icon={<Coins className="w-4 h-4" />}
+            label={t('observability.cost', 'Cost')}
+            value={`$${span.cost.toFixed(6)}`}
+          />
+        )}
       </div>
 
       {(argsFull || (args && Object.keys(args).length > 0)) && (
         <>
-          <div className="text-xs font-medium text-muted-foreground mt-2">{t('observability.arguments', 'Arguments')}</div>
+          <div className="text-xs font-medium text-muted-foreground mt-2">
+            {t('observability.arguments', 'Arguments')}
+          </div>
           <div className="border-l-2 border-primary bg-muted/30 rounded-r-md p-3">
-            <pre className="text-xs leading-relaxed whitespace-pre-wrap break-words overflow-y-auto max-h-40 font-mono">{argsFull || JSON.stringify(args, null, 2)}</pre>
+            <pre className="text-xs leading-relaxed whitespace-pre-wrap break-words overflow-y-auto max-h-40 font-mono">
+              {argsFull || JSON.stringify(args, null, 2)}
+            </pre>
           </div>
         </>
       )}
 
       {(resultFull || resultSummary) && (
         <>
-          <div className="text-xs font-medium text-muted-foreground mt-2">{t('observability.result', 'Result')}</div>
+          <div className="text-xs font-medium text-muted-foreground mt-2">
+            {t('observability.result', 'Result')}
+          </div>
           <div
             className="border-l-2 bg-muted/30 rounded-r-md p-3"
-            style={isError ? { borderLeftColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.05)' } : { borderLeftColor: '#22c55e' }}
+            style={
+              isError
+                ? { borderLeftColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.05)' }
+                : { borderLeftColor: '#22c55e' }
+            }
           >
             <pre
               className="text-xs leading-relaxed whitespace-pre-wrap break-words overflow-y-auto max-h-40 font-mono"
@@ -279,16 +373,22 @@ const ToolCallDetail = memo<{ span: Span }>(({ span }) => {
 
       {error && (
         <>
-          <div className="text-xs font-medium text-destructive mt-2">{t('observability.status.error', 'Error')}</div>
+          <div className="text-xs font-medium text-destructive mt-2">
+            {t('observability.status.error', 'Error')}
+          </div>
           <div className="border-l-2 border-destructive bg-destructive/5 rounded-r-md p-3">
-            <pre className="text-xs leading-relaxed whitespace-pre-wrap break-words overflow-y-auto max-h-40 font-mono text-destructive">{error}</pre>
+            <pre className="text-xs leading-relaxed whitespace-pre-wrap break-words overflow-y-auto max-h-40 font-mono text-destructive">
+              {error}
+            </pre>
           </div>
         </>
       )}
 
       <Separator className="my-2" />
 
-      <div className="text-xs font-medium text-muted-foreground">{t('observability.rawAttributes', 'Raw Attributes')}</div>
+      <div className="text-xs font-medium text-muted-foreground">
+        {t('observability.rawAttributes', 'Raw Attributes')}
+      </div>
       <div className="bg-muted/60 rounded-md p-3 overflow-x-auto">
         <pre className="text-[11px] font-mono">{JSON.stringify(span.attributes, null, 2)}</pre>
       </div>
@@ -296,6 +396,119 @@ const ToolCallDetail = memo<{ span: Span }>(({ span }) => {
   );
 });
 ToolCallDetail.displayName = 'ToolCallDetail';
+
+const SkillUseDetail = memo<{ span: Span }>(({ span }) => {
+  const { t } = useTranslation('setting');
+  const skillName = span.attributes?.skillName as string | undefined;
+  const skillAction = span.attributes?.skillAction as string | undefined;
+  const skillFilePath = span.attributes?.skillFilePath as string | undefined;
+  const toolName = span.attributes?.tool as string | undefined;
+  const isError = span.attributes?.isError as boolean | undefined;
+  const argsFull = span.attributes?.argsFull as string | undefined;
+  const resultSummary = span.attributes?.resultSummary as string | undefined;
+  const resultFull = span.attributes?.resultFull as string | undefined;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 mb-1">
+        <BookOpen className="w-4 h-4 text-teal-500" />
+        <span className="text-sm font-semibold">
+          {t('observability.span.skillUse', 'Skill Use')}
+        </span>
+        <Badge variant="outline" className="text-xs">
+          {span.kind}
+        </Badge>
+        <Badge className="text-xs" variant={span.status === 'ok' ? 'default' : 'destructive'}>
+          {span.status === 'ok'
+            ? t('observability.status.success', 'Success')
+            : t('observability.status.error', 'Error')}
+        </Badge>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+        {skillName && (
+          <InfoCard
+            icon={<Hash className="w-4 h-4" />}
+            label={t('observability.skill', 'Skill')}
+            value={skillName}
+          />
+        )}
+        {skillAction && (
+          <InfoCard
+            icon={<Hash className="w-4 h-4" />}
+            label={t('observability.action', 'Action')}
+            value={skillAction}
+          />
+        )}
+        {skillFilePath && (
+          <InfoCard
+            icon={<Hash className="w-4 h-4" />}
+            label={t('observability.file', 'File')}
+            value={skillFilePath}
+          />
+        )}
+        {toolName && (
+          <InfoCard
+            icon={<Hash className="w-4 h-4" />}
+            label={t('observability.tool', 'Tool')}
+            value={toolName}
+          />
+        )}
+        <InfoCard
+          icon={<Clock className="w-4 h-4" />}
+          label={t('observability.duration', 'Duration')}
+          value={formatDuration(span.durationMs)}
+        />
+      </div>
+
+      {argsFull && (
+        <>
+          <div className="text-xs font-medium text-muted-foreground mt-2">
+            {t('observability.arguments', 'Arguments')}
+          </div>
+          <div className="border-l-2 border-primary bg-muted/30 rounded-r-md p-3">
+            <pre className="text-xs leading-relaxed whitespace-pre-wrap break-words overflow-y-auto max-h-40 font-mono">
+              {argsFull}
+            </pre>
+          </div>
+        </>
+      )}
+
+      {(resultFull || resultSummary) && (
+        <>
+          <div className="text-xs font-medium text-muted-foreground mt-2">
+            {t('observability.result', 'Result')}
+          </div>
+          <div
+            className="border-l-2 bg-muted/30 rounded-r-md p-3"
+            style={
+              isError
+                ? { borderLeftColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.05)' }
+                : { borderLeftColor: '#14b8a6' }
+            }
+          >
+            <pre
+              className="text-xs leading-relaxed whitespace-pre-wrap break-words overflow-y-auto max-h-40 font-mono"
+              style={isError ? { color: '#b91c1c' } : undefined}
+            >
+              {resultFull || resultSummary}
+            </pre>
+          </div>
+        </>
+      )}
+
+      <Separator className="my-2" />
+
+      <div className="text-xs font-medium text-muted-foreground">
+        {t('observability.rawAttributes', 'Raw Attributes')}
+      </div>
+      <div className="bg-muted/60 rounded-md p-3 overflow-x-auto">
+        <pre className="text-[11px] font-mono">{JSON.stringify(span.attributes, null, 2)}</pre>
+      </div>
+    </div>
+  );
+});
+SkillUseDetail.displayName = 'SkillUseDetail';
 
 const ContextCompressionDetail = memo<{ span: Span }>(({ span }) => {
   const { t } = useTranslation('setting');
@@ -308,22 +521,58 @@ const ContextCompressionDetail = memo<{ span: Span }>(({ span }) => {
     <div className="space-y-3">
       <div className="flex items-center gap-2 mb-1">
         <Cpu className="w-4 h-4 text-orange-500" />
-        <span className="text-sm font-semibold">{t('observability.span.contextCompression', 'Context Compression')}</span>
-        <Badge variant="outline" className="text-xs">{span.kind}</Badge>
-        <Badge variant="secondary" className="text-xs">{t('observability.status.internal', 'Internal')}</Badge>
+        <span className="text-sm font-semibold">
+          {t('observability.span.contextCompression', 'Context Compression')}
+        </span>
+        <Badge variant="outline" className="text-xs">
+          {span.kind}
+        </Badge>
+        <Badge variant="secondary" className="text-xs">
+          {t('observability.status.internal', 'Internal')}
+        </Badge>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-        <InfoCard icon={<Clock className="w-4 h-4" />} label={t('observability.duration', 'Duration')} value={formatDuration(span.durationMs)} />
-        {tokensBefore !== undefined && <InfoCard icon={<Hash className="w-4 h-4" />} label={t('observability.tokensBefore', 'Tokens Before')} value={tokensBefore.toLocaleString()} />}
-        {tokensAfter !== undefined && <InfoCard icon={<Hash className="w-4 h-4" />} label={t('observability.tokensAfter', 'Tokens After')} value={tokensAfter.toLocaleString()} />}
-        {saved !== undefined && <InfoCard icon={<Hash className="w-4 h-4" />} label={t('observability.saved', 'Saved')} value={`${saved.toLocaleString()}${savedPct ? ` (${savedPct}%)` : ''}`} />}
-        {span.cost !== null && <InfoCard icon={<Coins className="w-4 h-4" />} label={t('observability.cost', 'Cost')} value={`$${span.cost.toFixed(6)}`} />}
+        <InfoCard
+          icon={<Clock className="w-4 h-4" />}
+          label={t('observability.duration', 'Duration')}
+          value={formatDuration(span.durationMs)}
+        />
+        {tokensBefore !== undefined && (
+          <InfoCard
+            icon={<Hash className="w-4 h-4" />}
+            label={t('observability.tokensBefore', 'Tokens Before')}
+            value={tokensBefore.toLocaleString()}
+          />
+        )}
+        {tokensAfter !== undefined && (
+          <InfoCard
+            icon={<Hash className="w-4 h-4" />}
+            label={t('observability.tokensAfter', 'Tokens After')}
+            value={tokensAfter.toLocaleString()}
+          />
+        )}
+        {saved !== undefined && (
+          <InfoCard
+            icon={<Hash className="w-4 h-4" />}
+            label={t('observability.saved', 'Saved')}
+            value={`${saved.toLocaleString()}${savedPct ? ` (${savedPct}%)` : ''}`}
+          />
+        )}
+        {span.cost !== null && (
+          <InfoCard
+            icon={<Coins className="w-4 h-4" />}
+            label={t('observability.cost', 'Cost')}
+            value={`$${span.cost.toFixed(6)}`}
+          />
+        )}
       </div>
 
       <Separator className="my-2" />
 
-      <div className="text-xs font-medium text-muted-foreground">{t('observability.rawAttributes', 'Raw Attributes')}</div>
+      <div className="text-xs font-medium text-muted-foreground">
+        {t('observability.rawAttributes', 'Raw Attributes')}
+      </div>
       <div className="bg-muted/60 rounded-md p-3 overflow-x-auto">
         <pre className="text-[11px] font-mono">{JSON.stringify(span.attributes, null, 2)}</pre>
       </div>
@@ -348,6 +597,8 @@ const SpanDetailPanel = memo<{ span: Span | null }>(({ span }) => {
       return <LLMCallDetail span={span} />;
     case 'tool_call':
       return <ToolCallDetail span={span} />;
+    case 'skill_use':
+      return <SkillUseDetail span={span} />;
     case 'context_compression':
       return <ContextCompressionDetail span={span} />;
     default:
@@ -373,9 +624,8 @@ const SpanRow = memo<{
 
   const spanStart = toTimestamp(span.startTime);
   const startOffset = totalDuration > 0 ? ((spanStart - traceStart) / totalDuration) * 100 : 0;
-  const barWidth = totalDuration > 0 && span.durationMs
-    ? Math.max(2, (span.durationMs / totalDuration) * 100)
-    : 2;
+  const barWidth =
+    totalDuration > 0 && span.durationMs ? Math.max(2, (span.durationMs / totalDuration) * 100) : 2;
 
   const displayName = getDisplayName(span.name, t);
 
@@ -387,14 +637,20 @@ const SpanRow = memo<{
           ${selected ? 'bg-accent border-primary' : 'border-transparent hover:bg-muted/60 hover:border-border'}
         `}
         onClick={() => onSelect(span.id)}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect(span.id); }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') onSelect(span.id);
+        }}
         role="button"
         tabIndex={0}
       >
         <div style={{ width: depth * 16, flexShrink: 0 }} />
         <div className="w-4 flex-shrink-0 flex items-center justify-center">
           {hasChildren ? (
-            expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />
+            expanded ? (
+              <ChevronDown size={14} />
+            ) : (
+              <ChevronRight size={14} />
+            )
           ) : (
             <span className="inline-block w-3.5" />
           )}
@@ -419,23 +675,19 @@ const SpanRow = memo<{
             />
           </div>
 
-          {span.durationMs != null && (
-            <span className="text-[11px] text-muted-foreground w-12 text-right tabular-nums">
-              {formatDuration(span.durationMs)}
-            </span>
-          )}
+          <span className="text-[11px] text-muted-foreground w-12 text-right tabular-nums">
+            {span.durationMs != null ? formatDuration(span.durationMs) : ''}
+          </span>
 
-          {(span.tokenInput != null || span.tokenOutput != null) && (
-            <span className="text-[11px] text-muted-foreground w-16 text-right tabular-nums">
-              {(span.tokenInput ?? 0) + (span.tokenOutput ?? 0)} {t('observability.tokensShort', 'tk')}
-            </span>
-          )}
+          <span className="text-[11px] text-muted-foreground w-16 text-right tabular-nums">
+            {span.tokenInput != null || span.tokenOutput != null
+              ? `${(span.tokenInput ?? 0) + (span.tokenOutput ?? 0)} ${t('observability.tokensShort', 'tok')}`
+              : ''}
+          </span>
 
-          {span.cost != null && span.cost > 0 && (
-            <span className="text-[11px] text-muted-foreground w-14 text-right tabular-nums">
-              ${span.cost.toFixed(4)}
-            </span>
-          )}
+          <span className="text-[11px] text-muted-foreground w-14 text-right tabular-nums">
+            {span.cost != null && span.cost > 0 ? `$${span.cost.toFixed(4)}` : ''}
+          </span>
 
           <span
             className={`text-[11px] w-4 text-center font-semibold ${
@@ -484,22 +736,28 @@ export default function TraceDetailView({ trace, spans, stats, loading }: TraceD
 
   if (loading) {
     return (
-      <div className="mt-2 ml-8 p-6 rounded-lg bg-muted/50 flex items-center justify-center">
+      <div className="p-6 rounded-lg bg-muted/50 flex items-center justify-center">
         <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
 
   return (
-    <div className="mt-2 ml-8 p-4 rounded-lg bg-muted/50 space-y-4">
+    <div className="p-4 rounded-lg bg-muted/50 space-y-4">
       {/* Trace Overview Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
         <div className="flex flex-col gap-0.5">
-          <span className="text-xs text-muted-foreground">{t('observability.sessionId', 'Session ID')}</span>
-          <span className="font-mono text-xs truncate" title={trace.sessionId}>{trace.sessionId}</span>
+          <span className="text-xs text-muted-foreground">
+            {t('observability.sessionId', 'Session ID')}
+          </span>
+          <span className="font-mono text-xs truncate" title={trace.sessionId}>
+            {trace.sessionId}
+          </span>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="text-xs text-muted-foreground">{t('observability.topicId', 'Topic ID')}</span>
+          <span className="text-xs text-muted-foreground">
+            {t('observability.topicId', 'Topic ID')}
+          </span>
           <span className="font-mono text-xs truncate">{trace.topicId || '-'}</span>
         </div>
         <div className="flex flex-col gap-0.5">
@@ -507,23 +765,33 @@ export default function TraceDetailView({ trace, spans, stats, loading }: TraceD
           <span className="truncate">{trace.agentName}</span>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="text-xs text-muted-foreground">{t('observability.status', 'Status')}</span>
+          <span className="text-xs text-muted-foreground">
+            {t('observability.status', 'Status')}
+          </span>
           <span className="capitalize">{trace.status}</span>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="text-xs text-muted-foreground">{t('observability.inputTokens', 'Input Tokens')}</span>
+          <span className="text-xs text-muted-foreground">
+            {t('observability.inputTokens', 'Input Tokens')}
+          </span>
           <span className="font-mono tabular-nums">{formatTokens(trace.inputTokens)}</span>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="text-xs text-muted-foreground">{t('observability.outputTokens', 'Output Tokens')}</span>
+          <span className="text-xs text-muted-foreground">
+            {t('observability.outputTokens', 'Output Tokens')}
+          </span>
           <span className="font-mono tabular-nums">{formatTokens(trace.outputTokens)}</span>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="text-xs text-muted-foreground">{t('observability.inputCost', 'Input Cost')}</span>
+          <span className="text-xs text-muted-foreground">
+            {t('observability.inputCost', 'Input Cost')}
+          </span>
           <span className="font-mono tabular-nums">${trace.inputCost.toFixed(6)}</span>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="text-xs text-muted-foreground">{t('observability.outputCost', 'Output Cost')}</span>
+          <span className="text-xs text-muted-foreground">
+            {t('observability.outputCost', 'Output Cost')}
+          </span>
           <span className="font-mono tabular-nums">${trace.outputCost.toFixed(6)}</span>
         </div>
       </div>
@@ -543,17 +811,23 @@ export default function TraceDetailView({ trace, spans, stats, loading }: TraceD
       {stats && (
         <div className="flex flex-wrap gap-3 text-sm">
           <div className="flex items-center gap-1.5">
-            <span className="text-muted-foreground">{t('observability.spanStats', 'Span Stats')}:</span>
+            <span className="text-muted-foreground">
+              {t('observability.spanStats', 'Span Stats')}:
+            </span>
             <Badge variant="outline">{stats.totalSpans} spans</Badge>
           </div>
           {stats.errorSpans > 0 && (
             <div className="flex items-center gap-1.5">
-              <span className="text-muted-foreground">{t('observability.errorSpans', 'Error Spans')}:</span>
+              <span className="text-muted-foreground">
+                {t('observability.errorSpans', 'Error Spans')}:
+              </span>
               <Badge variant="destructive">{stats.errorSpans}</Badge>
             </div>
           )}
           <div className="flex items-center gap-1.5">
-            <span className="text-muted-foreground">{t('observability.avgDuration', 'Avg Duration')}:</span>
+            <span className="text-muted-foreground">
+              {t('observability.avgDuration', 'Avg Duration')}:
+            </span>
             <span>{formatDuration(stats.avgDurationMs)}</span>
           </div>
         </div>
@@ -564,7 +838,9 @@ export default function TraceDetailView({ trace, spans, stats, loading }: TraceD
         <div className="space-y-2">
           {/* Timeline Header */}
           <div className="flex items-center px-2 py-1 text-[11px] text-muted-foreground">
-            <span className="flex-1">{t('observability.executionTimeline', 'Execution Timeline')}</span>
+            <span className="flex-1">
+              {t('observability.executionTimeline', 'Execution Timeline')}
+            </span>
             <div className="w-[120px] h-1 bg-muted rounded-sm mx-3 relative flex-shrink-0 overflow-hidden">
               <div className="absolute inset-0 bg-black/5 rounded-sm" />
             </div>

@@ -153,6 +153,7 @@
     "span": {
       "llmCall": "LLM Call",
       "toolCall": "Tool Call",
+      "skillUse": "Skill Use",
       "contextCompression": "Context Compression"
     },
     "status": {
@@ -169,6 +170,9 @@
     "output": "Output",
     "rawAttributes": "Raw Attributes",
     "tool": "Tool",
+    "skill": "Skill",
+    "action": "Action",
+    "file": "File",
     "arguments": "Arguments",
     "result": "Result",
     "tokensBefore": "Tokens Before",

@@ -29,10 +29,11 @@ export interface ObservabilitySink {
 // ============== Trace / Span Model ==============
 
 /** Valid span names */
-export type SpanName = 
-  | 'llm_call' 
-  | 'tool_call' 
-  | 'context_compression' 
+export type SpanName =
+  | 'llm_call'
+  | 'tool_call'
+  | 'skill_use'
+  | 'context_compression'
   | 'reflection'
   | 'background_review'
   | 'background_review_audit'
@@ -279,7 +280,13 @@ export interface ObservabilityEvent {
   traceId: string;
   spanId?: string;
   type: 'trace_start' | 'span_start' | 'span_end' | 'trace_end' | 'metric' | 'log';
-  payload: TraceStartEvent | SpanStartEvent | SpanEndEvent | TraceEndEvent | MetricEvent | Record<string, unknown>;
+  payload:
+    | TraceStartEvent
+    | SpanStartEvent
+    | SpanEndEvent
+    | TraceEndEvent
+    | MetricEvent
+    | Record<string, unknown>;
 }
 
 // ============== Trace Context (explicit passing) ==============

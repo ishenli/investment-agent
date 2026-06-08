@@ -19,10 +19,10 @@ function makeAssistant(text: string) {
   };
 }
 
-function makeToolCallAssistant(toolName: string) {
+function makeToolCallAssistant(toolName: string, args: Record<string, unknown> = {}) {
   return {
     role: 'assistant' as const,
-    content: [{ type: 'toolCall' as const, name: toolName, arguments: {}, id: 'tc-1' }],
+    content: [{ type: 'toolCall' as const, name: toolName, arguments: args, id: 'tc-1' }],
     timestamp: Date.now(),
   };
 }
@@ -116,10 +116,7 @@ describe('runAgentLoop memory lifecycle', () => {
 
     const res = await runAgentLoop(baseConfig, context);
     expect(res.completed).toBe(true);
-    expect(console.warn).toHaveBeenCalledWith(
-      '[AgentLoop] Memory sync failed:',
-      expect.any(Error),
-    );
+    expect(console.warn).toHaveBeenCalledWith('[AgentLoop] Memory sync failed:', expect.any(Error));
   });
 
   it('strips stale ephemeral memory-context before injecting new one', async () => {
@@ -139,7 +136,10 @@ describe('runAgentLoop memory lifecycle', () => {
 
     await runAgentLoop(baseConfig, context);
     const memoryBlocks = context.messages.filter(
-      (m) => m.role === 'user' && typeof m.content === 'string' && m.content.startsWith('<memory-context>'),
+      (m) =>
+        m.role === 'user' &&
+        typeof m.content === 'string' &&
+        m.content.startsWith('<memory-context>'),
     );
     expect(memoryBlocks).toHaveLength(1);
     expect(memoryBlocks[0].content).toContain('prefetched');
@@ -191,5 +191,108 @@ describe('runAgentLoop memory lifecycle', () => {
     await runAgentLoop(baseConfig, context);
     expect(stream).toHaveBeenCalled();
     expect(complete).not.toHaveBeenCalled();
+  });
+
+  it('records skill tools as skill_use spans', async () => {
+    const context = makeContext('Use a relevant skill');
+    mockComplete
+      .mockResolvedValueOnce(makeToolCallAssistant('skill_view', { name: 'macro-analysis' }) as any)
+      .mockResolvedValueOnce(makeAssistant('Done') as any);
+
+    baseConfig.toolExecutor = vi.fn().mockResolvedValue({
+      content: [{ type: 'text', text: '# Skill: Macro Analysis' }],
+      isError: false,
+    });
+
+    const tracer = {
+      startSpan: vi.fn((traceCtx, name, kind, attributes) => ({
+        id: `span-${name}`,
+        traceId: traceCtx.traceId,
+        name,
+        kind,
+        status: 'ok',
+        startTime: Date.now(),
+        events: [],
+        attributes,
+      })),
+      endSpan: vi.fn((span, options) => ({ ...span, ...options })),
+      addEvent: vi.fn(),
+    };
+
+    await runAgentLoop(
+      baseConfig,
+      context,
+      { traceId: 'tr-test', agentName: 'test-agent', startTime: Date.now() },
+      tracer as any,
+    );
+
+    expect(tracer.startSpan).toHaveBeenCalledWith(
+      expect.any(Object),
+      'skill_use',
+      'internal',
+      expect.objectContaining({
+        tool: 'skill_view',
+        skillTool: true,
+        skillAction: 'view',
+        skillName: 'macro-analysis',
+      }),
+    );
+    expect(tracer.endSpan).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'skill_use' }),
+      expect.objectContaining({
+        status: 'ok',
+        attributes: expect.objectContaining({
+          skillAction: 'view',
+          skillName: 'macro-analysis',
+          resultSummary: '# Skill: Macro Analysis',
+        }),
+      }),
+    );
+  });
+
+  it('records skills_list as skill_use span with category as skillName', async () => {
+    const context = makeContext('List available skills');
+    mockComplete
+      .mockResolvedValueOnce(makeToolCallAssistant('skills_list', { category: 'investing' }) as any)
+      .mockResolvedValueOnce(makeAssistant('Done') as any);
+
+    baseConfig.toolExecutor = vi.fn().mockResolvedValue({
+      content: [{ type: 'text', text: '## Investing Skills\n- macro-analysis\n- portfolio' }],
+      isError: false,
+    });
+
+    const tracer = {
+      startSpan: vi.fn((traceCtx, name, kind, attributes) => ({
+        id: `span-${name}`,
+        traceId: traceCtx.traceId,
+        name,
+        kind,
+        status: 'ok',
+        startTime: Date.now(),
+        events: [],
+        attributes,
+      })),
+      endSpan: vi.fn((span, options) => ({ ...span, ...options })),
+      addEvent: vi.fn(),
+    };
+
+    await runAgentLoop(
+      baseConfig,
+      context,
+      { traceId: 'tr-test', agentName: 'test-agent', startTime: Date.now() },
+      tracer as any,
+    );
+
+    expect(tracer.startSpan).toHaveBeenCalledWith(
+      expect.any(Object),
+      'skill_use',
+      'internal',
+      expect.objectContaining({
+        tool: 'skills_list',
+        skillTool: true,
+        skillAction: 'list',
+        skillName: 'investing',
+      }),
+    );
   });
 });

@@ -3,14 +3,27 @@
 import React, { memo, useState } from 'react';
 import { Flexbox } from 'react-layout-kit';
 import { createStyles } from 'antd-style';
-import { ChevronDown, ChevronRight, Cpu, FileSearch, MessageSquare, Zap } from 'lucide-react';
+import {
+  BookOpen,
+  ChevronDown,
+  ChevronRight,
+  Cpu,
+  FileSearch,
+  MessageSquare,
+  Zap,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { SpanData } from '@renderer/store/observability/store';
 
 const SPAN_COLORS: Record<SpanData['name'], { bar: string; bg: string; light: string }> = {
   llm_call: { bar: '#1677ff', bg: '#e6f4ff', light: '#bae0ff' },
   tool_call: { bar: '#52c41a', bg: '#f6ffed', light: '#d9f7be' },
+  skill_use: { bar: '#13c2c2', bg: '#e6fffb', light: '#b5f5ec' },
   context_compression: { bar: '#fa8c16', bg: '#fff7e6', light: '#ffe7ba' },
+  reflection: { bar: '#722ed1', bg: '#f9f0ff', light: '#efdbff' },
+  background_review: { bar: '#eb2f96', bg: '#fff0f6', light: '#ffd6e7' },
+  background_review_audit: { bar: '#eb2f96', bg: '#fff0f6', light: '#ffd6e7' },
+  background_review_skill_gen: { bar: '#eb2f96', bg: '#fff0f6', light: '#ffd6e7' },
 };
 
 const useStyles = createStyles(({ css, token }) => ({
@@ -155,6 +168,8 @@ const SpanIcon = memo<{ name: SpanData['name'] }>(({ name }) => {
       return <MessageSquare className="w-3.5 h-3.5" style={{ color: SPAN_COLORS.llm_call.bar }} />;
     case 'tool_call':
       return <FileSearch className="w-3.5 h-3.5" style={{ color: SPAN_COLORS.tool_call.bar }} />;
+    case 'skill_use':
+      return <BookOpen className="w-3.5 h-3.5" style={{ color: SPAN_COLORS.skill_use.bar }} />;
     case 'context_compression':
       return <Cpu className="w-3.5 h-3.5" style={{ color: SPAN_COLORS.context_compression.bar }} />;
     default:
@@ -191,6 +206,11 @@ const SpanRow = memo<{
     if (s.name === 'tool_call' && s.attributes?.tool) {
       return String(s.attributes.tool);
     }
+    if (s.name === 'skill_use') {
+      return String(
+        s.attributes?.skillName ?? s.attributes?.skillAction ?? s.attributes?.tool ?? '',
+      );
+    }
     if (s.name === 'context_compression') {
       const saved = s.attributes?.saved;
       if (typeof saved === 'number') return `${saved} ${t('observability.tokensShort')}`;
@@ -203,16 +223,16 @@ const SpanRow = memo<{
 
   const startOffset = totalDuration > 0 ? ((span.startTime - traceStart) / totalDuration) * 100 : 0;
   const barWidth =
-    totalDuration > 0 && span.durationMs
-      ? Math.max(2, (span.durationMs / totalDuration) * 100)
-      : 2;
+    totalDuration > 0 && span.durationMs ? Math.max(2, (span.durationMs / totalDuration) * 100) : 2;
 
   const displayName =
     span.name === 'llm_call'
       ? t('observability.span.llmCall')
       : span.name === 'tool_call'
         ? t('observability.span.toolCall')
-        : t('observability.span.contextCompression');
+        : span.name === 'skill_use'
+          ? t('observability.span.skillUse')
+          : t('observability.span.contextCompression');
 
   return (
     <div>
@@ -225,7 +245,11 @@ const SpanRow = memo<{
         <div style={{ width: depth * 16, flexShrink: 0 }} />
         <div className={styles.indent}>
           {hasChildren ? (
-            expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />
+            expanded ? (
+              <ChevronDown size={14} />
+            ) : (
+              <ChevronRight size={14} />
+            )
           ) : (
             <span style={{ width: 14, display: 'inline-block' }} />
           )}
@@ -267,7 +291,10 @@ const SpanRow = memo<{
             </span>
           )}
 
-          <span className={cx(styles.meta, span.status === 'ok' ? styles.ok : styles.error)} style={{ minWidth: 14, textAlign: 'center' }}>
+          <span
+            className={cx(styles.meta, span.status === 'ok' ? styles.ok : styles.error)}
+            style={{ minWidth: 14, textAlign: 'center' }}
+          >
             {span.status === 'ok' ? '✓' : '✗'}
           </span>
         </div>
