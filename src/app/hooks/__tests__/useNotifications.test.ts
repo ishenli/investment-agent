@@ -56,11 +56,16 @@ describe('useNotifications', () => {
   });
 
   const createResponse = (items: any[], unreadCount = items.length) => ({
-    items,
-    totalCount: items.length,
-    unreadCount,
-    totalPages: 1,
-    currentPage: 1,
+    success: true,
+    data: {
+      items,
+      totalCount: items.length,
+      unreadCount,
+      totalPages: 1,
+      currentPage: 1,
+    },
+    message: 'ok',
+    code: 'SUCCESS',
   });
 
   it('应该在挂载时初始化轮询', async () => {

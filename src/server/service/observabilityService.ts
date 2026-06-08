@@ -8,7 +8,7 @@
  */
 import { traceRepository, spanRepository } from '@server/repository/chat';
 import { db } from '@server/lib/db';
-import { chatMessages } from '@/drizzle/schema/chat';
+import { chatMessages } from '@drizzle/schema/chat';
 import { eq, and, asc, inArray } from 'drizzle-orm';
 import logger from '@server/base/logger';
 import type {
