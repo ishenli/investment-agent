@@ -13,6 +13,13 @@ import type {
   NotificationTypeValue,
   NotificationPriorityValue,
 } from '@/types/notification';
+
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message: string;
+  code: string;
+}
 import { useNotificationStore } from '@/app/store/notification';
 
 const POLL_INTERVAL_MS = 60000;
@@ -84,9 +91,10 @@ export function useNotifications(): UseNotificationsReturn {
   const poll = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await get<NotificationListResponseType>('/api/notifications', {
+      const raw = await get<ApiResponse<NotificationListResponseType>>('/api/notifications', {
         params: { isRead: 'unread', pageSize: 50 },
       });
+      const response = raw.data;
 
       setNotifications(response.items);
       setUnreadCount(response.unreadCount);
