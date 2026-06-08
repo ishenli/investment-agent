@@ -148,6 +148,7 @@ export type {
   ObservabilitySink,
   LogLevel,
   SinkConfig,
+  SpanName,
 } from './observability';
 
 // ============== Permission System ==============

@@ -249,4 +249,50 @@ describe('runAgentLoop memory lifecycle', () => {
       }),
     );
   });
+
+  it('records skills_list as skill_use span with category as skillName', async () => {
+    const context = makeContext('List available skills');
+    mockComplete
+      .mockResolvedValueOnce(makeToolCallAssistant('skills_list', { category: 'investing' }) as any)
+      .mockResolvedValueOnce(makeAssistant('Done') as any);
+
+    baseConfig.toolExecutor = vi.fn().mockResolvedValue({
+      content: [{ type: 'text', text: '## Investing Skills\n- macro-analysis\n- portfolio' }],
+      isError: false,
+    });
+
+    const tracer = {
+      startSpan: vi.fn((traceCtx, name, kind, attributes) => ({
+        id: `span-${name}`,
+        traceId: traceCtx.traceId,
+        name,
+        kind,
+        status: 'ok',
+        startTime: Date.now(),
+        events: [],
+        attributes,
+      })),
+      endSpan: vi.fn((span, options) => ({ ...span, ...options })),
+      addEvent: vi.fn(),
+    };
+
+    await runAgentLoop(
+      baseConfig,
+      context,
+      { traceId: 'tr-test', agentName: 'test-agent', startTime: Date.now() },
+      tracer as any,
+    );
+
+    expect(tracer.startSpan).toHaveBeenCalledWith(
+      expect.any(Object),
+      'skill_use',
+      'internal',
+      expect.objectContaining({
+        tool: 'skills_list',
+        skillTool: true,
+        skillAction: 'list',
+        skillName: 'investing',
+      }),
+    );
+  });
 });

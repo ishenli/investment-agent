@@ -32,6 +32,27 @@ import type { AgentConfig, AgentCallbacks, HermesAgentResult, ToolExecutor } fro
 import { ToolRegistry } from './tools';
 import type { TraceContext, Tracer, MetricsCollector, CostTracker } from './observability';
 
+const skillToolActions: Record<string, string> = {
+  skills_list: 'list',
+  skill_view: 'view',
+  skill_manage: 'manage',
+};
+
+const buildSkillAttributes = (toolCall: ToolCall): Record<string, unknown> => {
+  const skillName =
+    toolCall.name === 'skills_list' ? toolCall.arguments.category : toolCall.arguments.name;
+
+  return {
+    tool: toolCall.name,
+    skillTool: true,
+    skillAction: skillToolActions[toolCall.name],
+    ...(skillName ? { skillName: String(skillName) } : {}),
+    ...(toolCall.arguments.file_path
+      ? { skillFilePath: String(toolCall.arguments.file_path) }
+      : {}),
+  };
+};
+
 /**
  * Run the agent loop: call LLM → execute tools → repeat until done.
  */
@@ -61,27 +82,6 @@ export async function runAgentLoop(
   const summarize = (text: string, maxLen = 250): string => {
     if (!text) return '';
     return text.length > maxLen ? text.slice(0, maxLen) + '...' : text;
-  };
-
-  const skillToolActions: Record<string, string> = {
-    skills_list: 'list',
-    skill_view: 'view',
-    skill_manage: 'manage',
-  };
-
-  const buildSkillAttributes = (toolCall: ToolCall): Record<string, unknown> => {
-    const skillName =
-      toolCall.name === 'skills_list' ? toolCall.arguments.category : toolCall.arguments.name;
-
-    return {
-      tool: toolCall.name,
-      skillTool: true,
-      skillAction: skillToolActions[toolCall.name],
-      ...(skillName ? { skillName: String(skillName) } : {}),
-      ...(toolCall.arguments.file_path
-        ? { skillFilePath: String(toolCall.arguments.file_path) }
-        : {}),
-    };
   };
 
   // Helper: extract full prompt from context messages
