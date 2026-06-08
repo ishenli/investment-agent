@@ -35,6 +35,7 @@ export interface Trace {
   latencyMs: number;
   toolCallCount: number;
   error: string | null;
+  input: string | null;
   metadata: Record<string, unknown> | null;
   createdAt: string;
   updatedAt: string;
@@ -674,24 +675,19 @@ const SpanRow = memo<{
             />
           </div>
 
-          {span.durationMs != null && (
-            <span className="text-[11px] text-muted-foreground w-12 text-right tabular-nums">
-              {formatDuration(span.durationMs)}
-            </span>
-          )}
+          <span className="text-[11px] text-muted-foreground w-12 text-right tabular-nums">
+            {span.durationMs != null ? formatDuration(span.durationMs) : ''}
+          </span>
 
-          {(span.tokenInput != null || span.tokenOutput != null) && (
-            <span className="text-[11px] text-muted-foreground w-16 text-right tabular-nums">
-              {(span.tokenInput ?? 0) + (span.tokenOutput ?? 0)}{' '}
-              {t('observability.tokensShort', 'tk')}
-            </span>
-          )}
+          <span className="text-[11px] text-muted-foreground w-16 text-right tabular-nums">
+            {span.tokenInput != null || span.tokenOutput != null
+              ? `${(span.tokenInput ?? 0) + (span.tokenOutput ?? 0)} ${t('observability.tokensShort', 'tok')}`
+              : ''}
+          </span>
 
-          {span.cost != null && span.cost > 0 && (
-            <span className="text-[11px] text-muted-foreground w-14 text-right tabular-nums">
-              ${span.cost.toFixed(4)}
-            </span>
-          )}
+          <span className="text-[11px] text-muted-foreground w-14 text-right tabular-nums">
+            {span.cost != null && span.cost > 0 ? `$${span.cost.toFixed(4)}` : ''}
+          </span>
 
           <span
             className={`text-[11px] w-4 text-center font-semibold ${
@@ -740,14 +736,14 @@ export default function TraceDetailView({ trace, spans, stats, loading }: TraceD
 
   if (loading) {
     return (
-      <div className="mt-2 ml-8 p-6 rounded-lg bg-muted/50 flex items-center justify-center">
+      <div className="p-6 rounded-lg bg-muted/50 flex items-center justify-center">
         <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
 
   return (
-    <div className="mt-2 ml-8 p-4 rounded-lg bg-muted/50 space-y-4">
+    <div className="p-4 rounded-lg bg-muted/50 space-y-4">
       {/* Trace Overview Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
         <div className="flex flex-col gap-0.5">

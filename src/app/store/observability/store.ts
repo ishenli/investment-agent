@@ -2,12 +2,13 @@ import { devtools } from 'zustand/middleware';
 import { createWithEqualityFn } from 'zustand/traditional';
 import { shallow } from 'zustand/shallow';
 import { produce } from 'immer';
+import type { SpanName } from '@investment-agent/hermes-agent';
 
 export interface SpanData {
   spanId: string;
   traceId: string;
   parentSpanId?: string;
-  name: 'llm_call' | 'tool_call' | 'skill_use' | 'context_compression';
+  name: SpanName;
   kind: 'client' | 'internal';
   status: 'ok' | 'error';
   startTime: number;
@@ -67,7 +68,7 @@ export interface ObservabilityActions {
     traceId: string;
     spanId: string;
     parentSpanId?: string;
-    name: 'llm_call' | 'tool_call' | 'skill_use' | 'context_compression';
+    name: SpanName;
     kind: 'client' | 'internal';
     startTime: number;
     attributes?: Record<string, unknown>;

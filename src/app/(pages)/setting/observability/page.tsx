@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'next/navigation';
 import {
   IconRefresh,
-  IconChevronRight,
   IconCheck,
   IconX,
   IconLoader2,
@@ -23,10 +22,12 @@ import {
   SelectValue,
 } from '@renderer/components/ui/select';
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@renderer/components/ui/collapsible';
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@renderer/components/ui/dialog';
 import TraceDetailView, {
   type Trace,
   type Span,
@@ -47,7 +48,7 @@ export default function ObservabilityPage() {
   const [traceDetailMap, setTraceDetailMap] = React.useState<Record<string, TraceDetailData>>({});
   const [detailLoadingMap, setDetailLoadingMap] = React.useState<Record<string, boolean>>({});
   const [loading, setLoading] = React.useState(true);
-  const [expandedTraces, setExpandedTraces] = React.useState<Set<string>>(new Set());
+  const [selectedTraceId, setSelectedTraceId] = React.useState<string | null>(null);
 
   // Filters
   const [sessionId, setSessionId] = React.useState('');
@@ -310,97 +311,105 @@ export default function ObservabilityPage() {
             </div>
           ) : (
             <div className="space-y-2">
-              {filteredTraces.map((trace) => {
-                const detail = traceDetailMap[trace.id];
-                const isDetailLoading = detailLoadingMap[trace.id];
-
-                return (
-                  <div key={trace.id} className="rounded-lg border">
-                    {/* Trace Row */}
-                    <div className="flex items-center justify-between p-3 hover:bg-accent transition-colors">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="flex flex-col min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">
-                              {trace.id.slice(0, 12)}
-                            </span>
-                            {getStatusBadge(trace.status)}
-                            {trace.metadata && !!(trace.metadata as Record<string, unknown>).reflectionTriggered && (
-                              <Badge variant="outline" className="text-[10px] h-5">
-                                {t('observability.reflectionTriggered', 'Reflection')}
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-0.5">
-                            {trace.agentName} &middot; {formatDate(trace.createdAt)}
-                          </div>
+              {filteredTraces.map((trace) => (
+                <div
+                  key={trace.id}
+                  className="rounded-lg border p-3 hover:bg-accent transition-colors cursor-pointer"
+                  onClick={() => {
+                    setSelectedTraceId(trace.id);
+                    if (!traceDetailMap[trace.id] && !detailLoadingMap[trace.id]) {
+                      fetchTraceDetail(trace.id);
+                    }
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-medium truncate max-w-[400px]">
+                            {trace.input || (trace.metadata as Record<string, unknown>)?.input as string || trace.id.slice(0, 12)}
+                          </span>
+                          {getStatusBadge(trace.status)}
+                          {trace.metadata && !!(trace.metadata as Record<string, unknown>).reflectionTriggered && (
+                            <Badge variant="outline" className="text-[10px] h-5">
+                              {t('observability.reflectionTriggered', 'Reflection')}
+                            </Badge>
+                          )}
                         </div>
-                      </div>
-                      <div className="flex items-center gap-4 text-xs flex-shrink-0">
-                        <div className="flex flex-col items-end">
-                          <span className="font-medium tabular-nums">{formatTokens(trace.totalTokens)}</span>
-                          <span className="text-muted-foreground text-[10px]">tokens</span>
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          <span className="font-mono">{trace.id.slice(0, 12)}</span>
+                          {' · '}
+                          {trace.agentName} &middot; {formatDate(trace.createdAt)}
                         </div>
-                        <div className="flex flex-col items-end">
-                          <span className="font-medium tabular-nums">{formatCost(trace.totalCost)}</span>
-                          <span className="text-muted-foreground text-[10px]">cost</span>
-                        </div>
-                        <div className="flex flex-col items-end">
-                          <span className="font-medium tabular-nums">{formatDuration(trace.latencyMs)}</span>
-                          <span className="text-muted-foreground text-[10px]">latency</span>
-                        </div>
-                        {trace.toolCallCount > 0 && (
-                          <div className="flex flex-col items-end">
-                            <span className="font-medium tabular-nums">{trace.toolCallCount}</span>
-                            <span className="text-muted-foreground text-[10px]">tools</span>
-                          </div>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 px-2 text-xs"
-                          onClick={() => {
-                            const isExpanded = expandedTraces.has(trace.id);
-                            if (isExpanded) {
-                              setExpandedTraces((prev) => {
-                                const next = new Set(prev);
-                                next.delete(trace.id);
-                                return next;
-                              });
-                            } else {
-                              if (!detail && !isDetailLoading) {
-                                fetchTraceDetail(trace.id);
-                              }
-                              setExpandedTraces((prev) => new Set(prev).add(trace.id));
-                            }
-                          }}
-                        >
-                          <IconChevronRight
-                            className={`h-4 w-4 mr-1 transition-transform ${expandedTraces.has(trace.id) ? 'rotate-90' : ''}`}
-                          />
-                          {expandedTraces.has(trace.id)
-                            ? t('observability.collapse', 'Collapse')
-                            : t('observability.expand', 'Details')}
-                        </Button>
                       </div>
                     </div>
-
-                    {/* Trace Detail — rendered inline immediately below the row */}
-                    {expandedTraces.has(trace.id) && (
-                      <div className="border-t">
-                        <TraceDetailView
-                          loading={!!isDetailLoading}
-                          spans={detail?.spans ?? []}
-                          stats={detail?.stats ?? null}
-                          trace={trace}
-                        />
+                    <div className="flex items-center gap-4 text-xs flex-shrink-0">
+                      <div className="flex flex-col items-end">
+                        <span className="font-medium tabular-nums">{formatTokens(trace.totalTokens)}</span>
+                        <span className="text-muted-foreground text-[10px]">tokens</span>
                       </div>
-                    )}
+                      <div className="flex flex-col items-end">
+                        <span className="font-medium tabular-nums">{formatCost(trace.totalCost)}</span>
+                        <span className="text-muted-foreground text-[10px]">cost</span>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <span className="font-medium tabular-nums">{formatDuration(trace.latencyMs)}</span>
+                        <span className="text-muted-foreground text-[10px]">latency</span>
+                      </div>
+                      {trace.toolCallCount > 0 && (
+                        <div className="flex flex-col items-end">
+                          <span className="font-medium tabular-nums">{trace.toolCallCount}</span>
+                          <span className="text-muted-foreground text-[10px]">tools</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           )}
+
+          {/* Trace Detail Dialog */}
+          {(() => {
+            const selectedTrace = selectedTraceId ? filteredTraces.find((t) => t.id === selectedTraceId) : null;
+            const detail = selectedTraceId ? traceDetailMap[selectedTraceId] : null;
+            const isDetailLoading = selectedTraceId ? detailLoadingMap[selectedTraceId] : false;
+
+            return (
+              <Dialog open={!!selectedTrace} onOpenChange={(open) => { if (!open) setSelectedTraceId(null); }}>
+                <DialogContent className="sm:max-w-[90vw] max-h-[85vh] overflow-y-auto">
+                  {selectedTrace && (
+                    <>
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <span className="font-mono text-sm bg-muted px-2 py-0.5 rounded">
+                            {selectedTrace.id.slice(0, 12)}
+                          </span>
+                          <span>{selectedTrace.agentName}</span>
+                          {getStatusBadge(selectedTrace.status)}
+                        </DialogTitle>
+                        <DialogDescription>
+                          {formatDate(selectedTrace.createdAt)}
+                          {' · '}
+                          {formatTokens(selectedTrace.totalTokens)} tokens
+                          {' · '}
+                          {formatCost(selectedTrace.totalCost)}
+                          {' · '}
+                          {formatDuration(selectedTrace.latencyMs)}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <TraceDetailView
+                        loading={!!isDetailLoading}
+                        spans={detail?.spans ?? []}
+                        stats={detail?.stats ?? null}
+                        trace={selectedTrace}
+                      />
+                    </>
+                  )}
+                </DialogContent>
+              </Dialog>
+            );
+          })()}
 
           {/* Pagination */}
           <div className="flex items-center justify-between mt-4">

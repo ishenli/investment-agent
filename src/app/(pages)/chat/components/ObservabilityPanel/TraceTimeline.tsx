@@ -20,6 +20,10 @@ const SPAN_COLORS: Record<SpanData['name'], { bar: string; bg: string; light: st
   tool_call: { bar: '#52c41a', bg: '#f6ffed', light: '#d9f7be' },
   skill_use: { bar: '#13c2c2', bg: '#e6fffb', light: '#b5f5ec' },
   context_compression: { bar: '#fa8c16', bg: '#fff7e6', light: '#ffe7ba' },
+  reflection: { bar: '#722ed1', bg: '#f9f0ff', light: '#efdbff' },
+  background_review: { bar: '#eb2f96', bg: '#fff0f6', light: '#ffd6e7' },
+  background_review_audit: { bar: '#eb2f96', bg: '#fff0f6', light: '#ffd6e7' },
+  background_review_skill_gen: { bar: '#eb2f96', bg: '#fff0f6', light: '#ffd6e7' },
 };
 
 const useStyles = createStyles(({ css, token }) => ({
