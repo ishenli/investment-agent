@@ -1,1 +1,1 @@
-直接访问 AGENTS.md 的内容
+@import AGENTS.md

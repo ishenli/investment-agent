@@ -287,6 +287,10 @@ export class SkillService {
       const result = await skillInstaller.install(source, userId);
 
       if (result.success) {
+        for (const slug of result.installedSlugs ?? []) {
+          await this.ensureSkillRecord(userId, slug);
+        }
+
         // Invalidate registry cache so the new skills appear on next query
         skillRegistry.invalidate(userId);
         logger.info(

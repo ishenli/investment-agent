@@ -10,6 +10,7 @@ import { Label } from '@renderer/components/ui/label';
 import { useTranslation } from 'react-i18next';
 import { IconUpload, IconFolder, IconBrandGithub, IconFileZip, IconLink, IconAlertCircle } from '@tabler/icons-react';
 import { useSkillsStore } from '@/app/store/skills/store';
+import { buildSkillUploadFormData } from './skillUploadFormData';
 
 interface SkillAddDialogProps {
   open: boolean;
@@ -18,7 +19,7 @@ interface SkillAddDialogProps {
 
 export function SkillAddDialog({ open, onOpenChange }: SkillAddDialogProps) {
   const { t } = useTranslation('setting');
-  const { saving, createCustomSkill } = useSkillsStore();
+  const { saving, createCustomSkill, refreshSkills } = useSkillsStore();
   const [activeTab, setActiveTab] = useState('zip');
   const [zipFile, setZipFile] = useState<File | null>(null);
   const [folderFiles, setFolderFiles] = useState<File[]>([]);
@@ -131,17 +132,11 @@ export function SkillAddDialog({ open, onOpenChange }: SkillAddDialogProps) {
           throw new Error(t('skills.addDialog.errors.createFailed' as any));
         }
       } else if (activeTab === 'zip' || activeTab === 'folder') {
-        // ZIP/Folder 安装：调用安装接口
-        // 注意：实际文件上传逻辑需要额外的 API 支持
+        const files = activeTab === 'zip' && zipFile ? [zipFile] : folderFiles;
+        const formData = buildSkillUploadFormData(activeTab, files);
         const response = await fetch('/api/skills/install', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            source: '', // 由 upload 接口设置
-            uploadMethod: activeTab,
-            ...(activeTab === 'zip' && zipFile ? { fileName: zipFile.name } : {}),
-            ...(activeTab === 'folder' && folderFiles.length > 0 ? { fileCount: folderFiles.length } : {}),
-          }),
+          body: formData,
         });
 
         if (!response.ok) {
@@ -163,6 +158,8 @@ export function SkillAddDialog({ open, onOpenChange }: SkillAddDialogProps) {
           icon: '⚡',
         });
       }
+
+      await refreshSkills();
 
       // 成功后才关闭弹窗和重置表单
       resetForm();
