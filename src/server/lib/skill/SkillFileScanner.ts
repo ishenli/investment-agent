@@ -203,8 +203,7 @@ export class SkillFileScanner {
       }
       return path.resolve(process.cwd(), SKILLS_DIR_NAME);
     }
-    const projectRoot = path.resolve(__dirname, '..');
-    return path.resolve(projectRoot, SKILLS_DIR_NAME);
+    return path.resolve(getProjectRoot(), SKILLS_DIR_NAME);
   }
 
   /**

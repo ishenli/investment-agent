@@ -75,6 +75,9 @@ vi.mock('../../lib/skill/SkillFileScanner', () => ({
 }));
 
 vi.mock('../../service/claudeService', () => ({
+  claudeService: {
+    getUserWorkspaceRoot: vi.fn(() => '/tmp/workspace'),
+  },
   default: {
     getUserWorkspaceRoot: vi.fn(() => '/tmp/workspace'),
   },
@@ -365,6 +368,133 @@ describe('SkillService', () => {
         .toThrow('Cannot delete official skills');
 
       expect(skillRepository.deleteBySlug).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('installSkill', () => {
+    it('installs from a staged ZIP path and refreshes runtime state', async () => {
+      const installResult = {
+        success: true,
+        message: '技能安装成功',
+        installedSlugs: ['zip-skill'],
+      };
+      const syncDeploymentSpy = vi.spyOn(skillService, 'syncDeployment').mockResolvedValue(undefined);
+
+      (skillInstaller.install as ReturnType<typeof vi.fn>).mockResolvedValue(installResult);
+      (skillRepository.findByUserIdAndSlug as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      (skillRepository.create as ReturnType<typeof vi.fn>).mockResolvedValue({
+        id: 1,
+        slug: 'zip-skill',
+        source: 'custom',
+        isEnabled: true,
+        icon: null,
+        userId: mockUserId,
+        updatedAt: new Date(),
+      });
+
+      const result = await skillService.installSkill(mockUserId, {
+        source: '/tmp/uploaded/zip-skill.zip',
+        uploadMethod: 'zip',
+        fileName: 'zip-skill.zip',
+      });
+
+      expect(result).toEqual(installResult);
+      expect(skillInstaller.install).toHaveBeenCalledWith('/tmp/uploaded/zip-skill.zip', mockUserId);
+      expect(skillRepository.create).toHaveBeenCalledWith({
+        slug: 'zip-skill',
+        source: 'custom',
+        isEnabled: true,
+        userId: mockUserId,
+      });
+      expect(skillRegistry.invalidate).toHaveBeenCalledWith(mockUserId);
+      expect(syncDeploymentSpy).toHaveBeenCalledWith(mockUserId);
+    });
+
+    it('installs from a staged folder path and refreshes runtime state', async () => {
+      const installResult = {
+        success: true,
+        message: '技能安装成功',
+        installedSlugs: ['folder-skill'],
+      };
+      const syncDeploymentSpy = vi.spyOn(skillService, 'syncDeployment').mockResolvedValue(undefined);
+
+      (skillInstaller.install as ReturnType<typeof vi.fn>).mockResolvedValue(installResult);
+      (skillRepository.findByUserIdAndSlug as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      (skillRepository.create as ReturnType<typeof vi.fn>).mockResolvedValue({
+        id: 1,
+        slug: 'folder-skill',
+        source: 'custom',
+        isEnabled: true,
+        icon: null,
+        userId: mockUserId,
+        updatedAt: new Date(),
+      });
+
+      const result = await skillService.installSkill(mockUserId, {
+        source: '/tmp/uploaded/folder-skill',
+        uploadMethod: 'folder',
+        fileCount: 2,
+      });
+
+      expect(result).toEqual(installResult);
+      expect(skillInstaller.install).toHaveBeenCalledWith('/tmp/uploaded/folder-skill', mockUserId);
+      expect(skillRepository.create).toHaveBeenCalledWith({
+        slug: 'folder-skill',
+        source: 'custom',
+        isEnabled: true,
+        userId: mockUserId,
+      });
+      expect(skillRegistry.invalidate).toHaveBeenCalledWith(mockUserId);
+      expect(syncDeploymentSpy).toHaveBeenCalledWith(mockUserId);
+    });
+
+    it('does not create duplicate DB records for already tracked installed skills', async () => {
+      const existingSkill = {
+        id: 1,
+        slug: 'existing-skill',
+        source: 'custom',
+        isEnabled: true,
+        icon: null,
+        userId: mockUserId,
+        updatedAt: new Date(),
+      };
+      const syncDeploymentSpy = vi.spyOn(skillService, 'syncDeployment').mockResolvedValue(undefined);
+
+      (skillInstaller.install as ReturnType<typeof vi.fn>).mockResolvedValue({
+        success: true,
+        message: '技能安装成功',
+        installedSlugs: ['existing-skill'],
+      });
+      (skillRepository.findByUserIdAndSlug as ReturnType<typeof vi.fn>).mockResolvedValue(existingSkill);
+
+      const result = await skillService.installSkill(mockUserId, {
+        source: '/tmp/uploaded/existing-skill',
+        uploadMethod: 'folder',
+      });
+
+      expect(result.success).toBe(true);
+      expect(skillRepository.create).not.toHaveBeenCalled();
+      expect(skillRegistry.invalidate).toHaveBeenCalledWith(mockUserId);
+      expect(syncDeploymentSpy).toHaveBeenCalledWith(mockUserId);
+    });
+
+    it('does not refresh runtime state when install fails', async () => {
+      const installResult = {
+        success: false,
+        error: 'No SKILL.md found in source',
+      };
+      const syncDeploymentSpy = vi.spyOn(skillService, 'syncDeployment').mockResolvedValue(undefined);
+
+      (skillInstaller.install as ReturnType<typeof vi.fn>).mockResolvedValue(installResult);
+
+      const result = await skillService.installSkill(mockUserId, {
+        source: '/tmp/uploaded/not-a-skill',
+        uploadMethod: 'folder',
+      });
+
+      expect(result).toEqual(installResult);
+      expect(skillRegistry.invalidate).not.toHaveBeenCalled();
+      expect(syncDeploymentSpy).not.toHaveBeenCalled();
     });
   });
 

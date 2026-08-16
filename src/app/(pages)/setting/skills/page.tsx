@@ -127,7 +127,7 @@ export default function SkillsPage() {
           onValueChange={handleSourceChange}
           className="w-full"
         >
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className={`grid w-full ${sourceTabs.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
             {sourceTabs.map((tab) => (
               <TabsTrigger key={tab.value} value={tab.value}>
                 {tab.label}
