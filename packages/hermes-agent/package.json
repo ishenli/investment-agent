@@ -31,7 +31,7 @@
     "directory": "packages/hermes-agent"
   },
   "dependencies": {
-    "@mariozechner/pi-ai": "^0.70.2",
+    "@mariozechner/pi-ai": "^0.73.0",
     "@sinclair/typebox": "^0.34.33",
     "js-yaml": "^4.1.0"
   },
