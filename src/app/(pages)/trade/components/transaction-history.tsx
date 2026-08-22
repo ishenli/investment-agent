@@ -63,7 +63,8 @@ export function TransactionHistory() {
   const filteredTransactions = transactions.filter((transaction) => {
     const matchesSearch =
       transaction.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.referenceId?.toLowerCase().includes(searchTerm.toLowerCase());
+      transaction.referenceId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transaction.symbol?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterType === 'all' || transaction.type === filterType;
     return matchesSearch && matchesFilter;
   });
