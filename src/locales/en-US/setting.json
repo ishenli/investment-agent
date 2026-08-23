@@ -586,7 +586,8 @@
     "loading": "Loading...",
     "status": {
       "configured": "Configured",
-      "notConfigured": "Not Configured"
+      "notConfigured": "Not Configured",
+      "connected": "Connected"
     },
     "messages": {
       "loadFailed": "Failed to load configuration",
@@ -600,13 +601,24 @@
     "feishu": {
       "title": "Feishu Bot",
       "description": "Configure Feishu Open Platform bot to receive messages and auto-reply via AI Agent",
-      "credentials": "App Credentials",
-      "appIdPlaceholder": "Feishu App ID",
+      "enabled": "Enable Feishu channel",
+      "modeHint": "Uses the official SDK WebSocket connection",
       "appSecretPlaceholder": "Feishu App Secret",
-      "eventConfig": "Event Subscription Configuration",
-      "verificationTokenPlaceholder": "Event subscription verification token",
-      "encryptKeyPlaceholder": "Event encryption key (optional)",
-      "webhookHint": "Enter this URL in the Feishu Open Platform event subscription request address and subscribe to the im.message.receive_v1 event."
+      "secretConfigured": "Securely configured; leave blank to keep it",
+      "allowedUsers": "Allowed private open_id values",
+      "allowedChats": "Allowed group chat_id values",
+      "registrationTitle": "Create Feishu Bot with QR Code",
+      "registrationHint": "Authorization securely saves credentials and allows the current Feishu user",
+      "registrationStart": "Start Authorization",
+      "registrationAgain": "Reconnect",
+      "registrationStarting": "Starting authorization...",
+      "registrationWaiting": "Waiting for Feishu authorization",
+      "registrationOpen": "Open in Browser",
+      "registrationSuccess": "Feishu Bot created and paired",
+      "registrationRestartWarning": "Bot created; save or restart the channel manually",
+      "registrationDenied": "Feishu authorization was cancelled",
+      "registrationStorageFailed": "Unable to store credentials; please try again",
+      "registrationFailed": "Unable to create the Feishu Bot; try again"
     },
     "weixin": {
       "title": "WeChat Personal Account",

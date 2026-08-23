@@ -380,7 +380,8 @@
     "loading": "加载中...",
     "status": {
       "configured": "已配置",
-      "notConfigured": "未配置"
+      "notConfigured": "未配置",
+      "connected": "已连接"
     },
     "messages": {
       "loadFailed": "加载配置失败",
@@ -394,13 +395,24 @@
     "feishu": {
       "title": "飞书机器人",
       "description": "配置飞书开放平台机器人，通过 AI 智能体接收消息并自动回复",
-      "credentials": "应用凭证",
-      "appIdPlaceholder": "飞书应用 ID",
+      "enabled": "启用飞书渠道",
+      "modeHint": "使用官方 SDK WebSocket 长连接",
       "appSecretPlaceholder": "飞书应用密钥",
-      "eventConfig": "事件订阅配置",
-      "verificationTokenPlaceholder": "事件订阅验证令牌",
-      "encryptKeyPlaceholder": "事件加密密钥（可选）",
-      "webhookHint": "请在飞书开放平台事件订阅请求地址中输入此 URL，并订阅 im.message.receive_v1 事件。"
+      "secretConfigured": "已安全配置，留空保持不变",
+      "allowedUsers": "允许私聊的 open_id",
+      "allowedChats": "允许群聊的 chat_id",
+      "registrationTitle": "扫码创建飞书机器人",
+      "registrationHint": "授权后自动保存凭据并允许当前飞书用户私聊",
+      "registrationStart": "开始授权",
+      "registrationAgain": "重新绑定",
+      "registrationStarting": "正在创建授权会话...",
+      "registrationWaiting": "等待飞书授权确认",
+      "registrationOpen": "在浏览器中打开",
+      "registrationSuccess": "飞书机器人已创建并完成配对",
+      "registrationRestartWarning": "机器人已创建，请手动保存或重启渠道",
+      "registrationDenied": "已取消飞书授权",
+      "registrationStorageFailed": "凭据保存失败，请重试",
+      "registrationFailed": "飞书机器人创建失败，请重试"
     },
     "weixin": {
       "title": "微信个人号",

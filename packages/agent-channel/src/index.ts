@@ -19,3 +19,10 @@ export {
   type WeixinMessageHandler,
   type WeixinChannelConfig,
 } from './weixin';
+
+export {
+  FeishuWSChannel,
+  ConnectionState as FeishuConnectionState,
+  type FeishuWSChannelConfig,
+  type FeishuWSMessageHandler,
+} from './feishu';

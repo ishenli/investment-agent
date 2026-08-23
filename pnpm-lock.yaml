@@ -530,12 +530,15 @@ importers:
         specifier: ^1.62.1
         version: 1.62.1(debug@4.4.3)
     devDependencies:
+      '@types/node':
+        specifier: ^20.19.35
+        version: 20.19.35
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
       vitest:
         specifier: ^3.2.4
-        version: 3.2.4(@types/debug@4.1.12)(@types/node@24.11.0)(jiti@2.6.1)(jsdom@29.1.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@20.19.35)(jiti@2.6.1)(jsdom@29.1.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2)
 
   packages/evaluation:
     dependencies:

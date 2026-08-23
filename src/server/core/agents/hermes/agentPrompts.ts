@@ -3,7 +3,7 @@
  *
  * These prompts encode business-domain knowledge and belong in the
  * business-logic layer (@server/core/agents/hermes), NOT in channel adapters
- * (hermesWeixinHandler, route.ts, etc.).
+ * (hermesChannelHandler, route.ts, etc.).
  *
  * All entry points that run the Hermes investment agent — regardless of
  * the delivery channel (web, WeChat, email, …) — should import and reuse

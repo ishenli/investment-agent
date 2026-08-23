@@ -53,7 +53,17 @@ export async function register() {
         logger.error('[Instrumentation] Weixin channel startup failed:', error);
       });
 
-    // 5. 账户价格更新（非阻塞，后台执行）
+    // 5. 启动飞书 WebSocket Channel（非阻塞，后台执行）
+    import('@/server/channel/feishuChannelTask')
+      .then(({ startFeishuChannel }) => startFeishuChannel())
+      .then(() => {
+        logger.info('[Instrumentation] Feishu channel startup completed');
+      })
+      .catch((error) => {
+        logger.error('[Instrumentation] Feishu channel startup failed:', error);
+      });
+
+    // 6. 账户价格更新（非阻塞，后台执行）
     logger.info('[Instrumentation] Triggering account price update in background...');
     import('@server/controller/assetAccount')
       .then(({ AssetAccountBizController }) => {
@@ -67,7 +77,7 @@ export async function register() {
         logger.error('[Instrumentation] Account price update failed:', error);
       });
 
-    // 6. 启动可配置定时任务调度器（非阻塞，后台执行）
+    // 7. 启动可配置定时任务调度器（非阻塞，后台执行）
     import('@server/service/jobSchedulerService')
       .then(({ default: jobSchedulerService }) => jobSchedulerService.init())
       .then(() => {

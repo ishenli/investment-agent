@@ -17,9 +17,10 @@ const SettingKeySchema = z.enum([
   'TAVILY_API_KEY',
   'AVATAR',
   'FEISHU_APP_ID',
-  'FEISHU_APP_SECRET',
-  'FEISHU_VERIFICATION_TOKEN',
-  'FEISHU_ENCRYPT_KEY',
+  'FEISHU_DOMAIN',
+  'FEISHU_ENABLED',
+  'FEISHU_ALLOWED_USERS',
+  'FEISHU_ALLOWED_CHATS',
   'NOTIFICATION_PREFERENCES',
 ]);
 
@@ -48,6 +49,7 @@ export class SettingBizController extends BaseBizController {
       // 3. 转换为键值对格式
       const settingsMap: Record<string, string> = {};
       settings.forEach((setting) => {
+        if (setting.key === 'FEISHU_APP_SECRET') return;
         settingsMap[setting.key] = setting.value;
       });
 
