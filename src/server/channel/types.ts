@@ -1,12 +1,4 @@
-/**
- * Weixin Channel — Agent Handler Contract
- *
- * Defines the interface between the Channel layer (weixinChannelService)
- * and the Agent layer (e.g. HermesWeixinHandler, LanggraphWeixinHandler).
- *
- * Implement WeixinAgentHandler to plug any agent into the Weixin channel
- * without touching the channel lifecycle or session management.
- */
+/** Contract between a messaging channel task and an Agent implementation. */
 import type { ChannelMessage } from '@investment-agent/agent-channel';
 
 // ── Reply sender (capability slice of WeixinChannel) ─────────────────────────
@@ -16,7 +8,7 @@ import type { ChannelMessage } from '@investment-agent/agent-channel';
  * Satisfied by WeixinChannel.sendMessage() — passed to handlers
  * in case they need to stream partial replies in the future.
  */
-export interface WeixinReplySender {
+export interface ChannelReplySender {
   sendMessage(channelId: string, response: { content: string }): Promise<void>;
 }
 
@@ -27,7 +19,7 @@ export interface WeixinReplySender {
  * The Channel layer is responsible for loading history and resolving the user
  * before calling handle(), so handlers do not need to touch the DB directly.
  */
-export interface WeixinMessageContext {
+export interface ChannelMessageContext {
   /** Persistent chat session ID (created on first message from this channelId) */
   sessionId: string;
   /** Application user ID owning this channel */
@@ -46,10 +38,10 @@ export interface WeixinMessageContext {
  * persisting the assistant message and sending it through the channel.
  *
  * Example implementations:
- *   - HermesWeixinHandler  (src/server/service/channel/hermesWeixinHandler.ts)
+ *   - HermesChannelHandler  (src/server/channel/hermesChannelHandler.ts)
  *   - LanggraphWeixinHandler  (future)
  */
-export interface WeixinAgentHandler {
+export interface ChannelAgentHandler {
   /**
    * Process an inbound message and return the reply text.
    *
@@ -60,7 +52,12 @@ export interface WeixinAgentHandler {
    */
   handle(
     message: ChannelMessage,
-    ctx: WeixinMessageContext,
-    sender: WeixinReplySender,
+    ctx: ChannelMessageContext,
+    sender: ChannelReplySender,
   ): Promise<string>;
 }
+
+// Backward-compatible aliases for the existing Weixin task.
+export type WeixinReplySender = ChannelReplySender;
+export type WeixinMessageContext = ChannelMessageContext;
+export type WeixinAgentHandler = ChannelAgentHandler;

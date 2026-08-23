@@ -24,7 +24,7 @@ import authService from '@server/service/authService';
 import { sessionRepository } from '@server/repository/chat/session';
 import logger from '@server/base/logger';
 import type { WeixinAgentHandler } from './types';
-import { HermesWeixinHandler } from './hermesWeixinHandler';
+import { HermesChannelHandler } from './hermesChannelHandler';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -243,7 +243,7 @@ function createMessageDispatcher(channel: WeixinChannel, handler: WeixinAgentHan
  *   - Auto-restart: restarts when credentials change
  *   - Non-blocking: returns immediately if already starting
  *
- * @param handler Optional custom agent handler (defaults to HermesWeixinHandler)
+ * @param handler Optional custom agent handler (defaults to HermesChannelHandler)
  */
 export async function startWeixinChannel(handler?: WeixinAgentHandler): Promise<void> {
   // Serialize concurrent calls
@@ -260,7 +260,7 @@ export async function startWeixinChannel(handler?: WeixinAgentHandler): Promise<
 }
 
 async function doStart(handler?: WeixinAgentHandler): Promise<void> {
-  const resolvedHandler = handler ?? new HermesWeixinHandler();
+  const resolvedHandler = handler ?? new HermesChannelHandler('weixin');
 
   // Initialize context (cache user ID)
   await initializeContext();

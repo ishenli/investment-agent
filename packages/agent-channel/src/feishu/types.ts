@@ -6,6 +6,7 @@
 export interface FeishuChannelConfig {
   appId: string;
   appSecret: string;
+  domain?: 'feishu' | 'lark';
   verificationToken?: string;
   encryptKey?: string;
 }

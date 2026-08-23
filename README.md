@@ -36,7 +36,7 @@ English Version | [中文版本](./doc/zh/README.md)
 
 ### Multi-Channel Communication
 - **WeChat Integration** - Personal WeChat account via iLink long-poll
-- **Feishu Support** - Feishu bot integration (coming soon)
+- **Feishu Support** - Enterprise Bot integration through the official WebSocket SDK
 - **Web Interface** - Chat-based AI interaction
 - Unified message router for multi-platform support
 
@@ -174,6 +174,24 @@ The WeChat channel enables AI assistant access through personal WeChat accounts:
 - Configurable chunked responses
 - Debug logging integration
 
+## Feishu Integration
+
+The Feishu channel connects an enterprise self-built Bot through the official WebSocket SDK. It currently supports text messages only.
+
+### Setup
+
+1. Create a Feishu enterprise self-built application and enable the Bot capability.
+2. Grant only these permissions for the text channel:
+   - `im:message.p2p_msg:readonly`
+   - `im:message.group_at_msg:readonly`
+   - `im:message:send_as_bot`
+3. In Event Subscriptions, select WebSocket mode and add `im.message.receive_v1`.
+4. Open Settings > Channel > Feishu and enter the App ID, App Secret, private-user `open_id` values (`ou_...`), and group `chat_id` values (`oc_...`). Enable the channel after saving.
+
+The App Secret is stored in the local single-user SQLite database so the channel can reconnect after restarts. It is never returned by the settings API or written to application logs. Group messages are accepted only from allowlisted `chat_id` values and must mention the Bot.
+
+The Feishu channel settings can create a `PersonalAgent` Bot through a browser or QR authorization. The returned App Secret is stored locally, and the authorizing Feishu user's `open_id` is added to the private-chat allowlist automatically. Manual App ID/App Secret entry remains available when tenant policy blocks automatic registration.
+
 ## Tech Stack (AI-Focused)
 
 ### AI & LLM
@@ -184,7 +202,7 @@ The WeChat channel enables AI assistant access through personal WeChat accounts:
 
 ### Communication Channels
 - **WeChat (iLink)** - Personal account integration
-- **Feishu** - Enterprise messaging (planned)
+- **Feishu** - Enterprise Bot integration through WebSocket
 
 ### Data & Storage  
 - **SQLite + Drizzle ORM** - Type-safe database operations
@@ -228,7 +246,7 @@ pnpm test             # Run tests
 ```
 src/
 ├── app/              # Next.js pages and routes
-│   ├── api/channel/  # WeChat/Feishu webhook routes
+│   ├── api/channel/  # Channel configuration and lifecycle APIs
 │   ├── api/chat/     # Chat, observability & trade intent APIs
 │   └── (pages)/chat/features/Conversation/components/GenerativeUI/
 │                     # Inline UI artifact renderer and card registry
@@ -250,7 +268,7 @@ src/
 └── locales/          # i18n translations
 packages/
 ├── agent-channel/    # Multi-platform messaging SDK
-│   └── src/weixin/   # WeChat channel implementation
+│   └── src/          # WeChat and Feishu channel implementations
 └── hermes-agent/
     └── src/
         └── observability/  # Trace, metrics, cost tracking

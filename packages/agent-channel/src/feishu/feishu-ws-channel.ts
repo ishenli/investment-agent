@@ -1,585 +1,274 @@
 import * as Lark from '@larksuiteoapi/node-sdk';
-import type { Channel, ChannelResponse, ChannelEventResult } from '../types';
-import type { FeishuChannelConfig, FeishuMessageReceiveEvent } from './types';
+import type { Channel, ChannelEventResult, ChannelMessage, ChannelResponse } from '../types';
+import { toWSChannelMessage } from './message-adapter';
+import { buildFeishuMessagePayload } from './feishu-markdown';
+import type { FeishuChannelConfig } from './types';
 
-/**
- * Connection state enum
- */
 export enum ConnectionState {
   DISCONNECTED = 'disconnected',
   CONNECTING = 'connecting',
   CONNECTED = 'connected',
-  RECONNECTING = 'reconnecting',
   ERROR = 'error',
 }
 
-/**
- * Feishu WebSocket Channel configuration
- */
 export interface FeishuWSChannelConfig extends FeishuChannelConfig {
-  /** Enable debug logging */
-  loggerLevel?: 'debug' | 'info' | 'warn' | 'error';
-  /** Custom log handler */
+  allowedUserOpenIds: string[];
+  allowedChatIds: string[];
+  dedupeTtlMs?: number;
   logger?: (level: string, message: string, ...args: unknown[]) => void;
-  /** Reconnect options */
-  reconnect?: {
-    /** Enable auto reconnect (default: true) */
-    enabled?: boolean;
-    /** Max reconnect attempts (default: 5, 0 = unlimited) */
-    maxAttempts?: number;
-    /** Reconnect delay in ms (default: 3000) */
-    delayMs?: number;
-  };
-  /** Health check options */
-  healthCheck?: {
-    /** Enable health check (default: true) */
-    enabled?: boolean;
-    /** Health check interval in ms (default: 30000) */
-    intervalMs?: number;
-  };
 }
 
-/**
- * Connection state change callback
- */
 export type ConnectionStateHandler = (
   state: ConnectionState,
   previousState: ConnectionState,
   error?: Error,
 ) => void;
 
-/**
- * Message handler callback type
- */
-export type FeishuWSMessageHandler = (message: {
-  id: string;
-  eventId: string;
-  channelId: string;
-  platform: 'feishu';
-  userId: string;
-  content: string;
-  rawContent: FeishuMessageReceiveEvent;
-  timestamp: number;
-  metadata?: Record<string, unknown>;
-}) => Promise<ChannelResponse>;
+export type FeishuWSMessageHandler = (
+  message: ChannelMessage,
+) => void | ChannelResponse | Promise<void | ChannelResponse>;
 
-/**
- * Internal event data structure from Feishu SDK
- * The SDK passes a normalized event object
- */
-interface FeishuSDKEventData {
-  event_id?: string;
-  token?: string;
-  create_time?: string;
-  event_type?: string;
-  tenant_key?: string;
-  ts?: string;
-  sender?: {
-    sender_id?: {
-      union_id?: string;
-      user_id?: string;
-      open_id?: string;
-    };
-    sender_type?: string;
-    tenant_key?: string;
-  };
-  message?: {
-    message_id: string;
-    root_id?: string;
-    parent_id?: string;
-    create_time: string;
-    update_time?: string;
-    chat_id: string;
-    chat_type: 'p2p' | 'group';
-    message_type: string;
-    content: string;
-    mentions?: Array<{
-      key: string;
-      id: { union_id?: string; user_id?: string; open_id?: string };
-      name: string;
-      tenant_key?: string;
-    }>;
-  };
+interface BotInfoResponse {
+  bot?: { open_id?: string };
+  data?: { bot?: { open_id?: string } };
 }
 
+const silentSdkLogger = {
+  error: () => undefined,
+  warn: () => undefined,
+  info: () => undefined,
+  debug: () => undefined,
+  trace: () => undefined,
+};
+
 /**
- * Feishu WebSocket Channel implementation
- *
- * Uses @larksuiteoapi/node-sdk WebSocket client for real-time message receiving.
- * This provides a persistent connection instead of HTTP webhook.
+ * Thin Feishu WebSocket adapter. The official SDK owns ping and reconnect;
+ * this class owns bounded parsing, policy, deduplication, and delivery only.
  */
 export class FeishuWSChannel implements Channel {
   readonly platform = 'feishu' as const;
-  private config: FeishuWSChannelConfig;
+
+  private readonly config: FeishuWSChannelConfig;
+  private readonly larkClient: Lark.Client;
+  private readonly stateHandlers = new Set<ConnectionStateHandler>();
+  private readonly processedMessages = new Map<string, number>();
+  private readonly dedupeTtlMs: number;
   private wsClient: Lark.WSClient | null = null;
-  private larkClient: Lark.Client;
   private messageHandler: FeishuWSMessageHandler | null = null;
-
-  // Connection state management
-  private _connectionState: ConnectionState = ConnectionState.DISCONNECTED;
-  private connectionStateHandlers: Set<ConnectionStateHandler> = new Set();
-  private reconnectAttempts = 0;
-  private healthCheckInterval: ReturnType<typeof setInterval> | null = null;
-  private lastMessageTime = 0;
   private startPromise: Promise<void> | null = null;
-  private startResolve: (() => void) | null = null;
-  private startReject: ((error: Error) => void) | null = null;
-
-  /**
-   * Get properties from config with defaults
-   */
-  private get reconnectEnabled() {
-    return this.config.reconnect?.enabled ?? true;
-  }
-
-  private get maxReconnectAttempts() {
-    return this.config.reconnect?.maxAttempts ?? 5;
-  }
-
-  private get reconnectDelayMs() {
-    return this.config.reconnect?.delayMs ?? 3000;
-  }
-
-  private get healthCheckEnabled() {
-    return this.config.healthCheck?.enabled ?? true;
-  }
-
-  private get healthCheckIntervalMs() {
-    return this.config.healthCheck?.intervalMs ?? 30000;
-  }
+  private botOpenId = '';
+  private lastMessageTime = 0;
+  private _connectionState = ConnectionState.DISCONNECTED;
 
   constructor(config: FeishuWSChannelConfig) {
     this.config = config;
+    this.dedupeTtlMs = config.dedupeTtlMs ?? 10 * 60 * 1000;
     this.larkClient = new Lark.Client({
       appId: config.appId,
       appSecret: config.appSecret,
+      domain: config.domain === 'lark' ? Lark.Domain.Lark : Lark.Domain.Feishu,
+      disableTokenCache: false,
+      // @CfSecAICode 遵循消费金融安全编码 BE-SECRET-001 规范: 禁止 SDK 展开包含 App Secret 的请求配置。
+      logger: silentSdkLogger,
+      loggerLevel: Lark.LoggerLevel.fatal,
     });
   }
 
-  /**
-   * Get current connection state
-   */
   get connectionState(): ConnectionState {
     return this._connectionState;
   }
 
-  /**
-   * Check if WebSocket is connected and active
-   */
-  isActive(): boolean {
-    return this._connectionState === ConnectionState.CONNECTED;
-  }
-
-  /**
-   * Get last message received timestamp
-   */
   get lastMessageAt(): number {
     return this.lastMessageTime;
   }
 
-  /**
-   * Subscribe to connection state changes
-   * @returns Unsubscribe function
-   */
+  isActive(): boolean {
+    return this._connectionState === ConnectionState.CONNECTED;
+  }
+
   onConnectionStateChange(handler: ConnectionStateHandler): () => void {
-    this.connectionStateHandlers.add(handler);
-    return () => this.connectionStateHandlers.delete(handler);
+    this.stateHandlers.add(handler);
+    return () => this.stateHandlers.delete(handler);
   }
 
-  /**
-   * Set connection state and notify handlers
-   */
-  private setConnectionState(state: ConnectionState, error?: Error): void {
-    const previousState = this._connectionState;
-    if (previousState === state) return;
-
-    this._connectionState = state;
-    this.log('info', `[FeishuWSChannel] Connection state: ${previousState} -> ${state}`);
-
-    for (const handler of this.connectionStateHandlers) {
-      try {
-        handler(state, previousState, error);
-      } catch (err) {
-        this.log('error', '[FeishuWSChannel] State handler error:', err);
-      }
-    }
-  }
-
-  /**
-   * Log message using custom logger or console
-   */
-  private log(level: string, message: string, ...args: unknown[]): void {
-    if (this.config.logger) {
-      this.config.logger(level, message, ...args);
-    } else {
-      const prefix = '[FeishuWSChannel]';
-      switch (level) {
-        case 'error':
-          console.error(prefix, message, ...args);
-          break;
-        case 'warn':
-          console.warn(prefix, message, ...args);
-          break;
-        case 'debug':
-          if (this.config.loggerLevel === 'debug') {
-            console.debug(prefix, message, ...args);
-          }
-          break;
-        default:
-          console.log(prefix, message, ...args);
-      }
-    }
-  }
-
-  /**
-   * Start WebSocket connection and register event handlers
-   * @param onMessage Callback function to handle incoming messages
-   */
   async start(onMessage: FeishuWSMessageHandler): Promise<void> {
-    if (this.isActive()) {
-      this.log('warn', 'Already connected, skipping start()');
-      return;
-    }
+    if (this.isActive()) return;
+    if (this.startPromise) return this.startPromise;
 
-    if (this._connectionState === ConnectionState.CONNECTING) {
-      this.log('warn', 'Connection in progress, waiting...');
-      return this.startPromise!;
-    }
-
-    this.setConnectionState(ConnectionState.CONNECTING);
     this.messageHandler = onMessage;
-    this.reconnectAttempts = 0;
-
-    // Create a promise that resolves when connected
-    this.startPromise = new Promise<void>((resolve, reject) => {
-      this.startResolve = resolve;
-      this.startReject = reject;
+    this.setConnectionState(ConnectionState.CONNECTING);
+    this.startPromise = this.startInternal().finally(() => {
+      this.startPromise = null;
     });
-
-    await this.connect();
-
     return this.startPromise;
   }
 
-  /**
-   * Internal connect method
-   */
-  private async connect(): Promise<void> {
+  private async startInternal(): Promise<void> {
     try {
+      this.botOpenId = await this.resolveBotOpenId();
+
+      const dispatcher = new Lark.EventDispatcher({
+        encryptKey: '',
+        verificationToken: '',
+      }).register<Record<string, (data: unknown) => void>>({
+        'im.message.receive_v1': (data: unknown) => this.acceptEvent(data),
+      });
+
       this.wsClient = new Lark.WSClient({
         appId: this.config.appId,
         appSecret: this.config.appSecret,
-        loggerLevel: this.config.loggerLevel === 'debug' ? Lark.LoggerLevel.debug : Lark.LoggerLevel.info,
+        domain: this.config.domain === 'lark' ? Lark.Domain.Lark : Lark.Domain.Feishu,
+        logger: silentSdkLogger,
+        loggerLevel: Lark.LoggerLevel.fatal,
+        onReady: () => {
+          this.setConnectionState(ConnectionState.CONNECTED);
+          this.log('info', 'WebSocket connected');
+        },
+        onError: (error) => this.setConnectionState(ConnectionState.ERROR, error),
+        onReconnecting: () => this.setConnectionState(ConnectionState.CONNECTING),
+        onReconnected: () => this.setConnectionState(ConnectionState.CONNECTED),
       });
-
-      await this.wsClient.start({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        eventDispatcher: new Lark.EventDispatcher({}).register({
-          // Handle incoming message event
-          'im.message.receive_v1': async (data: FeishuSDKEventData) => {
-            await this.handleMessage(data);
-          },
-        } as any),
-      });
-
-      // Connection successful
-      this.setConnectionState(ConnectionState.CONNECTED);
-      this.reconnectAttempts = 0;
-
-      // Start health check
-      if (this.healthCheckEnabled) {
-        this.startHealthCheck();
-      }
-
-      // Resolve the start promise
-      if (this.startResolve) {
-        this.startResolve();
-        this.startResolve = null;
-        this.startReject = null;
-      }
-
-      this.log('info', 'WebSocket connected successfully');
+      await this.wsClient.start({ eventDispatcher: dispatcher });
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
-      this.log('error', 'Failed to connect:', err.message);
-
-      // Attempt reconnection if enabled
-      if (this.reconnectEnabled && (this.maxReconnectAttempts === 0 || this.reconnectAttempts < this.maxReconnectAttempts)) {
-        await this.handleReconnect();
-      } else {
-        this.setConnectionState(ConnectionState.ERROR, err);
-        if (this.startReject) {
-          this.startReject(err);
-          this.startResolve = null;
-          this.startReject = null;
-        }
-      }
+      this.forceClose();
+      this.setConnectionState(ConnectionState.ERROR, err);
+      throw err;
     }
   }
 
-  /**
-   * Handle reconnection
-   */
-  private async handleReconnect(): Promise<void> {
-    this.reconnectAttempts++;
-    this.setConnectionState(ConnectionState.RECONNECTING);
-
-    this.log(
-      'warn',
-      `Connection lost. Reconnecting (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts || '∞'})...`,
-    );
-
-    // Wait before reconnecting
-    await new Promise((resolve) => setTimeout(resolve, this.reconnectDelayMs));
-
-    // Clean up existing client
-    if (this.wsClient) {
-      try {
-        this.wsClient.close();
-      } catch {
-        // Ignore close errors
-      }
-      this.wsClient = null;
-    }
-
-    // Attempt to reconnect
-    await this.connect();
-  }
-
-  /**
-   * Start health check interval
-   */
-  private startHealthCheck(): void {
-    this.stopHealthCheck();
+  /** SDK callback: bounded synchronous work followed by a microtask handoff. */
+  private acceptEvent(data: unknown): void {
+    const message = toWSChannelMessage(data, {
+      allowedUserOpenIds: this.config.allowedUserOpenIds,
+      allowedChatIds: this.config.allowedChatIds,
+      botOpenId: this.botOpenId,
+    });
+    if (!message || this.isDuplicate(message.id)) return;
 
     this.lastMessageTime = Date.now();
-    this.healthCheckInterval = setInterval(() => {
-      // If no message received for too long, consider connection stale
-      const timeSinceLastMessage = Date.now() - this.lastMessageTime;
-      const staleThreshold = this.healthCheckIntervalMs * 3;
+    const handler = this.messageHandler;
+    if (!handler) return;
 
-      if (timeSinceLastMessage > staleThreshold && this.isActive()) {
-        this.log('warn', 'Connection appears stale, triggering reconnect');
-        this.handleReconnect().catch((err) => {
-          this.log('error', 'Reconnect failed:', err);
-        });
+    queueMicrotask(() => {
+      Promise.resolve(handler(message))
+        .then((response) => {
+          if (response?.content) {
+            return this.replyMessage(message.id, response);
+          }
+        })
+        .catch((error) => this.log('error', 'Message handler failed', this.errorSummary(error)));
+    });
+  }
+
+  private isDuplicate(messageId: string): boolean {
+    const now = Date.now();
+    const seenAt = this.processedMessages.get(messageId);
+    if (seenAt && now - seenAt <= this.dedupeTtlMs) return true;
+
+    this.processedMessages.set(messageId, now);
+    if (this.processedMessages.size > 1000) {
+      for (const [id, timestamp] of this.processedMessages) {
+        if (now - timestamp > this.dedupeTtlMs) this.processedMessages.delete(id);
       }
-    }, this.healthCheckIntervalMs);
+    }
+    return false;
   }
 
-  /**
-   * Stop health check interval
-   */
-  private stopHealthCheck(): void {
-    if (this.healthCheckInterval) {
-      clearInterval(this.healthCheckInterval);
-      this.healthCheckInterval = null;
-    }
-  }
-
-  /**
-   * Stop WebSocket connection
-   */
-  async stop(): Promise<void> {
-    this.stopHealthCheck();
-
-    if (this.wsClient) {
-      try {
-        this.wsClient.close();
-        this.log('info', 'WebSocket connection closed');
-      } catch (error) {
-        this.log('error', 'Error closing WebSocket:', error);
-      }
-      this.wsClient = null;
-    }
-
-    this.setConnectionState(ConnectionState.DISCONNECTED);
-    this.messageHandler = null;
-    this.startPromise = null;
-    this.startResolve = null;
-    this.startReject = null;
-  }
-
-  /**
-   * Force reconnect (useful for manual recovery)
-   */
-  async reconnect(): Promise<void> {
-    if (!this.messageHandler) {
-      throw new Error('Cannot reconnect: no message handler registered. Call start() first.');
-    }
-
-    this.log('info', 'Manual reconnect initiated');
-    await this.stop();
-    this.reconnectAttempts = 0;
-    await this.start(this.messageHandler);
-  }
-
-  /**
-   * Handle incoming message from WebSocket
-   */
-  private async handleMessage(data: FeishuSDKEventData): Promise<void> {
-    // Update last message time for health check
-    this.lastMessageTime = Date.now();
-
-    if (!this.messageHandler) {
-      this.log('warn', 'No message handler registered');
-      return;
-    }
-
-    if (!data.message || !data.sender) {
-      this.log('warn', 'Invalid message format:', data);
-      return;
-    }
-
+  private async resolveBotOpenId(): Promise<string> {
     try {
-      const { sender, message } = data;
-
-      // Parse message content
-      let contentText = '';
-      try {
-        const parsedContent = JSON.parse(message.content);
-        contentText = parsedContent.text || message.content;
-      } catch {
-        contentText = message.content;
-      }
-
-      // Build channel message
-      const channelMessage = {
-        id: message.message_id,
-        eventId: data.event_id || message.message_id,
-        channelId: `feishu:${message.chat_id}`,
-        platform: 'feishu' as const,
-        userId: sender.sender_id?.open_id || sender.sender_id?.user_id || '',
-        content: contentText,
-        rawContent: data as unknown as FeishuMessageReceiveEvent,
-        timestamp: parseInt(message.create_time) || Date.now(),
-        metadata: {
-          chatType: message.chat_type,
-          messageType: message.message_type,
-          parentId: message.parent_id,
-          rootId: message.root_id,
-          mentions: message.mentions,
-        },
-      };
-
-      this.log('debug', 'Received message:', channelMessage.id);
-
-      // Call the message handler
-      const response = await this.messageHandler(channelMessage);
-
-      // Send response if content provided
-      if (response.content) {
-        await this.sendMessage(channelMessage.channelId, response);
-      }
+      const response = await this.larkClient.request<BotInfoResponse>({
+        method: 'GET',
+        url: '/open-apis/bot/v3/info',
+      });
+      return response?.bot?.open_id ?? response?.data?.bot?.open_id ?? '';
     } catch (error) {
-      this.log('error', 'Error handling message:', error);
+      this.log(
+        'warn',
+        'Bot identity unavailable; group messages will be ignored',
+        this.errorSummary(error),
+      );
+      return '';
     }
   }
 
-  /**
-   * Process event - Not applicable for WebSocket mode
-   * This method exists to satisfy the Channel interface but should not be used
-   * when WebSocket is active.
-   */
-  async processEvent(_event: unknown, _headers: Record<string, string>): Promise<ChannelEventResult> {
-    console.warn('[FeishuWSChannel] processEvent() is not applicable for WebSocket mode');
+  async stop(): Promise<void> {
+    this.forceClose();
+    this.messageHandler = null;
+    this.botOpenId = '';
+    this.processedMessages.clear();
+    this.setConnectionState(ConnectionState.DISCONNECTED);
+  }
+
+  private forceClose(): void {
+    if (!this.wsClient) return;
+    try {
+      (this.wsClient as unknown as { close: (options?: { force?: boolean }) => void }).close({
+        force: true,
+      });
+    } catch (error) {
+      this.log('warn', 'WebSocket close failed', this.errorSummary(error));
+    }
+    this.wsClient = null;
+  }
+
+  async processEvent(): Promise<ChannelEventResult> {
     return { type: 'ignored' };
   }
 
-  /**
-   * Send a text message to a chat
-   */
   async sendMessage(channelId: string, response: ChannelResponse): Promise<void> {
-    const chatId = channelId.replace('feishu:', '');
-
-    try {
-      await this.larkClient.im.v1.message.create({
-        params: {
-          receive_id_type: 'chat_id' as const,
-        },
-        data: {
-          receive_id: chatId,
-          msg_type: 'text' as const,
-          content: JSON.stringify({ text: response.content }),
-        },
-      });
-      this.log('debug', 'Message sent to:', chatId);
-    } catch (error) {
-      this.log('error', 'Failed to send message:', error);
-      throw error;
+    const replyToMessageId = response.metadata?.replyToMessageId;
+    if (typeof replyToMessageId === 'string' && replyToMessageId) {
+      await this.replyMessage(replyToMessageId, response);
+      return;
     }
+
+    await this.larkClient.im.v1.message.create({
+      params: { receive_id_type: 'chat_id' },
+      data: {
+        receive_id: channelId.replace(/^feishu:/, ''),
+        ...buildFeishuMessagePayload(response.content),
+      },
+    });
   }
 
-  /**
-   * Reply to a specific message
-   */
   async replyMessage(messageId: string, response: ChannelResponse): Promise<void> {
-    try {
-      await this.larkClient.im.v1.message.reply({
-        path: {
-          message_id: messageId,
-        },
-        data: {
-          msg_type: 'text' as const,
-          content: JSON.stringify({ text: response.content }),
-        },
-      });
-      this.log('debug', 'Reply sent to message:', messageId);
-    } catch (error) {
-      this.log('error', 'Failed to reply message:', error);
-      throw error;
-    }
+    await this.larkClient.im.v1.message.reply({
+      path: { message_id: messageId },
+      data: buildFeishuMessagePayload(response.content),
+    });
   }
 
-  /**
-   * Send an interactive card message
-   */
-  async sendCardMessage(
-    channelId: string,
-    title: string,
-    content: string,
-  ): Promise<void> {
-    const chatId = channelId.replace('feishu:', '');
-
-    try {
-      await this.larkClient.im.v1.message.create({
-        params: {
-          receive_id_type: 'chat_id' as const,
-        },
-        data: {
-          receive_id: chatId,
-          msg_type: 'interactive' as const,
-          content: JSON.stringify(Lark.messageCard.defaultCard({ title, content })),
-        },
-      });
-      this.log('debug', 'Card message sent to:', chatId);
-    } catch (error) {
-      this.log('error', 'Failed to send card message:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get the underlying Lark client for advanced usage
-   */
   getLarkClient(): Lark.Client {
     return this.larkClient;
   }
 
-  /**
-   * Get connection statistics
-   */
-  getStats(): {
-    connectionState: ConnectionState;
-    reconnectAttempts: number;
-    lastMessageAt: number;
-    isActive: boolean;
-  } {
+  getStats() {
     return {
       connectionState: this._connectionState,
-      reconnectAttempts: this.reconnectAttempts,
       lastMessageAt: this.lastMessageTime,
       isActive: this.isActive(),
     };
+  }
+
+  private setConnectionState(state: ConnectionState, error?: Error): void {
+    const previous = this._connectionState;
+    if (previous === state) return;
+    this._connectionState = state;
+    for (const handler of this.stateHandlers) handler(state, previous, error);
+  }
+
+  private log(level: string, message: string, ...args: unknown[]): void {
+    if (this.config.logger) {
+      this.config.logger(level, message, ...args);
+      return;
+    }
+    const method =
+      level === 'error' ? console.error : level === 'warn' ? console.warn : console.info;
+    method(`[FeishuWSChannel] ${message}`, ...args);
+  }
+
+  private errorSummary(error: unknown): string {
+    return error instanceof Error ? `${error.name}: ${error.message}` : typeof error;
   }
 }
