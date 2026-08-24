@@ -1,0 +1,150 @@
+---
+title: 渠道接入
+description: 通过微信（iLink 长轮询）与飞书（WebSocket 机器人）渠道接入 Investment Agent
+---
+
+import { Card, CardGrid, Steps, Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Investment Agent 支持通过即时通讯渠道接入，让你在微信、飞书上直接与投资助手对话。
+
+<Aside type="note" title="交互模式">
+当前渠道为**被动回复**模式：收到你的消息后调用 Hermes 引擎与业务工具，生成回复并发送回去。暂不支持主动推送通知。
+</Aside>
+
+## 多渠道通信概览
+
+<CardGrid>
+  <Card title="微信渠道" icon="message">
+    通过腾讯 iLink Bot API 接入个人微信账号，使用**长轮询**模式，无需绑定 Webhook 地址。
+  </Card>
+  <Card title="飞书渠道" icon="send">
+    通过飞书开放平台官方 SDK 建立 **WebSocket 长连接**，以企业自建应用/机器人与你对话。
+  </Card>
+  <Card title="Web 界面" icon="globe">
+    基于聊天的 AI 交互界面，可从任何浏览器访问。
+  </Card>
+</CardGrid>
+
+所有渠道共用同一套 Agent 引擎与业务工具，接入后即可在对应平台使用投资分析、资产查询、笔记搜索等能力。会话上下文按渠道隔离，各渠道之间互不干扰。
+
+## 微信渠道（iLink）
+
+微信渠道通过腾讯 iLink 接口接入个人微信账号，服务启动后自动建立长轮询连接并持续接收消息。
+
+### 接入方式
+
+在应用左侧导航栏进入 **设置 → 渠道 → 微信个人号**：
+
+1. 点击 **扫码登录（推荐）**，使用微信扫描二维码完成授权，系统会自动读取并保存凭证；
+2. 或在 **手动填写凭证（备用）** 区域直接填入下方配置项；
+3. 点击 **保存配置**。
+
+保存后服务将自动连接。当凭证缺失或无效时，渠道会安全跳过，不会影响应用其它功能。
+
+### 配置项
+
+| 配置项 | 环境变量 | 说明 |
+|-------|---------|------|
+| Bot Token | `WEIXIN_TOKEN` | iLink 接口的访问令牌 |
+| Account ID | `WEIXIN_ACCOUNT_ID` | iLink Bot Account ID |
+| API Base URL | `WEIXIN_BASE_URL` | iLink 服务端点，默认 `https://ilinkai.weixin.qq.com` |
+| 白名单用户 ID | `WEIXIN_ALLOWED_USERS` | 逗号分隔的用户 ID 列表，留空对所有好友开放 |
+
+<Aside type="caution" title="微信白名单当前不生效">
+`WEIXIN_ALLOWED_USERS` 目前作为配置项展示，但白名单过滤尚未接入实际消息处理逻辑。现阶段微信渠道默认对所有可识别好友开放，请勿依赖白名单字段进行访问控制。
+</Aside>
+
+### 会话命令
+
+在微信对话中输入以下命令管理会话：
+
+| 命令 | 说明 |
+|------|------|
+| `/clear` | 清空当前会话上下文，重新开始对话 |
+
+## 飞书渠道（机器人）
+
+飞书通过官方 WebSocket 长连接接入飞书开放平台，机器人消息实时送达，无需配置公网 Webhook 地址。
+
+### 接入方式
+
+在设置左侧导航 **设置 → 渠道 → 飞书机器人**，可通过两种方式接入，推荐使用扫码创建：
+
+<Tabs>
+  <TabItem label="扫码创建（推荐）">
+
+1. 点击 **扫码创建飞书机器人** 下的 **开始授权**；
+2. 使用飞书 App 扫描二维码（或点击 **在浏览器中打开**）完成授权；
+3. 授权完成后自动保存凭据，并允许当前飞书用户私聊机器人。
+
+   <Aside type="tip" title="自动配置">
+   扫码授权会自动写入 App ID / App Secret，并将你的 open_id 加入私聊白名单，无需手动填写。
+   </Aside>
+  </TabItem>
+  <TabItem label="手动配置">
+   在 **App 配置** 区域手动填入 `FEISHU_APP_ID`、`FEISHU_APP_SECRET`，并在白名单中填入允许访问的 open_id / chat_id，然后点击 **保存配置**。
+
+   `FEISHU_APP_SECRET` 仅存储在本地，保存后不在界面回显明文。`FEISHU_DOMAIN` 默认取 `feishu`；如需 Larksuite（国际版）请通过环境变量 `FEISHU_DOMAIN=lark` 设置。
+  </TabItem>
+</Tabs>
+
+保存后渠道服务会自动重连生效。
+
+### 配置项
+
+| 配置项 | 环境变量 | 说明 |
+|-------|---------|------|
+| 启用飞书渠道 | `FEISHU_ENABLED` | `true` 时启用 WebSocket 长连接 |
+| App ID | `FEISHU_APP_ID` | 飞书开放平台应用的 App ID（`cli_…`） |
+| App Secret | `FEISHU_APP_SECRET` | 仅在本地持久化，不对外返回 |
+| 平台 | `FEISHU_DOMAIN` | `feishu` 或 `lark`，对应不同的开放平台域名；默认 `feishu`，非 UI 输入框，通过环境变量设置 |
+| 私聊开放 ID | `FEISHU_ALLOWED_USERS` | 允许私聊的 open_id，逗号分隔 |
+| 群聊 chat_id | `FEISHU_ALLOWED_CHATS` | 允许群聊的 chat_id，逗号分隔 |
+
+<Aside type="note" title="访问规则">
+- 私聊要求发送者 `open_id` 命中 `FEISHU_ALLOWED_USERS`；
+- 群聊要求 `chat_id` 命中 `FEISHU_ALLOWED_CHATS`，且消息中必须 **@机器人**；
+- 至少配置一个私聊或群聊白名单，否则渠道不会启用。
+</Aside>
+
+### 会话命令
+
+支持与微信渠道相同的命令：
+
+| 命令 | 说明 |
+|------|------|
+| `/clear` | 清空当前会话上下文 |
+
+## 开发者说明
+
+### 启动方式
+
+两个渠道都在 **`src/instrumentation.ts`**（`register()`）中通过**非阻塞后台启动**方式拉起，服务进程启动时自动连接。
+
+- 微信：`startWeixinChannel()`
+- 飞书：`startFeishuChannel()`
+
+### 传输差异
+
+| 维度 | 微信（iLink） | 飞书（WebSocket） |
+|------|--------------|------------------|
+| 传输模式 | HTTP 长轮询（Poll） | 官方 WebSocket 长连接 |
+| Webhook | 不需要 | 不需要 |
+| 消息格式 | iLink 协议文本 | 飞书交互消息（interactive 卡片） |
+| 心跳 / 重连 | 由 iLink 轮询会话维护 | SDK 自动心跳、自动重连 |
+
+### 相关 API
+
+渠道配置与状态通过以下 HTTP 接口管理：
+
+- `GET /api/channel/feishu`：读取飞书配置与连接状态
+- `PUT /api/channel/feishu`：保存飞书配置并触发重启
+- `POST /api/channel/feishu`：手动 `start` / `stop` / `restart` 渠道
+- `POST /api/channel/feishu/register`：扫码创建飞书机器人（`start` / `poll` / `cancel`）
+- `GET /api/channel/weixin/qr`：微信扫码登录
+
+### 重启生效提示
+
+<Aside type="caution" title="修改渠道代码后需重启">
+渠道实例在 instrumentation 启动时创建，开发环境下的 HMR（热更新）不会重建运行中的渠道实例。修改 `src/server/channel/**` 或 `packages/agent-channel/**` 后，请**完整重启**应用再验证。
+</Aside>

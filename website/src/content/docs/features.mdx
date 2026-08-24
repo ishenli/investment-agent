@@ -11,15 +11,17 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 
 <CardGrid>
   <Card title="微信集成" icon="message">
-    通过 iLink 长轮询接入个人微信账号，实现无缝移动端访问。
+    通过腾讯 iLink 长轮询接入个人微信账号，实现移动端无缝访问。
   </Card>
   <Card title="飞书支持" icon="send">
-    飞书机器人集成（即将推出），支持企业协作场景。
+    通过飞书开放平台 WebSocket 长连接接入机器人，支持企业协作场景。
   </Card>
   <Card title="Web 界面" icon="globe">
     基于聊天的 AI 交互界面，可从任何浏览器访问。
   </Card>
 </CardGrid>
+
+微信与飞书渠道的接入配置请参阅 [渠道接入](/channels/)。
 
 ## AI 智能分析工具
 

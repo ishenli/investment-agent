@@ -31,6 +31,7 @@ export default defineConfig({
           label: '产品功能',
           items: [
             { label: '功能特性总览', link: '/features/' },
+            { label: '渠道接入', link: '/channels/' },
             { label: '账户与持仓管理', link: '/portfolio-management/' },
             { label: '任务管理', link: '/tasks/' },
             { label: '生成式 UI', link: '/generative-ui/' },

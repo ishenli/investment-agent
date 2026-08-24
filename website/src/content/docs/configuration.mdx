@@ -82,21 +82,40 @@ Investment Agent 的所有配置均可在应用的**设置页面**完成，无�
 
 ### 微信渠道
 
-通过 iLink 接入个人微信账号，实现移动端 AI 助手功能：
+通过腾讯 iLink 接入个人微信账号，使用**长轮询**模式收发消息：
 
 <CardGrid>
   <Card title="配置项" icon="settings">
-    - **iLink API 地址**：iLink 服务端点
-    - **认证信息**：登录凭证
+    - **Bot Token**：`WEIXIN_TOKEN`
+    - **Account ID**：`WEIXIN_ACCOUNT_ID`
+    - **API Base URL**：`WEIXIN_BASE_URL`（默认 `https://ilinkai.weixin.qq.com`）
   </Card>
   <Card title="使用说明" icon="message">
-    1. 在设置页面配置 iLink 服务
-    2. 扫码登录微信账号
-    3. 开始接收和回复消息
+    1. 在设置页 → 渠道 → 微信个人号中扫码登录，或手动填凭证
+    2. 点击保存配置，服务自动连接
+    3. 开始在微信中接收和回复消息
   </Card>
 </CardGrid>
 
-详细的微信渠道配置请参阅 [微信集成文档](/developer/weixin/)。
+### 飞书渠道
+
+通过飞书开放平台官方 SDK 建立 **WebSocket 长连接**，以机器人与你对话：
+
+<CardGrid>
+  <Card title="配置项" icon="settings">
+    - **App ID**：`FEISHU_APP_ID`
+    - **App Secret**：`FEISHU_APP_SECRET`（仅本地存储）
+    - **平台**：`FEISHU_DOMAIN`（`feishu` / `lark`）
+    - **白名单**：`FEISHU_ALLOWED_USERS`（私聊 open_id）、`FEISHU_ALLOWED_CHATS`（群聊 chat_id）
+  </Card>
+  <Card title="使用说明" icon="message">
+    1. 在设置页支持**扫码创建机器人**，或手动填写凭据
+    2. 配置至少一个私聊或群聊白名单
+    3. 保存后渠道自动重连生效
+  </Card>
+</CardGrid>
+
+完整的渠道接入指引请参阅 [渠道接入](/channels/)。
 
 ## 数据存储
 
