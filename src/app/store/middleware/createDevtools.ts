@@ -5,7 +5,7 @@ import { isDevelopment } from '@shared/utils/env';
 
 export const createDevtools =
   (name: string): typeof _devtools =>
-  (initializer) => {
+  ((initializer) => {
     let showDevtools = false;
 
     // check url to show devtools
@@ -20,4 +20,4 @@ export const createDevtools =
     return optionalDevtools(showDevtools)(initializer, {
       name: `Invesetment_${name}` + (isDevelopment() ? '_DEV' : ''),
     });
-  };
+  }) as typeof _devtools;

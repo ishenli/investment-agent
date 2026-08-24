@@ -246,7 +246,7 @@ export class DatabaseManager {
       logger.info('Migrations folder:', { migrationsFolder });
 
       // 检查迁移文件夹是否存在
-      if (!fs.existsSync(migrationsFolder)) {
+      if (!fs.existsSync(/*turbopackIgnore: true*/ migrationsFolder)) {
         logger.warn(`Migrations folder not found: ${migrationsFolder}`);
         logger.warn('Skipping migrations');
         return;

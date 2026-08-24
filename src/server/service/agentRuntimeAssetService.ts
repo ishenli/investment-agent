@@ -84,7 +84,7 @@ export class AgentRuntimeAssetService {
     }
 
     const root = getRuntimeRoot(runtime, userId);
-    const absolutePath = path.join(root, def.fileName);
+    const absolutePath = path.join(/*turbopackIgnore: true*/ root, def.fileName);
 
     if (!absolutePath.startsWith(root)) {
       logger.warn(`[AgentRuntimeAssetService] Resolved path escapes root: ${absolutePath}`);

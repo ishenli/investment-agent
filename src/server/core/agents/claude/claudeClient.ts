@@ -143,7 +143,7 @@ function getUploadedFilePaths(files: FileAttachment[], workDir: string): string[
       // Fallback: write file to disk (should not happen in normal flow)
       if (!uploadDir) {
         uploadDir = path.join(workDir, '.codepilot-uploads');
-        if (!fs.existsSync(uploadDir)) {
+        if (!fs.existsSync(/*turbopackIgnore: true*/ uploadDir)) {
           fs.mkdirSync(uploadDir, { recursive: true });
         }
       }

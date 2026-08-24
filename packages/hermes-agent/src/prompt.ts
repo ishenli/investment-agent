@@ -179,7 +179,7 @@ function findGitRoot(start: string): string | null {
  *   4. .cursorrules
  */
 export function loadContextFiles(cwd?: string): string {
-  const dir = path.resolve(cwd ?? process.cwd());
+  const dir = path.resolve(/*turbopackIgnore: true*/ cwd ?? process.cwd());
   const sections: string[] = [];
 
   const projectContext =
@@ -205,10 +205,10 @@ function loadHermesMd(cwd: string): string {
 
   while (true) {
     for (const name of names) {
-      const candidate = path.join(current, name);
-      if (fs.existsSync(candidate)) {
+      const candidate = path.join(/*turbopackIgnore: true*/ current, name);
+      if (fs.existsSync(/*turbopackIgnore: true*/ candidate)) {
         try {
-          let content = fs.readFileSync(candidate, 'utf-8').trim();
+          let content = fs.readFileSync(/*turbopackIgnore: true*/ candidate, 'utf-8').trim();
           if (!content) continue;
           content = stripYamlFrontmatter(content);
           content = scanContextContent(content, name);

@@ -7,7 +7,7 @@ import { EnabledProviderWithModels } from '@typings/aiProvider';
 import { isEqual } from 'lodash';
 import { Icon } from '@lobehub/ui';
 import { createStyles } from 'antd-style';
-import type { ItemType } from 'antd/es/menu/interface';
+import type { ItemType } from '@lobehub/ui';
 import { LucideArrowRight } from 'lucide-react';
 import React, { type ReactNode, memo, useMemo } from 'react';
 import { Flexbox } from 'react-layout-kit';
@@ -124,8 +124,7 @@ const ModelSwitchPanel = memo<IProps>(({ children, onOpenChange, open }) => {
   return (
     <ActionDropdown
       menu={{
-        // @ts-expect-error 等待 antd 修复
-        activeKey: menuKey(provider, model),
+        selectedKeys: [menuKey(provider, model)],
         className: styles.menu,
         items,
         // 不加限高就会导致面板超长，顶部的内容会被隐藏

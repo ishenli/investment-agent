@@ -6,7 +6,6 @@ import { useChatStore } from '@renderer/store/chat';
 
 import React from 'react';
 import Action from '../components/Action';
-import { T } from 'vitest/dist/chunks/reporters.d.BFLkQcL6.js';
 import { useTranslation } from 'react-i18next';
 
 export const useClearCurrentMessages = () => {

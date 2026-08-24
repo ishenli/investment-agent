@@ -209,7 +209,7 @@ export function findGitBash(): string | null {
     'C:\\Program Files (x86)\\Git\\bin\\bash.exe',
   ];
   for (const p of commonPaths) {
-    if (fs.existsSync(p)) {
+    if (fs.existsSync(/*turbopackIgnore: true*/ p)) {
       return p;
     }
   }

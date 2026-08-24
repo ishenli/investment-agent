@@ -39,6 +39,13 @@ const nextConfig: NextConfig = {
     // hermes-agent uses fully-dynamic import() for plugin discovery (import(modulePath))
     // which webpack cannot statically analyse — let Node.js resolve it at runtime instead
     '@investment-agent/hermes-agent',
+    // @mariozechner/pi-ai lazy-loads node:os via a computed specifier
+    // (const dynamicImport = (s) => import(s); dynamicImport("node:" + "os"))
+    // which Turbopack cannot statically analyse — it replaces that import with a
+    // throwing "Cannot find module as expression is too dynamic" stub, crashing page
+    // data collection when the openai-codex-responses provider module is evaluated.
+    // Externalize so Node resolves the builtin natively at runtime.
+    '@mariozechner/pi-ai',
   ],
   env: {
     NEXT_PUBLIC_APP_VERSION: pkg.version,
