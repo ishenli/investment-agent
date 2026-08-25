@@ -17,6 +17,13 @@ export default defineConfig({
       title: 'Investment Agent',
       description: 'AI-powered local investment analysis tool',
       plugins: [rapide()],
+      social: [
+        {
+          icon: 'github',
+          label: 'GitHub',
+          href: 'https://github.com/ishenli/investment-agent',
+        },
+      ],
       sidebar: [
         {
           label: '开始使用',
