@@ -82,22 +82,32 @@
       "type": "类型",
       "manual": "手动",
       "scheduled": "定时",
+      "agent": "会话洞察",
       "opportunity": "机会",
       "risk": "风险",
       "suggestion": "建议"
     },
     "source": {
       "manual": "手动",
-      "scheduled": "定时"
+      "scheduled": "定时",
+      "agent": "会话洞察"
     },
     "type": {
       "opportunity": "机会",
       "risk": "风险",
-      "suggestion": "建议"
+      "suggestion": "建议",
+      "agent": "会话洞察"
     },
     "confidence": "置信度",
     "loadMore": "加载更多",
-    "total": "共 {{count}} 条"
+    "total": "共 {{count}} 条",
+    "viewSession": "查看会话",
+    "clearLegacy": "清理旧定时洞察",
+    "clearLegacyTitle": "删除历史定时洞察",
+    "clearLegacyConfirm": "确认删除所有历史定时洞察吗？此操作不可恢复（手动生成与新的会话式洞察不受影响）。",
+    "clearLegacyOk": "删除",
+    "clearLegacyFail": "清理失败，请稍后重试",
+    "cancel": "取消"
   },
   "tabs": {
     "dashboard": "实时洞察",

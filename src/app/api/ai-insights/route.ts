@@ -7,6 +7,12 @@ class AiInsightHttpController extends BaseController {
     const query = await super.getQuery(request);
     return Response.json(await controller.listInsights(query));
   }
+
+  static async DELETE() {
+    const controller = new AiInsightController();
+    return Response.json(await controller.cleanScheduledInsights());
+  }
 }
 
 export const GET = AiInsightHttpController.GET;
+export const DELETE = AiInsightHttpController.DELETE;

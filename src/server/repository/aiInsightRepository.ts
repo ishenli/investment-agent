@@ -108,6 +108,20 @@ export class AiInsightRepository extends BaseIntRepository<AiInsightEntity> {
       .where(and(...conditions));
     return Number(result[0]?.count || 0);
   }
+
+  /**
+   * 按用户与来源删除洞察记录（用于清理旧的定时洞察残留）
+   * @param userId 用户 ID
+   * @param source 来源，如 'scheduled'
+   * @returns 删除的记录数
+   */
+  async deleteByUserIdAndSource(userId: number, source: InsightSource): Promise<number> {
+    const result = await db
+      .delete(aiInsights)
+      .where(and(eq(aiInsights.userId, userId), eq(aiInsights.source, source)))
+      .returning({ id: aiInsights.id });
+    return result.length;
+  }
 }
 
 export const aiInsightRepository = new AiInsightRepository();
