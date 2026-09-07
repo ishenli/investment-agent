@@ -26,7 +26,7 @@ This project is an advanced investment analysis platform built with Next.js that
 - Zod for validation
 
 ### Architecture Patterns
-- Multi-agent AI architecture with specialized agents for different aspects of investment analysis
+- Agent-based AI orchestration (Hermes engine, Claude SDK, DeepAgents) with LangGraph workflows for insights and market information
 - Next.js App Router for routing
 - Component-based architecture with clear separation of concerns
 - Service layer for API interactions
@@ -46,8 +46,8 @@ This project is an advanced investment analysis platform built with Next.js that
 - Conventional commits for clear commit messages
 
 ## Domain Context
-- Investment Analysis: A system for analyzing stocks using multiple AI agents with LangGraph workflows
-- Multi-agent System: AI agents for market analysis, news analysis, bullish/bearish research, risk management, and trading recommendations
+- Conversational AI Agent: Chat-based AI advisor via Hermes engine / DeepAgents / Claude SDK for investment analysis and Q&A
+- LangGraph Workflows: AI insights generation (opportunity/risk/suggestion), diversification advice, and market information synthesis
 - Asset Management: Tracking and analyzing investment portfolios with position management and performance analytics
 - Market Information Fetching: Automated retrieval and analysis of market information from Finnhub API
 - Technical Analysis: Comprehensive technical indicators and charting capabilities
