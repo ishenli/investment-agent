@@ -82,22 +82,32 @@
       "type": "Type",
       "manual": "Manual",
       "scheduled": "Scheduled",
+      "agent": "Session",
       "opportunity": "Opportunity",
       "risk": "Risk",
       "suggestion": "Suggestion"
     },
     "source": {
       "manual": "Manual",
-      "scheduled": "Scheduled"
+      "scheduled": "Scheduled",
+      "agent": "Session"
     },
     "type": {
       "opportunity": "Opportunity",
       "risk": "Risk",
-      "suggestion": "Suggestion"
+      "suggestion": "Suggestion",
+      "agent": "Session"
     },
     "confidence": "Confidence",
     "loadMore": "Load More",
-    "total": "{{count}} total"
+    "total": "{{count}} total",
+    "viewSession": "View session",
+    "clearLegacy": "Clear old scheduled insights",
+    "clearLegacyTitle": "Delete legacy scheduled insights",
+    "clearLegacyConfirm": "Delete all legacy scheduled insights? This cannot be undone (manual and session-based insights are kept).",
+    "clearLegacyOk": "Delete",
+    "clearLegacyFail": "Failed to delete legacy insights. Please try again.",
+    "cancel": "Cancel"
   },
   "tabs": {
     "dashboard": "Live Insights",

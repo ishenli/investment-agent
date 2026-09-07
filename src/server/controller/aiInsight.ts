@@ -24,6 +24,21 @@ const ListInsightsQuerySchema = z.object({
     .optional(),
 });
 
+const ListInsightHistoryQuerySchema = z.object({
+  page: z
+    .string()
+    .transform((v) => parseInt(v))
+    .pipe(z.number().min(1))
+    .optional(),
+  pageSize: z
+    .string()
+    .transform((v) => parseInt(v))
+    .pipe(z.number().min(1).max(100))
+    .optional(),
+  source: z.enum(['manual', 'scheduled', 'agent']).optional(),
+  type: z.enum(['opportunity', 'risk', 'suggestion', 'agent']).optional(),
+});
+
 export class AiInsightController extends BaseBizController {
   // ============== List ==============
 
@@ -51,6 +66,51 @@ export class AiInsightController extends BaseBizController {
       return this.success(result);
     } catch (error) {
       return this.error('获取洞察列表失败', 'list_insights_error');
+    }
+  }
+
+  // ============== History（新旧聚合） ==============
+
+  @WithRequestContext()
+  async listInsightHistory(query: Record<string, string>) {
+    try {
+      const userId = await authService.getCurrentUserId();
+      if (!userId) {
+        return this.error('用户未登录', 'unauthorized');
+      }
+
+      const parsed = ListInsightHistoryQuerySchema.safeParse(query);
+      if (!parsed.success) {
+        return this.error('参数格式无效', 'validation_error');
+      }
+
+      const result = await aiInsightService.getInsightHistory(parseInt(userId), {
+        page: parsed.data.page,
+        pageSize: parsed.data.pageSize,
+        source: parsed.data.source,
+        type: parsed.data.type,
+      });
+
+      return this.success(result);
+    } catch (error) {
+      return this.error('获取洞察历史失败', 'list_insight_history_error');
+    }
+  }
+
+  // ============== Clean ==============
+
+  @WithRequestContext()
+  async cleanScheduledInsights() {
+    try {
+      const userId = await authService.getCurrentUserId();
+      if (!userId) {
+        return this.error('用户未登录', 'unauthorized');
+      }
+
+      const deleted = await aiInsightService.cleanLegacyScheduledInsights(parseInt(userId));
+      return this.success({ deleted });
+    } catch (error) {
+      return this.error('清理旧洞察失败', 'clean_insights_error');
     }
   }
 

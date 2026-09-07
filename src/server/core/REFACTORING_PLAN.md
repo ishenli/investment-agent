@@ -1,5 +1,8 @@
 # src/server/core 重构计划
 
+> **状态注(2026-09-07)**:TradingAgents 深度分析子系统(即 docs 里的 `agents/` + `graph/tradeDecision/` + `memory/`)已随 deep-analysis 功能一起下线移除。
+> 涉及该子系统的 **Phase 5 / Phase 6 / Phase 7 中的 tradeDecision·memory 示意均作废**,仅保留对仍在使用的模块(claude/、deepagents/、hermes/、provider/、tools/ 等)的指导。
+
 ## 当前问题
 
 `src/server/core` 目录存在以下问题：
@@ -13,19 +16,19 @@
 
 | 目录 | 状态 | 外部引用 | 说明 |
 |------|------|---------|------|
-| `agents/` | 活跃 | 0 (仅内部) | LangGraph multi-agent 实现，仅被 graph/tradeDecision 使用 |
+| `agents/` | **已删除** | 0 | TradingAgents 深度分析(nodes)已随 deep-analysis 功能移除 |
 | `claude/` | 活跃 | 3 | Claude SDK 集成，被 API 路由和 reportService 使用 |
 | `deepagents/` | 活跃 | 2 | DeepAgents SDK 集成，被 chatService 和 aiInsightsGraph 使用 |
 | `engine/` | **废弃** | 0 | 无任何引用，可安全删除 |
-| `graph/` | 活跃 | 3 | LangGraph 工作流，被多个 service 使用 |
+| `graph/` | 活跃 | 3 | LangGraph 工作流(graphs/aiInsightsGraph 等),被多个 service 使用;tradeDecision 已删 |
 | `hermes/` | 活跃 | 2 | Hermes Agent 工具注册，被 API 和 channel 使用 |
-| `memory/` | 活跃但空实现 | 0 (仅内部) | FinancialSituationMemory 实现，被 agents/ 使用但返回空数组 |
+| `memory/` | **已删除** | 0 | FinancialSituationMemory 已随 deep-analysis 功能移除 |
 | `provider/` | 活跃 | 9 | ChatModel/ChatAgent 封装，被多处 graph 和 service 使用 |
 | `tools/` | 半废弃 | 1 | 仅被 claude/buildTools 引用，应整合到 hermes |
-| `utils/` | **废弃** | 0 | 无外部引用，可安全删除 |
+| `utils/` | 部分删除 | 0 | agentUtils/stockUtils 已删;messageUtils 仍被 marketInformationGraph 使用 |
 
 详细引用分析：
-- `agents/` → 仅被 `graph/tradeDecision/` 内部通过相对路径引用
+- `agents/langchain/nodes/`(TradingAgents) → 已删除
 - `claude/` → `@/server/core/claude/claudeClient`, `@server/core/claude/buildTools`, `@server/core/claude/toolNameMapper`
 - `deepagents/` → `@/server/core/deepagents/investmentAdvisorAgent`, `deepagents` npm 包
 - `graph/` → `@server/core/graph/aiInsightsGraph`, `@server/core/graph/tradeDecision`
@@ -43,9 +46,10 @@
 - **文件**: `engine/hermes-engine.ts`, `engine/types.ts`, `engine/registry.ts`, `engine/index.ts`
 - **影响**: 无
 
-#### 1.2 删除 utils/ 目录
+#### 1.2 删除 utils/ 目录（⚠️ 部分完成）
 - **原因**: 无任何外部引用
 - **文件**: `utils/agentUtils.ts`, `utils/messageUtils.ts`, `utils/stockUtils/`
+- **现状**: `agentUtils.ts`、`stockUtils/` 已随 deep-analysis 移除;`messageUtils.ts` 因被 marketInformationGraph 引用而保留
 - **影响**: 无
 
 ---
@@ -136,7 +140,7 @@ claude/
 
 ---
 
-### Phase 5: 整理 agents/ 和 graph/tradeDecision 的关系 (低风险)
+### Phase 5: 整理 agents/ 和 graph/tradeDecision 的关系 (低风险) — ❌ 作废（相关代码已随 deep-analysis 移除）
 
 #### 5.1 当前结构
 
@@ -172,7 +176,7 @@ graph/tradeDecision/
 
 ---
 
-### Phase 6: 完善 memory/ 或标记为 TODO (低风险)
+### Phase 6: 完善 memory/ 或标记为 TODO (低风险) — ❌ 作废（memory 已随 deep-analysis 移除）
 
 #### 6.1 当前问题
 

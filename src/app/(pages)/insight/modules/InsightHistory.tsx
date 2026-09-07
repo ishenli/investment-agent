@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import Link from 'next/link';
+import { Modal } from 'antd';
 import {
   Card,
   CardContent,
@@ -15,30 +17,34 @@ import {
   TrendingUpIcon,
   AlertTriangleIcon,
   LightbulbIcon,
+  SparklesIcon,
   ClockIcon,
   CalendarIcon,
   Loader2,
+  Trash2,
 } from 'lucide-react';
 import dayjs from 'dayjs';
 import type {
-  AiInsightResponse,
-  AiInsightListResponse,
-  InsightType,
-  InsightSource,
+  InsightHistoryItem,
+  InsightHistoryListResponse,
+  InsightHistorySource,
+  InsightHistoryType,
 } from '@/types/aiInsight';
 
 const TYPE_CONFIG: Record<
-  InsightType,
+  InsightHistoryType,
   { icon: typeof TrendingUpIcon; variant: 'default' | 'destructive' | 'secondary' }
 > = {
   opportunity: { icon: TrendingUpIcon, variant: 'default' },
   risk: { icon: AlertTriangleIcon, variant: 'destructive' },
   suggestion: { icon: LightbulbIcon, variant: 'secondary' },
+  agent: { icon: SparklesIcon, variant: 'secondary' },
 };
 
-const SOURCE_VARIANT: Record<InsightSource, 'outline' | 'secondary'> = {
+const SOURCE_VARIANT: Record<InsightHistorySource, 'outline' | 'secondary'> = {
   manual: 'outline',
   scheduled: 'secondary',
+  agent: 'secondary',
 };
 
 const PAGE_SIZE = 10;
@@ -46,15 +52,17 @@ const PAGE_SIZE = 10;
 export function InsightHistory() {
   const { t } = useTranslation('insight');
 
-  const [items, setItems] = useState<AiInsightResponse[]>([]);
+  const [items, setItems] = useState<InsightHistoryItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  const [filterSource, setFilterSource] = useState<InsightSource | undefined>();
-  const [filterType, setFilterType] = useState<InsightType | undefined>();
+  const [filterSource, setFilterSource] = useState<InsightHistorySource | undefined>();
+  const [filterType, setFilterType] = useState<InsightHistoryType | undefined>();
+  const [cleaningUp, setCleaningUp] = useState(false);
+  const [clearError, setClearError] = useState<string | null>(null);
 
   const fetchInsights = useCallback(
     async (page: number, append = false) => {
@@ -69,10 +77,10 @@ export function InsightHistory() {
         if (filterSource) params.set('source', filterSource);
         if (filterType) params.set('type', filterType);
 
-        const res = await fetch(`/api/ai-insights?${params}`);
+        const res = await fetch(`/api/insight-history?${params}`);
         const result = await res.json();
         if (result.success) {
-          const data = result.data as AiInsightListResponse;
+          const data = result.data as InsightHistoryListResponse;
           setItems((prev) => (append ? [...prev, ...data.items] : data.items));
           setTotalCount(data.totalCount);
           setTotalPages(data.totalPages);
@@ -98,8 +106,34 @@ export function InsightHistory() {
     }
   };
 
-  const sourceOptions: (InsightSource | undefined)[] = [undefined, 'manual', 'scheduled'];
-  const typeOptions: (InsightType | undefined)[] = [undefined, 'opportunity', 'risk', 'suggestion'];
+  const handleClearLegacy = () => {
+    Modal.confirm({
+      title: t('history.clearLegacyTitle'),
+      content: t('history.clearLegacyConfirm'),
+      okText: t('history.clearLegacyOk'),
+      okButtonProps: { danger: true },
+      cancelText: t('history.cancel'),
+      onOk: async () => {
+        setCleaningUp(true);
+        setClearError(null);
+        try {
+          const res = await fetch('/api/ai-insights', { method: 'DELETE' });
+          const result = await res.json().catch(() => null);
+          if (!res.ok || !result?.success) {
+            setClearError(t('history.clearLegacyFail'));
+          }
+          await fetchInsights(1);
+        } catch {
+          setClearError(t('history.clearLegacyFail'));
+        } finally {
+          setCleaningUp(false);
+        }
+      },
+    });
+  };
+
+  const sourceOptions: (InsightHistorySource | undefined)[] = [undefined, 'manual', 'scheduled', 'agent'];
+  const typeOptions: (InsightHistoryType | undefined)[] = [undefined, 'opportunity', 'risk', 'suggestion', 'agent'];
 
   if (loading) {
     return (
@@ -140,6 +174,29 @@ export function InsightHistory() {
           ))}
         </div>
       </div>
+
+      {/* Clear legacy scheduled insights */}
+      <div className="flex justify-end -mt-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleClearLegacy}
+          disabled={cleaningUp}
+          className="text-muted-foreground hover:text-destructive"
+        >
+          {cleaningUp ? (
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          ) : (
+            <Trash2 className="h-4 w-4 mr-2" />
+          )}
+          {t('history.clearLegacy')}
+        </Button>
+      </div>
+      {clearError && (
+        <p className="text-sm text-destructive" role="alert">
+          {clearError}
+        </p>
+      )}
 
       {/* Total count */}
       {totalCount > 0 && (
@@ -195,11 +252,18 @@ export function InsightHistory() {
                         <ClockIcon className="h-3 w-3" />
                         {dayjs(insight.createdAt).format('YYYY-MM-DD HH:mm')}
                       </span>
-                      {insight.source === 'scheduled' && insight.jobId && (
+                      {insight.jobId != null && (
                         <span className="flex items-center gap-1">
                           <CalendarIcon className="h-3 w-3" />
                           Job #{insight.jobId}
                         </span>
+                      )}
+                      {insight.source === 'agent' && insight.sessionId && (
+                        <Button asChild size="sm" variant="outline" className="ml-auto">
+                          <Link href={`/chat?session=${insight.sessionId}`}>
+                            {t('history.viewSession')}
+                          </Link>
+                        </Button>
                       )}
                     </div>
                   </CardContent>

@@ -16,6 +16,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: projectRoot,
   },
+  allowedDevOrigins: ['demo.dev.alipay.net'],
   images: {
     remotePatterns: [
       {

@@ -19,6 +19,16 @@ const useStyles = createStyles(({ css }) => {
       line-height: 1.5;
 
       box-shadow: none !important;
+
+      // antd v6 borderless 在 :focus-visible 时会加一圈主色 outline，
+      // 而聊天输入框因 autoFocus 常驻聚焦，会导致高亮环一直显示
+      outline: none !important;
+
+      &:focus,
+      &:focus-visible,
+      &:focus-within {
+        outline: none !important;
+      }
     `,
     textareaContainer: css`
       position: relative;

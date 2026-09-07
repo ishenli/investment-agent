@@ -15,7 +15,6 @@ import {
   IconCirclePlusFilled,
   type Icon,
   IconEye,
-  IconTelescope,
   IconCamera,
   IconNotification,
   IconChecklist,
@@ -73,11 +72,6 @@ export const data = {
     //   url: '/chat-ai',
     //   icon: IconMessage,
     // },
-    {
-      title: 'sidebar.navMain.deepAnalysis',
-      url: '/research',
-      icon: IconTelescope,
-    },
     {
       title: 'sidebar.navMain.taskManagement',
       url: '/tasks',

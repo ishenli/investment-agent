@@ -40,7 +40,6 @@ export const namespaces = [
   'transaction',
   'asset',
   'insight',
-  'research',
   'snapshot',
   'asset-meta',
   'account',
@@ -84,7 +83,6 @@ import zhCNReport from '@/locales/zh-CN/report.json';
 import zhCNTransaction from '@/locales/zh-CN/transaction.json';
 import zhCNAsset from '@/locales/zh-CN/asset.json';
 import zhCNInsight from '@/locales/zh-CN/insight.json';
-import zhCNResearch from '@/locales/zh-CN/research.json';
 import zhCNSnapshot from '@/locales/zh-CN/snapshot.json';
 import zhCNAssetMeta from '@/locales/zh-CN/asset-meta.json';
 import zhCNAccount from '@/locales/zh-CN/account.json';
@@ -112,7 +110,6 @@ import enUSReport from '@/locales/en-US/report.json';
 import enUSTRansaction from '@/locales/en-US/transaction.json';
 import enUSAsset from '@/locales/en-US/asset.json';
 import enUSInsight from '@/locales/en-US/insight.json';
-import enUSResearch from '@/locales/en-US/research.json';
 import enUSSnapshot from '@/locales/en-US/snapshot.json';
 import enUSAssetMeta from '@/locales/en-US/asset-meta.json';
 import enUSAccount from '@/locales/en-US/account.json';
@@ -145,7 +142,6 @@ export const resources = {
     transaction: zhCNTransaction,
     asset: zhCNAsset,
     insight: zhCNInsight,
-    research: zhCNResearch,
     snapshot: zhCNSnapshot,
     'asset-meta': zhCNAssetMeta,
     account: zhCNAccount,
@@ -174,7 +170,6 @@ export const resources = {
     transaction: enUSTRansaction,
     asset: enUSAsset,
     insight: enUSInsight,
-    research: enUSResearch,
     snapshot: enUSSnapshot,
     'asset-meta': enUSAssetMeta,
     account: enUSAccount,

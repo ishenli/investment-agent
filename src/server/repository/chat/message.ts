@@ -125,6 +125,27 @@ export class MessageRepository extends BaseRepository<ChatMessage> {
   }
 
   /**
+   * 批量获取多个会话的助手消息（按创建时间升序）
+   * 用于洞察历史页聚合会话式洞察产出，避免逐会话 N+1 查询。
+   */
+  async findAssistantMessagesBySessionIds(
+    sessionIds: string[],
+  ): Promise<ChatMessage[]> {
+    if (sessionIds.length === 0) return [];
+
+    return db
+      .select()
+      .from(chatMessages)
+      .where(
+        and(
+          inArray(chatMessages.sessionId, sessionIds),
+          eq(chatMessages.role, 'assistant'),
+        ),
+      )
+      .orderBy(asc(chatMessages.createdAt));
+  }
+
+  /**
    * 根据话题 ID 获取所有消息
    */
   async findByTopicId(topicId: string): Promise<ChatMessage[]> {
