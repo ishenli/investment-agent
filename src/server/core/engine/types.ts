@@ -1,13 +1,13 @@
 /**
  * Agent Engine Interface
  *
- * 统一的 Agent 引擎协议，所有引擎（DeepAgents / Claude / Hermes）实现此接口，
+ * 统一的 Agent 引擎协议，所有引擎（Claude / Hermes）实现此接口，
  * 减少新增引擎时的样板代码。
  */
 import type { EngineEventSink } from './eventSink';
 export { type EngineEventSink } from './eventSink';
 
-export const ENGINE_TYPES = ['deepagents', 'claude', 'hermes'] as const;
+export const ENGINE_TYPES = ['claude', 'hermes'] as const;
 export type EngineType = (typeof ENGINE_TYPES)[number];
 
 /**
@@ -49,16 +49,6 @@ export interface ClaudeEngineExtra {
   allowedTools?: string[];
   /** 显式技能指令（注入到用户 prompt 而非 systemPrompt，以保留 prompt cache） */
   explicitSkillDirective?: string;
-}
-
-/**
- * DeepAgents 引擎所需的额外上下文
- */
-export interface DeepAgentsEngineExtra {
-  /** 用户账户 ID（字符串，默认从 ctx.userId 推导） */
-  accountId?: string;
-  /** 对话消息的 LangChain 格式 */
-  messages?: EngineMessage[];
 }
 
 /**

@@ -774,8 +774,7 @@
       "engines": {
         "mock": "Mock (快速测试)",
         "hermes": "Hermes",
-        "claude": "Claude",
-        "deepagents": "DeepAgents"
+        "claude": "Claude"
       },
       "thresholds": {
         "0.5": "0.5 (宽松)",

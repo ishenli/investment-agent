@@ -77,9 +77,11 @@ const currentSessionProvider = (s: SessionStore): string => {
 
 /**
  * 获取当前 Session 使用的 Engine 类型
+ * 缺失或存量 deepagents 一律归一为 hermes
  */
 const currentSessionEngineType = (s: SessionStore): EngineType => {
-  return currentSessionConfig(s).engineType || 'deepagents';
+  const engineType = currentSessionConfig(s).engineType;
+  return engineType === 'claude' || engineType === 'hermes' ? engineType : 'hermes';
 };
 
 /**

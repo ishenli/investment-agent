@@ -1,7 +1,6 @@
 import { engineRegistry } from './registry';
 import { HermesEngine } from '../agents/hermes/engine';
 import { ClaudeEngine } from '../agents/claude/engine';
-import { DeepAgentsEngine } from '../agents/langchain/engine';
 
 export type {
   IAgentEngine,
@@ -10,7 +9,6 @@ export type {
   EngineMessage,
   EngineType,
   ClaudeEngineExtra,
-  DeepAgentsEngineExtra,
   HermesEngineExtra,
   EngineEventSink,
 } from './types';
@@ -18,7 +16,6 @@ export { ENGINE_TYPES } from './types';
 export { engineRegistry } from './registry';
 export { HermesEngine } from '../agents/hermes/engine';
 export { ClaudeEngine } from '../agents/claude/engine';
-export { DeepAgentsEngine } from '../agents/langchain/engine';
 export { runEngine } from './runner';
 export { NoOpEventSink, LoggingEventSink } from './eventSink';
 
@@ -28,4 +25,3 @@ export { NoOpEventSink, LoggingEventSink } from './eventSink';
  */
 engineRegistry.register('hermes', new HermesEngine());
 engineRegistry.register('claude', new ClaudeEngine());
-engineRegistry.register('deepagents', new DeepAgentsEngine());

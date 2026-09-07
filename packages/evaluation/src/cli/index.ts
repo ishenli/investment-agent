@@ -159,7 +159,7 @@ Usage:
   pnpm eval --full --ci             Run all MVP benchmark cases
   pnpm eval -c asset-query          Run one category
   pnpm eval -c asset-query --engine hermes --model gpt-5.5
-  pnpm eval --compare deepagents,claude   Compare multiple engines
+  pnpm eval --compare claude,hermes   Compare multiple engines
   pnpm eval --regression --baseline v1.2.0  Run regression against baseline
   pnpm eval --replay <session-id>    Replay a recorded session
 

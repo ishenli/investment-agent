@@ -49,10 +49,7 @@ const ClaudeModeSwitch = () => {
   const { styles } = useStyles();
 
   // 获取当前引擎类型和模式
-  const engineType = useSessionStore((s) => {
-    const session = sessionSelectors.currentSession(s);
-    return session?.config?.engineType || 'deepagents';
-  });
+  const engineType = useSessionStore(sessionSelectors.currentSessionEngineType);
 
   const currentMode = useSessionStore((s) => {
     const session = sessionSelectors.currentSession(s);

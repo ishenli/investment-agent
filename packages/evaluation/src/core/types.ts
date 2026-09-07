@@ -6,7 +6,7 @@ export const evaluationCategories = [
   'edge-cases',
 ] as const;
 
-export const evaluationEngines = ['mock', 'deepagents', 'claude', 'hermes'] as const;
+export const evaluationEngines = ['mock', 'claude', 'hermes'] as const;
 export const evaluationTransports = ['web-api', 'direct'] as const;
 
 export type EvaluationCategory = (typeof evaluationCategories)[number];

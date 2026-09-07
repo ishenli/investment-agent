@@ -18,7 +18,7 @@
 |------|------|---------|------|
 | `agents/` | **已删除** | 0 | TradingAgents 深度分析(nodes)已随 deep-analysis 功能移除 |
 | `claude/` | 活跃 | 3 | Claude SDK 集成，被 API 路由和 reportService 使用 |
-| `deepagents/` | 活跃 | 2 | DeepAgents SDK 集成，被 chatService 和 aiInsightsGraph 使用 |
+| `deepagents/` | **已移除** | 0 | DeepAgents SDK 集成已于 2026-09-03 移除（见 `openspec/changes/remove-deepagents-langchain`）；原 aiInsightsGraph 中的 `createDeepAgent` 已改为 `llm.invoke` |
 | `engine/` | **废弃** | 0 | 无任何引用，可安全删除 |
 | `graph/` | 活跃 | 3 | LangGraph 工作流(graphs/aiInsightsGraph 等),被多个 service 使用;tradeDecision 已删 |
 | `hermes/` | 活跃 | 2 | Hermes Agent 工具注册，被 API 和 channel 使用 |

@@ -76,8 +76,7 @@ function inputToMessages(input: BenchmarkCase['input']): Array<Pick<EvaluationMe
 
 function endpointForEngine(engine: Exclude<EvaluationEngine, 'mock'>): string {
   if (engine === 'hermes') return '/api/chat/hermes';
-  if (engine === 'claude') return '/api/chat/claude';
-  return '/api/chat/agent';
+  return '/api/chat/claude';
 }
 
 function buildRequestBody(

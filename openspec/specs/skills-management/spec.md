@@ -411,12 +411,11 @@ The system SHALL let users explicitly select one enabled skill for the next chat
 - **AND** skills MUST be grouped by category when category metadata exists
 - **AND** the picker MUST support filtering by skill name, description, and slug
 
-#### Scenario: Hide explicit skill picker for DeepAgents
-- **GIVEN** the current chat session uses the `deepagents` engine
+#### Scenario: No explicit skill picker for engines without skill support
+- **GIVEN** the current chat session uses an engine that does not support explicit skills (there is no such engine after the DeepAgents removal; kept as a guard for future engines)
 - **WHEN** the chat input renders
 - **THEN** the system MUST NOT display the explicit skill trigger
 - **AND** typing `/` or `@` MUST NOT open the skill picker
-- **AND** the existing DeepAgents plugin tools UI MUST remain unchanged
 
 #### Scenario: Keyboard navigation
 - **GIVEN** the explicit skill picker is open

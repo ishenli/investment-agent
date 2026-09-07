@@ -47,10 +47,7 @@ const useStyles = createStyles(({ css, token }) => ({
 const PermissionLevelSwitch = () => {
   const { styles } = useStyles();
 
-  const engineType = useSessionStore((s) => {
-    const session = sessionSelectors.currentSession(s);
-    return session?.config?.engineType || 'deepagents';
-  });
+  const engineType = useSessionStore(sessionSelectors.currentSessionEngineType);
 
   const currentLevel = useSessionStore(sessionSelectors.currentSessionPermissionLevel);
 

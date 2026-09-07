@@ -39,7 +39,6 @@ export function EvalConfigPanel({ onRunStarted }: EvalConfigPanelProps) {
     { value: 'mock', label: t('evaluation.config.engines.mock') },
     { value: 'hermes', label: t('evaluation.config.engines.hermes') },
     { value: 'claude', label: t('evaluation.config.engines.claude') },
-    { value: 'deepagents', label: t('evaluation.config.engines.deepagents') },
   ];
 
   const CATEGORIES = [
