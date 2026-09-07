@@ -2,7 +2,7 @@ import { createStyles } from 'antd-style';
 import { Select, Icon } from '@lobehub/ui';
 import { memo } from 'react';
 import { Flexbox } from 'react-layout-kit';
-import { Brain, Sparkles, Check, Zap } from 'lucide-react';
+import { Sparkles, Check, Zap } from 'lucide-react';
 
 import { useSessionStore } from '@renderer/store/session';
 import { sessionSelectors } from '@renderer/store/session/selectors';
@@ -47,12 +47,6 @@ const EngineSwitch = () => {
 
   const engines = [
     {
-      value: 'deepagents',
-      icon: Brain,
-      label: 'DeepAgents',
-      description: '多 Agent 协作系统',
-    },
-    {
       value: 'claude',
       icon: Sparkles,
       label: 'Claude SDK',
@@ -68,7 +62,7 @@ const EngineSwitch = () => {
 
   return (
     <Select
-      defaultValue="deepagents"
+      defaultValue="hermes"
       className={styles.select}
       value={engineType}
       onChange={handleEngineChange}

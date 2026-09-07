@@ -9,8 +9,6 @@ export function getAdapter(engine: EvaluationEngine): EngineAdapter {
   switch (engine) {
     case 'hermes':
       return new HermesAdapter();
-    case 'deepagents':
-      return new DeepAgentsAdapter();
     case 'claude':
       return new ClaudeAdapter();
     default:
@@ -78,14 +76,6 @@ export class HermesAdapter implements EngineAdapter {
         .join('');
     }
     return '';
-  }
-}
-
-export class DeepAgentsAdapter implements EngineAdapter {
-  engine = 'deepagents' as const;
-
-  toRunRecord(_rawOutput: unknown, _caseId: string): EvaluationRunRecord {
-    throw new Error('DeepAgents adapter is not yet implemented. Use --engine hermes or --engine mock.');
   }
 }
 

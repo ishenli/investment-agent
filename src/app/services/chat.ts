@@ -658,14 +658,10 @@ class ChatService {
       return;
     }
 
-    // 根据 engineType 选择不同的 API 端点
-    const engineType = params.engineType || 'deepagents';
+    // 根据 engineType 选择不同的 API 端点；缺失或未知（含存量 deepagents）统一回退 hermes
+    const engineType = params.engineType || 'hermes';
     const apiEndpoint =
-      engineType === 'claude'
-        ? '/api/chat/claude'
-        : engineType === 'hermes'
-          ? '/api/chat/hermes'
-          : '/api/chat/agent';
+      engineType === 'claude' ? '/api/chat/claude' : '/api/chat/hermes';
 
     await connectAgentStream({
       api: apiEndpoint,

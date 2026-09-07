@@ -1,4 +1,4 @@
-export { getAdapter, HermesAdapter, DeepAgentsAdapter, ClaudeAdapter } from './adapters/engine-adapter';
+export { getAdapter, HermesAdapter, ClaudeAdapter } from './adapters/engine-adapter';
 export type { EngineAdapter } from './adapters/engine-adapter';
 export { loadBenchmarkCases } from './benchmarks/cases';
 export { evaluateCases } from './core/evaluator';

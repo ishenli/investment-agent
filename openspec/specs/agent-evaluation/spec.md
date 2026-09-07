@@ -252,8 +252,8 @@ TBD - created by archiving change add-agent-evaluation. Update Purpose after arc
   - 如果存在回归则返回非零退出码
 
 #### Scenario: 在基准测试上对比引擎
-- **GIVEN** 多个 Agent 引擎（DeepAgents、Claude、Hermes）
-- **WHEN** 运行 `pnpm eval --compare deepagents,claude,hermes`
+- **GIVEN** 多个 Agent 引擎（Claude、Hermes）
+- **WHEN** 运行 `pnpm eval --compare claude,hermes`
 - **THEN** 系统：
   - 在每个引擎上运行相同的基准测试
   - 收集每个引擎的可比指标
@@ -507,7 +507,7 @@ TBD - created by archiving change add-agent-evaluation. Update Purpose after arc
 - **THEN** 系统显示交互式菜单：
   - 选择评测类型（完整评测、类别评测、引擎对比、回归测试）
   - 选择评测类别（如选择了类别评测）
-  - 选择引擎（如选择了引擎对比）
+  - 选择引擎（如选择了引擎对比，仅列出 Hermes 或 Claude）
   - 选择报告格式
   - 确认执行
 
@@ -525,9 +525,10 @@ TBD - created by archiving change add-agent-evaluation. Update Purpose after arc
 
 #### Scenario: 命令行参数模式运行引擎对比
 - **GIVEN** 用户需要对比多个引擎
-- **WHEN** 执行 `pnpm eval --compare deepagents,claude,hermes`
+- **WHEN** 执行 `pnpm eval --compare claude,hermes`
 - **THEN** 系统在指定引擎上运行评测
 - **AND** 生成对比报告
+- **AND** `--compare` 接受的值 MUST NOT 包含 `deepagents`
 
 #### Scenario: 混合模式和参数
 - **GIVEN** 用户需要自定义评测配置
@@ -568,7 +569,7 @@ TBD - created by archiving change add-agent-evaluation. Update Purpose after arc
   - 所有可用命令和参数
   - 使用示例
   - 支持的评测类别列表
-  - 支持的引擎列表
+  - 支持的引擎列表（仅 Hermes、Claude）
 
 #### Scenario: 显示评测状态和进度
 - **GIVEN** 评测正在运行

@@ -6,7 +6,6 @@ import { randomUUID } from 'node:crypto';
 import { chatModelOpenAI, ModelMap } from '@server/core/agents/langchain/provider/chatModel';
 import logger from '@/server/base/logger';
 import { recordPrompt } from '@/server/utils/file';
-import { createDeepAgent } from 'deepagents';
 import { HumanMessage } from 'langchain';
 
 // 定义状态类型
@@ -179,17 +178,8 @@ ${positions.map((pos) => `${pos.symbol}${pos.investmentMemo ? ` (${pos.investmen
 
       try {
         recordPrompt(prompt, 'ai-insights-opportunity-finder.md');
-        // const response = await this.llm.invoke([new HumanMessage(prompt)]);
-        const agent = createDeepAgent({
-          model: await chatModelOpenAI(),
-          tools: [],
-          systemPrompt: `你是一个投资机会发掘专家`,
-        });
-
-        const response = await agent.invoke({
-          messages: [new HumanMessage(prompt)],
-        });
-        const result = response.messages[response.messages.length - 1].content;
+        const response = await this.llm.invoke([new HumanMessage(prompt)]);
+        const result = response.content;
         return { opportunities: result };
       } catch (error) {
         logger.error('[AIInsightsGraph] Error in opportunity finder:', error);

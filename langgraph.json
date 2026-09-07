@@ -1,6 +1,0 @@
-{
-  "$schema": "https://langgra.ph/schema.json",
-  "graphs": {
-     "deepagent": "./src/server/core/deepagents/investmentAdvisorAgent/agent.ts:agent"
-  }
-}
