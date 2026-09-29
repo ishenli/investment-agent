@@ -19,6 +19,14 @@ context: |
   lint, npm run db:check, and npm run i18n:check. Run only the checks relevant to
   the affected behavior.
 
+  Durable OpenSpec learnings live in `openspec/learnings/` (one markdown file
+  per learning, frontmatter name/description/type). On `/openspec-learning`,
+  write there and add only a one-line pointer in this context. For the
+  external-CodingAgent MCP connector invariants (web-standard
+  WebStandardStreamableHTTPServerTransport vs the Node variant, Mcp-Session-Id
+  session table + 404 re-init semantics, enableJsonResponse JSON, fixed port
+  8888, per-instance DB ownership), read learnings/mcp-external-agent-connector.md.
+
 rules:
   proposal:
     - State the user-visible outcome, affected capabilities, and explicit non-goals.
