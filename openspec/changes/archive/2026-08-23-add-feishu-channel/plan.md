@@ -20,8 +20,8 @@
 
 ## 规范检查
 
-- 符合 `openspec/project.md` 的 TypeScript、Zod、SQLite 与安全约束
-- `openspec/agent/memory/constitution.md` 当前为未填写模板，无额外治理要求
+- 符合 `openspec/config.yaml` 的 TypeScript、Zod、SQLite 与安全约束
+- 项目治理要求统一维护在 `openspec/config.yaml`
 - 使用现有 SDK、engine、setting service 与 chat storage，不引入新框架
 - Delta 使用 ADDED Requirements，所有 requirement 均包含 Scenario
 - 用户已明确“没有技术卡点可直接实现”；本提案严格校验通过后视为该范围的实施授权

@@ -33,7 +33,7 @@
 
 ## 规范检查
 
-- ✅ 符合项目 [Constitution](file://openspec/agent/memory/constitution.md) 中的 TypeScript 严格模式要求
+- ✅ 符合项目 `openspec/config.yaml` 中的 TypeScript 严格模式要求
 - ✅ 遵循现有 `@server/base/decorators` + `BaseController` + `BaseBizController` 三层架构
 - ✅ Drizzle schema 定义兼容现有软删除（`deletedAt`）、时间戳（`createdAt`/`updatedAt`）惯例
 - ✅ Delta 格式严格遵循 `## ADDED Requirements` + `#### Scenario:` 格式

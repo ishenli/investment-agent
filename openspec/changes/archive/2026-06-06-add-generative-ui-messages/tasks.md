@@ -2,7 +2,7 @@
 
 **输入**：来自 `openspec/changes/add-generative-ui-messages/specs/` 的设计文档  
 **前置条件**：plan.md（必需）  
-**参考**：`openspec/project.md`
+**参考**：`openspec/config.yaml`
 
 **测试**：
 - 类型检查：`npm run types:check`

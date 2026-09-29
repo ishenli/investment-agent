@@ -2,7 +2,7 @@
 
 **输入**：来自 `openspec/changes/enforce-provider-model-config/specs/model-provider/spec.md` 的设计文档
 **前置条件**：plan.md（必需）
-**参考**：[项目规范](file://openspec/project.md)
+**参考**：`openspec/config.yaml` 中的项目规范
 
 **测试**：
 - 类型检查：`pnpm run types:check`

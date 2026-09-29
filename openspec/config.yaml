@@ -1,0 +1,43 @@
+schema: spec-driven
+
+context: |
+  Investment Agent is a Next.js 16 and React 19 application for portfolio
+  management, market research, scheduled analysis, and conversational AI.
+
+  The main stack is TypeScript in strict mode, Next.js App Router, Ant Design,
+  Tailwind CSS, Zustand, SQLite with Drizzle ORM, and Vitest. Agent execution is
+  provided through the in-repository Hermes engine and the Claude Agent SDK.
+  Market integrations include Finnhub and Tavily.
+
+  Keep server-side business logic in the service and repository layers. Validate
+  user and external inputs with Zod. Preserve Electron compatibility and avoid
+  exposing financial data, credentials, or API keys. Unit tests live in a
+  __tests__ directory co-located with the source and import the tested module
+  through ../ paths.
+
+  Relevant verification commands are npm run types:check, npm test, npm run
+  lint, npm run db:check, and npm run i18n:check. Run only the checks relevant to
+  the affected behavior.
+
+rules:
+  proposal:
+    - State the user-visible outcome, affected capabilities, and explicit non-goals.
+    - Identify compatibility or migration impact for persisted financial and conversation data.
+  specs:
+    - Use normative SHALL or MUST language and include at least one concrete scenario per requirement.
+    - Cover validation, failure behavior, authorization, and backward compatibility when applicable.
+  design:
+    - Reuse existing service, repository, agent, and UI patterns before introducing new abstractions.
+    - Document data ownership and persistence changes, including Electron and web differences.
+  tasks:
+    - Use small ordered tasks with exact file paths and explicit verification steps.
+    - Include type checking and focused unit tests for affected behavior.
+
+operations:
+  apply:
+    guidance:
+      - Complete each task through implementation, focused verification, diagnosis, and re-verification.
+      - Keep unrelated worktree changes out of the implementation.
+  archive:
+    guidance:
+      - Confirm tasks are complete and validate the change before archiving.

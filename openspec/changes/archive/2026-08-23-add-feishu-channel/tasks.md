@@ -2,7 +2,7 @@
 
 **输入**：`openspec/changes/add-feishu-channel/specs/feishu-channel/spec.md`
 **前置条件**：`plan.md`
-**参考**：`openspec/project.md`
+**参考**：`openspec/config.yaml`
 
 **测试**：
 - 包类型检查：`pnpm --filter @investment-agent/agent-channel typecheck`

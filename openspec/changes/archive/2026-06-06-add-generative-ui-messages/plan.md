@@ -20,7 +20,7 @@
 
 ## 规范检查
 
-- 检查是否符合 `openspec/agent/memory/constitution.md`
+- 检查是否符合 `openspec/config.yaml`
 - 检查 TypeScript 严格模式约束
 - 检查 OpenSpec delta 格式正确性
 - 变更处于提案阶段，获得批准前不得开始实现
