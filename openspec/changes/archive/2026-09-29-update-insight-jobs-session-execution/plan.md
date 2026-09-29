@@ -22,7 +22,7 @@
 
 ## 规范检查
 
-- 检查是否符合 [项目规范](file://openspec/agent/memory/constitution.md)
+- 检查是否符合 `openspec/config.yaml` 中的项目规范
 - 检查 TypeScript 严格模式约束
 - 检查 OpenSpec delta 格式正确性
 

@@ -16,7 +16,7 @@
 - **AND** 在 `result` 字段中记录生成的报告 ID 和 `reportStatus: "pending"`
 - **AND** 系统通知文案表达为“报告已开始生成”，不得表达为“报告已生成完成”
 
-#### Scenario: 执行会话式 AI 洞察任务
+#### Scenario: 执行 AI 洞察任务
 
 - **GIVEN** 一个 `jobType = "insight"` 的定时任务，其 `config.instructions` 已由用户在创建/编辑时填写
 - **WHEN** JobExecutor 收到执行请求
