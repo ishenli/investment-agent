@@ -102,7 +102,7 @@ LANGSMITH_API_KEY=your_langsmith_key
 3. 启动开发服务器：
 ```bash
 pnpm dev
-# 访问 http://localhost:3000
+# 访问 http://localhost:8888
 ```
 
 ### 全局安装（可选）
@@ -149,6 +149,80 @@ investment-agent [command]  # 或：ig [command]
 - **渠道路由器** - 统一消息路由，跨平台支持
 - **会话管理** - 多轮对话，上下文持久化
 - **数据层** - SQLite + Drizzle ORM，类型安全查询
+
+## 外部 CodingAgent 连接（MCP Connector）
+
+投资助手**应用自身**内嵌一个 Streamable-HTTP MCP endpoint（`http://127.0.0.1:8888/api/mcp`，固定端口 **8888**），将**只读业务能力**暴露给外部 CodingAgent（Codex CLI、Claude Code CLI、Cursor 等），无需鉴权、无需独立子进程。应用运行即提供能力；应用停止时连接失败（连接被拒绝），引导先启动 IG 应用。
+
+### 启动
+
+只需启动 IG 应用，MCP endpoint 即随应用可用：
+
+```bash
+pnpm dev        # dev 模式固定监听 8888
+```
+
+Electron 生产包同样固定监听 8888（`PORT=8888`）——只下载了 Electron 应用的用户，其外部 CodingAgent 也能直接连接。
+
+**端口冲突**：8888 被其他进程占用时应用启动会失败。请先释放 8888 端口，或更换端口并同步更新本节下方向文件中各 `url` 指向。
+
+核实 endpoint 可用：
+
+```bash
+curl -X POST http://127.0.0.1:8888/api/mcp \
+  -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"curl","version":"1.0"}}}'
+```
+
+### Codex
+
+仓库根 `.codex/config.toml` 已声明 MCP server（`ig`），以 url 指向应用内嵌 endpoint：
+
+```toml
+[mcp_servers.ig]
+url = "http://127.0.0.1:8888/api/mcp"
+```
+
+### Claude Code
+
+仓库根 `.claude/mcp.json` 已声明 MCP server（`ig`），url 同样指向该 endpoint。修改配置后需重启会话生效。
+
+### 其他 CodingAgent
+
+同一 MCP endpoint 可被多种 CodingAgent 复用，仓库已附带各应用的 url 连接配置：
+
+| CodingAgent | 配置文件 | 说明 |
+|-------------|----------|------|
+| OpenAI Codex CLI | `.codex/config.toml` | `[mcp_servers.ig].url` 声明 |
+| Anthropic Claude Code | `.claude/mcp.json` | 项目级 MCP server，新会话生效 |
+| Cursor | `.cursor/mcp.json` | Cursor 自动发现项目级 MCP 配置 |
+| GitHub Copilot | `.github/mcp.json` | 项目级 Copilot MCP 配置 |
+| Google Antigravity | `mcp_config.json` | 项目根 `mcpServers` 声明 |
+
+全部指向同一 endpoint（`http://127.0.0.1:8888/api/mcp`），共享同一白名单与只读约束。接入新的 CodingAgent 时，按其 `mcpServers` 配置规范以 url 添加入口即可。
+
+> MCP endpoint 无需鉴权（本机默认用户），仅暴露白名单内只读工具，写操作工具默认不暴露。
+
+### 白名单工具
+
+当前暴露的工具以**只读查询能力**为主：
+
+| 工具 | 能力 |
+|------|------|
+| `noteQueryTool` | 投资笔记查询 |
+| `stockRecallMarketInfoTool` / `stockRecallCompanyInfoTool` | 行情 / 公司信息 |
+| `stockSearchNewsTool` / `stockGetPriceTool` | 个股新闻 / 价格 |
+| `searchAssetInfoTool` | 资产信息查询 |
+| `accountBalanceTool` | 账户余额 |
+| `transactionHistoryTool` 等 | 交易历史 / 摘要 |
+| `marketInfoSaveTool` | 市场信息**录入**（写操作，用户显式要求暴露，复用 `asset_market_info_save` 能力） |
+| `dbQueryTool` | 数据库查询（**强制只读**，见下） |
+
+**dbQuery 只读约束**：`dbQueryTool` 仅允许 SELECT；底层 `queryDb` 硬编码 SELECT + 表名/列名白名单 + 参数化查询，连接器层再加一道搜索写语句特征的守卫，任何非 SELECT 请求被拒绝。
+
+**明确排除**：新增交易（`addTransactionTool`）、任务管理（`createTaskTool`/`listTasksTool`/`updateTaskTool`）、外部网络搜索（`travilySearchTool`）不对外暴露。`marketInfoSaveTool` 为唯一被显式启用的写操作例外。
+
+> 白名单单一数据源：`src/server/mcp/whitelist.ts`。新增/移除工具集中修改该文件。
 
 ## 微信集成
 

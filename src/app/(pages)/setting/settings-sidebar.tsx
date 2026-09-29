@@ -15,6 +15,7 @@ import {
   IconChartLine,
   IconTestPipe,
   IconClock,
+  IconApi,
   type Icon,
 } from '@tabler/icons-react';
 import {
@@ -38,7 +39,8 @@ export type SettingsCategory =
   | 'notification'
   | 'observability'
   | 'evaluation'
-  | 'scheduled-jobs';
+  | 'scheduled-jobs'
+  | 'mcp';
 
 const settingsItems: {
   id: SettingsCategory;
@@ -81,6 +83,13 @@ const settingsItems: {
     icon: IconSettings,
     url: '/setting/tool',
     description: 'API Key 和工具配置',
+  },
+  {
+    id: 'mcp',
+    title: 'MCP 设置',
+    icon: IconApi,
+    url: '/setting/mcp',
+    description: '内嵌 MCP endpoint 连接与白名单工具',
   },
   {
     id: 'agent',
