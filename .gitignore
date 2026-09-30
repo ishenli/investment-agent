@@ -54,7 +54,10 @@ packages/evaluation/reports/
 .turbo
 .qoder
 .vscode/
-.agents/
+.agents/*
+!.agents/skills/
+.agents/skills/*
+!.agents/skills/openspec-learning/
 /public/version.json
 
 # packages build output
@@ -72,6 +75,8 @@ docs/plans/
 docs/brainstorms/
 .omc
 .cursor
+!.cursor/
+!.cursor/mcp.json
 .codegraph
 logs/
 .understand-anything

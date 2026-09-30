@@ -372,7 +372,42 @@
     "tool": "工具设置",
     "observability": "观测历史",
     "evaluation": "评测",
-    "scheduled-jobs": "定时任务"
+    "scheduled-jobs": "定时任务",
+    "mcp": "MCP 设置"
+  },
+  "mcp": {
+    "title": "MCP 连接",
+    "description": "Investment Agent 内嵌的 Streamable-HTTP MCP endpoint，将应用能力以白名单工具形式暴露给外部 CodingAgent（Codex CLI / Claude Code / Cursor 等）。应用启动即自动提供，无需单独启动服务。",
+    "endpoint": {
+      "title": "连接信息",
+      "description": "外部 CodingAgent 连接地址与运行状态",
+      "loading": "正在获取 MCP 信息…",
+      "port": "端口 {{port}}",
+      "copy": "复制",
+      "copied": "已复制",
+      "status": {
+        "online": "运行中",
+        "offline": "未运行"
+      },
+      "offlineHint": "应用未运行时连接会返回「连接被拒绝」，请先启动 IG 应用。8888 被其他进程占用时启动会失败，需释放端口或更换并同步各处 url。"
+    },
+    "tools": {
+      "title": "白名单工具",
+      "description": "tools/list 返回的全部工具（共 {{count}} 个）。默认只读；marketInfoSaveTool 为唯一显式启用的写操作（市场信息录入），dbQueryTool 带 SELECT-only 守卫。",
+      "colName": "工具名",
+      "colDescription": "说明",
+      "colType": "类型",
+      "typeReadonly": "只读",
+      "typeWrite": "写操作（显式启用）",
+      "typeGuard": "只读守卫"
+    },
+    "config": {
+      "title": "CodingAgent 连接配置",
+      "description": "仓库已附带各 CodingAgent 的 url 模式连接配置，指向统一 endpoint：",
+      "colAgent": "CodingAgent",
+      "colFile": "配置文件",
+      "dbQueryGuard": "dbQueryTool 强制只读：底层 queryDb 硬编码 SELECT + 表名/列名白名单 + 参数化查询，连接器层再加写语句特征守卫，任何非 SELECT 请求被拒绝。新增/移除白名单工具集中于 src/server/mcp/whitelist.ts。"
+    }
   },
   "channel": {
     "title": "渠道设置",

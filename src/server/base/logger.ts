@@ -47,6 +47,8 @@ const consoleTransport = new winston.transports.Console({
   format: winston.format.combine(
     winston.format.colorize({ all: true }), // 只给控制台添加颜色
   ),
+  // MCP stdio 模式下 stdout 只能承载 JSON-RPC 帧，日志必须走 stderr
+  ...(process.env.MCP_STDIO === '1' ? { stderrLevels: ['debug', 'info', 'warn', 'error'] } : {}),
 });
 
 // 根据环境变量选择传输方式

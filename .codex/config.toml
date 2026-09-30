@@ -1,0 +1,8 @@
+# Codex MCP 连接配置
+#
+# 将 Investment Agent 的只读能力通过 url 暴露给 Codex CLI。
+# 由 IG 应用内嵌的 Streamable-HTTP MCP endpoint 提供（监听固定端口 8888），
+# 无需独立子进程：启动 IG 应用后 Codex 即可连接。
+
+[mcp_servers.ig]
+url = "http://127.0.0.1:8888/api/mcp"

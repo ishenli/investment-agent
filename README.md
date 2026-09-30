@@ -105,7 +105,7 @@ pnpm install
 2. Run development server:
 ```bash
 pnpm dev
-# Visit http://localhost:3000
+# Visit http://localhost:8888
 ```
 
 ### Global CLI (Optional)

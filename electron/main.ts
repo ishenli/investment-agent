@@ -2,7 +2,6 @@ import { app, BrowserWindow, nativeImage, dialog, session, utilityProcess, ipcMa
 import path from 'path';
 import { execFileSync } from 'child_process';
 import fs from 'fs';
-import net from 'net';
 import os from 'os';
 import log from 'electron-log/main';
 import { updateManager } from './updater';
@@ -118,23 +117,6 @@ function loadUserShellEnv(): Record<string, string> {
     console.warn('Failed to load user shell env:', err);
     return {};
   }
-}
-
-function getPort(): Promise<number> {
-  return new Promise((resolve, reject) => {
-    const server = net.createServer();
-    server.unref();
-    server.on('error', reject);
-    server.listen(0, '127.0.0.1', () => {
-      const addr = server.address();
-      if (addr && typeof addr === 'object') {
-        const port = addr.port;
-        server.close(() => resolve(port));
-      } else {
-        server.close(() => reject(new Error('Failed to get port')));
-      }
-    });
-  });
 }
 
 async function waitForServer(port: number, timeout = 30000): Promise<void> {
@@ -466,7 +448,8 @@ app.whenReady().then(async () => {
       port = 8888;
       console.log(`Dev mode: connecting to http://127.0.0.1:${port}`);
     } else {
-      port = await getPort();
+      // 生产固定 8888：外部 CodingAgent 以 http://127.0.0.1:8888/api/mcp 连接
+      port = 8888;
       console.log(`Starting server on port ${port}...`);
       serverProcess = startServer(port);
       await waitForServer(port);
@@ -510,10 +493,10 @@ app.on('activate', async () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     try {
       if (!isDev && !serverProcess) {
-        const port = await getPort();
-        serverProcess = startServer(port);
-        await waitForServer(port);
-        serverPort = port;
+        // 生产固定 8888（与启动路径一致，保证 /api/mcp url 可用）
+        serverProcess = startServer(8888);
+        await waitForServer(8888);
+        serverPort = 8888;
       }
       
       // Guard against undefined/null serverPort

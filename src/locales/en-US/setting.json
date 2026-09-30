@@ -372,7 +372,42 @@
     "tool": "Tool",
     "observability": "Observability",
     "evaluation": "Evaluation",
-    "scheduled-jobs": "Scheduled Jobs"
+    "scheduled-jobs": "Scheduled Jobs",
+    "mcp": "MCP"
+  },
+  "mcp": {
+    "title": "MCP Connection",
+    "description": "Investment Agent's built-in Streamable-HTTP MCP endpoint exposes app capabilities to external CodingAgents (Codex CLI / Claude Code / Cursor, etc.) as whitelisted tools. It runs automatically with the app; no separate service to start.",
+    "endpoint": {
+      "title": "Connection Info",
+      "description": "Connection URL and runtime status for external CodingAgents",
+      "loading": "Fetching MCP info…",
+      "port": "Port {{port}}",
+      "copy": "Copy",
+      "copied": "Copied",
+      "status": {
+        "online": "Online",
+        "offline": "Offline"
+      },
+      "offlineHint": "When the app is not running, connections are refused; start IG first. If another process occupies port 8888, startup fails — free the port or change it and update every url."
+    },
+    "tools": {
+      "title": "Whitelisted Tools",
+      "description": "All tools returned by tools/list ({{count}} total). Read-only by default; marketInfoSaveTool is the only explicitly enabled write tool (market info entry), and dbQueryTool carries a SELECT-only guard.",
+      "colName": "Tool",
+      "colDescription": "Description",
+      "colType": "Type",
+      "typeReadonly": "Read-only",
+      "typeWrite": "Write (enabled)",
+      "typeGuard": "Read-only guard"
+    },
+    "config": {
+      "title": "CodingAgent Connection Config",
+      "description": "The repository ships url-mode connection configs for each CodingAgent, pointing to one endpoint:",
+      "colAgent": "CodingAgent",
+      "colFile": "Config file",
+      "dbQueryGuard": "dbQueryTool is forced read-only: underlying queryDb hardcodes SELECT with a table/column whitelist and parameterized queries, plus a write-pattern guard in the connector; any non-SELECT request is rejected. Add or remove whitelisted tools centrally in src/server/mcp/whitelist.ts."
+    }
   },
   "exchange": {
     "title": "Exchange Rate Settings",

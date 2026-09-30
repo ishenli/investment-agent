@@ -26,6 +26,7 @@ vi.mock('@/drizzle/schema', () => ({
   skills: {},
   exchangeRates: {},
   agent: {},
+  tasks: {},
   // Chat tables
   chatSessionGroups: {},
   chatSessions: {},

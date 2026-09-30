@@ -2,7 +2,7 @@
 
 **输入**：来自 `openspec/changes/add-task-management/specs/task-management/spec.md` 的设计文档
 **前置条件**：`plan.md`（已确认通过）
-**参考**：[项目规范](file://openspec/project.md)
+**参考**：`openspec/config.yaml` 中的项目规范
 
 **测试**：
 - 编译检查：`npx tsc --noEmit`
