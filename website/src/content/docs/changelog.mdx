@@ -3,7 +3,21 @@ title: 更新日志
 description: Investment Agent 版本更新历史
 ---
 
-## v0.19.0 (最新)
+## v0.20.0 (最新)
+
+### 新功能
+- 🔌 内置 Streamable-HTTP MCP 服务：将应用服务层能力以白名单工具暴露给外部 CodingAgent（Codex CLI、Claude Code CLI、Cursor 等），固定端点 `http://127.0.0.1:8888/api/mcp`，设置页新增 MCP 配置面板，可查看端点、白名单工具并为各 CodingAgent 配置连接
+- 📝 MCP 新增市场信息写入工具（marketInfoSaveTool），外部 Agent 可直接保存市场信息
+
+### 改进
+- ✨ 定时洞察任务改为会话式 Agent 执行：每次运行创建独立持久会话，执行指令可配置，输出写入聊天历史供复盘，洞察历史页新增「查看会话」跳转并可清理历史记录
+- 🧹 移除 DeepAgents 内置引擎，引擎收敛为双引擎：Claude + Hermes，存量 deepagents 配置自动归一为 Hermes
+- 🗑️ 移除基于 TradingAgents 的深度分析页（/research），深度分析能力并入会话式聊天与洞察
+
+### 修复
+- 🐛 洞察执行失败时自动清理新建的空白会话，避免悬挂会话残留
+
+## v0.19.0
 
 ### 新功能
 - ✈️ 新增生产可用的飞书 WebSocket 文本渠道：基于飞书开放平台官方 SDK 的长连接接入企业自建机器人，支持私聊/群聊白名单（群聊需 @提及机器人）、消息去重与会话串行处理

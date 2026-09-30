@@ -898,7 +898,7 @@ export async function generateLlmSuggestions(
      进入 **设置 → 评测** 页面
   
   2. **配置评测参数**
-     - 选择评测引擎（Hermes、Claude、DeepAgents）
+     - 选择评测引擎（Hermes、Claude）
      - 选择评测类别（支持多选）
      - 设置通过阈值（默认 0.7）
      - 设置并发数（默认 3）
@@ -1087,7 +1087,7 @@ GET /api/evaluation/{runId}/stream  (EventSource)
      - 优化多轮对话 → `multi-turn` 类别
   
   3. **对比不同引擎**
-     使用相同评测集对比 Hermes、Claude、DeepAgents 的表现
+     使用相同评测集对比 Hermes、Claude 的表现
   
   4. **关注低分维度**
      优先改进持续低于阈值的维度

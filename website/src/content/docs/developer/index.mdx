@@ -21,7 +21,7 @@ description: Investment Agent 开发者文档入口
 | 组件 | 技术选型 |
 |------|---------|
 | 框架 | Next.js + TypeScript |
-| 智能体运行时 | LangGraph、Claude SDK、自研 Hermes |
+| 智能体运行时 | Claude SDK、自研 Hermes |
 | 数据库 | SQLite + Drizzle ORM |
 | 界面 | React + shadcn/ui |
 | 桌面应用 | Electron |
@@ -29,7 +29,6 @@ description: Investment Agent 开发者文档入口
 
 ## 运行时架构
 
-- **LangGraph**：负责多智能体编排、跨工具调用和执行策略调度。
 - **Claude SDK**：集成 Anthropic Claude 以提供高级语言理解与推理能力。
 - **Hermes 引擎**：自研轻量智能体运行时，支持内置持久记忆、工具能力、安全权限、成本可观测性和本地部署场景。
 - **技能与工具**：统一的技能格式和权限矩阵，便于快速扩展业务能力。

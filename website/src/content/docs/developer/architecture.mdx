@@ -8,10 +8,10 @@ description: Investment Agent 技术架构详解
 ```
 ┌─────────────────────────────────────────────┐
 │           统一引擎接口                       │
-├──────────────┬──────────────┬───────────────┤
-│  DeepAgents  │    Claude    │    Hermes     │
-│   (LangGraph)│  (Agent SDK) │   (轻量级)     │
-├──────────────┴──────────────┴───────────────┤
+├──────────────────────┬──────────────────────┤
+│        Claude        │       Hermes         │
+│     (Agent SDK)      │     (轻量级)         │
+├──────────────────────┴──────────────────────┤
 │          AI 工具层                           │
 │  • 资产查询  • 笔记搜索                      │
 │  • 网页搜索  • SQL 查询                     │
@@ -68,7 +68,7 @@ description: Investment Agent 技术架构详解
 | 组件 | 技术选型 |
 |------|---------|
 | 框架 | Next.js + TypeScript |
-| 智能体运行时 | LangGraph、Claude SDK、自研 |
+| 智能体运行时 | Claude Agent SDK、自研 Hermes |
 | 数据库 | SQLite + Drizzle ORM |
 | 界面 | React + shadcn/ui |
 | 桌面应用 | Electron |

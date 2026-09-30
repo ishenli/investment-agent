@@ -5,7 +5,7 @@ description: Investment Agent 多引擎架构详解
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
-Investment Agent 采用多引擎架构，支持三种不同的 AI 引擎，各有特色和适用场景。
+Investment Agent 采用多引擎架构，支持两种不同的 AI 引擎，各有特色和适用场景。
 
 ## 引擎概览
 
@@ -15,9 +15,6 @@ Investment Agent 采用多引擎架构，支持三种不同的 AI 引擎，各�
   </Card>
   <Card title="Claude" icon="spark">
     Anthropic SDK，高质量推理，适合复杂分析任务
-  </Card>
-  <Card title="DeepAgents" icon="settings">
-    LangGraph 编排，多步骤工作流，适合投资顾问场景
   </Card>
 </CardGrid>
 
@@ -103,57 +100,19 @@ Claude 引擎会把会话级技能合并为稳定的 system prompt。通过 `/` 
 - 多步骤决策场景
 - 对质量要求高的任务
 
-## DeepAgents 引擎
-
-基于 LangChain/LangGraph 的**工作流编排引擎**，专为投资顾问设计。
-
-### 核心特性
-
-- **图结构编排**：复杂任务分解为多个节点
-- **状态管理**：跨步骤的状态保持
-- **条件分支**：根据中间结果动态决策
-- **并行执行**：独立节点可并行处理
-
-### 内置工作流图
-
-<CardGrid>
-  <Card title="AI 洞察图" icon="lightbulb">
-    分析市场趋势，生成投资洞察报告
-  </Card>
-  <Card title="多样化图" icon="grid">
-    评估投资组合分散程度，优化配置建议
-  </Card>
-  <Card title="场景分析图" icon="git-branch">
-    模拟不同市场场景下的投资表现
-  </Card>
-  <Card title="策略建议图" icon="compass">
-    基于用户情况和偏好生成投资策略
-  </Card>
-  <Card title="交易决策图" icon="check">
-    综合分析后提供买卖建议
-  </Card>
-</CardGrid>
-
-### 适用场景
-
-- 投资咨询和顾问
-- 多步骤复杂分析
-- 需要状态管理的工作流
-- 结构化输出场景
-
 ## 引擎对比
 
-| 特性 | Hermes | Claude | DeepAgents |
-|------|--------|--------|------------|
-| **响应速度** | 快 | 中 | 慢 |
-| **推理质量** | 高 | 极高 | 高 |
-| **可观测性** | 完整 | 基础 | 详细 |
-| **成本追踪** | ✓ | ✓ | ✓ |
-| **文件支持** | ✗ | ✓ | ✗ |
-| **权限控制** | 策略矩阵 | code/plan/ask | ✗ |
-| **自定义技能** | ✓ | ✓ | ✓ |
-| **工作流编排** | 简单 | 中等 | 复杂图结构 |
-| **最佳场景** | 快速迭代 | 复杂分析 | 投资顾问 |
+| 特性 | Hermes | Claude |
+|------|--------|--------|
+| **响应速度** | 快 | 中 |
+| **推理质量** | 高 | 极高 |
+| **可观测性** | 完整 | 基础 |
+| **成本追踪** | ✓ | ✓ |
+| **文件支持** | ✗ | ✓ |
+| **权限控制** | 策略矩阵 | code/plan/ask |
+| **自定义技能** | ✓ | ✓ |
+| **工作流编排** | 简单 | 中等 |
+| **最佳场景** | 快速迭代 | 复杂分析 |
 
 ## 如何选择
 
@@ -162,8 +121,5 @@ Claude 引擎会把会话级技能合并为稳定的 system prompt。通过 `/` 
 
 **高质量输出** → 选择 **Claude**
 顶级推理能力，适合复杂的分析和代码任务
-
-**投资咨询** → 选择 **DeepAgents**
-专为投资顾问设计，工作流完整
 
 对于开发者而言，引擎运行时切换和 TypeScript API 的详细说明请参阅 [开发者文档：引擎开发指南](/developer/engines/)。

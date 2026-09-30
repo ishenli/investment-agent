@@ -80,22 +80,6 @@ files: [
 | `plan` | 规划模式，先制定计划再执行 |
 | `ask` | 询问模式，每个操作需确认 |
 
-## DeepAgents 引擎
-
-### 配套工具
-
-DeepAgents 针对投资顾问场景优化，内置专用工具：
-
-```typescript
-// 工具示例
-stockSearchNewsTool      // 股票新闻搜索
-stockGetPriceTool        // 获取股票价格
-stockRecallMarketInfo    // 市场信息召回
-stockRecallCompanyInfo   // 公司信息召回
-noteQueryTool            // 投资笔记查询
-TravilySearchTool        // 网络搜索
-```
-
 ## Hermes 引擎技能参数
 
 Hermes 聊天 API 也接收 `skills` 和 `explicitSkill`。与 Claude 不同，Hermes 会把技能注册为工具：
@@ -121,13 +105,6 @@ const response = await agent.execute({
   engine: "claude",
   model: "claude-3-5-sonnet-latest",
   messages: [...]
-});
-
-// DeepAgents 投资顾问
-const advisor = await investmentAdvisorAgent.chat({
-  messages: [...],
-  accountId: "user_123",
-  model: "gpt-4-turbo"
 });
 ```
 
