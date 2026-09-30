@@ -1,117 +1,19 @@
 {
-  "aiInsights": {
-    "description": "Lightweight risk, opportunity, and anomaly prompts that answer what deserves attention now.",
-    "generate": "Generate AI Insights",
-    "noData": "No AI insights",
-    "noDataHint": "Generate manually now, or create a scheduled job to save insights automatically.",
-    "title": "Today's AI Insights"
-  },
   "alert": {
     "dismiss": "Dismiss",
     "title": "Risk Alert"
   },
-  "badge": {
-    "confidence": "Confidence"
-  },
-  "common": {
-    "refresh": "Refresh"
-  },
-  "dashboard": {
-    "riskAlert": "Risk Alert",
-    "todayDescription": "Start with fresh insights, then review action items, and finally check whether the portfolio structure needs diversification.",
-    "todayTitle": "Today's Insights",
-    "title": "Insight Dashboard"
-  },
-  "diversification": {
-    "description": "Check portfolio structure through concentration, correlation, and liquidity. Candidate assets are references for diversification direction.",
-    "noData": "No diversification recommendation",
-    "title": "Portfolio Checkup: Diversification"
-  },
-  "loading": {
-    "analyzing": "Analyzing...",
-    "refreshing": "Refreshing..."
-  },
-  "metadata": {
-    "confidenceBasis": "Confidence Basis",
-    "dataTime": "Data Time",
-    "relatedAssets": "Related Assets"
-  },
-  "opportunityFinder": {
-    "loadingDescription": "Intelligent insights based on data analysis",
-    "loadingTitle": "Opportunity Finder"
-  },
-  "strategy": {
-    "description": "Personalized strategy advice based on your portfolio",
-    "noData": "No strategy advice",
-    "title": "Strategy Advice"
-  },
-  "actionPlan": {
-    "description": "Turn insights into next steps, separating actions to handle now from items to keep watching.",
-    "noData": "No action plan",
-    "priority": {
-      "now": "Act Now",
-      "watch": "Watch"
-    },
-    "title": "Action Plan"
-  },
-  "portfolioCheck": {
-    "badge": "Structure Check",
-    "explanation": "This section checks whether the portfolio structure is healthy, not a single market event. Review correlation, concentration, and liquidity before adjusting allocation.",
-    "title": "Portfolio Checkup: Diversification"
-  },
-  "strategyAdvice": {
-    "cardDescription": "Personalized strategy advice based on your portfolio",
-    "cardTitle": "Strategy Advice"
-  },
-  "table": {
-    "asset": "Asset",
-    "correlation": "Correlation",
-    "liquidity": "Liquidity",
-    "reason": "Reason",
-    "suggestedAmount": "Suggested Amount"
-  },
   "title": "Insight",
   "history": {
     "title": "Insight History",
-    "description": "View all generated AI insight records",
+    "description": "View all generated AI insight sessions",
     "noData": "No insight history",
-    "noDataHint": "Manually generated and scheduled insights will be saved here automatically",
-    "filters": {
-      "all": "All",
-      "source": "Source",
-      "type": "Type",
-      "manual": "Manual",
-      "scheduled": "Scheduled",
-      "agent": "Session",
-      "opportunity": "Opportunity",
-      "risk": "Risk",
-      "suggestion": "Suggestion"
-    },
-    "source": {
-      "manual": "Manual",
-      "scheduled": "Scheduled",
-      "agent": "Session"
-    },
+    "noDataHint": "Results of scheduled insight jobs will be saved here automatically",
     "type": {
-      "opportunity": "Opportunity",
-      "risk": "Risk",
-      "suggestion": "Suggestion",
       "agent": "Session"
     },
-    "confidence": "Confidence",
     "loadMore": "Load More",
     "total": "{{count}} total",
-    "viewSession": "View session",
-    "clearLegacy": "Clear old scheduled insights",
-    "clearLegacyTitle": "Delete legacy scheduled insights",
-    "clearLegacyConfirm": "Delete all legacy scheduled insights? This cannot be undone (manual and session-based insights are kept).",
-    "clearLegacyOk": "Delete",
-    "clearLegacyFail": "Failed to delete legacy insights. Please try again.",
-    "cancel": "Cancel"
-  },
-  "tabs": {
-    "dashboard": "Live Insights",
-    "history": "History",
-    "today": "Today"
+    "viewSession": "View session"
   }
 }

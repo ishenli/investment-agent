@@ -105,8 +105,10 @@ export interface JobExecutionResult {
   reportStatus?: 'pending';
   insightCount?: number;
   insightIds?: number[];
-  /** 会话式洞察执行对应的会话 ID */
+  /** 会话式洞察执行对应的会话 ID（每日洞察 Agent 常驻会话） */
   sessionId?: string;
+  /** 会话式洞察执行产生的 topic ID（每次执行一个 topic） */
+  topicId?: string;
   /** 会话式洞察执行产生的助手消息 ID */
   insightMessageId?: string;
   message?: string;

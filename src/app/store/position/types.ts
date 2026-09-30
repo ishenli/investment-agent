@@ -80,22 +80,3 @@ export interface Alert {
   resolved: boolean;
 }
 
-// Diversification Recommendation Type
-export interface DiversificationRecommendation {
-  id: string;
-  assetId: string;
-  assetSymbol: string;
-  assetName: string;
-  amount: number;
-  correlation: number;
-  liquidityScore: number;
-  reason: string;
-}
-
-// Strategy Advice Type
-export interface StrategyAdvice {
-  id: string;
-  title: string;
-  description: string;
-  recommended: boolean;
-}

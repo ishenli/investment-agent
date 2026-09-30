@@ -4,7 +4,7 @@
  * 聊天会话数据访问层
  */
 import { db } from '@server/lib/db';
-import { eq, and, desc, isNull, inArray, like, notInArray, notLike, sql } from 'drizzle-orm';
+import { eq, and, desc, isNull, inArray, notLike, sql } from 'drizzle-orm';
 import { SCHEDULED_INSIGHT_SLUG_PREFIX } from '@/types/aiInsight';
 import {
   chatSessions,
@@ -112,65 +112,6 @@ export class SessionRepository extends BaseRepository<ChatSession> {
       .from(chatSessions)
       .where(and(eq(chatSessions.userId, userId), eq(chatSessions.agentId, agentId)))
       .orderBy(desc(chatSessions.updatedAt));
-  }
-
-  /**
-   * 获取用户的会话式洞察执行会话（slug 以 scheduled-insight- 前缀开头）
-   * 用于洞察历史页聚合展示会话式洞察产出。
-   */
-  async findScheduledInsightSessionsByUserId(
-    userId: number,
-  ): Promise<ChatSession[]> {
-    return db
-      .select()
-      .from(chatSessions)
-      .where(
-        and(
-          eq(chatSessions.userId, userId),
-          like(chatSessions.slug, `${SCHEDULED_INSIGHT_SLUG_PREFIX}%`),
-        ),
-      )
-      .orderBy(desc(chatSessions.createdAt));
-  }
-
-  /**
-   * 裁剪超出保留上限的旧洞察执行会话（仅保留最近 keepCount 条）
-   * @param userId 用户 ID
-   * @param keepCount 保留的最新会话数
-   * @returns 被删除的会话数
-   */
-  async deleteScheduledInsightSessionsBeyond(
-    userId: number,
-    keepCount: number,
-  ): Promise<number> {
-    const retained = await db
-      .select({ id: chatSessions.id })
-      .from(chatSessions)
-      .where(
-        and(
-          eq(chatSessions.userId, userId),
-          like(chatSessions.slug, `${SCHEDULED_INSIGHT_SLUG_PREFIX}%`),
-        ),
-      )
-      .orderBy(desc(chatSessions.createdAt))
-      .limit(keepCount);
-
-    const retainedIds = retained.map((r) => r.id);
-    const whereClause = and(
-      eq(chatSessions.userId, userId),
-      like(chatSessions.slug, `${SCHEDULED_INSIGHT_SLUG_PREFIX}%`),
-    );
-
-    const deleteClause =
-      retainedIds.length > 0
-        ? and(whereClause, notInArray(chatSessions.id, retainedIds))
-        : whereClause;
-
-    const deleted = await db
-      .delete(chatSessions)
-      .where(deleteClause)
-      .returning({ id: chatSessions.id });
-    return deleted.length;
   }
 
   // ============== Create ==============

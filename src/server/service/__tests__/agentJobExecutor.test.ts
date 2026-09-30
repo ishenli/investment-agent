@@ -29,17 +29,25 @@ vi.mock('@server/core/agents/hermes/engine', () => ({
 
 vi.mock('@server/service/chatStorageService', () => ({
   chatStorageService: {
-    createSession: vi.fn(),
+    getOrCreateBuiltinAgentSession: vi.fn(),
+    createTopic: vi.fn(),
     createMessage: vi.fn(),
-    deleteSession: vi.fn(),
+    deleteTopic: vi.fn(),
   },
 }));
 
+const deleteTopicsBeyond = vi.fn();
 vi.mock('@server/repository/chat', () => ({
-  sessionRepository: {
-    deleteScheduledInsightSessionsBeyond: vi.fn(),
+  topicRepository: {
+    deleteBeyondBySessionId: (...a: unknown[]) => deleteTopicsBeyond(...a),
   },
-  messageRepository: {},
+}));
+
+const findAgentBySlug = vi.fn();
+vi.mock('@server/repository/agentRepository', () => ({
+  agentRepository: {
+    findBySlug: (...a: unknown[]) => findAgentBySlug(...a),
+  },
 }));
 
 vi.mock('@server/service/notificationService', () => ({
@@ -49,11 +57,12 @@ vi.mock('@server/service/notificationService', () => ({
 }));
 
 import { chatStorageService } from '@server/service/chatStorageService';
-import { sessionRepository } from '@server/repository/chat';
 import notificationService from '@server/service/notificationService';
 import { executeInsightAgentJob } from '../agentJobExecutor';
 
 // ============== Helpers ==============
+
+const STANDING_SESSION_ID = 'sess-standing';
 
 function makeInsightJob(overrides: Partial<ScheduledJobEntity> = {}): ScheduledJobEntity {
   return {
@@ -81,104 +90,120 @@ const engineResult = {
   usage: { input: 100, output: 200, total: 300, costUsd: 0.01 },
 };
 
+beforeEach(() => {
+  vi.resetAllMocks();
+  engineRun.mockReset();
+  engineRun.mockResolvedValue({ ...engineResult });
+  findAgentBySlug.mockResolvedValue({
+    slug: 'ai_insight',
+    systemRole: '你是投资组合洞察 Agent，负责执行每日定时洞察任务。',
+  });
+  vi.mocked(chatStorageService.getOrCreateBuiltinAgentSession).mockResolvedValue({
+    id: STANDING_SESSION_ID,
+  } as never);
+  vi.mocked(chatStorageService.createTopic).mockResolvedValue('topic-1');
+  vi.mocked(chatStorageService.createMessage).mockResolvedValue('message-1');
+  vi.mocked(chatStorageService.deleteTopic).mockResolvedValue(true);
+  deleteTopicsBeyond.mockResolvedValue(0);
+  vi.mocked(notificationService.createNotification).mockResolvedValue({} as never);
+});
+
 // ============== Tests ==============
 
-describe('executeInsightAgentJob（会话式洞察执行）', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    engineRun.mockReset();
-    engineRun.mockResolvedValue({ ...engineResult });
-    vi.mocked(chatStorageService.createSession).mockResolvedValue(`session-${nanoid()}`);
-    vi.mocked(chatStorageService.createMessage).mockResolvedValue(`message-${nanoid()}`);
-    vi.mocked(chatStorageService.deleteSession).mockResolvedValue(true);
-    vi.mocked(sessionRepository.deleteScheduledInsightSessionsBeyond).mockResolvedValue(3);
-    vi.mocked(notificationService.createNotification).mockResolvedValue({} as never);
-  });
+describe('executeInsightAgentJob（洞察落 Agent 常驻会话的 topic）', () => {
+  it('在常驻会话下新建 topic，指令与产出均落该 topic', async () => {
+    const result = await executeInsightAgentJob(makeInsightJob());
 
-  it('读取 config.instructions 作为提示词，创建全新会话并落库产出消息', async () => {
-    const job = makeInsightJob();
+    // 复用「每日洞察」Agent 的常驻会话
+    expect(chatStorageService.getOrCreateBuiltinAgentSession).toHaveBeenCalledWith(
+      7,
+      'ai_insight',
+    );
 
-    const result = await executeInsightAgentJob(job);
+    // 本次执行新建 topic（标题 = 任务名 · 日期）
+    expect(chatStorageService.createTopic).toHaveBeenCalledTimes(1);
+    const topicArgs = vi.mocked(chatStorageService.createTopic).mock.calls[0][0];
+    expect(topicArgs.sessionId).toBe(STANDING_SESSION_ID);
+    expect(topicArgs.title).toContain('每日洞察');
 
-    // 创建了唯一 slug 的会话
-    expect(chatStorageService.createSession).toHaveBeenCalledTimes(1);
-    const sessionArgs = vi.mocked(chatStorageService.createSession).mock.calls[0];
-    expect(sessionArgs[0]).toBe(7);
-    const sessionData = sessionArgs[1];
-    expect(sessionData.type).toBe('agent');
-    expect(sessionData.slug).toMatch(/^scheduled-insight-42-[^\s]+$/);
-    expect(sessionData.meta.title).toContain('每日洞察');
+    // 常驻会话内裁剪旧 topic，仅保留最近 30 个
+    expect(deleteTopicsBeyond).toHaveBeenCalledWith(STANDING_SESSION_ID, 30);
 
-    // 创建后裁剪历史洞察会话，仅保留最近 30 条
-    expect(sessionRepository.deleteScheduledInsightSessionsBeyond).toHaveBeenCalledWith(7, 30);
-
-    // 用户指令与助手产出分别落为同会话两条消息
+    // 用户指令与助手产出均绑定该 topic
     expect(chatStorageService.createMessage).toHaveBeenCalledTimes(2);
     const [userMsg, assistantMsg] = vi.mocked(chatStorageService.createMessage).mock.calls;
-    expect(userMsg[0].role).toBe('user');
-    expect(userMsg[0].content).toBe('请分析今日持仓风险');
-    expect(assistantMsg[0].role).toBe('assistant');
-    expect(assistantMsg[0].content).toBe(engineResult.content);
+    expect(userMsg[0]).toMatchObject({
+      sessionId: STANDING_SESSION_ID,
+      topicId: 'topic-1',
+      role: 'user',
+      content: '请分析今日持仓风险',
+    });
+    expect(assistantMsg[0]).toMatchObject({
+      sessionId: STANDING_SESSION_ID,
+      topicId: 'topic-1',
+      role: 'assistant',
+      content: engineResult.content,
+    });
 
-    // 引擎执行上下文携带任务 userId 与新建会话 id，不依赖前端 session
-    const returnedSessionId = await vi.mocked(chatStorageService.createSession).mock.results[0].value;
+    // 引擎上下文:常驻会话 userId,使用专属 Agent systemRole 与账户上下文
     const engineCtx = engineRun.mock.calls[0][0];
+    expect(engineCtx.sessionId).toBe(STANDING_SESSION_ID);
     expect(engineCtx.userId).toBe(7);
-    expect(engineCtx.messages[0].content).toBe('请分析今日持仓风险');
-    expect(engineCtx.sessionId).toBe(returnedSessionId);
+    expect(engineCtx.systemPrompt).toContain('投资组合洞察 Agent');
+    expect(engineCtx.systemPrompt).toContain('账户 ID 为 1');
 
-    // result 记录 sessionId 与产出消息 id
+    // result 记录 sessionId/topicId/产出消息 id
     expect(result.success).toBe(true);
-    expect(result.sessionId).toBe(returnedSessionId);
-    expect(result.insightMessageId).toBeDefined();
+    expect(result.sessionId).toBe(STANDING_SESSION_ID);
+    expect(result.topicId).toBe('topic-1');
+    expect(result.insightMessageId).toBe('message-1');
 
-    // 通知链接指向该次会话
+    // 通知链接指向该 Agent 会话,数据携带 topicId
     const notifArgs = vi.mocked(notificationService.createNotification).mock.calls[0];
-    expect(notifArgs[1].link).toContain('/chat?session=');
-    expect(notifArgs[1].data).toMatchObject({ sessionId: result.sessionId });
+    expect(notifArgs[1].link).toContain('/chat?session=sess-standing');
+    expect(notifArgs[1].data).toMatchObject({ sessionId: STANDING_SESSION_ID, topicId: 'topic-1' });
   });
 
-  it('缺 instructions 时抛出错误，且不创建会话不执行引擎', async () => {
+  it('缺 instructions 时抛出错误，不取会话不建 topic 不执行引擎', async () => {
     const job = makeInsightJob({ config: { instructions: '   ' } });
 
     await expect(executeInsightAgentJob(job)).rejects.toThrow('缺少指令描述');
 
-    expect(chatStorageService.createSession).not.toHaveBeenCalled();
+    expect(chatStorageService.getOrCreateBuiltinAgentSession).not.toHaveBeenCalled();
+    expect(chatStorageService.createTopic).not.toHaveBeenCalled();
     expect(chatStorageService.createMessage).not.toHaveBeenCalled();
     expect(engineRun).not.toHaveBeenCalled();
     expect(notificationService.createNotification).not.toHaveBeenCalled();
   });
 
-  it('会话创建失败时抛出错误，不继续执行引擎，不触发成功通知', async () => {
-    vi.mocked(chatStorageService.createSession).mockRejectedValue(new Error('slug conflict'));
+  it('常驻会话获取失败时抛出错误，不建 topic，不触发成功通知', async () => {
+    vi.mocked(chatStorageService.getOrCreateBuiltinAgentSession).mockRejectedValue(
+      new Error('agent not found'),
+    );
 
     const job = makeInsightJob();
 
-    await expect(executeInsightAgentJob(job)).rejects.toThrow('slug conflict');
+    await expect(executeInsightAgentJob(job)).rejects.toThrow('agent not found');
 
-    expect(chatStorageService.createMessage).not.toHaveBeenCalled();
-    expect(chatStorageService.deleteSession).not.toHaveBeenCalled();
+    expect(chatStorageService.createTopic).not.toHaveBeenCalled();
     expect(engineRun).not.toHaveBeenCalled();
+    expect(chatStorageService.deleteTopic).not.toHaveBeenCalled();
     expect(notificationService.createNotification).not.toHaveBeenCalled();
   });
 
-  it('Agent 引擎执行未完成时抛出错误，并清理本次新建会话避免残留', async () => {
+  it('Agent 引擎执行未完成时抛出错误，并清理本次新建 topic 避免残留（常驻会话保留）', async () => {
     engineRun.mockResolvedValue({ content: '', completed: false, error: 'LLM timeout' });
 
     const job = makeInsightJob();
 
     await expect(executeInsightAgentJob(job)).rejects.toThrow('LLM timeout');
 
-    // 用户消息已写入，但引擎失败后删除该会话（级联删除其中的消息），不触发成功通知
     expect(chatStorageService.createMessage).toHaveBeenCalledTimes(1);
-    expect(chatStorageService.deleteSession).toHaveBeenCalledTimes(1);
-    expect(chatStorageService.deleteSession).toHaveBeenCalledWith(expect.stringContaining('session-'));
+    expect(chatStorageService.deleteTopic).toHaveBeenCalledWith('topic-1');
     expect(notificationService.createNotification).not.toHaveBeenCalled();
   });
 
-  it('助手消息写库失败时同样删除会话并抛错，不留空会话', async () => {
-    const sessionId = 'sess-write-fail';
-    vi.mocked(chatStorageService.createSession).mockResolvedValue(sessionId);
+  it('助手消息写库失败时同样删除 topic 并抛错', async () => {
     vi.mocked(chatStorageService.createMessage)
       .mockResolvedValueOnce('msg-user')
       .mockRejectedValueOnce(new Error('insert failed'));
@@ -187,17 +212,16 @@ describe('executeInsightAgentJob（会话式洞察执行）', () => {
 
     await expect(executeInsightAgentJob(job)).rejects.toThrow('insert failed');
 
-    expect(chatStorageService.deleteSession).toHaveBeenCalledWith(sessionId);
+    expect(chatStorageService.deleteTopic).toHaveBeenCalledWith('topic-1');
     expect(notificationService.createNotification).not.toHaveBeenCalled();
   });
 
-  it('accountId 为空时仍可执行（不带账户上下文）', async () => {
+  it('accountId 为空时执行不带账户上下文', async () => {
     const job = makeInsightJob({ accountId: null });
 
     const result = await executeInsightAgentJob(job);
 
     expect(result.success).toBe(true);
-    expect(chatStorageService.createSession).toHaveBeenCalledTimes(1);
     const engineCtx = engineRun.mock.calls[0][0];
     expect(engineCtx.systemPrompt).not.toContain('账户 ID');
   });
