@@ -25,7 +25,7 @@
     "noon": "Good noon"
   },
   "guide": {
-    "defaultMessage": "I am your AI assistant. How can I help you today? <br /> Click <plus /> to start a new session with {{appName}}"
+    "defaultMessage": "I am your AI assistant. How can I help you today?"
   },
   "header": {
     "accountAnalysis": "Account Analysis",
