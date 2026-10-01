@@ -9,12 +9,12 @@
       "search": "搜索"
     },
     "navMain": {
-      "accountInfo": "账户总览",
-      "aiAdvisor": "AI投顾",
-      "aiInsights": "AI洞察",
-      "aiReports": "AI报告",
-            "positionManagement": "持仓管理",
-      "taskManagement": "任务管理",
+      "accountInfo": "账户",
+      "aiAdvisor": "对话",
+      "aiInsights": "洞察",
+      "aiReports": "投研",
+      "positionManagement": "持仓",
+      "taskManagement": "任务",
       "scheduledJobs": "定时任务",
       "tradeRecords": "交易记录"
     },

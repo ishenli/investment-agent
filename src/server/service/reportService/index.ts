@@ -25,16 +25,6 @@ import { nanoid } from 'nanoid';
 import { reportWorkspaceManager } from '@/server/service/reportService/reportWorkspace';
 import { claudeService } from '../claudeService';
 import type { ApiProvider } from '@/types';
-// LangChain imports for fallback implementation
-import { chatModelOpenAI } from '@server/core/agents/langchain/provider/chatModel';
-import { SystemMessage, HumanMessage } from 'langchain';
-import { createAgent } from 'langchain';
-import {
-  noteQueryTool,
-  stockRecallCompanyInfoTool,
-  stockSearchNewsTool,
-  TravilySearchTool,
-} from '@server/core/agents/langchain/tools';
 
 // ============== Claude Agent SDK Configuration ==============
 
@@ -91,7 +81,6 @@ export type GenerateReportRequest = {
   startDate?: Date;
   endDate?: Date;
   modelSlug?: string; // 可选的模型标识，用于选择特定的 AI 模型
-  agentType?: 'claude-sdk' | 'langchain'; // 可选的 Agent 类型，默认使用 claude-sdk
   scheduledJobId?: number;
 };
 
@@ -665,7 +654,6 @@ export class ReportService {
         startDate,
         endDate,
         request.modelSlug,
-        request.agentType,
         request.scheduledJobId,
       ).catch(async (error) => {
         logger.error('[ReportService] 报告生成失败', { reportId: reportRecord.id, error });
@@ -692,7 +680,7 @@ export class ReportService {
    * @param startDate 开始日期
    * @param endDate 结束日期
    * @param modelSlug 可选的模型标识
-   * @param agentType 可选的 Agent 类型
+   * @param scheduledJobId 可选的定时任务ID
    */
   private async processReportGeneration(
     reportId: string,
@@ -700,7 +688,6 @@ export class ReportService {
     startDate: Date,
     endDate: Date,
     modelSlug?: string,
-    agentType?: 'claude-sdk' | 'langchain',
     scheduledJobId?: number,
   ): Promise<void> {
     try {
@@ -714,7 +701,7 @@ export class ReportService {
       await analysisReportRepository.updateProgress(parseInt(reportId), 50, 'AI分析生成');
 
       // 生成AI报告内容
-      const reportContent = await this.generateAIReportContent(reportData, modelSlug, agentType);
+      const reportContent = await this.generateAIReportContent(reportData, modelSlug);
 
       const summaryObj = reportData.dataSourceSummary
         ? { ...reportData.dataSourceSummary, ...(scheduledJobId ? { scheduledJobId } : {}) }
@@ -825,41 +812,13 @@ export class ReportService {
   }
 
   /**
-   * 生成AI报告内容
-   *
-   * 根据 agentType 参数选择使用 Claude Agent SDK 或 LangChain 实现。
-   * 默认使用 Claude Agent SDK。
-   *
-   * @param reportData 报告数据
-   * @param modelSlug 可选的模型标识
-   * @param agentType Agent 类型，默认使用 'claude-sdk'
-   * @returns 生成的报告内容（Markdown格式）
-   */
-  private async generateAIReportContent(
-    reportData: WeeklyReportData,
-    modelSlug?: string,
-    agentType?: 'claude-sdk' | 'langchain',
-  ): Promise<string> {
-    // Default to claude-sdk if not specified
-    const useAgentType = agentType || 'claude-sdk';
-
-    logger.info(`[ReportService] Using agent type: ${useAgentType}`);
-
-    if (useAgentType === 'langchain') {
-      return this.generateAIReportContentWithLangChain(reportData, modelSlug);
-    }
-
-    return this.generateAIReportContentWithClaudeSDK(reportData, modelSlug);
-  }
-
-  /**
-   * 使用 Claude Agent SDK 生成AI报告内容
+   * 生成AI报告内容（使用 Claude Agent SDK）
    *
    * @param reportData 报告数据
    * @param modelSlug 可选的模型标识
    * @returns 生成的报告内容(Markdown格式)
    */
-  private async generateAIReportContentWithClaudeSDK(
+  private async generateAIReportContent(
     reportData: WeeklyReportData,
     modelSlug?: string,
   ): Promise<string> {
@@ -1006,207 +965,6 @@ export class ReportService {
         await reportWorkspaceManager.cleanup(workspaceId);
       }
     }
-  }
-
-  /**
-   * 使用 LangChain Agent 生成AI报告内容
-   *
-   * @param reportData 报告数据
-   * @param modelSlug 可选的模型标识
-   * @returns 生成的报告内容（Markdown格式）
-   */
-  private async generateAIReportContentWithLangChain(
-    reportData: WeeklyReportData,
-    modelSlug?: string,
-  ): Promise<string> {
-    try {
-      // 构建AI提示词
-      const prompt = this.buildAIPrompt(reportData);
-
-      recordPrompt(prompt, 'report-generate-prompt.md');
-
-      const llm = await chatModelOpenAI(modelSlug);
-
-      // 创建一个 Agent
-      const agent = createAgent({
-        model: llm,
-        tools: [stockSearchNewsTool, stockRecallCompanyInfoTool, noteQueryTool, TravilySearchTool],
-      });
-      const messages = [
-        new SystemMessage(`
-你要扮演一位专业的投资顾问，根据提供的用户持仓数据、市场信息和笔记，生成一份专业的投资周报。
-注意：请确保你的回答是基于提供的信息，不要包含任何个人意见，同时要关注信息的时间有效性
-`),
-        new HumanMessage(prompt),
-      ];
-
-      const response = await agent.invoke({
-        messages,
-      });
-
-      if (response.messages) {
-        const lastMessage = response.messages.at(-1);
-        return lastMessage?.content as string;
-      }
-
-      return '';
-    } catch (error) {
-      logger.error('[ReportService] 生成AI报告内容失败 (LangChain)', { error });
-      throw new Error(
-        `生成AI报告内容失败: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
-  }
-
-  /**
-   * 构建AI提示词
-   * @param reportData 报告数据
-   * @returns AI提示词
-   */
-  private buildAIPrompt(reportData: WeeklyReportData): string {
-    // 构建业绩数据部分
-    const performanceSection = this.buildPerformanceSection(reportData.performance);
-
-    // 构建持仓详情部分
-    const positionsSection = reportData.enrichedPositions
-      ? this.buildPositionsSection(reportData.enrichedPositions)
-      : '';
-
-    // 构建数据来源信息
-    const dataSourceSection = reportData.dataSourceSummary
-      ? this.buildDataSourceSection(reportData.dataSourceSummary)
-      : '';
-
-    return `
-Task: 生成本周投资周报
-
-## 账户业绩数据
-${performanceSection}
-
-## 持仓详情
-${positionsSection}
-
-## 其他上下文
-
-### 1. 市场关键信息
-${JSON.stringify(reportData.marketEvents, null, 2)}
-
-### 2. 用户笔记
-${JSON.stringify(reportData.notes, null, 2)}
-
-### 3. 长期投资逻辑
-${JSON.stringify(reportData.investmentMemos, null, 2)}
-
-### 4. 交易记录
-${JSON.stringify(reportData.transactions, null, 2)}
-
-${dataSourceSection}
-
-## 输出要求
-
-- 语气专业、客观，数据驱动
-- 重点分析：为何涨/跌？（关联市场信息和持仓变化）
-- 风险提示：基于本周信息，哪些持仓面临新的风险？
-- 格式：Markdown，包含以下章节：
-  1. 市场与账户概览（包含本周收益率、与基准对比）
-  2. 持仓异动分析（包含各持仓盈亏情况）
-  3. 信息与笔记回顾
-  4. 下周展望与建议
-
-注意：如果数据时效性分数低于 0.5，请在报告中提示数据可能不是最新的。
-`;
-  }
-
-  /**
-   * 构建业绩数据部分
-   */
-  private buildPerformanceSection(performance: WeeklyPerformance): string {
-    const formatCurrency = (cents: number) => `$${(cents / 100).toFixed(2)}`;
-    const formatPercent = (pct: number) => `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`;
-
-    return `
-| 指标 | 数值 |
-|------|------|
-| 期初净值 | ${formatCurrency((performance.previousValue || 0) * 100)} |
-| 期末净值 | ${formatCurrency((performance.totalValue || 0) * 100)} |
-| 收益金额 | ${formatCurrency((performance.changeAmount || 0) * 100)} |
-| 收益率 | ${formatPercent(performance.changePercentage || 0)} |
-| 基准表现 | ${performance.benchmarkPerformance !== undefined ? formatPercent(performance.benchmarkPerformance) : '数据不可用'} |
-| 超额收益 | ${performance.benchmarkPerformance !== undefined ? formatPercent((performance.changePercentage || 0) - performance.benchmarkPerformance) : '数据不可用'} |
-`.trim();
-  }
-
-  /**
-   * 构建持仓详情部分
-   */
-  private buildPositionsSection(positions: EnrichedPosition[]): string {
-    if (positions.length === 0) {
-      return '当前无持仓';
-    }
-
-    const formatCents = (cents: number) => `$${(cents / 100).toFixed(2)}`;
-    const formatStaleness = (ms: number) => {
-      if (ms === Infinity) return '未知';
-      const mins = Math.floor(ms / 60000);
-      if (mins < 60) return `${mins}分钟前`;
-      const hours = Math.floor(mins / 60);
-      return `${hours}小时前`;
-    };
-
-    const header = '| 股票 | 数量 | 成本价 | 现价 | 市值 | 盈亏 | 盈亏% | 更新时间 |';
-    const separator = '|------|------|--------|------|------|------|-------|----------|';
-
-    const rows = positions.map(pos => {
-      const costPrice = formatCents(pos.averagePriceCents);
-      const currentPrice = formatCents(pos.currentPriceCents);
-      const marketValue = formatCents(pos.marketValueCents);
-      const unrealizedPnL = formatCents(pos.unrealizedGainLossCents);
-      const pnlPercent = pos.averagePriceCents > 0
-        ? (((pos.currentPriceCents - pos.averagePriceCents) / pos.averagePriceCents) * 100).toFixed(2)
-        : '0.00';
-      const updateTime = formatStaleness(pos.dataStaleness);
-      const isStale = pos.dataStaleness > 60 * 60 * 1000;
-
-      return `| ${pos.symbol} | ${pos.quantity} | ${costPrice} | ${currentPrice} | ${marketValue} | ${unrealizedPnL} | ${pnlPercent}% | ${updateTime}${isStale ? ' ⚠️' : ''} |`;
-    });
-
-    return [header, separator, ...rows].join('\n');
-  }
-
-  /**
-   * 构建数据来源信息部分
-   */
-  private buildDataSourceSection(summary: DataSourceSummary): string {
-    const formatStaleness = (ms: number) => {
-      if (ms === Infinity) return '未知';
-      const mins = Math.floor(ms / 60000);
-      if (mins < 60) return `${mins}分钟`;
-      const hours = Math.floor(mins / 60);
-      return `${hours}小时`;
-    };
-
-    const header = '| 数据类型 | 数据源 | 更新时间 | 陈旧度 | 状态 |';
-    const separator = '|----------|--------|----------|--------|------|';
-
-    const rows = summary.sources.map(source => {
-      const lastUpdate = source.lastUpdate
-        ? new Date(source.lastUpdate).toLocaleString('zh-CN')
-        : '未知';
-      const staleness = formatStaleness(source.staleness);
-      const status = source.isStale ? '⚠️ 陈旧' : '✅ 新鲜';
-
-      return `| ${source.type} | ${source.source} | ${lastUpdate} | ${staleness} | ${status} |`;
-    });
-
-    return `
-## 数据来源信息
-
-数据时效性分数: ${(summary.freshnessScore * 100).toFixed(0)}%
-
-${header}
-${separator}
-${rows.join('\n')}
-`;
   }
 
   /**

@@ -73,9 +73,5 @@
     "discardDescription": "You have unsaved changes. Are you sure you want to discard them?",
     "continueEditing": "Continue Editing",
     "discard": "Discard Changes"
-  },
-  "agentType": {
-    "claudeSdk": "Claude SDK",
-    "langchain": "LangChain"
   }
 }

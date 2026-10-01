@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
-import { Modal } from 'antd';
 import {
   Card,
   CardContent,
@@ -14,38 +13,16 @@ import {
 import { Badge } from '@renderer/components/ui/badge';
 import { Button } from '@renderer/components/ui/button';
 import {
-  TrendingUpIcon,
-  AlertTriangleIcon,
-  LightbulbIcon,
   SparklesIcon,
   ClockIcon,
-  CalendarIcon,
+  LightbulbIcon,
   Loader2,
-  Trash2,
 } from 'lucide-react';
 import dayjs from 'dayjs';
 import type {
   InsightHistoryItem,
   InsightHistoryListResponse,
-  InsightHistorySource,
-  InsightHistoryType,
 } from '@/types/aiInsight';
-
-const TYPE_CONFIG: Record<
-  InsightHistoryType,
-  { icon: typeof TrendingUpIcon; variant: 'default' | 'destructive' | 'secondary' }
-> = {
-  opportunity: { icon: TrendingUpIcon, variant: 'default' },
-  risk: { icon: AlertTriangleIcon, variant: 'destructive' },
-  suggestion: { icon: LightbulbIcon, variant: 'secondary' },
-  agent: { icon: SparklesIcon, variant: 'secondary' },
-};
-
-const SOURCE_VARIANT: Record<InsightHistorySource, 'outline' | 'secondary'> = {
-  manual: 'outline',
-  scheduled: 'secondary',
-  agent: 'secondary',
-};
 
 const PAGE_SIZE = 10;
 
@@ -59,42 +36,32 @@ export function InsightHistory() {
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  const [filterSource, setFilterSource] = useState<InsightHistorySource | undefined>();
-  const [filterType, setFilterType] = useState<InsightHistoryType | undefined>();
-  const [cleaningUp, setCleaningUp] = useState(false);
-  const [clearError, setClearError] = useState<string | null>(null);
+  const fetchInsights = useCallback(async (page: number, append = false) => {
+    if (append) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
 
-  const fetchInsights = useCallback(
-    async (page: number, append = false) => {
-      if (append) {
-        setLoadingMore(true);
-      } else {
-        setLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) });
+
+      const res = await fetch(`/api/insight-history?${params}`);
+      const result = await res.json();
+      if (result.success) {
+        const data = result.data as InsightHistoryListResponse;
+        setItems((prev) => (append ? [...prev, ...data.items] : data.items));
+        setTotalCount(data.totalCount);
+        setTotalPages(data.totalPages);
+        setCurrentPage(data.currentPage);
       }
-
-      try {
-        const params = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) });
-        if (filterSource) params.set('source', filterSource);
-        if (filterType) params.set('type', filterType);
-
-        const res = await fetch(`/api/insight-history?${params}`);
-        const result = await res.json();
-        if (result.success) {
-          const data = result.data as InsightHistoryListResponse;
-          setItems((prev) => (append ? [...prev, ...data.items] : data.items));
-          setTotalCount(data.totalCount);
-          setTotalPages(data.totalPages);
-          setCurrentPage(data.currentPage);
-        }
-      } catch {
-        // silent
-      } finally {
-        setLoading(false);
-        setLoadingMore(false);
-      }
-    },
-    [filterSource, filterType],
-  );
+    } catch {
+      // silent
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, []);
 
   useEffect(() => {
     fetchInsights(1);
@@ -106,35 +73,6 @@ export function InsightHistory() {
     }
   };
 
-  const handleClearLegacy = () => {
-    Modal.confirm({
-      title: t('history.clearLegacyTitle'),
-      content: t('history.clearLegacyConfirm'),
-      okText: t('history.clearLegacyOk'),
-      okButtonProps: { danger: true },
-      cancelText: t('history.cancel'),
-      onOk: async () => {
-        setCleaningUp(true);
-        setClearError(null);
-        try {
-          const res = await fetch('/api/ai-insights', { method: 'DELETE' });
-          const result = await res.json().catch(() => null);
-          if (!res.ok || !result?.success) {
-            setClearError(t('history.clearLegacyFail'));
-          }
-          await fetchInsights(1);
-        } catch {
-          setClearError(t('history.clearLegacyFail'));
-        } finally {
-          setCleaningUp(false);
-        }
-      },
-    });
-  };
-
-  const sourceOptions: (InsightHistorySource | undefined)[] = [undefined, 'manual', 'scheduled', 'agent'];
-  const typeOptions: (InsightHistoryType | undefined)[] = [undefined, 'opportunity', 'risk', 'suggestion', 'agent'];
-
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -145,59 +83,6 @@ export function InsightHistory() {
 
   return (
     <div className="space-y-4">
-      {/* Filters */}
-      <div className="flex flex-wrap gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">{t('history.filters.source')}:</span>
-          {sourceOptions.map((s) => (
-            <Button
-              key={s ?? 'all'}
-              variant={filterSource === s ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilterSource(s)}
-            >
-              {s ? t(`history.source.${s}`) : t('history.filters.all')}
-            </Button>
-          ))}
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">{t('history.filters.type')}:</span>
-          {typeOptions.map((tp) => (
-            <Button
-              key={tp ?? 'all'}
-              variant={filterType === tp ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilterType(tp)}
-            >
-              {tp ? t(`history.type.${tp}`) : t('history.filters.all')}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      {/* Clear legacy scheduled insights */}
-      <div className="flex justify-end -mt-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleClearLegacy}
-          disabled={cleaningUp}
-          className="text-muted-foreground hover:text-destructive"
-        >
-          {cleaningUp ? (
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          ) : (
-            <Trash2 className="h-4 w-4 mr-2" />
-          )}
-          {t('history.clearLegacy')}
-        </Button>
-      </div>
-      {clearError && (
-        <p className="text-sm text-destructive" role="alert">
-          {clearError}
-        </p>
-      )}
-
       {/* Total count */}
       {totalCount > 0 && (
         <p className="text-sm text-muted-foreground">{t('history.total', { count: totalCount })}</p>
@@ -216,60 +101,39 @@ export function InsightHistory() {
         <>
           {/* Insight cards */}
           <div className="space-y-3">
-            {items.map((insight) => {
-              const typeConfig = TYPE_CONFIG[insight.type];
-              const TypeIcon = typeConfig.icon;
-
-              return (
-                <Card key={insight.id}>
-                  <CardHeader className="pb-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <TypeIcon className="h-4 w-4 shrink-0" />
-                        <CardTitle className="text-base truncate">{insight.title}</CardTitle>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <Badge variant={typeConfig.variant}>
-                          {t(`history.type.${insight.type}`)}
-                        </Badge>
-                        <Badge variant={SOURCE_VARIANT[insight.source]}>
-                          {t(`history.source.${insight.source}`)}
-                        </Badge>
-                      </div>
+            {items.map((insight) => (
+              <Card key={insight.id}>
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <SparklesIcon className="h-4 w-4 shrink-0" />
+                      <CardTitle className="text-base truncate">{insight.title}</CardTitle>
                     </div>
-                    <CardDescription className="line-clamp-2 mt-1">
-                      {insight.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      {insight.confidence != null && (
-                        <span className="flex items-center gap-1">
-                          {t('history.confidence')}: {Math.round(insight.confidence)}%
-                        </span>
-                      )}
-                      <span className="flex items-center gap-1">
-                        <ClockIcon className="h-3 w-3" />
-                        {dayjs(insight.createdAt).format('YYYY-MM-DD HH:mm')}
-                      </span>
-                      {insight.jobId != null && (
-                        <span className="flex items-center gap-1">
-                          <CalendarIcon className="h-3 w-3" />
-                          Job #{insight.jobId}
-                        </span>
-                      )}
-                      {insight.source === 'agent' && insight.sessionId && (
-                        <Button asChild size="sm" variant="outline" className="ml-auto">
-                          <Link href={`/chat?session=${insight.sessionId}`}>
-                            {t('history.viewSession')}
-                          </Link>
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                    <Badge variant="secondary">{t('history.type.agent')}</Badge>
+                  </div>
+                  <CardDescription className="line-clamp-2 mt-1">
+                    {insight.description}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <ClockIcon className="h-3 w-3" />
+                      {dayjs(insight.createdAt).format('YYYY-MM-DD HH:mm')}
+                    </span>
+                    {insight.sessionId && (
+                      <Button asChild size="sm" variant="outline" className="ml-auto">
+                        <Link
+                          href={`/chat?session=${insight.sessionId}&topic=${insight.topicId}`}
+                        >
+                          {t('history.viewSession')}
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
 
           {/* Load more */}

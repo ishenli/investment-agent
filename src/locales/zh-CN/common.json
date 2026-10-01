@@ -25,7 +25,7 @@
     "noon": "中午好"
   },
   "guide": {
-    "defaultMessage": "我是您的AI助手。今天能为您做些什么？<br />点击 <plus /> 开始一个新会话 {{appName}}"
+    "defaultMessage": "我是您的AI助手。今天能为您做些什么？"
   },
   "header": {
     "accountAnalysis": "账户分析",

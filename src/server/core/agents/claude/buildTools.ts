@@ -6,7 +6,9 @@ import {
   stockRecallCompanyInfoClaudeTool,
   stockSearchNewsClaudeTool,
   stockGetPriceClaudeTool,
+  searchAssetInfoClaudeTool,
   dbQueryClaudeTool,
+  marketInfoSaveClaudeTool,
   transactionHistoryClaudeTool,
   transactionHistoryByDateClaudeTool,
   accountBalanceClaudeTool,
@@ -15,7 +17,7 @@ import {
   createTaskClaudeTool,
   listTasksClaudeTool,
   updateTaskClaudeTool,
-} from '@server/core/agents/langchain/tools';
+} from '@server/tools';
 
 /**
  * 创建带有自定义工具的 SDK MCP 服务器
@@ -43,8 +45,14 @@ export const igToolsServer = createSdkMcpServer({
     // 股票价格查询工具
     stockGetPriceClaudeTool,
 
+    // 资产信息搜索工具
+    searchAssetInfoClaudeTool,
+
     // db 查询工具
     dbQueryClaudeTool,
+
+    // 市场信息保存工具
+    marketInfoSaveClaudeTool,
 
     // 交易历史查询工具
     transactionHistoryClaudeTool,
@@ -65,6 +73,5 @@ export const igToolsServer = createSdkMcpServer({
     createTaskClaudeTool,
     listTasksClaudeTool,
     updateTaskClaudeTool,
-
   ],
 });

@@ -1,6 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { get, post } from '@/app/lib/request/index';
-import type { AiInsightListResponse } from '@/types/aiInsight';
+import { useQuery } from '@tanstack/react-query';
+import { get } from '@/app/lib/request/index';
 
 // 获取持仓数据
 export const usePositionsQuery = () => {
@@ -12,35 +11,6 @@ export const usePositionsQuery = () => {
     },
     staleTime: 1000 * 60 * 1, // 1分钟内数据视为新鲜
     retry: 1,
-  });
-};
-
-// 获取AI洞察数据
-export const useAIInsightsQuery = () => {
-  return useQuery({
-    queryKey: ['ai-insights'],
-    queryFn: async () => {
-      const response = await get<{ data: AiInsightListResponse }>('/api/ai-insights', {
-        params: { page: 1, pageSize: 20 },
-      });
-      return response.data.items;
-    },
-    staleTime: 1000 * 60 * 5, // 5分钟内数据视为新鲜
-    retry: 1,
-  });
-};
-
-// 手动生成并保存 AI 洞察
-export const useGenerateAIInsightsMutation = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async () => {
-      return post('/api/position/ai-insights', {});
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ai-insights'] });
-    },
   });
 };
 
@@ -70,18 +40,6 @@ export const usePortfolioDataQuery = () => {
   });
 };
 
-export const useStrategyAdviceQuery = <T>() => {
-  return useQuery<T>({
-    queryKey: ['strategy-advice'],
-    queryFn: async () => {
-      const response = await get('/api/position/strategy-advice');
-      return response.data.advice;
-    },
-    staleTime: 1000 * 60 * 5, // 5分钟内数据视为新鲜
-    retry: 1,
-  });
-};
-
 // 获取历史风险数据 - 注意：这个端点可能不存在
 export const useHistoryRiskDataQuery = () => {
   return useQuery({
@@ -97,15 +55,3 @@ export const useHistoryRiskDataQuery = () => {
   });
 };
 
-// 获取分散投资建议数据
-export const useDiversificationRecommendationsQuery = <T>() => {
-  return useQuery<T>({
-    queryKey: ['diversification-recommendations'],
-    queryFn: async () => {
-      const response = await get('/api/position/risk-divers');
-      return response.data.recommendations;
-    },
-    staleTime: 1000 * 60 * 5, // 5分钟内数据视为新鲜
-    retry: 1,
-  });
-};

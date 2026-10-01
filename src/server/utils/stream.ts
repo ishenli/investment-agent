@@ -110,3 +110,36 @@ export function splitThinkTagContent(
 
   return { reasoning, text, inThinkBlock: inBlock };
 }
+/**
+ * 补齐推理段缺失的 think 开头标签。
+ *
+ * 上游推理模型网关(ant DeepSeek 等 OpenAI 兼容实现)把推理链内联进 content,
+ * 只在推理到正文的交界处留下一个闭合标签、却不带开头标签,
+ * 导致前端 Markdown(Thinking 组件, tag=think)无法配对解析。
+ * 推理链位于消息开头,补上开头标签即可恢复配对。
+ */
+export function ensureThinkOpenTag(content: string): string {
+  if (!content) return content;
+  if (THINK_OPEN_RE.test(content)) return content;
+  return THINK_CLOSE_RE.test(content) ? `${THINK_OPEN_TAG}${content}` : content;
+}
+
+/**
+ * 移除游离的 think 闭合标签(仅流式 delta 使用)。
+ * 推理链在流中已按原文透传,无法回溯补开头标签,故先剥掉游离闭合标签,
+ * 避免前端渲染出孤立标签;最终落库内容由 ensureThinkOpenTag 配平。
+ */
+export function stripThinkCloseTag(content: string): string {
+  return (content ?? '').replace(THINK_CLOSE_RE, '');
+}
+
+/**
+ * 判断内容是否已带 think 开头标签。
+ */
+export function hasThinkOpenTag(content: string): boolean {
+  return THINK_OPEN_RE.test(content ?? '');
+}
+
+const THINK_OPEN_TAG = '<think>';
+const THINK_OPEN_RE = /<think(?:ing)?>/;
+const THINK_CLOSE_RE = /<\/think(?:ing)?>/;

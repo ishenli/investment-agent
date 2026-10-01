@@ -4,7 +4,7 @@
  * 聊天话题数据访问层
  */
 import { db } from '@server/lib/db';
-import { eq, and, desc, inArray, sql } from 'drizzle-orm';
+import { eq, and, desc, inArray, notInArray, sql } from 'drizzle-orm';
 import {
   chatTopics,
   chatMessages,
@@ -159,6 +159,37 @@ export class TopicRepository extends BaseRepository<ChatTopic> {
     const result = await db.delete(chatTopics).where(eq(chatTopics.sessionId, sessionId));
 
     return result.rowsAffected;
+  }
+
+  /**
+   * 裁剪会话中超出保留上限的旧话题（按 createdAt 保留最新 keepCount 条，消息级联删除）
+   * @param sessionId 会话 ID
+   * @param keepCount 保留的最新话题数
+   * @returns 被删除的话题数
+   */
+  async deleteBeyondBySessionId(sessionId: string, keepCount: number): Promise<number> {
+    if (keepCount <= 0) return 0;
+
+    const retained = await db
+      .select({ id: chatTopics.id })
+      .from(chatTopics)
+      .where(eq(chatTopics.sessionId, sessionId))
+      .orderBy(desc(chatTopics.createdAt))
+      .limit(keepCount);
+
+    const retainedIds = retained.map((r) => r.id);
+    const stale = await db
+      .select({ id: chatTopics.id })
+      .from(chatTopics)
+      .where(
+        and(
+          eq(chatTopics.sessionId, sessionId),
+          retainedIds.length > 0 ? notInArray(chatTopics.id, retainedIds) : undefined,
+        ),
+      );
+
+    if (stale.length === 0) return 0;
+    return this.deleteMany(stale.map((t) => t.id));
   }
 
   // ============== Count ==============

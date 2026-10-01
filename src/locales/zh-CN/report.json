@@ -73,9 +73,5 @@
     "discardDescription": "您有未保存的更改，确定要放弃这些更改吗？",
     "continueEditing": "继续编辑",
     "discard": "放弃更改"
-  },
-  "agentType": {
-    "claudeSdk": "Claude SDK",
-    "langchain": "LangChain"
   }
 }

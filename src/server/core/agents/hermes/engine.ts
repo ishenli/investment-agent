@@ -27,6 +27,7 @@ import path from 'path';
 import type { IAgentEngine, EngineRunContext, EngineRunResult, EngineEventSink } from '@server/core/engine/types';
 import type { ConfirmationRequest } from '@investment-agent/hermes-agent';
 import { registerHermesPermission } from './permissionRegistry';
+import { ensureThinkOpenTag, hasThinkOpenTag, stripThinkCloseTag } from '@server/utils/stream';
 
 export class HermesEngine implements IAgentEngine {
   readonly name = 'hermes';
@@ -114,10 +115,16 @@ export class HermesEngine implements IAgentEngine {
 
     // 4. Create callbacks → eventSink events
     let emitterClosed = false;
+    // 推理网关常把推理链内联进 content:只带闭合标签、缺开头标签。
+    // 流式逐 token 无法回溯补开头,故在收到过开头标签之前,先剥掉游离闭合标签,
+    // 避免前端渲染出孤立标签;健康的成对流(先开后合)则原样保留。
+    let seenThinkOpen = false;
     const callbacks: AgentCallbacks = {
       onTextDelta: async (delta: string) => {
         if (emitterClosed || signal.aborted) return;
-        const sent = await eventSink.sendTextDelta(messageId, delta);
+        seenThinkOpen = seenThinkOpen || hasThinkOpenTag(delta);
+        const cleaned = seenThinkOpen ? delta : stripThinkCloseTag(delta);
+        const sent = await eventSink.sendTextDelta(messageId, cleaned);
         if (!sent) emitterClosed = true;
       },
       onToolStart: (name: string, args: Record<string, unknown>) => {
@@ -272,6 +279,10 @@ export class HermesEngine implements IAgentEngine {
     }
 
     // 7. 发送最终结果
+
+    // 推理网关只落闭合标签、缺开头标签时,在此配平,确保落库/历史消息可被前端配对渲染。
+    const finalContent = ensureThinkOpenTag(result.finalResponse);
+
     if (result.completed) {
       await eventSink.sendTextDelta(messageId, '', true);
 
@@ -280,7 +291,7 @@ export class HermesEngine implements IAgentEngine {
         .pop();
       const usage = lastAssistant && 'usage' in lastAssistant ? lastAssistant.usage : undefined;
 
-      await eventSink.sendResult(messageId, result.finalResponse, usage ? {
+      await eventSink.sendResult(messageId, finalContent, usage ? {
         input: usage.input,
         output: usage.output,
         total: usage.totalTokens,
@@ -291,7 +302,7 @@ export class HermesEngine implements IAgentEngine {
     logger.info(`[HermesEngine] Completed: success=${result.completed} apiCalls=${result.apiCalls}`);
 
     return {
-      content: result.finalResponse,
+      content: finalContent,
       completed: result.completed,
       error: result.completed ? undefined : (result.error ?? 'Agent 未能完成任务'),
       usage: result.observability

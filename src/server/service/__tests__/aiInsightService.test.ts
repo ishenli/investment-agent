@@ -4,200 +4,154 @@ vi.mock('@server/base/logger', () => ({
   default: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
 }));
 
-const findByUserId = vi.fn();
-const deleteByUserIdAndSource = vi.fn();
-vi.mock('@server/repository/aiInsightRepository', () => ({
-  aiInsightRepository: {
-    findByUserId: (...a: unknown[]) => findByUserId(...a),
-    deleteByUserIdAndSource: (...a: unknown[]) => deleteByUserIdAndSource(...a),
-  },
-}));
-
-const findSessions = vi.fn();
+const { findAgentSessions } = vi.hoisted(() => ({ findAgentSessions: vi.fn() }));
 vi.mock('@server/repository/chat', () => ({
   sessionRepository: {
-    findScheduledInsightSessionsByUserId: (...a: unknown[]) => findSessions(...a),
+    findByUserIdAndAgentId: findAgentSessions,
+  },
+  topicRepository: {
+    findBySessionId: vi.fn(),
   },
   messageRepository: {
-    findAssistantMessagesBySessionIds: vi.fn(),
+    findAssistantMessagesByTopicIds: vi.fn(),
   },
 }));
 
-import { sessionRepository, messageRepository } from '@server/repository/chat';
+import { sessionRepository, topicRepository, messageRepository } from '@server/repository/chat';
 import AiInsightService from '../aiInsightService';
 
 const service = AiInsightService;
 
 // ============== Fixtures ==============
 
-const legacyScheduled = {
-  id: 11,
+const agentSession = {
+  id: 'sess-standing',
   userId: 7,
-  accountId: 1,
-  jobId: 42,
-  title: '旧洞察：半导体仓位偏高',
-  description: '旧结构化描述',
-  type: 'risk' as const,
-  confidence: 80,
-  metadata: null,
-  source: 'scheduled' as const,
-  createdAt: new Date('2026-09-01T00:00:00Z'),
-  updatedAt: new Date('2026-09-01T00:00:00Z'),
-};
-
-const legacyManual = {
-  ...legacyScheduled,
-  id: 12,
-  title: '手动洞察',
-  source: 'manual' as const,
-  createdAt: new Date('2026-09-01T01:00:00Z'),
-};
-
-const sessionRecord = {
-  id: 'sess-abc',
-  userId: 7,
-  slug: 'scheduled-insight-42-1756800000000',
+  slug: 'agent-ai_insight-u7',
   type: 'agent' as const,
+  agentId: 'ai_insight',
   groupId: null,
   pinned: false,
-  config: { model: 'default', params: {}, provider: 'openai', systemRole: '' },
-  meta: { title: '每日洞察 · 2026-09-02' },
-  agentId: null,
-  createdAt: new Date('2026-09-02T00:00:00Z'),
-  updatedAt: new Date('2026-09-02T00:00:00Z'),
+  config: {},
+  meta: { title: '每日洞察' },
+  createdAt: new Date('2026-09-01T00:00:00Z'),
+  updatedAt: new Date('2026-09-08T00:00:00Z'),
 };
 
-const assistantMessage = {
-  id: 'msg-1',
-  sessionId: 'sess-abc',
-  topicId: null,
-  parentId: null,
+const topicNewer = {
+  id: 't2',
+  sessionId: 'sess-standing',
+  title: '每日洞察 · 2026-09-08',
+  favorite: false,
+  createdAt: new Date('2026-09-08T08:00:00Z'),
+  updatedAt: new Date('2026-09-08T08:00:00Z'),
+};
+
+const topicOlder = {
+  id: 't1',
+  sessionId: 'sess-standing',
+  title: '每日洞察 · 2026-09-07',
+  favorite: false,
+  createdAt: new Date('2026-09-07T08:00:00Z'),
+  updatedAt: new Date('2026-09-07T08:00:00Z'),
+};
+
+const messageFor = (topicId: string, content: string) => ({
+  id: `msg-${topicId}`,
+  sessionId: 'sess-standing',
+  topicId,
   role: 'assistant' as const,
-  content: '今日组合整体风险可控，建议关注半导体仓位。',
-  createdAt: new Date('2026-09-02T00:00:05Z'),
-  updatedAt: new Date('2026-09-02T00:00:05Z'),
-};
+  content,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+});
 
-// ============== Tests ==============
+beforeEach(() => {
+  vi.resetAllMocks();
+});
 
-describe('AiInsightService.getInsightHistory（新旧聚合）', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    findByUserId.mockReset();
-    findSessions.mockReset();
-    vi.mocked(messageRepository.findAssistantMessagesBySessionIds).mockReset();
-  });
-
-  it('聚合旧 ai_insights 与会话式新产出，按时间倒序返回', async () => {
-    findByUserId.mockResolvedValue({ items: [legacyManual, legacyScheduled], totalCount: 2 });
-    findSessions.mockResolvedValue([sessionRecord]);
-    vi.mocked(messageRepository.findAssistantMessagesBySessionIds).mockResolvedValue([assistantMessage]);
+describe('AiInsightService.getInsightHistory（按 topic 聚合洞察历史）', () => {
+  it('聚合常驻会话下的洞察 topic，产出取每 topic 最后一条助手消息', async () => {
+    findAgentSessions.mockResolvedValue([agentSession]);
+    vi.mocked(topicRepository.findBySessionId).mockResolvedValue([topicOlder, topicNewer] as never);
+    vi.mocked(messageRepository.findAssistantMessagesByTopicIds).mockResolvedValue([
+      messageFor('t1', '昨天的洞察结论'),
+      // 升序排列：t2 更早的助手消息在前，验证“取最后一条”
+      {
+        ...messageFor('t2', '今日开盘简报'),
+        createdAt: new Date('2026-09-08T07:00:00Z'),
+      },
+      {
+        ...messageFor('t2', '今日组合整体风险可控。'),
+        createdAt: new Date('2026-09-08T08:05:00Z'),
+      },
+    ] as never);
 
     const result = await service.getInsightHistory(7, { page: 1, pageSize: 10 });
 
-    // 三条记录合一：新会话产出 + 两条旧记录
-    expect(result.totalCount).toBe(3);
-    // 时间倒序：最新（2026-09-02 会话）在最前
-    expect(result.items[0].source).toBe('agent');
-    expect(result.items[0].sessionId).toBe('sess-abc');
-    expect(result.items[0].jobId).toBe(42);
-    expect(result.items[0].description).toBe(assistantMessage.content);
-    // 旧记录保留且只读
-    expect(result.items.some((i) => i.id === '11' && i.source === 'scheduled' && i.type === 'risk')).toBe(true);
-    expect(result.items.some((i) => i.id === '12' && i.source === 'manual')).toBe(true);
+    expect(sessionRepository.findByUserIdAndAgentId).toHaveBeenCalledWith(7, 'ai_insight');
+    expect(result.totalCount).toBe(2);
+    // 倒序:最新 topic 在前
+    expect(result.items[0]).toMatchObject({
+      id: 't2',
+      sessionId: 'sess-standing',
+      topicId: 't2',
+      title: '每日洞察 · 2026-09-08',
+      description: '今日组合整体风险可控。',
+      source: 'agent',
+      type: 'agent',
+      confidence: null,
+    });
+    expect(result.items[1].title).toBe('每日洞察 · 2026-09-07');
   });
 
-  it('source 过滤为 agent 时只返回会话式新记录', async () => {
-    findByUserId.mockResolvedValue({ items: [legacyScheduled], totalCount: 1 });
-    findSessions.mockResolvedValue([sessionRecord]);
-    vi.mocked(messageRepository.findAssistantMessagesBySessionIds).mockResolvedValue([assistantMessage]);
+  it('无常驻会话时返回空列表且不查询 topic', async () => {
+    findAgentSessions.mockResolvedValue([]);
 
-    const result = await service.getInsightHistory(7, { page: 1, pageSize: 10, source: 'agent' });
+    const result = await service.getInsightHistory(7, { page: 1, pageSize: 10 });
 
-    // 会话记录被加载，旧记录被过滤掉
-    expect(findSessions).toHaveBeenCalledTimes(1);
-    expect(findByUserId).not.toHaveBeenCalled();
-    expect(result.totalCount).toBe(1);
-    expect(result.items[0].source).toBe('agent');
+    expect(result).toEqual({ items: [], totalCount: 0, totalPages: 0, currentPage: 1 });
+    expect(topicRepository.findBySessionId).not.toHaveBeenCalled();
   });
 
-  it('source 过滤为 scheduled 时只返回旧记录', async () => {
-    findByUserId.mockResolvedValue({ items: [legacyScheduled], totalCount: 1 });
-    findSessions.mockResolvedValue([sessionRecord]);
-
-    const result = await service.getInsightHistory(7, { page: 1, pageSize: 10, source: 'scheduled' });
-
-    expect(findByUserId).toHaveBeenCalledWith(7, expect.objectContaining({ source: 'scheduled' }));
-    expect(findSessions).not.toHaveBeenCalled();
-    expect(result.totalCount).toBe(1);
-    expect(result.items[0].source).toBe('scheduled');
-  });
-
-  it('type 过滤为 agent 时只返回会话式新记录', async () => {
-    findSessions.mockResolvedValue([sessionRecord]);
-    vi.mocked(messageRepository.findAssistantMessagesBySessionIds).mockResolvedValue([assistantMessage]);
-
-    const result = await service.getInsightHistory(7, { page: 1, pageSize: 10, type: 'agent' });
-
-    expect(findSessions).toHaveBeenCalledTimes(1);
-    expect(findByUserId).not.toHaveBeenCalled();
-    expect(result.totalCount).toBe(1);
-    expect(result.items[0].type).toBe('agent');
-  });
-
-  it('分页正确切分聚合结果', async () => {
-    findByUserId.mockResolvedValue({ items: [legacyScheduled], totalCount: 1 });
-    findSessions.mockResolvedValue([
-      { ...sessionRecord, id: 's1' },
-      { ...sessionRecord, id: 's2' },
-      { ...sessionRecord, id: 's3' },
-    ]);
-    vi.mocked(messageRepository.findAssistantMessagesBySessionIds).mockResolvedValue([
-      { ...assistantMessage, sessionId: 's1' },
-      { ...assistantMessage, sessionId: 's2' },
-      { ...assistantMessage, sessionId: 's3' },
-    ]);
+  it('分页正确切分 topic，且只查询当前页 topic 的消息', async () => {
+    findAgentSessions.mockResolvedValue([agentSession]);
+    const topics = Array.from({ length: 3 }, (_, i) => ({
+      id: `t${i + 1}`,
+      sessionId: 'sess-standing',
+      title: `每日洞察 · 2026-09-0${i + 1}`,
+      favorite: false,
+      createdAt: new Date(`2026-09-0${i + 1}T08:00:00Z`),
+      updatedAt: new Date(`2026-09-0${i + 1}T08:00:00Z`),
+    }));
+    vi.mocked(topicRepository.findBySessionId).mockResolvedValue(topics as never);
+    vi.mocked(messageRepository.findAssistantMessagesByTopicIds).mockResolvedValue([]);
 
     const result = await service.getInsightHistory(7, { page: 2, pageSize: 2 });
 
-    // 4 条聚合（3 会话 + 1 旧记录），第 2 页只回 2 条
-    expect(result.totalCount).toBe(4);
+    expect(result.totalCount).toBe(3);
     expect(result.totalPages).toBe(2);
     expect(result.currentPage).toBe(2);
-    expect(result.items.length).toBe(2);
+    expect(result.items.map((i) => i.id)).toEqual(['t1']);
+    expect(messageRepository.findAssistantMessagesByTopicIds).toHaveBeenCalledWith(['t1']);
   });
 
-  it('会话查询异常时不影响旧记录返回（降级）', async () => {
-    findByUserId.mockResolvedValue({ items: [legacyScheduled], totalCount: 1 });
-    findSessions.mockRejectedValue(new Error('db error'));
+  it('topic 无助手消息时产出为空字符串', async () => {
+    findAgentSessions.mockResolvedValue([agentSession]);
+    vi.mocked(topicRepository.findBySessionId).mockResolvedValue([topicNewer] as never);
+    vi.mocked(messageRepository.findAssistantMessagesByTopicIds).mockResolvedValue([]);
 
     const result = await service.getInsightHistory(7, { page: 1, pageSize: 10 });
 
-    expect(result.totalCount).toBe(1);
-    expect(result.items[0].source).toBe('scheduled');
-  });
-});
-
-describe('AiInsightService.cleanLegacyScheduledInsights（清理旧定时洞察）', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    deleteByUserIdAndSource.mockReset();
+    expect(result.items[0].description).toBe('');
   });
 
-  it('仅删除当前用户的 source=scheduled 记录并返回删除数量', async () => {
-    deleteByUserIdAndSource.mockResolvedValue(37);
+  it('查询异常时返回空结果（降级）', async () => {
+    findAgentSessions.mockRejectedValue(new Error('db error'));
 
-    const deleted = await service.cleanLegacyScheduledInsights(7);
+    const result = await service.getInsightHistory(7, { page: 1, pageSize: 10 });
 
-    expect(deleteByUserIdAndSource).toHaveBeenCalledWith(7, 'scheduled');
-    expect(deleted).toBe(37);
-  });
-
-  it('无残留时返回 0', async () => {
-    deleteByUserIdAndSource.mockResolvedValue(0);
-
-    const deleted = await service.cleanLegacyScheduledInsights(7);
-
-    expect(deleted).toBe(0);
+    expect(result.items).toEqual([]);
+    expect(result.totalCount).toBe(0);
   });
 });

@@ -1,6 +1,5 @@
 'use client';
 
-import { BRANDING_NAME } from '@renderer/const/branding';
 import { FluentEmoji, Markdown } from '@lobehub/ui';
 import { createStyles } from 'antd-style';
 import { memo } from 'react';
@@ -66,7 +65,6 @@ const InboxWelcome = memo(() => {
                   }}
                   i18nKey="guide.defaultMessage"
                   ns="common"
-                  values={{ appName: BRANDING_NAME }}
                 />
               );
             }
@@ -74,7 +72,7 @@ const InboxWelcome = memo(() => {
           }}
           variant={'chat'}
         >
-          {t('guide.defaultMessage', { ns: 'common', appName: BRANDING_NAME })}
+          {t('guide.defaultMessage', { ns: 'common' })}
         </Markdown>
         {showWelcomeSuggest && (
           <>

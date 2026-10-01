@@ -71,50 +71,58 @@
 
 ### Requirement: 洞察定时任务的会话式执行与可定制提示词
 
-系统 SHALL 允许每个洞察类定时任务通过其 `config.instructions` 定制每次执行的分析提示词，并在每次定时触发时创建一个全新的会话，将提示词作为该会话的用户输入，由 Agent 引擎 headless 执行，保证每次运行都是独立的、随提示词与最新数据演化的分析。
+系统 SHALL 允许每个洞察类定时任务通过其 `config.instructions` 定制每次执行的分析提示词，并在每次定时触发时于「每日洞察」专属 Agent 的常驻会话下创建一个全新的 topic，将提示词作为该 topic 的用户输入，由 Agent 引擎 headless 执行，保证每次运行都是独立的、随提示词与最新数据演化的分析。
 
-#### Scenario: 每次触发创建一个全新会话
+#### Scenario: 每次触发在常驻会话下创建一个全新 topic
 
 - **GIVEN** 一个启用的 `jobType = "insight"` 定时任务，`cronExpression = "0 8 * * *"`
 - **WHEN** 定时器在连续两个触发日各触发一次
-- **THEN** 系统在每次触发时都通过 `chatStorageService.createSession` 创建一个不重复的全新会话
-- **AND** 两次执行对应两个不同的 `sessionId`
+- **THEN** 系统在每次触发时都通过 `chatStorageService.getOrCreateBuiltinAgentSession` 定位「每日洞察」Agent 的常驻会话，并通过 `chatStorageService.createTopic` 新建一个 topic（标题 = 任务名 · 执行日期）
+- **AND** 两次执行对应两个不同的 `topicId`，均挂载在同一条常驻会话下
 - **AND** 每次执行都使用最新的持仓与组合数据，并将当次 `config.instructions` 作为提示词
 - **AND** 前一次执行不影响后一次执行的内容与状态
+- **AND** 常驻会话内的洞察 topic 按创建时间仅保留最近 30 条，超出自动裁剪（best-effort，裁剪失败不影响执行）
+
+#### Scenario: 会话由每日洞察专属 Agent 提供
+
+- **GIVEN** 一个启用的洞察类定时任务触发执行，且系统已完成内置 Agent 幂等播种
+- **WHEN** 系统为本次执行定位常驻会话
+- **THEN** 常驻会话的 `agent_id` 绑定每日洞察专属 Agent（slug = `ai_insight`），chat 页助手列表以常驻会话形式呈现该 Agent
+- **AND** 本次执行使用该 Agent 的 `systemRole` 作为系统提示词人设
+- **AND** 常驻会话不存在时自动创建，Agent 缺失时执行以明确错误失败
 
 #### Scenario: 洞察产出持久化与会话回看
 
-- **GIVEN** 一个启用的洞察类定时任务已成功执行并创建一个全新的 `sessionId`
+- **GIVEN** 一个启用的洞察类定时任务已成功执行并在常驻会话下创建了全新的 `topicId`
 - **WHEN** Agent 引擎完成执行并产出分析文本
-- **THEN** 系统通过 `chatStorageService.createMessage` 将产出的分析文本落为对应该 `sessionId` 的一条助手消息
-- **AND** 将 `config.instructions` 对应的用户消息一并写入该会话
-- **AND** 该次执行的 `sessionId` 与消息 id 记录到 `scheduledJobLogs.result`
+- **THEN** 系统通过 `chatStorageService.createMessage` 将产出的分析文本落为对应该 `topicId` 的一条助手消息
+- **AND** 将 `config.instructions` 对应的用户消息一并写入该 topic
+- **AND** 该次执行的 `sessionId`、`topicId` 与消息 id 记录到 `scheduledJobLogs.result`
 - **AND** 洞察历史页能够从该次执行记录跳转到对应会话，展示完整对话上下文与生成分析
 
-#### Scenario: 历史 scheduled 洞察兼容
+#### Scenario: 旧结构洞察链路移除
 
-- **GIVEN** 数据库中已存在 `source = "scheduled"` 且 `jobId` 关联的洞察记录（由旧实现产生）
-- **WHEN** 系统升级到会话式执行后
-- **THEN** 旧 `ai_insights` 记录保留、只读，不被删除或改写
-- **AND** 洞察历史页仍能展示旧记录
-- **AND** 新执行的洞察通过会话路径产生，不再写入 `ai_insights` 表
-- **AND** 洞察历史页对新旧两类记录做聚合展示，旧记录来自 `ai_insights`，新记录来自会话式执行的产出，两者互不覆盖
+- **GIVEN** 旧实现曾通过 `ai_insights` 表持久化结构化洞察，并存在手动生成入口
+- **WHEN** 会话式执行完全替代旧实现（含 LangGraph 编排移除）
+- **THEN** `ai_insights` 表、对应 Repository、手动生成 API（`POST /api/position/ai-insights`）及历史聚合中的旧记录分支一并移除，不做只读保留
+- **AND** 洞察历史页只展示 topic 型产出的记录
+- **AND** 新执行的洞察通过常驻会话的 topic 路径产生（`chatSessions`/`chatTopics`/`chatMessages`），不再有任何写入 `ai_insights` 的路径
 
 ### Requirement: 洞察产出持久化模型
 
-系统 SHALL 将会话式洞察执行的产出持久化到该次新建的会话中（写入 `chatSessions` 关联的 `chatMessages`），并在 `scheduledJobLogs.result` 记录会话与消息引用，确保每次洞察产出可追溯、可回看，且与旧的 `ai_insights` 记录相互独立。
+系统 SHALL 将会话式洞察执行的产出持久化到常驻会话下该次新建的 topic 中（写入 `chatTopics` 关联的 `chatMessages`），并在 `scheduledJobLogs.result` 记录会话、topic 与消息引用，确保每次洞察产出可追溯、可回看。
 
-#### Scenario: 产出作为会话消息持久化
+#### Scenario: 产出作为 topic 消息持久化
 
-- **GIVEN** 洞察定时任务执行并创建了全新会话 `sessionId`
+- **GIVEN** 洞察定时任务执行并在常驻会话 `sessionId` 下创建了全新的 `topicId`
 - **WHEN** Agent 引擎返回分析产出
-- **THEN** 系统通过 `chatStorageService.createMessage` 将该产出作为助手消息写入 `sessionId` 对应的会话
-- **AND** 用户消息（`config.instructions`）与助手产出在同一会话下可完整回溯
-- **AND** 会话的 meta 标题反映该任务名称与执行日期
+- **THEN** 系统通过 `chatStorageService.createMessage` 将该产出作为助手消息写入 `topicId` 对应的 topic
+- **AND** 用户消息（`config.instructions`）与助手产出在同一 topic 下可完整回溯
+- **AND** topic 的标题反映该任务名称与执行日期
 
-#### Scenario: 执行日志关联会话
+#### Scenario: 执行日志关联会话与 topic
 
 - **GIVEN** 一次洞察定时任务成功执行
 - **WHEN** 该执行写入 `scheduledJobLogs`
-- **THEN** `scheduledJobLogs.result` 记录 `sessionId` 与消息 id
-- **AND** 洞察历史页/执行日志页可据此跳转到对应会话回看
+- **THEN** `scheduledJobLogs.result` 记录 `sessionId`、`topicId` 与消息 id
+- **AND** 洞察历史页/执行日志页可据此跳转到对应会话与 topic 回看

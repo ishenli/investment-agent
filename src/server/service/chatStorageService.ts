@@ -24,8 +24,10 @@ import {
   type CreateFileParams,
   type CreatePluginParams,
 } from '@server/repository/chat';
-import type { ChatMessage } from '@drizzle/schema/chat';
+import type { ChatMessage, ChatSession } from '@drizzle/schema/chat';
 import { INBOX_SESSION_ID } from '@/app/const/session';
+import { agentRepository } from '@server/repository/agentRepository';
+import logger from '@server/base/logger';
 
 export class ChatStorageService {
   // ============== Session Operations ==============
@@ -41,7 +43,92 @@ export class ChatStorageService {
    * 获取用户的所有会话
    */
   async getSessions(userId: number) {
-    return sessionRepository.findByUserId(userId);
+    const sessions = await sessionRepository.findByUserId(userId);
+    return this.ensureBuiltinAgentSessions(userId, sessions);
+  }
+
+  /**
+   * 内置 Agent 常驻主会话的 slug 规则（chat_sessions.slug 全局唯一，跨用户带 userId 后缀）
+   */
+  public builtinAgentSessionSlug(agentSlug: string, userId: number): string {
+    return `agent-${agentSlug}-u${userId}`;
+  }
+
+  /**
+   * 获取或创建内置 Agent 的常驻主会话（幂等）。
+   *
+   * 助手列表展示的是会话而非 Agent 表，因此内置 Agent 需要一条常驻会话
+   * 才能在 chat 页可见、可直接开聊；定时任务类 Agent（如每日洞察）的
+   * 每次执行也以 topic 形式落在这条常驻会话下。
+   */
+  async getOrCreateBuiltinAgentSession(userId: number, agentSlug: string): Promise<ChatSession> {
+    const slug = this.builtinAgentSessionSlug(agentSlug, userId);
+
+    const existing = await sessionRepository.findBySlug(slug);
+    if (existing) return existing;
+
+    const agent = await agentRepository.findBySlug(agentSlug);
+    if (!agent) {
+      throw new Error(`Builtin agent "${agentSlug}" not found`);
+    }
+
+    await sessionRepository.create({
+      userId,
+      slug,
+      type: 'agent',
+      agentId: agent.slug,
+      config: {
+        model: 'default',
+        provider: 'openai',
+        params: {},
+        systemRole: agent.systemRole || '',
+      },
+      meta: {
+        title: agent.name,
+        description: agent.description || '',
+        avatar: agent.logo || undefined,
+      },
+      groupId: null,
+      pinned: false,
+    });
+
+    logger.info(`[ChatStorageService] Created builtin agent session "${slug}" for user ${userId}`);
+
+    const created = await sessionRepository.findBySlug(slug);
+    if (!created) {
+      throw new Error(`Builtin agent session "${slug}" not found after creation`);
+    }
+    return created;
+  }
+
+  /**
+   * 为每个内置 Agent 幂等补一条常驻主会话，作为 chat 助手列表的固定入口。
+   */
+  private async ensureBuiltinAgentSessions(
+    userId: number,
+    sessions: ChatSession[],
+  ): Promise<ChatSession[]> {
+    try {
+      const builtinAgents = await agentRepository.findBuiltinAgents();
+      let changed = false;
+
+      for (const agent of builtinAgents) {
+        const slug = this.builtinAgentSessionSlug(agent.slug, userId);
+        if (sessions.some((s) => s.slug === slug)) continue;
+
+        try {
+          await this.getOrCreateBuiltinAgentSession(userId, agent.slug);
+          changed = true;
+        } catch (error) {
+          logger.warn(`[ChatStorageService] Failed to ensure builtin agent session "${slug}": ${error}`);
+        }
+      }
+
+      return changed ? await sessionRepository.findByUserId(userId) : sessions;
+    } catch (error) {
+      logger.warn(`[ChatStorageService] ensureBuiltinAgentSessions failed for user ${userId}: ${error}`);
+      return sessions;
+    }
   }
 
   /**
