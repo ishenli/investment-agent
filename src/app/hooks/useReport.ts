@@ -6,7 +6,6 @@ import { AssetMetaType } from '@/types/assetMeta';
 
 // Types
 export type ReportType = 'weekly' | 'monthly' | 'emergency';
-export type AgentType = 'claude-sdk' | 'langchain';
 
 export type ReportListItem = {
   id: string;
@@ -75,7 +74,6 @@ const generateReport = async (payload: {
   startDate?: string;
   endDate?: string;
   modelSlug?: string;
-  agentType?: AgentType;
 }) => {
   const response = await post<{ success: boolean; data: { id: string; status: string } }>(
     '/api/report',

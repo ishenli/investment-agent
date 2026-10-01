@@ -11,7 +11,6 @@ export class ReportController extends BaseBizController {
     startDate?: string;
     endDate?: string;
     modelSlug?: string; // 可选的模型标识，用于选择特定的 AI 模型
-    agentType?: 'claude-sdk' | 'langchain'; // 可选的 Agent 类型，默认使用 claude-sdk
   }) {
     try {
       // 获取当前用户ID
@@ -35,7 +34,6 @@ export class ReportController extends BaseBizController {
         startDate: param.startDate ? new Date(param.startDate) : undefined,
         endDate: param.endDate ? new Date(param.endDate) : undefined,
         modelSlug: param.modelSlug,
-        agentType: param.agentType,
       });
 
       return this.success(result);
