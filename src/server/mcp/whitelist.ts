@@ -8,20 +8,20 @@
  *
  * 设计依据 design.md - D3。
  */
-import { noteQueryClaudeTool } from '@server/core/agents/langchain/tools/noteTool';
-import { stockGetPriceClaudeTool } from '@server/core/agents/langchain/tools/stock/stockGetPrice';
-import { stockRecallCompanyInfoClaudeTool } from '@server/core/agents/langchain/tools/stock/stockRecallCompanyInfo';
-import { stockRecallMarketInfoClaudeTool } from '@server/core/agents/langchain/tools/stock/stockRecallMarketInfo';
-import { stockSearchNewsClaudeTool } from '@server/core/agents/langchain/tools/stock/stockSearchNews';
-import { searchAssetInfoClaudeTool } from '@server/core/agents/langchain/tools/assetTool';
-import { marketInfoSaveClaudeTool } from '@server/core/agents/langchain/tools/marketInfoSaveTool';
-import { dbQueryClaudeTool } from '@server/core/agents/langchain/tools/dbQueryTool';
 import {
+  noteQueryClaudeTool,
+  stockGetPriceClaudeTool,
+  stockRecallCompanyInfoClaudeTool,
+  stockRecallMarketInfoClaudeTool,
+  stockSearchNewsClaudeTool,
+  searchAssetInfoClaudeTool,
+  marketInfoSaveClaudeTool,
+  dbQueryClaudeTool,
   accountBalanceClaudeTool,
   transactionHistoryByDateClaudeTool,
   transactionHistoryClaudeTool,
   transactionSummaryClaudeTool,
-} from '@server/core/agents/langchain/tools/transactionTool';
+} from '@server/tools';
 
 import { toMcpTool, withReadOnlyGuard } from './adapters';
 import type { McpToolWithHandler } from './adapters';
