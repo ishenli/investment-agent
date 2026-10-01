@@ -62,9 +62,6 @@ importers:
       '@langchain/core':
         specifier: ^1.2.9
         version: 1.2.9(@opentelemetry/api@1.9.0)(openai@7.5.0(@aws-sdk/credential-provider-node@3.972.81)(@smithy/signature-v4@5.7.3)(ws@8.21.3)(zod@4.4.3))(ws@8.21.3)
-      '@langchain/langgraph':
-        specifier: ^1.4.12
-        version: 1.4.12(@langchain/core@1.2.9(@opentelemetry/api@1.9.0)(openai@7.5.0(@aws-sdk/credential-provider-node@3.972.81)(@smithy/signature-v4@5.7.3)(ws@8.21.3)(zod@4.4.3))(ws@8.21.3))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(zod@4.4.3)
       '@langchain/openai':
         specifier: ^1.5.10
         version: 1.5.10(@aws-sdk/credential-provider-node@3.972.81)(@langchain/core@1.2.9(@opentelemetry/api@1.9.0)(openai@7.5.0(@aws-sdk/credential-provider-node@3.972.81)(@smithy/signature-v4@5.7.3)(ws@8.21.3)(zod@4.4.3))(ws@8.21.3))(@smithy/signature-v4@5.7.3)(ws@8.21.3)
@@ -137,6 +134,9 @@ importers:
       '@radix-ui/react-use-controllable-state':
         specifier: ^1.2.6
         version: 1.2.6(@types/react@19.2.2)(react@19.2.0)
+      '@sinclair/typebox':
+        specifier: ^0.34.52
+        version: 0.34.52
       '@tabler/icons-react':
         specifier: ^3.46.0
         version: 3.46.0(react@19.2.0)
