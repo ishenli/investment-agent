@@ -213,5 +213,5 @@ export type {
 } from './types';
 
 // ============== pi-ai Re-exports ==============
-export { getModel, getModels, getProviders, getEnvApiKey } from '@mariozechner/pi-ai';
-export type { KnownProvider } from '@mariozechner/pi-ai';
+export { getModel, getModels, getProviders, getEnvApiKey } from '@earendil-works/pi-ai/compat';
+export type { KnownProvider } from '@earendil-works/pi-ai/compat';

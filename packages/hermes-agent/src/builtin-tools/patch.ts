@@ -8,7 +8,7 @@
 import { Type } from '@sinclair/typebox';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import type { TextContent } from '@mariozechner/pi-ai';
+import type { TextContent } from '@earendil-works/pi-ai/compat';
 
 export const patchSchema = Type.Object({
   path: Type.String({ description: 'File path to patch' }),

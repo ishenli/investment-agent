@@ -7,7 +7,7 @@
  */
 
 import { Type } from '@sinclair/typebox';
-import type { TextContent } from '@mariozechner/pi-ai';
+import type { TextContent } from '@earendil-works/pi-ai/compat';
 
 export const thinkSchema = Type.Object({
   thought: Type.String({

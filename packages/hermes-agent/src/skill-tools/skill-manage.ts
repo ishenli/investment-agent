@@ -20,7 +20,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Type, type TUnion, type TLiteral } from '@sinclair/typebox';
-import type { TextContent } from '@mariozechner/pi-ai';
+import type { TextContent } from '@earendil-works/pi-ai/compat';
 import {
   SKILL_FILE_NAME,
   ALLOWED_SUBDIRS,

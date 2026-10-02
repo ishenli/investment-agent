@@ -5,7 +5,7 @@
  */
 
 import { Type } from '@sinclair/typebox';
-import type { TextContent } from '@mariozechner/pi-ai';
+import type { TextContent } from '@earendil-works/pi-ai/compat';
 
 export const webSearchSchema = Type.Object({
   query: Type.String({ description: 'Search query' }),

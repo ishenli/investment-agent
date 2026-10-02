@@ -3,7 +3,7 @@
  */
 
 import * as fs from 'node:fs';
-import { complete, type Model, type Api } from '@mariozechner/pi-ai';
+import { complete, type Model, type Api } from '@earendil-works/pi-ai/compat';
 import type {
   FrameworkConfig,
   Dimension,

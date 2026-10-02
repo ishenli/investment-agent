@@ -5,7 +5,7 @@
  * tool registration and dispatch.
  */
 
-import type { Tool, TextContent, ImageContent } from '@mariozechner/pi-ai';
+import type { Tool, TextContent, ImageContent } from '@earendil-works/pi-ai/compat';
 import type { TObject } from '@sinclair/typebox';
 import type { ToolCallResult } from './types';
 import type { ToolCategory, PermissionLevel } from './permission/types';

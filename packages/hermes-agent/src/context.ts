@@ -19,8 +19,8 @@
  *   4. compress() called when shouldCompress() returns true
  */
 
-import type { Message, AssistantMessage, ToolCall, Context } from '@mariozechner/pi-ai';
-import { complete, type Model, type Api } from '@mariozechner/pi-ai';
+import type { Message, AssistantMessage, ToolCall, Context } from '@earendil-works/pi-ai/compat';
+import { complete, type Model, type Api } from '@earendil-works/pi-ai/compat';
 
 // ============== Constants ==============
 
