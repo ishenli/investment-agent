@@ -18,7 +18,7 @@ import {
   type AssistantMessage,
   type ToolResultMessage,
   type ToolCall,
-} from '@mariozechner/pi-ai';
+} from '@earendil-works/pi-ai/compat';
 import { IterationBudget } from './budget';
 import { HermesAgentError } from './error';
 import { withRetry } from './retry';

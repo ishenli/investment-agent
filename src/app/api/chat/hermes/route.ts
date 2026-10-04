@@ -16,6 +16,8 @@ import { createSSEResponse } from '@server/base/responseUtil';
 import { chatStorageService } from '@server/service/chatStorageService';
 import { sessionRepository } from '@server/repository/chat/session';
 import authService from '@server/service/authService';
+import settingService from '@server/service/settingService';
+import followUpService from '@server/service/followUpService';
 import logger from '@server/base/logger';
 
 export const runtime = 'nodejs';
@@ -144,6 +146,32 @@ class HermesAgentController extends BaseController {
               }
             } catch (error) {
               logger.error(`[HermesAgentController] Failed to persist assistant message: ${error}`);
+            }
+          }
+
+          // 生成并发送相关追问（≤3 条，对话设置开关 + 投资域双闸，fail-soft 不阻塞主回复）
+          if (result.content) {
+            try {
+              const toggle = await settingService.getConfigValueByKey('CHAT_AI_TIPS_ENABLED');
+              if (toggle !== 'false') {
+                const messages = body.messages
+                  .filter((msg) => msg.role === 'user')
+                  .map((msg) => msg.content);
+                const items = await followUpService.generateFollowUpQuestions({
+                  userId: userIdNum,
+                  provider: body.provider,
+                  model: body.model,
+                  messages,
+                  finalReply: result.content,
+                });
+                if (items.length > 0) {
+                  logger.info(`[HermesAgentController] Emitting ${items.length} related question(s)`);
+                }
+                await sseEmitter.sendRelated(items);
+              }
+            } catch (error) {
+              logger.warn(`[HermesAgentController] Follow-up generation failed: ${error}`);
+              await sseEmitter.sendRelated([]);
             }
           }
         } catch (error) {

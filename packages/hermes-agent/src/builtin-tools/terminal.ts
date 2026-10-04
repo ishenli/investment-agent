@@ -6,7 +6,7 @@
 
 import { Type } from '@sinclair/typebox';
 import { execSync } from 'node:child_process';
-import type { TextContent } from '@mariozechner/pi-ai';
+import type { TextContent } from '@earendil-works/pi-ai/compat';
 
 const MAX_TIMEOUT_MS = 600_000; // 10 minutes
 const MAX_OUTPUT_CHARS = 100_000;

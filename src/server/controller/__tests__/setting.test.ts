@@ -125,3 +125,39 @@ describe('SettingBizController - Notification Preferences', () => {
     });
   });
 });
+
+describe('SettingBizController - updateSetting whitelist', () => {
+  let controller: SettingBizController;
+
+  beforeEach(() => {
+    controller = new SettingBizController();
+    vi.clearAllMocks();
+  });
+
+  it('CHAT_AI_TIPS_ENABLED 是合法键并正常写入', async () => {
+    vi.spyOn(authService, 'getCurrentUserAccount').mockResolvedValue({ id: 1 } as any);
+    vi.spyOn(settingService, 'setSetting').mockResolvedValue({
+      id: 1,
+      userId: 1,
+      key: 'CHAT_AI_TIPS_ENABLED',
+      value: 'false',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    const result = await controller.updateSetting({ key: 'CHAT_AI_TIPS_ENABLED', value: 'false' });
+
+    expect(result.success).toBe(true);
+    expect(settingService.setSetting).toHaveBeenCalledWith(1, 'CHAT_AI_TIPS_ENABLED', 'false');
+  });
+
+  it('白名单外的键被拒绝且不写入', async () => {
+    vi.spyOn(authService, 'getCurrentUserAccount').mockResolvedValue({ id: 1 } as any);
+
+    const result = await controller.updateSetting({ key: 'NOT_A_REAL_KEY', value: 'x' });
+
+    expect(result.success).toBe(false);
+    expect(result.code).toBe('validate_error');
+    expect(settingService.setSetting).not.toHaveBeenCalled();
+  });
+});

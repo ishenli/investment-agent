@@ -28,7 +28,8 @@
       "@typings/*": ["src/types/*"],
       "@investment-agent/hermes-agent": ["packages/hermes-agent/src/index.ts"],
       "@investment-agent/agent-channel": ["packages/agent-channel/src/index.ts"],
-      "@mariozechner/pi-ai": ["packages/hermes-agent/node_modules/@mariozechner/pi-ai/dist/index.js"]
+      "@earendil-works/pi-ai": ["packages/hermes-agent/node_modules/@earendil-works/pi-ai/dist/index.js"],
+      "@earendil-works/pi-ai/compat": ["packages/hermes-agent/node_modules/@earendil-works/pi-ai/dist/compat.js"]
     }
   },
   "include": ["src/**/*"],

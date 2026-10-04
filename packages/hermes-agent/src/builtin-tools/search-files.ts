@@ -7,7 +7,7 @@
 import { Type } from '@sinclair/typebox';
 import * as path from 'node:path';
 import { execSync } from 'node:child_process';
-import type { TextContent } from '@mariozechner/pi-ai';
+import type { TextContent } from '@earendil-works/pi-ai/compat';
 
 export const searchFilesSchema = Type.Object({
   pattern: Type.String({ description: 'Regex pattern (content search) or glob (file search)' }),

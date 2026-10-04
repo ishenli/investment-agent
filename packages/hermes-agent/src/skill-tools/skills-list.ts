@@ -8,7 +8,7 @@
  */
 
 import { Type } from '@sinclair/typebox';
-import type { TextContent } from '@mariozechner/pi-ai';
+import type { TextContent } from '@earendil-works/pi-ai/compat';
 import type { SkillMetadata, SkillScanOptions } from './types';
 import { scanSkills } from './skill-utils';
 

@@ -6,7 +6,7 @@
  *   const result = await agent.run('What is 2+2?');
  */
 
-import type { Context, Tool, UserMessage, Api, Model } from '@mariozechner/pi-ai';
+import type { Context, Tool, UserMessage, Api, Model } from '@earendil-works/pi-ai/compat';
 import { runAgentLoop, createToolExecutor } from './loop';
 import { buildSystemPrompt, type PromptBuilderConfig } from './prompt';
 import { ToolRegistry } from './tools';

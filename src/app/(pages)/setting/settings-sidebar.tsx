@@ -11,6 +11,7 @@ import {
   IconBulb,
   IconCurrencyDollar,
   IconMessage,
+  IconMessageCircle,
   IconBell,
   IconChartLine,
   IconTestPipe,
@@ -33,6 +34,7 @@ export type SettingsCategory =
   | 'channel'
   | 'theme'
   | 'general'
+  | 'conversation'
   | 'exchange'
   | 'about'
   | 'skills'
@@ -55,6 +57,13 @@ const settingsItems: {
     icon: IconAdjustments,
     url: '/setting/general',
     description: '语言和其他通用配置',
+  },
+  {
+    id: 'conversation',
+    title: '对话设置',
+    icon: IconMessageCircle,
+    url: '/setting/conversation',
+    description: '管理对话相关功能开关',
   },
   {
     id: 'notification',

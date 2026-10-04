@@ -24,7 +24,7 @@
  *   onDelegation(task, result, opts)           — subagent completion observation
  */
 
-import type { Message } from '@mariozechner/pi-ai';
+import type { Message } from '@earendil-works/pi-ai/compat';
 import type { HermesAgentResult } from './types';
 import type { LearningRecord } from './reflection/types';
 

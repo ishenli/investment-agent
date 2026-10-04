@@ -188,6 +188,31 @@ describe('useNotifications', () => {
     consoleSpy.mockRestore();
   });
 
+  it('data 为 null 的错误信封不应崩溃轮询', async () => {
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    mockedGet.mockResolvedValue({
+      success: false,
+      data: null,
+      message: '用户未登录',
+      code: 'unauthorized',
+    });
+
+    const { result } = renderHook(() => useNotifications());
+
+    await waitFor(() => {
+      expect(mockedGet).toHaveBeenCalledTimes(1);
+    });
+
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(result.current.notifications).toEqual([]);
+    expect(result.current.unreadCount).toBe(0);
+    expect(notifySpy).not.toHaveBeenCalled();
+    expect(consoleSpy).not.toHaveBeenCalled();
+
+    consoleSpy.mockRestore();
+  });
+
   it('markAsRead 应该调用 PATCH 并刷新', async () => {
     mockedGet.mockResolvedValue(createResponse([]));
     mockedRequest.mockResolvedValue({ success: true });

@@ -96,6 +96,11 @@ export function useNotifications(): UseNotificationsReturn {
       });
       const response = raw.data;
 
+      if (!response) {
+        // API 错误信封（未登录/服务端错误等）data 为 null——保留当前状态，等待下一轮轮询
+        return;
+      }
+
       setNotifications(response.items);
       setUnreadCount(response.unreadCount);
       setGlobalUnreadCount(response.unreadCount);

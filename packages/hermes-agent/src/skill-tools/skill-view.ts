@@ -10,7 +10,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Type } from '@sinclair/typebox';
-import type { TextContent } from '@mariozechner/pi-ai';
+import type { TextContent } from '@earendil-works/pi-ai/compat';
 import { ALLOWED_SUBDIRS, MAX_SKILL_FILE_BYTES } from './types';
 import { findSkillDir, parseSkillContent } from './skill-utils';
 import { preprocessSkillContent } from './skill-preprocessing';

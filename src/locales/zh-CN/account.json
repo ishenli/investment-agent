@@ -48,33 +48,5 @@
     "title": "账户列表"
   },
   "loading": "加载中...",
-  "settings": {
-    "leverage": {
-      "description": "杠杆可以放大收益，但也会放大风险。建议新手从低杠杆开始。",
-      "label": "杠杆设置",
-      "placeholder": "选择杠杆"
-    },
-    "market": {
-      "description": "选择您希望交易的市场。不同市场有不同的交易规则和可用股票。",
-      "label": "交易市场",
-      "placeholder": "选择市场"
-    },
-    "riskMode": {
-      "advanced": "进阶模式",
-      "description": "选择适合您的风险评估标准",
-      "label": "风险模式",
-      "placeholder": "风险模式",
-      "retail": "散户模式",
-      "title": "风险模式"
-    },
-    "save": "保存设置",
-    "saved": "设置已保存",
-    "saving": "保存中...",
-    "tabs": {
-      "account": "账户设置",
-      "risk": "风险模式"
-    },
-    "title": "账户设置"
-  },
   "title": "账户管理"
 }

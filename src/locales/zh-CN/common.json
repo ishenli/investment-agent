@@ -29,7 +29,6 @@
   },
   "header": {
     "accountAnalysis": "账户分析",
-    "accountSetting": "账户设置",
     "assetMarketInfo": "资产市场信息",
     "assetTrend": "资产趋势",
     "createTradingAccount": "新增交易账户",
@@ -111,7 +110,6 @@
     "title": "话题"
   },
   "user": {
-    "accountSettings": "账户设置",
     "addAccount": "新增账户",
     "switchAccount": "切换账号"
   }

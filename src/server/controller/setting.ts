@@ -22,6 +22,7 @@ const SettingKeySchema = z.enum([
   'FEISHU_ALLOWED_USERS',
   'FEISHU_ALLOWED_CHATS',
   'NOTIFICATION_PREFERENCES',
+  'CHAT_AI_TIPS_ENABLED',
 ]);
 
 const SettingSchema = z.object({

@@ -16,6 +16,8 @@ import { buildExplicitSkillPrompt } from '@server/core/engine/skillPrompt';
 import { claudeService } from '@server/service/claudeService';
 import authService from '@server/service/authService';
 import { skillService } from '@server/service/skillService';
+import settingService from '@server/service/settingService';
+import followUpService from '@server/service/followUpService';
 import { BaseController } from '../../base/baseController';
 import { WithRequestContextStatic } from '@server/base/decorators';
 import { SSEEmitter } from '@server/base/sseEmitter';
@@ -211,7 +213,7 @@ class ClaudeChatController extends BaseController {
       // 7. 通过 engineRegistry 运行 Claude 引擎
       (async () => {
         try {
-          await runEngine(
+          const result = await runEngine(
             'claude',
             {
               sessionId: realSessionId,
@@ -234,6 +236,32 @@ class ClaudeChatController extends BaseController {
             },
             sseEmitter,
           );
+
+          // 生成并发送相关追问（≤3 条，对话设置开关 + 投资域双闸，fail-soft 不阻塞主回复）
+          if (result.content) {
+            try {
+              const toggle = await settingService.getConfigValueByKey('CHAT_AI_TIPS_ENABLED');
+              if (toggle !== 'false') {
+                const messages = body.messages
+                  .filter((msg) => msg.role === 'user')
+                  .map((msg) => msg.content);
+                const items = await followUpService.generateFollowUpQuestions({
+                  userId: userIdNum,
+                  provider: claudeConfig.provider.name,
+                  model: claudeConfig.modelSlug,
+                  messages,
+                  finalReply: result.content,
+                });
+                if (items.length > 0) {
+                  logger.info(`[ClaudeChatController] Emitting ${items.length} related question(s)`);
+                }
+                await sseEmitter.sendRelated(items);
+              }
+            } catch (error) {
+              logger.warn(`[ClaudeChatController] Follow-up generation failed: ${error}`);
+              await sseEmitter.sendRelated([]);
+            }
+          }
         } catch (error) {
           logger.error('[ClaudeChatController] Engine error:', error);
         } finally {

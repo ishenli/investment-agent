@@ -628,6 +628,8 @@ class ChatService {
   }: BailingLLMStreamParams) => {
     let textFinal = '';
     let reasonTextFinal = '';
+    // 累积流中最后一次 related 事件，避免收尾时被 onFinish 传回的 [] 覆盖
+    let relatedFinal: string[] = [];
     const uiArtifactsAccum: Array<{
       id: string;
       type: UIArtifactType;
@@ -721,6 +723,7 @@ class ChatService {
           }
           case 'related': {
             if (event.items && event.items.length > 0) {
+              relatedFinal = event.items;
               onMessageHandle?.({
                 type: 'related',
                 related: event.items,
@@ -857,7 +860,7 @@ class ChatService {
         // AbortError 或网络错误：流已结束，直接上报最终结果
         onFinish?.(textFinal, {
           toolCalls: [],
-          related: [],
+          related: relatedFinal,
           reasoning: { content: reasonTextFinal },
           grounding: { citations: [], searchQueries: [] },
           usage: {},
@@ -869,7 +872,7 @@ class ChatService {
       onDone: () => {
         onFinish?.(textFinal, {
           toolCalls: [],
-          related: [],
+          related: relatedFinal,
           reasoning: { content: reasonTextFinal },
           grounding: { citations: [], searchQueries: [] },
           usage: {},

@@ -1,7 +1,7 @@
 /**
  * Core type definitions for Hermes Agent.
  *
- * Uses @mariozechner/pi-ai types as the foundation.
+ * Uses @earendil-works/pi-ai/compat types as the foundation.
  */
 
 // ============== Permission Types ==============
@@ -25,7 +25,7 @@ import type {
   ImageContent,
   Api,
   Model,
-} from '@mariozechner/pi-ai';
+} from '@earendil-works/pi-ai/compat';
 
 // Re-export pi-ai types for convenience
 export type {

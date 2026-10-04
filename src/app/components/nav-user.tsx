@@ -3,7 +3,6 @@
 import {
   IconDotsVertical,
   IconLogout,
-  IconUserCircle,
   IconUserPlus,
 } from '@tabler/icons-react';
 
@@ -70,7 +69,7 @@ export function NavUser({
               </SidebarMenuButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-              className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+              className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg z-100"
               side={isMobile ? 'bottom' : 'right'}
               align="end"
               sideOffset={4}
@@ -93,12 +92,6 @@ export function NavUser({
                   <DropdownMenuItem>
                     <IconUserPlus />
                     {t('user.addAccount')}
-                  </DropdownMenuItem>
-                </Link>
-                <Link href="/account/setting">
-                  <DropdownMenuItem>
-                    <IconUserCircle />
-                    {t('user.accountSettings')}
                   </DropdownMenuItem>
                 </Link>
               </DropdownMenuGroup>

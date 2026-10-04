@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@mariozechner/pi-ai', () => ({
+vi.mock('@earendil-works/pi-ai/compat', () => ({
   complete: vi.fn(),
   stream: vi.fn(),
 }));
 
-import { complete, stream } from '@mariozechner/pi-ai';
+import { complete, stream } from '@earendil-works/pi-ai/compat';
 import { runAgentLoop } from '../loop';
 import { MemoryManager } from '../memory-manager';
 import type { AgentConfig } from '../types';
-import type { Context } from '@mariozechner/pi-ai';
+import type { Context } from '@earendil-works/pi-ai/compat';
 
 function makeAssistant(text: string) {
   return {

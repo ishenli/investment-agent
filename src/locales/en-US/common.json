@@ -29,7 +29,6 @@
   },
   "header": {
     "accountAnalysis": "Account Analysis",
-    "accountSetting": "Account Setting",
     "assetMarketInfo": "Asset Market Info",
     "assetTrend": "Asset Trend",
     "createTradingAccount": "Create Trading Account",
@@ -111,7 +110,6 @@
     "title": "Topics"
   },
   "user": {
-    "accountSettings": "Account Settings",
     "addAccount": "Add Account",
     "switchAccount": "Switch Account"
   }

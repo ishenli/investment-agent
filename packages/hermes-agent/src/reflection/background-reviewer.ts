@@ -13,7 +13,7 @@
  * - Spans for audit and skill generation phases
  */
 
-import type { Message, Model, Api } from '@mariozechner/pi-ai';
+import type { Message, Model, Api } from '@earendil-works/pi-ai/compat';
 import type {
   BackgroundReviewTrigger,
   BackgroundReviewSummary,
