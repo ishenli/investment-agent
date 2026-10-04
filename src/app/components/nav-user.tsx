@@ -3,7 +3,6 @@
 import {
   IconDotsVertical,
   IconLogout,
-  IconUserCircle,
   IconUserPlus,
 } from '@tabler/icons-react';
 
@@ -93,12 +92,6 @@ export function NavUser({
                   <DropdownMenuItem>
                     <IconUserPlus />
                     {t('user.addAccount')}
-                  </DropdownMenuItem>
-                </Link>
-                <Link href="/account/setting">
-                  <DropdownMenuItem>
-                    <IconUserCircle />
-                    {t('user.accountSettings')}
                   </DropdownMenuItem>
                 </Link>
               </DropdownMenuGroup>

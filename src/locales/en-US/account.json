@@ -48,33 +48,5 @@
     "title": "Account List"
   },
   "loading": "Loading...",
-  "settings": {
-    "leverage": {
-      "description": "Leverage can amplify gains but also amplifies risk. Beginners are recommended to start with low leverage.",
-      "label": "Leverage Settings",
-      "placeholder": "Select leverage"
-    },
-    "market": {
-      "description": "Select the market you want to trade in. Different markets have different trading rules and available stocks.",
-      "label": "Trading Market",
-      "placeholder": "Select market"
-    },
-    "riskMode": {
-      "advanced": "Advanced Mode",
-      "description": "Select risk assessment standard suitable for you",
-      "label": "Risk Mode",
-      "placeholder": "Risk Mode",
-      "retail": "Retail Mode",
-      "title": "Risk Mode"
-    },
-    "save": "Save Settings",
-    "saved": "Settings saved",
-    "saving": "Saving...",
-    "tabs": {
-      "account": "Account Settings",
-      "risk": "Risk Mode"
-    },
-    "title": "Account Settings"
-  },
   "title": "Account Management"
 }

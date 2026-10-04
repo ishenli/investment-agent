@@ -1,5 +1,5 @@
 import { StateCreator } from 'zustand';
-import { TradingAccountType, UpdateAccountRequestType } from '@typings/account';
+import { TradingAccountType } from '@typings/account';
 import { AccountStore } from '../../types';
 
 /**
@@ -13,8 +13,6 @@ export interface AccountSettingsAction {
   fetchAccountSettings: (accountId: string) => Promise<void>;
   fetchAccounts: () => Promise<void>;
   fetchSelectedAccount: () => Promise<void>;
-  updateAccountSettings: (accountId: string, settings: UpdateAccountRequestType) => Promise<void>;
-  updateAccountRiskMode: (riskMode: 'retail' | 'advanced') => Promise<void>;
   setAccount: (account: TradingAccountType | null) => Promise<void>;
   setAccounts: (accounts: TradingAccountType[]) => void;
   setLoading: (loading: boolean) => void;
@@ -118,58 +116,6 @@ export const createAccountSettingsSlice: StateCreator<
         ...state,
         error: (error as Error).message,
         loading: false,
-      }));
-    }
-  },
-
-  updateAccountSettings: async (accountId: string, settings: UpdateAccountRequestType) => {
-    set((state) => ({ ...state, saving: true, error: null }));
-    try {
-      const response = await fetch(`/api/account?accountId=${accountId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(settings),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update account settings');
-      }
-
-      const data = await response.json();
-      set((state) => ({ ...state, account: data.data, saving: false }));
-    } catch (error) {
-      set((state) => ({
-        ...state,
-        error: (error as Error).message,
-        saving: false,
-      }));
-    }
-  },
-
-  updateAccountRiskMode: async (riskMode: 'retail' | 'advanced') => {
-    set((state) => ({ ...state, saving: true, error: null }));
-    try {
-      const response = await fetch(`/api/account`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ riskMode }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update account risk mode');
-      }
-
-      const data = await response.json();
-      set((state) => ({ ...state, account: data.data, saving: false }));
-    } catch (error) {
-      set((state) => ({
-        ...state,
-        error: (error as Error).message,
-        saving: false,
       }));
     }
   },
