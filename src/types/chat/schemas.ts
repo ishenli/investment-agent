@@ -124,6 +124,7 @@ export const CreateMessageSchema = z.object({
 export const UpdateMessageSchema = z.object({
   id: z.string().min(1, 'ID不能为空'),
   content: z.string().optional(),
+  related: z.array(z.string()).optional(),
   userLikeTag: z.enum(['like', 'dislike', 'unknown']).optional(),
   uiArtifacts: z.array(z.record(z.string(), z.unknown())).optional(),
 });

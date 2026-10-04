@@ -7,7 +7,6 @@ import { Flexbox } from 'react-layout-kit';
 
 import { useSendMessage } from '@renderer/(pages)/chat/features/ChatInput/useSend';
 import { useChatStore } from '@renderer/store/chat';
-import { chatSelectors } from '@renderer/store/chat/selectors';
 import { ChatMessage } from '@typings/message';
 import React from 'react';
 
@@ -35,16 +34,16 @@ const useStyles = createStyles(({ css, token, responsive }) => ({
   `,
 }));
 
-const SuggestionBelowMessage = memo<ChatMessage>(({ id, related, role }) => {
-  const latest = useChatStore(chatSelectors.latestMessage);
+const SuggestionBelowMessage = memo<ChatMessage>(({ related, role }) => {
   const [updateInputMessage] = useChatStore((s) => [s.updateInputMessage]);
 
   const { styles } = useStyles();
   const { send: sendMessage } = useSendMessage();
 
-  const isLastAssistant = latest?.id === id && role === 'assistant' && !!related?.length;
+  // 每条带相关建议的 assistant 消息都渲染，不再限定"仅最后一条"
+  const hasSuggestions = role === 'assistant' && !!related?.length;
 
-  if (!isLastAssistant) return null;
+  if (!hasSuggestions) return null;
 
   return (
     <div className={styles.container}>

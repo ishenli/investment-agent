@@ -435,7 +435,13 @@ export class ChatController extends BaseBizController {
   }
 
   @WithRequestContext()
-  async updateMessage(body: { id: string; content?: string; userLikeTag?: 'like' | 'dislike' | 'unknown'; uiArtifacts?: Record<string, unknown>[] }) {
+  async updateMessage(body: {
+    id: string;
+    content?: string;
+    related?: string[];
+    userLikeTag?: 'like' | 'dislike' | 'unknown';
+    uiArtifacts?: Record<string, unknown>[];
+  }) {
     try {
       const userId = await getCurrentUserIdAsNumber();
       if (!userId) {

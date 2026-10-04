@@ -364,6 +364,7 @@
     "agent": "Agent",
     "exchange": "Exchange Rate",
     "general": "General",
+    "conversation": "Conversation",
     "provider": "Provider",
     "theme": "Theme",
     "skills": "Skills",
@@ -682,6 +683,16 @@
       "modeHint": "WeChat personal account uses long-polling mode, no need to configure Webhook URL.",
       "qrHint": "Click 'Start QR Code Login', then scan the QR code with WeChat. Credentials will be automatically saved after successful login."
     }
+  },
+  "conversation": {
+    "aiTips": {
+      "description": "Show follow-up question suggestions below each AI reply (max 3)",
+      "enabled": "Show AI follow-up suggestions",
+      "enabledDescription": "Disabling stops generating follow-up suggestions for new AI replies",
+      "title": "AI Follow-up Suggestions"
+    },
+    "description": "Conversation behavior settings",
+    "title": "Conversation Settings"
   },
   "observability": {
     "tokensShort": "tokens",

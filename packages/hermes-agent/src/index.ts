@@ -28,6 +28,9 @@ export {
   type ContextEngineStatus,
 } from './context';
 
+// ============== Reflection ==============
+export { ReflectionAuditor } from './reflection';
+
 // ============== Prompt Builder ==============
 export {
   buildSystemPrompt,

@@ -364,6 +364,7 @@
     "agent": "智能体设置",
     "exchange": "汇率设置",
     "general": "通用设置",
+    "conversation": "对话设置",
     "provider": "模型设置",
     "theme": "主题设置",
     "notification": "通知设置",
@@ -475,6 +476,16 @@
       "modeHint": "微信渠道使用长轮询（Long Poll）模式，无需配置 Webhook 地址，服务启动后自动连接。",
       "qrHint": "点击「开始扫码登录」，然后用微信扫描二维码，登录成功后凭证会自动保存"
     }
+  },
+  "conversation": {
+    "aiTips": {
+      "description": "开启后在 AI 回复下方展示相关追问建议（每次不超过 3 条）",
+      "enabled": "显示 AI 追问提示",
+      "enabledDescription": "关闭后不再为新的 AI 回复生成追问建议",
+      "title": "AI 追问提示"
+    },
+    "description": "对话行为相关配置",
+    "title": "对话设置"
   },
   "exchange": {
     "title": "汇率设置",
