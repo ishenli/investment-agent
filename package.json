@@ -13,7 +13,7 @@
     "electron:pack": "npm run electron:build && electron-builder --config electron-builder.yml",
     "electron:pack:mac": "electron-builder --mac --config electron-builder.yml",
     "electron:build:pack": "npm run electron:build && npm run electron:pack:mac",
-    "dev": "next dev --port 8888",
+    "dev": "next dev --port 8889",
     "build": "rm -rf .next && next build",
     "build:npm": "npm run build",
     "prepublishOnly": "npm run build:npm",
